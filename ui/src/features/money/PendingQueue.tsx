@@ -148,10 +148,11 @@ export default function PendingQueue({ onGoToControl }: PendingQueueProps) {
     postponed,
   ]);
 
-  // Pastilles, pas options : on garde des `Budget`, mais un groupe n'est pas
-  // plus une cible ici qu'ailleurs — le serveur refuserait la ventilation.
+  // Pastilles, pas options : on garde des `Budget`. Seul le global est écarté —
+  // une catégorie n'est pas un budget, donc elle n'arrive jamais dans cette
+  // liste et il n'y a rien de plus à filtrer.
   const budgets = React.useMemo(
-    () => (budgetsQuery.data ?? []).filter((b) => !b.is_global && !b.is_group),
+    () => (budgetsQuery.data ?? []).filter((b) => !b.is_global),
     [budgetsQuery.data],
   );
 

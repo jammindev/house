@@ -10,9 +10,10 @@ from core.timezones import household_today
 
 from .aggregations import compute_budget_overview, compute_cashflow_projection
 from .analysis import DEFAULT_MONTHS, compute_budget_analysis
-from .models import Budget, BudgetReport, RecurringExpense
+from .models import Budget, BudgetCategory, BudgetReport, RecurringExpense
 from .report.service import get_or_generate_report, last_closed_month
 from .serializers import (
+    BudgetCategorySerializer,
     BudgetReportSerializer,
     BudgetSerializer,
     ConfirmOccurrenceSerializer,
@@ -21,10 +22,13 @@ from .serializers import (
 from .services import (
     confirm_recurring_occurrence,
     create_budget,
+    create_budget_category,
     create_recurring_expense,
     delete_budget,
+    delete_budget_category,
     delete_recurring_expense,
     update_budget,
+    update_budget_category,
     update_recurring_expense,
 )
 
@@ -54,7 +58,14 @@ class BudgetViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         # The service owns the write (shared with the agent); bind the created
         # instance back so DRF's 201 response serializes it.
+        #
+        # ⚠️ Every field the client may send has to appear here. This hand-copied
+        # list is what killed the previous grouping feature: the serializer
+        # validated the group, the panel offered it, and this call dropped it on
+        # the floor without a word. Adding a writable field to BudgetSerializer
+        # means adding it here too — regression: ``test_categories.py``.
         household = self._require_household()
+        category = serializer.validated_data.get("category")
         serializer.instance = create_budget(
             household,
             self.request.user,
@@ -62,6 +73,7 @@ class BudgetViewSet(viewsets.ModelViewSet):
             # ``.get``: an omitted amount is a category with no ceiling, not a 400.
             monthly_amount=serializer.validated_data.get("monthly_amount"),
             is_global=serializer.validated_data.get("is_global", False),
+            category_id=category.id if category is not None else None,
         )
 
     def perform_update(self, serializer):
@@ -91,6 +103,7 @@ class BudgetViewSet(viewsets.ModelViewSet):
                     "month": None,
                     "global": None,
                     "budgets": [],
+                    "categories": [],
                     "unbudgeted": "0.00",
                     "total_spent": "0.00",
                     "total_attested": "0.00",
@@ -151,6 +164,52 @@ class BudgetViewSet(viewsets.ModelViewSet):
                 household=household, months=months, budget_id=budget_id
             )
         )
+
+
+class BudgetCategoryViewSet(viewsets.ModelViewSet):
+    """CRUD for budget categories — the headings budgets are filed under.
+
+    Deliberately plain: a category holds no money, so there is no overview action
+    and no aggregation here. Its total lives in the budget overview, computed
+    once alongside the envelopes it groups (one query, one definition of
+    « dépensé »), never recomputed on a second endpoint that would eventually
+    disagree with the first.
+    """
+
+    permission_classes = [IsHouseholdMember]
+    serializer_class = BudgetCategorySerializer
+
+    def get_queryset(self):
+        qs = BudgetCategory.objects.for_user_households(self.request.user).select_related(
+            "created_by"
+        )
+        if self.request.household:
+            qs = qs.filter(household=self.request.household)
+        return qs
+
+    def perform_create(self, serializer):
+        household = self.request.household
+        if household is None:
+            raise ValidationError({"household_id": "A valid household context is required."})
+        serializer.instance = create_budget_category(
+            household,
+            self.request.user,
+            name=serializer.validated_data["name"],
+            monthly_amount=serializer.validated_data.get("monthly_amount"),
+        )
+
+    def perform_update(self, serializer):
+        household = self.request.household or serializer.instance.household
+        serializer.instance = update_budget_category(
+            household,
+            self.request.user,
+            serializer.instance,
+            fields=dict(serializer.validated_data),
+        )
+
+    def perform_destroy(self, instance):
+        household = self.request.household or instance.household
+        delete_budget_category(household, self.request.user, instance)
 
 
 class RecurringExpenseViewSet(viewsets.ModelViewSet):

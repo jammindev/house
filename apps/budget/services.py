@@ -17,8 +17,12 @@ from django.db import IntegrityError, transaction
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 
-from .models import Budget, RecurringExpense
-from .serializers import BudgetSerializer, RecurringExpenseSerializer
+from .models import Budget, BudgetCategory, RecurringExpense
+from .serializers import (
+    BudgetCategorySerializer,
+    BudgetSerializer,
+    RecurringExpenseSerializer,
+)
 
 
 def _save_scoped(serializer, household, user, *, creating: bool) -> Budget:
@@ -52,6 +56,7 @@ def create_budget(
     name: str,
     monthly_amount: Decimal | str | float | None = None,
     is_global: bool = False,
+    category_id=None,
 ) -> Budget:
     """Create a budget for ``household`` on behalf of ``user``.
 
@@ -59,16 +64,28 @@ def create_budget(
     common case for « Cadeaux » or « Santé », which one wants to see totalled
     without pretending to cap them. The global budget still requires one.
 
+    ``category_id`` files the envelope under a ``BudgetCategory``. It is a real
+    parameter, not a passthrough: this signature is an **allowlist**, and the
+    previous grouping feature shipped dead precisely because its field never
+    appeared here — the viewset copied three keys by hand, the group was dropped
+    in silence, and the tests that would have caught it built their parents
+    straight through the ORM.
+
     Reuses ``BudgetSerializer`` for validation (positive amount when given,
-    non-blank name). Raises ``rest_framework.ValidationError`` on invalid input
-    or a uniqueness clash (duplicate name, second global budget).
+    non-blank name, household-scoped category). Raises
+    ``rest_framework.ValidationError`` on invalid input or a uniqueness clash
+    (duplicate name, second global budget).
     """
+    data = {
+        "name": name,
+        "monthly_amount": monthly_amount,
+        "is_global": bool(is_global),
+    }
+    if category_id is not None:
+        data["category_id"] = category_id
+
     serializer = BudgetSerializer(
-        data={
-            "name": name,
-            "monthly_amount": monthly_amount,
-            "is_global": bool(is_global),
-        }
+        data=data, context={"request": _HouseholdContext(household)}
     )
     serializer.is_valid(raise_exception=True)
     return _save_scoped(serializer, household, user, creating=True)
@@ -77,15 +94,44 @@ def create_budget(
 def update_budget(household, user, budget: Budget, *, fields: dict) -> Budget:
     """Update ``budget`` — shared by the REST update and the agent's update.
 
-    Only ``name``, ``monthly_amount`` and ``is_global`` are editable. Validation
-    and uniqueness handling mirror ``create_budget``.
-    """
-    allowed = {"name", "monthly_amount", "is_global"}
-    payload = {k: v for k, v in fields.items() if k in allowed}
+    ``name``, ``monthly_amount``, ``is_global`` and ``category_id`` are editable.
+    Validation and uniqueness handling mirror ``create_budget``.
 
-    serializer = BudgetSerializer(budget, data=payload, partial=True)
+    ``category_id`` is in the allowlist **and** ``None`` is forwarded rather than
+    stripped: clearing the category is how a budget leaves it, so dropping the
+    key would make the filing one-way. Callers that mean "leave it alone" simply
+    omit the key.
+    """
+    allowed = {"name", "monthly_amount", "is_global", "category_id"}
+    payload = {k: v for k, v in fields.items() if k in allowed}
+    # ``validated_data`` echoes the resolved instance under ``category``; map it
+    # back so a REST PATCH round-trips through the same key the agent uses.
+    if "category" in fields and "category_id" not in payload:
+        category = fields["category"]
+        payload["category_id"] = getattr(category, "id", None)
+
+    serializer = BudgetSerializer(
+        budget,
+        data=payload,
+        partial=True,
+        context={"request": _HouseholdContext(household)},
+    )
     serializer.is_valid(raise_exception=True)
     return _save_scoped(serializer, household, user, creating=False)
+
+
+class _HouseholdContext:
+    """Minimal stand-in for ``request`` so the serializer can scope the category.
+
+    ``BudgetSerializer._validate_category`` reads ``context['request'].household``
+    to scope its lookup. The agent path has no HTTP request, and passing the real
+    one from the viewset would make the service depend on the transport.
+    """
+
+    __slots__ = ("household",)
+
+    def __init__(self, household):
+        self.household = household
 
 
 def delete_budget(household, user, budget: Budget) -> None:
@@ -98,6 +144,61 @@ def delete_budget(household, user, budget: Budget) -> None:
     if budget.household_id != household.id:
         raise ValueError("delete_budget: budget belongs to another household")
     budget.delete()
+
+
+# --- Budget categories ------------------------------------------------------
+
+
+def _save_category_scoped(serializer, household, user, *, creating: bool) -> BudgetCategory:
+    """Persist a category, mapping the name-uniqueness clash to a 400."""
+    try:
+        with transaction.atomic():
+            if creating:
+                return serializer.save(household=household, created_by=user)
+            return serializer.save(updated_by=user)
+    except IntegrityError as exc:
+        if "unique_budget_category_name_per_household" in str(exc).lower():
+            raise ValidationError({"name": "A category with this name already exists."})
+        raise ValidationError({"detail": "Could not save the category."})
+
+
+def create_budget_category(
+    household,
+    user,
+    *,
+    name: str,
+    monthly_amount: Decimal | str | float | None = None,
+) -> BudgetCategory:
+    """Create a budget category — a heading that budgets are filed under."""
+    serializer = BudgetCategorySerializer(
+        data={"name": name, "monthly_amount": monthly_amount}
+    )
+    serializer.is_valid(raise_exception=True)
+    return _save_category_scoped(serializer, household, user, creating=True)
+
+
+def update_budget_category(
+    household, user, category: BudgetCategory, *, fields: dict
+) -> BudgetCategory:
+    """Update a category. Only ``name`` and ``monthly_amount`` are editable."""
+    allowed = {"name", "monthly_amount"}
+    payload = {k: v for k, v in fields.items() if k in allowed}
+
+    serializer = BudgetCategorySerializer(category, data=payload, partial=True)
+    serializer.is_valid(raise_exception=True)
+    return _save_category_scoped(serializer, household, user, creating=False)
+
+
+def delete_budget_category(household, user, category: BudgetCategory) -> None:
+    """Delete a category — its budgets survive, unfiled.
+
+    ``Budget.category`` is ``SET_NULL``: deleting a heading must never take the
+    envelopes that carry the money with it. The budgets simply return to the
+    ungrouped list, keeping every euro they hold and every counter they feed.
+    """
+    if category.household_id != household.id:
+        raise ValueError("delete_budget_category: category belongs to another household")
+    category.delete()
 
 
 # --- Recurring expenses (parcours 21 lot 2) ---------------------------------

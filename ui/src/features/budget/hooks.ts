@@ -3,10 +3,13 @@ import { useTranslation } from 'react-i18next';
 import {
   confirmRecurringOccurrence,
   createBudget,
+  createBudgetCategory,
   createRecurringExpense,
   deleteBudget,
+  deleteBudgetCategory,
   deleteRecurringExpense,
   fetchBudgetAnalysis,
+  fetchBudgetCategories,
   fetchBudgetOverview,
   fetchBudgetReports,
   fetchBudgets,
@@ -15,7 +18,9 @@ import {
   fetchRecurringDue,
   fetchRecurringExpenses,
   updateBudget,
+  updateBudgetCategory,
   updateRecurringExpense,
+  type BudgetCategoryPayload,
   type BudgetPayload,
   type RecurringExpensePayload,
 } from '@/lib/api/budget';
@@ -26,6 +31,7 @@ import { useInvalidateMoney } from '@/features/money/invalidate';
 export const budgetKeys = {
   all: BUDGET_ROOT,
   list: () => [...budgetKeys.all, 'list'] as const,
+  categories: () => [...budgetKeys.all, 'categories'] as const,
   overview: () => [...budgetKeys.all, 'overview'] as const,
   recurring: () => [...budgetKeys.all, 'recurring'] as const,
   recurringDue: () => [...budgetKeys.all, 'recurring', 'due'] as const,
@@ -76,6 +82,48 @@ export function useDeleteBudget() {
   const invalidate = useInvalidateMoney();
   return useMutation({
     mutationFn: (id: string) => deleteBudget(id),
+    onSuccess: invalidate,
+  });
+}
+
+// --- Catégories de budget ---------------------------------------------------
+
+export function useBudgetCategories() {
+  return useQuery({ queryKey: budgetKeys.categories(), queryFn: fetchBudgetCategories });
+}
+
+export function useCreateBudgetCategory() {
+  const invalidate = useInvalidateMoney();
+  const { t } = useTranslation();
+  return useMutation({
+    mutationFn: (payload: BudgetCategoryPayload) => createBudgetCategory(payload),
+    onSuccess: () => {
+      invalidate();
+      toast({ description: t('budget.category.created'), variant: 'success' });
+    },
+    onError: () => toast({ description: t('common.saveFailed'), variant: 'destructive' }),
+  });
+}
+
+export function useUpdateBudgetCategory() {
+  const invalidate = useInvalidateMoney();
+  const { t } = useTranslation();
+  return useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: Partial<BudgetCategoryPayload> }) =>
+      updateBudgetCategory(id, payload),
+    onSuccess: () => {
+      invalidate();
+      toast({ description: t('budget.category.updated'), variant: 'success' });
+    },
+    onError: () => toast({ description: t('common.saveFailed'), variant: 'destructive' }),
+  });
+}
+
+/** Bare delete mutation — the panel wraps it in useDeleteWithUndo for the toast. */
+export function useDeleteBudgetCategory() {
+  const invalidate = useInvalidateMoney();
+  return useMutation({
+    mutationFn: (id: string) => deleteBudgetCategory(id),
     onSuccess: invalidate,
   });
 }

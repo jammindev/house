@@ -6,6 +6,7 @@ import {
   BarChart3,
   CalendarClock,
   FileText,
+  FolderPlus,
 } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -16,21 +17,50 @@ import { useDelayedLoading } from '@/lib/useDelayedLoading';
 import { useDeleteWithUndo } from '@/lib/useDeleteWithUndo';
 import { pushBack } from '@/lib/backNavigation';
 import { formatAmount } from '@/lib/format';
-import type { Budget, BudgetOverviewRow } from '@/lib/api/budget';
-import { useBudgetOverview, useDeleteBudget } from '@/features/budget/hooks';
+import type {
+  Budget,
+  BudgetCategory,
+  BudgetCategoryRow,
+  BudgetOverviewRow,
+} from '@/lib/api/budget';
+import {
+  useBudgetOverview,
+  useDeleteBudget,
+  useDeleteBudgetCategory,
+} from '@/features/budget/hooks';
 import BudgetCard from '@/features/budget/BudgetCard';
+import BudgetCategoryCard from '@/features/budget/BudgetCategoryCard';
+import BudgetCategoryDialog from '@/features/budget/BudgetCategoryDialog';
 import BudgetDialog from '@/features/budget/BudgetDialog';
 import AccessCard from './AccessCard';
 
 /** Rebuild an editable Budget from an overview row (avoids a second fetch). */
-function rowToBudget(row: BudgetOverviewRow, isGlobal: boolean, parentName?: string): Budget {
+function rowToBudget(
+  row: BudgetOverviewRow,
+  isGlobal: boolean,
+  categoryName?: string,
+): Budget {
   return {
     id: row.id,
     name: row.name,
     monthly_amount: row.amount,
     is_global: isGlobal,
-    parent: row.parent_id ? { id: row.parent_id, name: parentName ?? '' } : null,
-    is_group: row.is_group,
+    category: row.category_id ? { id: row.category_id, name: categoryName ?? '' } : null,
+    created_at: '',
+    updated_at: '',
+  };
+}
+
+/** Same trick for a category row — the dialog only needs name + own ceiling. */
+function rowToCategory(row: BudgetCategoryRow): BudgetCategory {
+  return {
+    id: row.id,
+    name: row.name,
+    // ⚠️ Uniquement son plafond **propre**. Passer la somme de ses budgets
+    // remplirait le champ avec un chiffre que personne n'a saisi, et le premier
+    // enregistrement le figerait en vrai plafond.
+    monthly_amount: row.has_own_amount ? row.amount : null,
+    budget_count: row.budget_count,
     created_at: '',
     updated_at: '',
   };
@@ -45,14 +75,26 @@ export default function BudgetsPanel() {
   const location = useLocation();
   const overviewQuery = useBudgetOverview();
   const deleteMutation = useDeleteBudget();
+  const deleteCategoryMutation = useDeleteBudgetCategory();
 
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [editing, setEditing] = React.useState<Budget | undefined>(undefined);
   const [pendingDelete, setPendingDelete] = React.useState<Set<string>>(new Set());
 
+  const [categoryDialogOpen, setCategoryDialogOpen] = React.useState(false);
+  const [editingCategory, setEditingCategory] = React.useState<BudgetCategory | undefined>(
+    undefined,
+  );
+  const [pendingCategoryDelete, setPendingCategoryDelete] = React.useState<Set<string>>(new Set());
+
   const { deleteWithUndo } = useDeleteWithUndo({
     label: t('budget.deleted'),
     onDelete: (id) => deleteMutation.mutateAsync(id),
+  });
+
+  const { deleteWithUndo: deleteCategoryWithUndo } = useDeleteWithUndo({
+    label: t('budget.category.deleted'),
+    onDelete: (id) => deleteCategoryMutation.mutateAsync(id),
   });
 
   const overview = overviewQuery.data;
@@ -80,25 +122,60 @@ export default function BudgetsPanel() {
     });
   }
 
+  function openCreateCategory() {
+    setEditingCategory(undefined);
+    setCategoryDialogOpen(true);
+  }
+
+  function openEditCategory(category: BudgetCategory) {
+    setEditingCategory(category);
+    setCategoryDialogOpen(true);
+  }
+
+  function handleDeleteCategory(id: string) {
+    deleteCategoryWithUndo(id, {
+      onRemove: () => setPendingCategoryDelete((prev) => new Set(prev).add(id)),
+      onRestore: () =>
+        setPendingCategoryDelete((prev) => {
+          const next = new Set(prev);
+          next.delete(id);
+          return next;
+        }),
+    });
+  }
+
   const namedRows = (overview?.budgets ?? []).filter((r) => !pendingDelete.has(r.id));
-  // Les groupes d'abord, chacun suivi de ce qu'il totalise, puis les budgets
-  // seuls. L'imbrication est **de l'affichage** : le serveur a déjà fait la
-  // somme, le front ne recalcule rien — un total recalculé côté client finirait
+  const categoryRows = (overview?.categories ?? []).filter(
+    (r) => !pendingCategoryDelete.has(r.id),
+  );
+
+  // Le regroupement est **de l'affichage seul** : chaque total vient déjà calculé
+  // du serveur, le front ne resomme rien. Un total recalculé côté client finirait
   // par ne plus dire la même chose que le Contrôle.
-  const childrenOf = React.useMemo(() => {
+  //
+  // Une catégorie dont on vient d'annuler la suppression réapparaît avec ses
+  // budgets : c'est pour ça que le rangement se lit sur `category_id` et non sur
+  // une liste figée au chargement.
+  const budgetsByCategory = React.useMemo(() => {
     const map = new Map<string, BudgetOverviewRow[]>();
     for (const row of namedRows) {
-      if (!row.parent_id) continue;
-      const siblings = map.get(row.parent_id) ?? [];
+      if (!row.category_id) continue;
+      const siblings = map.get(row.category_id) ?? [];
       siblings.push(row);
-      map.set(row.parent_id, siblings);
+      map.set(row.category_id, siblings);
     }
     return map;
   }, [namedRows]);
-  const rootRows = namedRows.filter((r) => !r.parent_id);
-  const nameById = new Map(namedRows.map((r) => [r.id, r.name]));
+
+  const visibleCategoryIds = new Set(categoryRows.map((r) => r.id));
+  // Un budget dont la catégorie vient d'être supprimée redevient libre à
+  // l'écran aussitôt — sinon il disparaîtrait le temps que le serveur réponde.
+  const ungroupedRows = namedRows.filter(
+    (r) => !r.category_id || !visibleCategoryIds.has(r.category_id),
+  );
+  const categoryNameById = new Map(categoryRows.map((r) => [r.id, r.name]));
   const globalRow = overview?.global && !pendingDelete.has(overview.global.id) ? overview.global : null;
-  const hasAnyBudget = Boolean(globalRow) || namedRows.length > 0;
+  const hasAnyBudget = Boolean(globalRow) || namedRows.length > 0 || categoryRows.length > 0;
   const allowGlobal = !globalRow;
 
   return (
@@ -160,40 +237,79 @@ export default function BudgetsPanel() {
               </Card>
             )}
 
-            {/* Named envelopes. */}
+            {/* Named envelopes, grouped by category. */}
             <div className="space-y-2">
-              <h2 className="text-sm font-semibold text-foreground">{t('budget.named.heading')}</h2>
-              {namedRows.length === 0 ? (
+              <div className="flex items-center justify-between gap-2">
+                <h2 className="text-sm font-semibold text-foreground">
+                  {t('budget.named.heading')}
+                </h2>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={openCreateCategory}
+                  className="gap-1.5"
+                >
+                  <FolderPlus className="h-4 w-4" />
+                  {t('budget.category.new.action')}
+                </Button>
+              </div>
+
+              {namedRows.length === 0 && categoryRows.length === 0 ? (
                 <p className="text-sm text-muted-foreground">{t('budget.named.empty')}</p>
               ) : (
-                <div className="space-y-2">
-                  {rootRows.map((row) => (
-                    <div key={row.id} className="space-y-2">
-                      <BudgetCard
-                        row={row}
-                        to={`/app/money/budgets/${row.id}`}
-                        backState={pushBack(location)}
-                        onEdit={() => openEdit(rowToBudget(row, false))}
-                        onDelete={() => handleDelete(row.id)}
+                <div className="space-y-4">
+                  {categoryRows.map((category) => (
+                    <div key={category.id} className="space-y-2">
+                      <BudgetCategoryCard
+                        row={category}
+                        onEdit={() => openEditCategory(rowToCategory(category))}
+                        onDelete={() => handleDeleteCategory(category.id)}
                       />
-                      {(childrenOf.get(row.id) ?? []).length > 0 ? (
+                      {(budgetsByCategory.get(category.id) ?? []).length === 0 ? (
+                        <p className="ml-4 border-l-2 border-border pl-3 text-xs text-muted-foreground">
+                          {t('budget.category.empty')}
+                        </p>
+                      ) : (
                         <div className="ml-4 space-y-2 border-l-2 border-border pl-3">
-                          {(childrenOf.get(row.id) ?? []).map((child) => (
+                          {(budgetsByCategory.get(category.id) ?? []).map((row) => (
                             <BudgetCard
-                              key={child.id}
-                              row={child}
-                              to={`/app/money/budgets/${child.id}`}
+                              key={row.id}
+                              row={row}
+                              to={`/app/money/budgets/${row.id}`}
                               backState={pushBack(location)}
                               onEdit={() =>
-                                openEdit(rowToBudget(child, false, nameById.get(row.id)))
+                                openEdit(
+                                  rowToBudget(row, false, categoryNameById.get(category.id)),
+                                )
                               }
-                              onDelete={() => handleDelete(child.id)}
+                              onDelete={() => handleDelete(row.id)}
                             />
                           ))}
                         </div>
-                      ) : null}
+                      )}
                     </div>
                   ))}
+
+                  {ungroupedRows.length > 0 ? (
+                    <div className="space-y-2">
+                      {categoryRows.length > 0 ? (
+                        <h3 className="px-1 text-xs font-medium text-muted-foreground">
+                          {t('budget.category.ungrouped')}
+                        </h3>
+                      ) : null}
+                      {ungroupedRows.map((row) => (
+                        <BudgetCard
+                          key={row.id}
+                          row={row}
+                          to={`/app/money/budgets/${row.id}`}
+                          backState={pushBack(location)}
+                          onEdit={() => openEdit(rowToBudget(row, false))}
+                          onDelete={() => handleDelete(row.id)}
+                        />
+                      ))}
+                    </div>
+                  ) : null}
                 </div>
               )}
             </div>
@@ -258,6 +374,12 @@ export default function BudgetsPanel() {
         onOpenChange={setDialogOpen}
         existing={editing}
         allowGlobal={allowGlobal}
+      />
+
+      <BudgetCategoryDialog
+        open={categoryDialogOpen}
+        onOpenChange={setCategoryDialogOpen}
+        existing={editingCategory}
       />
     </>
   );

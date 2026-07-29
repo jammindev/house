@@ -3245,10 +3245,28 @@
       "isGlobal": "Global budget (caps all spending)",
       "monthlyAmountOptional": "Monthly ceiling (optional)",
       "amountHint": "Leave empty to track the category without capping it.",
-      "parent": "Group",
-      "parentNone": "No group",
-      "parentHint": "Nest this budget under another, which will show the total. Two levels at most.",
-      "isGroupHint": "This budget is a group: it totals its budgets and takes no expense of its own."
+      "category": "Category",
+      "categoryNone": "No category",
+      "categoryHint": "File this budget under a category, which will show the total."
+    },
+    "category": {
+      "new": {
+        "title": "New category",
+        "action": "Category"
+      },
+      "edit": {
+        "title": "Edit category"
+      },
+      "namePlaceholder": "e.g. Home",
+      "amountHint": "Leave empty: the category will be worth the sum of the ceilings it holds.",
+      "sumHint": "sum of its budgets",
+      "holds_one": "{{count}} budget",
+      "holds_other": "{{count}} budgets",
+      "empty": "No budget in this category.",
+      "ungrouped": "No category",
+      "created": "Category created",
+      "updated": "Category updated",
+      "deleted": "Category deleted"
     },
     "errors": {
       "amountInvalid": "Enter a positive amount.",

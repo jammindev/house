@@ -21,7 +21,7 @@ from core.timezones import current_month_range as _current_month_range
 from core.timezones import household_today
 from interactions.queries import expenses
 
-from .models import Budget, RecurringExpense
+from .models import Budget, BudgetCategory, RecurringExpense
 
 # Ratio at which a budget flips to the "attention" state (below the 100% overrun).
 WARNING_RATIO = getattr(settings, "BUDGET_WARNING_RATIO", 0.8)
@@ -33,6 +33,12 @@ def _zero() -> Decimal:
 
 def _str(amount: Decimal | None) -> str:
     return str(amount if amount is not None else _zero())
+
+
+def _dec(amount: str | None) -> Decimal:
+    """Re-read a serialized amount. Used to total category rows from budget rows
+    rather than from a second query, so both say « dépensé » the same way."""
+    return Decimal(amount) if amount else _zero()
 
 
 def current_month_range(household) -> tuple[datetime, datetime, str]:
@@ -162,8 +168,6 @@ def _budget_row(
     committed: Decimal | None = None,
     attested: Decimal | None = None,
     refunded: Decimal | None = None,
-    *,
-    is_group: bool = False,
 ) -> dict[str, Any]:
     seen = attested if attested is not None else _zero()
     given_back = refunded if refunded is not None else _zero()
@@ -193,11 +197,63 @@ def _budget_row(
         "committed": _str(committed if committed is not None else _zero()),
         "ratio": round(ratio, 4),
         "state": state,
-        # Le rattachement au groupe. ``parent_id`` sert à l'imbrication côté
-        # front ; ``is_group`` dit que cette ligne est un **sous-total**, donc
-        # qu'aucun euro ne s'y range directement.
-        "parent_id": str(budget.parent_id) if budget.parent_id else None,
-        "is_group": is_group,
+        # La catégorie sous laquelle ce budget est rangé, pour le regroupement à
+        # l'affichage. Une ligne de budget reste **son propre** dépensé : c'est la
+        # catégorie qui totalise, jamais le budget qui absorbe ses voisins.
+        "category_id": str(budget.category_id) if budget.category_id else None,
+    }
+
+
+def _category_row(
+    category: BudgetCategory,
+    budgets: list[Budget],
+    rows: list[dict[str, Any]],
+) -> dict[str, Any]:
+    """Le sous-total d'une catégorie, dérivé des lignes de ses budgets.
+
+    Deux points qui tiennent le reste :
+
+    - **Rien n'est relu en base.** Les chiffres sont resommés depuis les lignes
+      déjà calculées, donc « dépensé » y a exactement la même définition que dans
+      le panneau, l'analyse et le Contrôle. Un total qui repart d'une requête à
+      lui finit toujours par répondre autre chose que celle d'à côté.
+    - **Le plafond de la catégorie remplace la somme de ceux qu'elle contient**,
+      il ne s'y ajoute pas. « Maison 500 € » par-dessus « Bricolage 200 € » et
+      « Énergie 250 € » vaut 500 €, jamais 950 € : additionner les deux
+      compterait deux fois le même engagement.
+    """
+    spent = sum((_dec(r["spent"]) for r in rows), _zero())
+    attested = sum((_dec(r["spent_attested"]) for r in rows), _zero())
+    refunded = sum((_dec(r["refunded"]) for r in rows), _zero())
+    committed = sum((_dec(r["committed"]) for r in rows), _zero())
+
+    ceiling = category.monthly_amount
+    if ceiling is None:
+        # Une catégorie sans plafond propre vaut la somme de ceux qu'elle range —
+        # et ``None`` si aucun de ses budgets n'en a, parce qu'un sous-total de
+        # rien du tout n'est pas un plafond de 0 € (perpétuellement dépassé).
+        capped = [b.monthly_amount for b in budgets if b.monthly_amount is not None]
+        ceiling = sum(capped, _zero()) if capped else None
+
+    net = spent - refunded
+    ratio, state = _state(net, ceiling)
+    return {
+        "id": str(category.id),
+        "name": category.name,
+        "amount": None if ceiling is None else _str(ceiling),
+        # Vrai quand le plafond affiché est celui de la catégorie elle-même, et
+        # non la somme de ses budgets. Le front en a besoin pour ne pas proposer
+        # d'éditer un chiffre qui n'est écrit nulle part.
+        "has_own_amount": category.monthly_amount is not None,
+        "spent": _str(spent),
+        "spent_attested": _str(attested),
+        "spent_pending": _str(spent - attested),
+        "refunded": _str(refunded),
+        "net_spent": _str(net),
+        "committed": _str(committed),
+        "ratio": round(ratio, 4),
+        "state": state,
+        "budget_count": len(rows),
     }
 
 
@@ -210,7 +266,10 @@ def compute_budget_overview(*, household) -> dict[str, Any]:
           "month": "2026-07",
           "global": {id, name, amount, spent, ratio, state} | null,
           "budgets": [{id, name, amount, spent, spent_attested, spent_pending,
-                       refunded, net_spent, committed, ratio, state}, ...],
+                       refunded, net_spent, committed, ratio, state,
+                       category_id}, ...],
+          "categories": [{id, name, amount, has_own_amount, spent, ...,
+                          budget_count}, ...],
           "unbudgeted": "700.00",
           "total_spent": "1850.00",
           "total_attested": "1600.00",
@@ -238,14 +297,7 @@ def compute_budget_overview(*, household) -> dict[str, Any]:
     budgets = list(Budget.objects.filter(household_id=household.id))
     named = [b for b in budgets if not b.is_global]
     global_budget = next((b for b in budgets if b.is_global), None)
-
-    # Les groupes : un parent porte la somme de ses enfants. Aucun euro n'y est
-    # rangé (le résolveur le refuse), donc son total est **dérivé**, jamais lu
-    # dans les maps — la définition de ``spent`` ne change pour personne.
-    children_of: dict[Any, list[Budget]] = {}
-    for b in named:
-        if b.parent_id:
-            children_of.setdefault(b.parent_id, []).append(b)
+    categories = list(BudgetCategory.objects.filter(household_id=household.id))
 
     total_spent = sum(spent_map.values(), _zero())
     total_attested = sum(attested_map.values(), _zero())
@@ -253,42 +305,51 @@ def compute_budget_overview(*, household) -> dict[str, Any]:
     total_refunded = sum(refunded_map.values(), _zero())
     unbudgeted = spent_map.get(None, _zero())
 
-    def _rolled(source: dict, budget: Budget) -> Decimal:
-        own = source.get(budget.id, _zero())
-        return own + sum(
-            (source.get(child.id, _zero()) for child in children_of.get(budget.id, ())),
-            _zero(),
-        )
-
+    # Une ligne de budget porte **son propre** dépensé, toujours. La catégorie
+    # totalise par-dessus, à côté ; elle n'absorbe pas ses budgets et ne les
+    # remplace pas dans ``budgets``, sinon le même euro serait lu deux fois par
+    # quiconque somme la liste.
     named_rows = [
         _budget_row(
             b,
-            _rolled(spent_map, b),
-            _rolled(committed_map, b),
-            _rolled(attested_map, b),
-            _rolled(refunded_map, b),
-            is_group=bool(children_of.get(b.id)),
+            spent_map.get(b.id, _zero()),
+            committed_map.get(b.id, _zero()),
+            attested_map.get(b.id, _zero()),
+            refunded_map.get(b.id, _zero()),
         )
         for b in named
     ]
+
+    rows_by_id = {row["id"]: row for row in named_rows}
+    budgets_by_category: dict[Any, list[Budget]] = {}
+    for b in named:
+        if b.category_id:
+            budgets_by_category.setdefault(b.category_id, []).append(b)
+
+    category_rows = [
+        _category_row(
+            c,
+            budgets_by_category.get(c.id, []),
+            [rows_by_id[str(b.id)] for b in budgets_by_category.get(c.id, [])],
+        )
+        for c in categories
+    ]
+
     # Only the capped ones: an uncapped category promises nothing, so it cannot
     # make the envelopes overshoot the global ceiling on paper.
     #
-    # ⚠️ On somme les **racines**, et le plafond d'un groupe remplace celui de ses
-    # enfants. Additionner « Maison 500 € » *et* ses « Bricolage 200 € /
-    # Énergie 250 € » compterait deux fois le même engagement, et ferait crier
-    # « les enveloppes dépassent le plafond global » à un foyer parfaitement
-    # cohérent. Un groupe sans plafond, lui, vaut la somme de ce qu'il contient.
-    def _pledged(budget: Budget) -> Decimal:
-        if budget.monthly_amount is not None:
-            return budget.monthly_amount
-        return sum(
-            (c.monthly_amount for c in children_of.get(budget.id, ()) if c.monthly_amount is not None),
-            _zero(),
-        )
-
+    # ⚠️ On somme les **catégories** plus les budgets qu'aucune ne range. Compter
+    # « Maison 500 € » *et* ses « Bricolage 200 € / Énergie 250 € » compterait
+    # deux fois le même engagement, et ferait crier « les enveloppes dépassent le
+    # plafond global » à un foyer parfaitement cohérent. Le plafond d'une
+    # catégorie remplace la somme de ses budgets ; sans plafond propre, elle vaut
+    # cette somme — c'est ``_category_row`` qui a déjà tranché, et on relit son
+    # verdict plutôt que de le refaire ici avec une deuxième règle.
     named_total_amount = sum(
-        (_pledged(b) for b in named if b.parent_id is None), _zero()
+        (_dec(r["amount"]) for r in category_rows if r["amount"] is not None), _zero()
+    ) + sum(
+        (b.monthly_amount for b in named if b.category_id is None and b.monthly_amount is not None),
+        _zero(),
     )
 
     global_row = None
@@ -306,6 +367,7 @@ def compute_budget_overview(*, household) -> dict[str, Any]:
         "month": month,
         "global": global_row,
         "budgets": named_rows,
+        "categories": category_rows,
         "unbudgeted": _str(unbudgeted),
         "total_spent": _str(total_spent),
         "total_attested": _str(total_attested),

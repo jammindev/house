@@ -29,6 +29,64 @@ from core.managers import HouseholdScopedManager
 from core.models import HouseholdScopedModel
 
 
+class BudgetCategory(HouseholdScopedModel):
+    """A named grouping of budgets — « Maison » over « Bricolage » and « Énergie ».
+
+    **A category is not a budget.** It is a separate entity with a name, an
+    optional ceiling, and nothing else: no expense can ever land on it, because
+    ``Interaction.budget`` points at a ``Budget`` and a category is not one. That
+    single fact is what makes the grouping cost nothing — ``spent`` keeps exactly
+    one meaning, and the nine amount aggregations keep their definition.
+
+    The previous shape (a self-FK ``Budget.parent``, so a budget *became* a group
+    by acquiring children) had to spend four validation rules, a derived
+    ``is_group`` flag and a refusal for parents already carrying expenses just to
+    re-establish that same separation — and it never worked, because a budget
+    that is sometimes a target and sometimes a subtotal has to be filtered out of
+    six expense selectors and thread its parent through every write path. Two
+    types cannot be confused; one type with a mode always will be.
+
+    ``monthly_amount`` is optional, exactly like a budget's. ``NULL`` = the
+    category is a pure subtotal (its ceiling is the sum of what it contains);
+    a value means the category caps its budgets as a whole, and **replaces**
+    their sum in the global comparison (see ``aggregations.compute_budget_overview``).
+    """
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=120)
+    monthly_amount = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text=_(
+            "Optional monthly ceiling for the whole category. NULL = pure "
+            "subtotal, worth the sum of the budgets it holds. When set, it "
+            "REPLACES that sum — adding both would count the same commitment "
+            "twice and cry overshoot at a perfectly coherent household."
+        ),
+    )
+
+    objects = HouseholdScopedManager()
+
+    class Meta:
+        db_table = "budget_categories"
+        verbose_name = _("budget category")
+        verbose_name_plural = _("budget categories")
+        ordering = ["name"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["household", "name"],
+                name="unique_budget_category_name_per_household",
+            ),
+        ]
+
+    def __str__(self):
+        if self.monthly_amount is None:
+            return f"{self.name} (subtotal)"
+        return f"{self.name} ({self.monthly_amount}/mo)"
+
+
 class Budget(HouseholdScopedModel):
     """A named monthly spending envelope, or the household's global ceiling."""
 
@@ -52,20 +110,32 @@ class Budget(HouseholdScopedModel):
             "(budgeted + hors budget). At most one per household."
         ),
     )
+    category = models.ForeignKey(
+        "budget.BudgetCategory",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="budgets",
+        help_text=_(
+            "Optional category this envelope is filed under. SET_NULL: deleting "
+            "a category is deleting a heading, and a heading that disappears "
+            "must never take the envelopes that carry the money with it."
+        ),
+    )
+    #: DEPRECATED — replaced by ``category``. Kept for exactly one deploy so the
+    #: column drop is a separate release: the deploy migrates on a throwaway
+    #: container of the new image and only then switches the live one, so between
+    #: those two moments the OLD code runs against the NEW schema. Dropping
+    #: ``parent_id`` in the same release would make every budget query of the
+    #: still-running old container select a column that no longer exists.
+    #: Nothing reads it any more; the drop migration is the follow-up.
     parent = models.ForeignKey(
         "self",
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
         related_name="children",
-        help_text=_(
-            "Optional grouping budget: « Maison » over « Bricolage » and "
-            "« Énergie ». A parent is a SUBTOTAL, never a target — an expense "
-            "always lands on a leaf, so 'budget' keeps meaning exactly one "
-            "thing and the nine amount aggregations keep their definition. "
-            "Two levels only, and SET_NULL: deleting a group must free its "
-            "children, never destroy the envelopes that carry the money."
-        ),
+        help_text=_("Deprecated — superseded by `category`. Dropped next release."),
     )
 
     objects = HouseholdScopedManager()

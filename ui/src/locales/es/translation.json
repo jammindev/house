@@ -3245,10 +3245,28 @@
       "isGlobal": "Presupuesto global (limita todos los gastos)",
       "monthlyAmountOptional": "Tope mensual (opcional)",
       "amountHint": "Déjalo vacío para seguir la categoría sin ponerle tope.",
-      "parent": "Grupo",
-      "parentNone": "Sin grupo",
-      "parentHint": "Coloca este presupuesto bajo otro, que mostrará el total. Dos niveles como máximo.",
-      "isGroupHint": "Este presupuesto es un grupo: suma sus presupuestos y no recibe gastos directamente."
+      "category": "Categoría",
+      "categoryNone": "Sin categoría",
+      "categoryHint": "Coloca este presupuesto en una categoría, que mostrará el total."
+    },
+    "category": {
+      "new": {
+        "title": "Nueva categoría",
+        "action": "Categoría"
+      },
+      "edit": {
+        "title": "Editar categoría"
+      },
+      "namePlaceholder": "p. ej. Casa",
+      "amountHint": "Déjalo vacío: la categoría valdrá la suma de los topes que contiene.",
+      "sumHint": "suma de sus presupuestos",
+      "holds_one": "{{count}} presupuesto",
+      "holds_other": "{{count}} presupuestos",
+      "empty": "Ningún presupuesto en esta categoría.",
+      "ungrouped": "Sin categoría",
+      "created": "Categoría creada",
+      "updated": "Categoría modificada",
+      "deleted": "Categoría eliminada"
     },
     "errors": {
       "amountInvalid": "Introduce un importe positivo.",

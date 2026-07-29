@@ -169,47 +169,72 @@ plafonnée ».
   dépassé ». ⚠️ Les snapshots **déjà figés** portent une string : `render.py`
   doit accepter les deux formes pour toujours.
 
-## Des catégories de catégories — un groupe est un **sous-total**
+## Les catégories de budget — un type à part, jamais un budget
 
-`Budget.parent` (FK sur soi, `SET_NULL`) permet « Maison » au-dessus de
-« Bricolage » et « Énergie ». Une seule phrase porte tout le reste :
+`BudgetCategory` est un **modèle distinct** ; `Budget.category` (`SET_NULL`) range
+« Bricolage » et « Énergie » sous « Maison ». La thèse tient en une phrase :
 
-> **Un groupe est un sous-total, jamais une case.** Un euro se range toujours sur
-> une feuille.
+> **Une catégorie n'est pas un budget.** Aucune dépense ne peut s'y ranger, parce
+> que `Interaction.budget` pointe vers un `Budget` et qu'une catégorie n'en est
+> pas un.
 
-C'est ce qui a permis d'ajouter la hiérarchie **sans toucher à une seule des neuf
-agrégations de montants**. L'alternative — pouvoir ventiler sur « Maison » aussi —
-aurait donné à `spent` deux sens, le propre et le consolidé, que chaque compteur
-aurait dû distinguer : l'aperçu, l'analyse, le coût projet, le RAG de l'agent, et
-jusqu'aux **bilans mensuels déjà figés**, qui ignorent la notion de parent et
-doivent rester lisibles pour toujours.
+C'est structurel, pas une règle à faire respecter — et c'est ce qui laisse les
+neuf agrégations de montants intactes : `spent` garde exactement un sens, et les
+**bilans mensuels déjà figés**, qui ignorent la notion de catégorie, restent
+lisibles pour toujours.
 
-- Le résolveur (`interactions.services._resolve_expense_budget`) refuse un budget
-  qui a des enfants — donc **les six formulaires de dépense**, la ventilation, les
-  récurrences et le PATCH générique sont couverts par un seul garde-fou.
-- Le total d'un parent est **dérivé** à la lecture (`compute_budget_overview`), et
-  son `state` se mesure dessus : « Maison 420 € / 500 € » peut être en alerte
-  pendant qu'aucun de ses enfants ne l'est.
-- **Deux niveaux**, délibérément : une profondeur libre imposerait une CTE
-  récursive à chaque total et un sélecteur en arbre dans six formulaires. La
-  contrainte s'ouvrira si le besoin apparaît ; l'inverse coûterait une
-  re-ventilation.
-- **Un budget qui porte déjà des dépenses ne peut pas recevoir d'enfants** (400
-  nommé, avec le nombre de dépenses qui bloquent) : ses dépenses deviendraient le
-  « propre » d'un parent, c'est-à-dire exactement l'ambiguïté refusée plus haut.
-- ⚠️ **`named_total_amount` somme les racines, pas tout le monde.** Additionner
-  « Maison 500 € » *et* ses « Bricolage 200 € / Énergie 250 € » compterait deux
-  fois le même engagement et crierait « les enveloppes dépassent le plafond
-  global » à un foyer parfaitement cohérent. Un groupe plafonné **remplace** ses
-  enfants ; un groupe sans plafond **vaut leur somme**. Régression :
-  `budget/tests/test_groups.py::TestTheGlobalCeilingIsNotCountedTwice`.
-- Supprimer un groupe **libère** ses enfants (`SET_NULL`) : un intitulé qui
+- **Ce qu'une catégorie affiche est un total, calculé une fois côté serveur**
+  (`_category_row`), resommé depuis les lignes de budget déjà calculées et jamais
+  d'une seconde requête : « dépensé » y a la même définition que dans le panneau,
+  l'analyse et le Contrôle. Le front ne recalcule rien.
+- **Le plafond d'une catégorie est optionnel et il *remplace* la somme de ses
+  budgets**, il ne s'y ajoute pas. Sans plafond propre, elle vaut cette somme ;
+  et `null` quand aucun de ses budgets n'en a — un sous-total de rien n'est pas un
+  plafond de 0 €. `has_own_amount` dit lequel des deux est affiché, pour ne pas
+  laisser croire qu'un chiffre a été saisi quelque part.
+- ⚠️ **`named_total_amount` somme les catégories + les budgets sans catégorie.**
+  Compter « Maison 500 € » *et* ses « Bricolage 200 € / Énergie 250 € » compterait
+  deux fois le même engagement et crierait « les enveloppes dépassent le plafond
+  global » à un foyer parfaitement cohérent. Régression :
+  `budget/tests/test_categories.py::TestTheGlobalCeilingIsNotCountedTwice`.
+- Supprimer une catégorie **libère** ses budgets (`SET_NULL`) : un intitulé qui
   disparaît ne doit jamais emporter les enveloppes qui portent l'argent.
-- Côté front, `budget/tree.ts` est le **point unique** : `selectableBudgets`
-  (feuilles, libellées « Maison › Bricolage ») et `groupCandidates` (mêmes règles
-  que le serveur). Sept sélecteurs filtraient les budgets à la main — sept
-  endroits à corriger à chaque règle nouvelle, donc sept occasions d'en oublier
-  un.
+- Côté front, `budget/tree.ts` reste le **point unique** : `selectableBudgets`
+  (tous les budgets nommés, libellés « Maison › Bricolage ») et `categoryOptions`.
+  Sept sélecteurs filtraient les budgets à la main — sept endroits à corriger à
+  chaque règle nouvelle, donc sept occasions d'en oublier un.
+
+### Pourquoi pas `Budget.parent` — la leçon de la PR #432
+
+La première version faisait d'un budget un groupe **par effet de bord** : il en
+devenait un en recevant des enfants (`Budget.parent`, FK sur soi). Elle a été
+livrée **morte** et remplacée le lendemain. Ce qu'il faut en retenir :
+
+- **Un type avec un mode se paie partout.** Il a fallu quatre règles de
+  validation, un `is_group` dérivé (`children.exists()` à chaque écriture de
+  dépense), une contrainte « deux niveaux », un refus pour les parents portant
+  déjà des dépenses, et un filtrage dans six sélecteurs — le tout pour
+  rétablir une séparation que deux modèles donnent gratuitement. Ici : zéro
+  règle de forme, parce qu'il n'y a rien à séparer.
+- **Ranger une enveloppe ne doit rien lui retirer.** Dans l'ancien design, un
+  budget qui recevait des enfants cessait en silence d'être une cible de dépense,
+  et un budget portant déjà des dépenses ne pouvait pas être groupé du tout — les
+  deux cas les plus naturels étaient les deux cas interdits. Régressions :
+  `test_categories.py::TestACategoryIsNotABudget`.
+- **⚠️ Le vrai défaut était ailleurs, et il est le plus instructif : le champ
+  n'était jamais enregistré.** `create_budget` a une signature en **allowlist**,
+  la vue recopiait trois clés à la main, et `update_budget` filtrait sur
+  `{"name", "monthly_amount", "is_global"}`. Le sérialiseur validait le groupe, le
+  panneau le proposait, l'API répondait 200 — et le choix était jeté en silence,
+  à la création comme à l'édition. Les seize tests étaient verts parce qu'ils
+  construisaient tous leurs parents par `Budget.objects.create(parent=…)`.
+  **Un test qui écrit par l'ORM ne teste pas le chemin d'écriture** ; c'est ce que
+  couvre `test_categories.py::TestTheChoiceIsActuallySaved`, qui passe par l'API
+  et relit en base.
+- La colonne `budgets.parent_id` survit **un déploiement** (voir la règle
+  « on migre avant de basculer » de `CLAUDE.md`) : plus rien ne la lit, la
+  migration `budget.0007` a converti les groupes existants en catégories, et sa
+  suppression est une livraison à part.
 
 ## Ce que le relevé atteste, et ce qui attend de l'être
 
