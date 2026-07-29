@@ -2,7 +2,7 @@ import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 import { SheetDialog } from '@/design-system/sheet-dialog';
 import { FormField } from '@/design-system/form-field';
-import { Input } from '@/design-system/input';
+import { DecimalInput } from '@/design-system/decimal-input';
 import { Button } from '@/design-system/button';
 import { formatAmount } from '@/lib/format';
 import { useAdjustCashMirror } from './hooks';
@@ -51,7 +51,7 @@ export default function CashMirrorDialog({
     event.preventDefault();
     setError(null);
 
-    const parsed = Number(amount.trim().replace(',', '.'));
+    const parsed = Number(amount.trim());
     if (!Number.isFinite(parsed) || parsed <= 0 || parsed > Number(outflow)) {
       setError(t('banking.withdraw.errors.amountInvalid', { max: formatAmount(outflow) }));
       return;
@@ -76,14 +76,10 @@ export default function CashMirrorDialog({
         </p>
 
         <FormField label={t('banking.withdraw.fields.amount')} htmlFor="cash-mirror-amount">
-          <Input
+          <DecimalInput
             id="cash-mirror-amount"
-            type="number"
-            step="0.01"
-            min="0"
-            max={outflow}
             value={amount}
-            onChange={(e) => setAmount(e.target.value)}
+            onChange={setAmount}
             autoFocus
           />
         </FormField>

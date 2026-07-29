@@ -4,6 +4,7 @@ import { Landmark, Plus, Trash2 } from 'lucide-react';
 import { SheetDialog } from '@/design-system/sheet-dialog';
 import { FormField } from '@/design-system/form-field';
 import { Input } from '@/design-system/input';
+import { DecimalInput } from '@/design-system/decimal-input';
 import { Select } from '@/design-system/select';
 import { Button } from '@/design-system/button';
 import { formatAmount, todayISO } from '@/lib/format';
@@ -94,9 +95,9 @@ export default function CashDepositDialog({ open, onOpenChange }: CashDepositDia
     setAccountId((prev) => prev || cashAccounts[0]?.id || '');
   }, [open, cashAccounts]);
 
-  const total = Number(amount.replace(',', '.')) || 0;
+  const total = Number(amount) || 0;
   const credited = lines.reduce((sum, line) => {
-    const value = Number(line.amount.replace(',', '.'));
+    const value = Number(line.amount);
     return sum + (Number.isFinite(value) ? value : 0);
   }, 0);
   const remaining = total - credited;
@@ -129,7 +130,7 @@ export default function CashDepositDialog({ open, onOpenChange }: CashDepositDia
     const refundLines: { budget_id: string; amount: string }[] = [];
     if (isRefund) {
       for (const line of lines) {
-        const value = Number(line.amount.replace(',', '.'));
+        const value = Number(line.amount);
         if (!line.budgetId && !line.amount.trim()) continue;
         if (!line.budgetId) {
           setError(t('banking.inflow.errors.budgetRequired'));
@@ -224,13 +225,10 @@ export default function CashDepositDialog({ open, onOpenChange }: CashDepositDia
 
           <div className="grid gap-3 sm:grid-cols-2">
             <FormField label={`${t('banking.deposit.amount')} *`} htmlFor="deposit-amount">
-              <Input
+              <DecimalInput
                 id="deposit-amount"
-                type="number"
-                step="0.01"
-                min="0"
                 value={amount}
-                onChange={(e) => setAmount(e.target.value)}
+                onChange={setAmount}
                 placeholder="0.00"
                 required
               />
@@ -298,14 +296,11 @@ export default function CashDepositDialog({ open, onOpenChange }: CashDepositDia
                       ]}
                     />
                   </div>
-                  <Input
+                  <DecimalInput
                     className="w-28"
-                    type="number"
-                    step="0.01"
-                    min="0"
                     aria-label={t('banking.inflow.refundAmount')}
                     value={line.amount}
-                    onChange={(e) => update(line.key, { amount: e.target.value })}
+                    onChange={(value) => update(line.key, { amount: value })}
                   />
                   {lines.length > 1 ? (
                     <button
