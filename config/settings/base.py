@@ -174,6 +174,7 @@ REST_FRAMEWORK = {
         "invitation_join": "20/hour",
         "agent_burst": "10/min",
         "agent_sustained": "100/hour",
+        "search": "120/min",
     },
 }
 

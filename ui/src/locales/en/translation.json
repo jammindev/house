@@ -1193,6 +1193,10 @@
           "alerts": {
             "title": "Keep an eye on alerts",
             "body": "The sidebar badge shows what needs your attention; the Alerts page has the details."
+          },
+          "search": {
+            "title": "Search everything at once",
+            "body": "The box in the top bar (⌘K) searches every document, task, project or expense your household holds."
           }
         }
       },
@@ -2972,6 +2976,32 @@
         "weather": "Recent extreme weather · {{recent}} vs {{baseline}} eggs/day",
         "unknown": "Unknown cause, keep an eye · {{recent}} vs {{baseline}} eggs/day"
       }
+    }
+  },
+  "search": {
+    "title": "Search",
+    "description": "Search everything your household owns — documents, tasks, projects, expenses…",
+    "placeholder": "Search…",
+    "hint": "Type at least two characters to search.",
+    "noResults": "Nothing found.",
+    "entity": {
+      "document": "Documents",
+      "interaction": "Activity",
+      "equipment": "Equipment",
+      "task": "Tasks",
+      "project": "Projects",
+      "zone": "Zones",
+      "stock_item": "Stock",
+      "insurance_contract": "Insurance",
+      "contact": "Contacts",
+      "structure": "Structures",
+      "budget": "Budgets",
+      "recurring_expense": "Recurring expenses",
+      "chicken": "Chickens",
+      "chicken_event": "Chicken coop log",
+      "meter": "Meters",
+      "tracker": "Trackers",
+      "shopping_item": "Shopping list"
     }
   },
   "agent": {

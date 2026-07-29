@@ -1193,6 +1193,10 @@
           "alerts": {
             "title": "Vigilar las alertas",
             "body": "La insignia de la barra lateral indica lo que requiere tu atención; la página de Alertas da el detalle."
+          },
+          "search": {
+            "title": "Buscar en todo a la vez",
+            "body": "La caja de la barra superior (⌘K) busca en todos los documentos, tareas, proyectos y gastos del hogar."
           }
         }
       },
@@ -2972,6 +2976,32 @@
         "weather": "Clima extremo reciente · {{recent}} vs {{baseline}} huevos/día",
         "unknown": "Causa desconocida, vigilar · {{recent}} vs {{baseline}} huevos/día"
       }
+    }
+  },
+  "search": {
+    "title": "Búsqueda",
+    "description": "Busca en todo lo que tiene tu hogar: documentos, tareas, proyectos, gastos…",
+    "placeholder": "Buscar…",
+    "hint": "Escribe al menos dos caracteres para buscar.",
+    "noResults": "Sin resultados.",
+    "entity": {
+      "document": "Documentos",
+      "interaction": "Actividad",
+      "equipment": "Equipos",
+      "task": "Tareas",
+      "project": "Proyectos",
+      "zone": "Zonas",
+      "stock_item": "Inventario",
+      "insurance_contract": "Seguros",
+      "contact": "Contactos",
+      "structure": "Estructuras",
+      "budget": "Presupuestos",
+      "recurring_expense": "Gastos recurrentes",
+      "chicken": "Gallinas",
+      "chicken_event": "Diario del gallinero",
+      "meter": "Contadores",
+      "tracker": "Trackers",
+      "shopping_item": "Lista de la compra"
     }
   },
   "agent": {

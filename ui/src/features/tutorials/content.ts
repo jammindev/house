@@ -60,7 +60,10 @@ export const GETTING_STARTED: GettingStartedItem[] = [
 
 /** Guides — pages transverses d'abord, puis un guide par module (ordre MODULES). */
 export const TUTORIAL_GUIDES: TutorialGuide[] = [
-  { key: 'dashboard', Icon: LayoutDashboard, to: '/app/dashboard', stepIds: ['overview', 'activity', 'alerts'] },
+  // `search` vit ici et pas dans un guide à lui : la palette n'a pas de page, elle
+  // est dans la barre du haut de *toutes* les pages — le guide transverse du
+  // tableau de bord est le seul endroit où elle se raconte sans deep-link menteur.
+  { key: 'dashboard', Icon: LayoutDashboard, to: '/app/dashboard', stepIds: ['overview', 'activity', 'alerts', 'search'] },
   { key: 'agent', Icon: Sparkles, to: '/app/agent', stepIds: ['ask', 'citations', 'web', 'context', 'create', 'memory'] },
   { key: 'digest', Icon: Newspaper, to: '/app/digest', stepIds: ['preview', 'enable', 'sections'] },
   { key: 'recap', Icon: PartyPopper, to: '/app/recap', stepIds: ['what', 'story', 'chapters', 'appointment', 'frozen'] },

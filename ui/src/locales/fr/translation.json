@@ -1193,6 +1193,10 @@
           "alerts": {
             "title": "Garder un œil sur les alertes",
             "body": "Le badge de la sidebar indique ce qui demande votre attention ; la page Alertes les détaille."
+          },
+          "search": {
+            "title": "Tout chercher d'un coup",
+            "body": "La boîte de la barre du haut (⌘K) cherche dans tous les documents, tâches, projets ou dépenses du foyer."
           }
         }
       },
@@ -2972,6 +2976,32 @@
         "weather": "Météo extrême récente · {{recent}} vs {{baseline}} œufs/jour",
         "unknown": "Cause inconnue, à surveiller · {{recent}} vs {{baseline}} œufs/jour"
       }
+    }
+  },
+  "search": {
+    "title": "Recherche",
+    "description": "Cherche dans tout ce que contient ton foyer — documents, tâches, projets, dépenses…",
+    "placeholder": "Rechercher…",
+    "hint": "Saisis au moins deux caractères pour lancer la recherche.",
+    "noResults": "Aucun résultat.",
+    "entity": {
+      "document": "Documents",
+      "interaction": "Activité",
+      "equipment": "Équipements",
+      "task": "Tâches",
+      "project": "Projets",
+      "zone": "Zones",
+      "stock_item": "Stock",
+      "insurance_contract": "Assurances",
+      "contact": "Contacts",
+      "structure": "Structures",
+      "budget": "Budgets",
+      "recurring_expense": "Dépenses récurrentes",
+      "chicken": "Poules",
+      "chicken_event": "Journal du poulailler",
+      "meter": "Compteurs",
+      "tracker": "Trackers",
+      "shopping_item": "Liste de courses"
     }
   },
   "agent": {
