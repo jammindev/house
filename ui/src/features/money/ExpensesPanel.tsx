@@ -146,14 +146,23 @@ export default function ExpensesPanel() {
   const [bulkOpen, setBulkOpen] = React.useState(false);
 
   /**
-   * La `scopeKey` porte les filtres **et** la pagination : cocher douze dépenses
-   * de juillet puis basculer sur juin ou tourner la page laisserait sinon une
-   * sélection invisible, et le lot suivant porterait sur autre chose que ce que
-   * l'écran montre.
+   * La `scopeKey` porte **tous** les filtres et la pagination : cocher douze
+   * dépenses de juillet puis basculer sur juin ou tourner la page laisserait
+   * sinon une sélection invisible, et le lot suivant porterait sur autre chose
+   * que ce que l'écran montre.
+   *
+   * `withoutSupplier` en fait partie au même titre que les autres — il y
+   * manquait. Éteindre puis rallumer la pastille ramenait les lignes cochées
+   * avant le détour : elles quittent bien la sélection le temps qu'elles sont
+   * hors filtre (elle est dérivée des ids affichés), mais elles y dorment et se
+   * rallument au retour. Or c'est **le** filtre qu'on manipule en composant un
+   * lot, puisque corriger un fournisseur manquant est ce qui l'éteint.
    */
   const selection = useMultiSelect(
     React.useMemo(() => items.map((item) => item.id), [items]),
-    { scopeKey: `${kind}|${supplier}|${range.from}|${range.to}|${pager.offset}` },
+    {
+      scopeKey: `${kind}|${supplier}|${withoutSupplier}|${range.from}|${range.to}|${pager.offset}`,
+    },
   );
 
   return (
