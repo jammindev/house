@@ -23,10 +23,16 @@ interface ExpenseListProps {
   onToggleSelected?: (item: InteractionListItem) => void;
   isSelected?: (item: InteractionListItem) => boolean;
   /**
-   * Signale les dépenses auxquelles il manque un fournisseur — onglet Dépenses
-   * seulement. La fiche d'un budget réutilise cette liste et n'y pose pas la même
-   * question : une pastille de plus sur chaque ligne n'y avertirait de rien.
-   * Même règle que le `flagWithoutZone` de la galerie photos.
+   * Signale les dépenses auxquelles il manque un fournisseur. Même règle que le
+   * `flagWithoutZone` de la galerie photos : la pastille n'a de sens que là où
+   * le manque est **actionnable**.
+   *
+   * Elle a d'abord été réservée à l'onglet Dépenses, la fiche d'un budget ne
+   * posant pas cette question. Elle l'y pose depuis qu'elle porte le filtre
+   * « sans fournisseur » et la correction en lot : la pastille montre alors ce
+   * que le filtre irait chercher. Elle reste optionnelle pour les listes futures
+   * qui ne proposeront ni l'un ni l'autre — une pastille qui n'ouvre sur aucun
+   * geste n'avertit de rien.
    */
   flagWithoutSupplier?: boolean;
 }

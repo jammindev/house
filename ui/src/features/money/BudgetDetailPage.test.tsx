@@ -22,7 +22,14 @@ import BudgetDetailPage from './BudgetDetailPage';
  *    Arriver sur « Courses » remet bien le compteur à zéro sans rien de spécial
  *    (la sélection est dérivée des ids affichés), mais sans l'id dans la portée
  *    les lignes cochées sur « Bricolage » dorment dans le `Set` et se rallument
- *    au retour — un lot qu'on ne se sait plus tenir.
+ *    au retour — un lot qu'on ne se sait plus tenir. Même chose pour un filtre.
+ * 4. **⚠️ Les filtres réduisent la liste, jamais le total du haut.** Ce total est
+ *    comparé à un **plafond** : un sous-total filtré sous un plafond entier dit
+ *    « tu es large » à quelqu'un qui vient de dépasser.
+ * 5. **⚠️ Filtrés jusqu'au vide, les filtres restent à l'écran** — sinon ils
+ *    disparaîtraient avec la liste et rien ne permettrait de les relâcher. Et le
+ *    message vide dit *lequel* des deux vides on regarde : une période sans
+ *    dépense ne se règle pas comme une pastille trop étroite.
  */
 
 vi.mock('react-i18next', () => ({
@@ -57,7 +64,17 @@ const insights: BudgetInsights = {
   delta: { amount: '100.00', ratio: 0.125 },
   granularity: 'day',
   buckets: [],
-  suppliers: [],
+  // Les options de filtre, telles que le serveur les donne pour la **fenêtre
+  // entière**. Aucun des deux fournisseurs n'apparaît sur les lignes renvoyées
+  // plus bas : c'est le piège que ces tests tiennent fermé.
+  suppliers: [
+    { supplier: 'Leroy Merlin', total: '600.00', count: 60, share: 0.6667 },
+    { supplier: 'Castorama', total: '300.00', count: 60, share: 0.3333 },
+  ],
+  kinds: [
+    { kind: 'bank', total: '700.00', count: 80 },
+    { kind: 'manual', total: '200.00', count: 40 },
+  ],
   budgets: [],
   budgets_returned: [],
   budgets_net_total: '900.00',
@@ -102,7 +119,12 @@ function expense(id: string, subject: string): InteractionListItem {
 const TOTAL = 120;
 
 const fetchInteractions = vi.fn(
-  async (options: { budget?: string; offset?: number } = {}): Promise<FetchInteractionsResult> => {
+  async (
+    options: { budget?: string; offset?: number; supplier?: string } = {},
+  ): Promise<FetchInteractionsResult> => {
+    // Aucune dépense de « Castorama » sur cette enveloppe : c'est le filtre qui
+    // vide la liste, et il faut pouvoir le relâcher après ça.
+    if (options.supplier === 'Castorama') return { items: [], count: 0, next: null, previous: null };
     const offset = options.offset ?? 0;
     const prefix = options.budget === 'b-2' ? 'c' : 'e';
     const items = Array.from({ length: Math.min(50, TOTAL - offset) }, (_, i) =>
@@ -187,6 +209,69 @@ describe('BudgetDetailPage — la liste des dépenses', () => {
     await userEvent.click(screen.getByRole('button', { name: /expenses.bulk.action/ }));
 
     expect(screen.getByTestId('bulk-ids').textContent).toBe('e0,e2');
+  });
+
+  it('propose les filtres de la fenêtre, pas ceux de la page affichée', async () => {
+    renderPage();
+    await screen.findByText('Dépense e0');
+
+    // Aucune ligne rendue n'est de chez Castorama, et la page n'en connaît que
+    // cinquante sur cent vingt : les options ne peuvent venir que du serveur.
+    expect(screen.getByText('Castorama')).toBeInTheDocument();
+    expect(screen.getByText('expenses.kind.bank')).toBeInTheDocument();
+    expect(screen.getByText('expenses.filters.withoutSupplier')).toBeInTheDocument();
+  });
+
+  it('⚠️ filtre la liste sans toucher au total de la période', async () => {
+    renderPage();
+    await screen.findByText('Dépense e0');
+
+    await userEvent.click(screen.getByText('Castorama'));
+
+    await waitFor(() =>
+      expect(fetchInteractions).toHaveBeenCalledWith(
+        expect.objectContaining({ budget: 'b-1', supplier: 'Castorama' }),
+      ),
+    );
+    // Le chiffre de tête reste celui de la fenêtre entière : c'est lui qu'on
+    // compare au plafond, et un sous-total filtré sous un plafond entier dirait
+    // « tu es large » à quelqu'un qui vient de dépasser.
+    expect(document.body.textContent).toContain('900.00');
+  });
+
+  it('⚠️ garde les filtres à l’écran quand ils vident la liste', async () => {
+    renderPage();
+    await screen.findByText('Dépense e0');
+
+    await userEvent.click(screen.getByText('Castorama'));
+
+    // Sans ça, les pastilles disparaîtraient avec la liste et il ne resterait
+    // rien pour les relâcher.
+    await screen.findByText('budgetDetail.emptyFiltered');
+    expect(screen.getByText('Castorama')).toBeInTheDocument();
+    // Et le message ne dit pas « aucune dépense sur cette période », qui
+    // enverrait changer de période au lieu de relâcher la pastille.
+    expect(screen.queryByText('budgetDetail.empty')).not.toBeInTheDocument();
+  });
+
+  it('⚠️ vide la sélection quand un filtre change, retour compris', async () => {
+    renderPage();
+    await screen.findByText('Dépense e0');
+
+    await userEvent.click(screen.getByRole('button', { name: /common.select/ }));
+    await userEvent.click(screen.getByText('Dépense e0'));
+    expect(screen.getByText('expenses.bulk.selected:1')).toBeInTheDocument();
+
+    await userEvent.click(screen.getByText('Castorama'));
+    await screen.findByText('budgetDetail.emptyFiltered');
+
+    // Le retour au non-filtré ramène les mêmes ids : sans le filtre dans la
+    // portée, `e0` se rallumerait sur un lot composé avant le détour.
+    await userEvent.click(screen.getByText('expenses.filters.allSuppliers'));
+    await screen.findByText('Dépense e0');
+    await waitFor(() =>
+      expect(screen.getByText('expenses.bulk.selected:0')).toBeInTheDocument(),
+    );
   });
 
   it('⚠️ vide la sélection quand on change d’enveloppe, retour compris', async () => {

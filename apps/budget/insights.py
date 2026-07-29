@@ -72,6 +72,7 @@ def compute_budget_insights(
           "granularity": "day" | "month",
           "buckets": [{"label": "2026-07-01", "total": "0.00"}, …],
           "suppliers": [{"supplier", "total", "count", "share"}, …],
+          "kinds": [{"kind", "total", "count"}, …],
           "budgets": [{"budget_id", "name", "total", "count", "share"}, …],
         }
 
@@ -111,6 +112,9 @@ def compute_budget_insights(
         "granularity": granularity,
         "buckets": _buckets(qs, household, start, end, granularity),
         "suppliers": _suppliers(qs, total),
+        # Les natures présentes dans la fenêtre. Ce ne sont pas des parts (voir
+        # `_kinds`) : c'est ce sur quoi la fiche propose de filtrer sa liste.
+        "kinds": _kinds(qs),
         "budgets": spent_rows,
         "budgets_returned": returned_rows,
         # Ce que l'anneau décompose. Égal au net de la carte du haut, **sauf**
@@ -275,6 +279,36 @@ def _suppliers(qs, total: Decimal) -> list[dict[str, Any]]:
             "total": str(row["total"] or ZERO),
             "count": row["count"],
             "share": round(float((row["total"] or ZERO) / total), 4),
+        }
+        for row in rows
+    ]
+
+
+def _kinds(qs) -> list[dict[str, Any]]:
+    """Les natures de dépense présentes dans la fenêtre — de quoi filtrer la liste.
+
+    Pas de ``share`` ici, et ce n'est pas un oubli : ceci n'est **pas** une
+    répartition mais la liste des valeurs sur lesquelles la fiche propose de
+    filtrer. Une part par nature ferait un second anneau qui décomposerait le
+    même total que celui des fournisseurs, sans que rien ne dise lequel lire.
+
+    Les options viennent du serveur, et de la **fenêtre entière** — jamais des
+    lignes de la page affichée : une pastille qui apparaît et disparaît en
+    tournant les pages fait douter de ce qu'on filtre. Une nature vide n'existe
+    pas côté dépense (le créateur la renseigne toujours), mais on la refuse
+    explicitement plutôt que de produire une pastille sans libellé.
+    """
+    rows = (
+        qs.exclude(kind="")
+        .values("kind")
+        .annotate(total=Coalesce(Sum("amount"), ZERO), count=Count("id"))
+        .order_by("-total")
+    )
+    return [
+        {
+            "kind": row["kind"],
+            "total": str(row["total"] or ZERO),
+            "count": row["count"],
         }
         for row in rows
     ]

@@ -1682,7 +1682,7 @@
           },
           "sheet": {
             "title": "Das Blatt eines Budgets öffnen",
-            "body": "Tippe auf ein Budget, um sein Blatt zu öffnen. Wähle den Zeitraum — die vier Kürzel oder zwei freie Daten — und alles wird neu berechnet. Unter dem Betrag steht der Vergleich mit dem entsprechenden Vorzeitraum: ein Monat mit dem Vormonat, ein Jahr mit dem Vorjahr, ein freies Fenster mit derselben Dauer unmittelbar davor. Darunter der Ausgabenrhythmus Tag für Tag (bei langen Fenstern Monat für Monat) und der Anteil jedes Lieferanten in Prozent. Wurde zuvor nichts ausgegeben, schreibt House, dass es keinen Vergleich gibt, statt einen Prozentsatz zu erfinden. « Ohne Budget » öffnet sich genauso.\n\nUnten wird die Ausgabenliste des Zeitraums Seite für Seite durchblättert. Mit « Auswählen » hakst du mehrere Zeilen ab, dann ändert « Korrigieren… » Lieferant oder Budget auf einmal — so verschiebst du, was im falschen Budget liegt. Verschobene Zeilen verlassen das Blatt sofort: sie zählen jetzt anderswo."
+            "body": "Tippe auf ein Budget, um sein Blatt zu öffnen. Wähle den Zeitraum — die vier Kürzel oder zwei freie Daten — und alles wird neu berechnet. Unter dem Betrag steht der Vergleich mit dem entsprechenden Vorzeitraum: ein Monat mit dem Vormonat, ein Jahr mit dem Vorjahr, ein freies Fenster mit derselben Dauer unmittelbar davor. Darunter der Ausgabenrhythmus Tag für Tag (bei langen Fenstern Monat für Monat) und der Anteil jedes Lieferanten in Prozent. Wurde zuvor nichts ausgegeben, schreibt House, dass es keinen Vergleich gibt, statt einen Prozentsatz zu erfinden. « Ohne Budget » öffnet sich genauso.\n\nUnten wird die Ausgabenliste des Zeitraums Seite für Seite durchblättert. Mit « Auswählen » hakst du mehrere Zeilen ab, dann ändert « Korrigieren… » Lieferant oder Budget auf einmal — so verschiebst du, was im falschen Budget liegt. Verschobene Zeilen verlassen das Blatt sofort: sie zählen jetzt anderswo. Die Pillen über der Liste verengen sie — eine Art, ein Lieferant oder « ohne Lieferant », um zu finden, was noch fehlt. Die Summe oben lassen sie unberührt: sie bleibt die des ganzen Zeitraums, denn sie ist es, die mit dem Limit verglichen wird."
           },
           "analysis": {
             "title": "Sehen, wohin es wirklich geht",
@@ -3431,6 +3431,8 @@
     "count_other": "{{count}} Ausgaben",
     "empty": "Keine Ausgabe in diesem Zeitraum",
     "emptyDescription": "Ändere den Zeitraum oder ordne Ausgaben diesem Budget zu.",
+    "emptyFiltered": "Keine Ausgabe passt zu diesen Filtern",
+    "emptyFilteredDescription": "Lös eine Pille, um die Liste zu erweitern — die Summe oben bleibt die des ganzen Zeitraums.",
     "refundsTitle": "Erstattungen im Zeitraum",
     "trend": {
       "title": "Ausgabenrhythmus",

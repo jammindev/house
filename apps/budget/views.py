@@ -252,6 +252,7 @@ _EMPTY_INSIGHTS = {
     "granularity": "day",
     "buckets": [],
     "suppliers": [],
+    "kinds": [],
     "budgets": [],
     "budgets_returned": [],
     "budgets_net_total": "0.00",

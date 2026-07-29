@@ -25,6 +25,7 @@ import { useBudgetInsights, useBudgetOverview } from '@/features/budget/hooks';
 import { useTransactions } from '@/features/banking/hooks';
 import { resolvePeriod, type PeriodRange } from '@/features/expenses/period';
 import PeriodPicker from '@/features/expenses/PeriodPicker';
+import ExpenseFilters from '@/features/expenses/ExpenseFilters';
 import ExpenseList from '@/features/expenses/ExpenseList';
 import BulkEditDialog from '@/features/expenses/BulkEditDialog';
 import ShareChart, { type ShareRow } from './ShareChart';
@@ -82,6 +83,61 @@ export default function BudgetDetailPage() {
   const insights = insightsQuery.data;
 
   /**
+   * Les filtres de l'onglet Dépenses, moins la période : ici ils **réduisent la
+   * liste** et rien d'autre.
+   *
+   * ⚠️ Ils ne touchent pas au bloc du haut, et ce n'est pas une simplification.
+   * Ce bloc compare le dépensé à un **plafond** (« 340 € / 400 € ») : un
+   * sous-total filtré sous un plafond entier dirait « tu es large » à quelqu'un
+   * qui vient de dépasser — même famille de mensonge que le plafond qui recule.
+   * Le total, sa comparaison, la courbe et l'anneau restent donc définis par la
+   * seule période, qui vit en tête de page.
+   *
+   * La conséquence est voulue : l'anneau des fournisseurs continue de répondre
+   * « combien chez qui » sur toute la fenêtre. C'est la carte depuis laquelle on
+   * filtre, pas une vue de ce qui est filtré.
+   */
+  const [kind, setKind] = useSessionState<string>('budget.detail.kind', '');
+  const [supplier, setSupplier] = useSessionState<string>('budget.detail.supplier', '');
+  const [withoutSupplier, setWithoutSupplier] = useSessionState<boolean>(
+    'budget.detail.withoutSupplier',
+    false,
+  );
+
+  // Mêmes exclusions mutuelles que l'onglet Dépenses : « chez Leclerc » et « sans
+  // fournisseur » ensemble ne rendraient jamais qu'une liste vide, sans dire
+  // pourquoi.
+  const toggleWithoutSupplier = React.useCallback(() => {
+    const next = !withoutSupplier;
+    setWithoutSupplier(next);
+    if (next) setSupplier('');
+  }, [withoutSupplier, setWithoutSupplier, setSupplier]);
+
+  const chooseSupplier = React.useCallback(
+    (value: string) => {
+      setSupplier(value);
+      setWithoutSupplier(false);
+    },
+    [setSupplier, setWithoutSupplier],
+  );
+
+  /**
+   * Les options viennent d'`insights`, donc de la **fenêtre entière** et du
+   * serveur — jamais des lignes de la page affichée, qui n'en connaît qu'un
+   * cinquième sur une enveloppe chargée. Et elles ne se réduisent pas quand un
+   * filtre est actif : on peut passer d'un fournisseur à l'autre sans repasser
+   * par « Tous ».
+   */
+  const supplierOptions = React.useMemo(
+    () => (insights?.suppliers ?? []).map((s) => s.supplier).filter(Boolean).slice(0, 8),
+    [insights],
+  );
+  const kindOptions = React.useMemo(
+    () => (insights?.kinds ?? []).map((k) => k.kind),
+    [insights],
+  );
+
+  /**
    * La liste se **parcourt**, elle ne se plafonne pas.
    *
    * Elle s'arrêtait à 100 lignes avec une note de troncature. Sur une enveloppe
@@ -92,18 +148,24 @@ export default function BudgetDetailPage() {
    * le dégât qu'aucun écran ne rattrape. Le serveur plafonne d'ailleurs à 100
    * par requête — une fenêtre qu'on agrandit s'y serait arrêtée sans le dire.
    */
-  const pager = usePager(50, `${id}|${range.from}|${range.to}`);
+  const pager = usePager(
+    50,
+    `${id}|${range.from}|${range.to}|${kind}|${supplier}|${withoutSupplier}`,
+  );
 
   const listFilters = React.useMemo(
     () => ({
       type: 'expense' as const,
       budget: id,
+      ...(kind ? { kind } : {}),
+      ...(supplier ? { supplier } : {}),
+      ...(withoutSupplier ? { without_supplier: '1' } : {}),
       ...(range.from ? { start_date: range.from } : {}),
       ...(range.to ? { end_date: range.to } : {}),
       limit: pager.limit,
       offset: pager.offset,
     }),
-    [id, range.from, range.to, pager.limit, pager.offset],
+    [id, kind, supplier, withoutSupplier, range.from, range.to, pager.limit, pager.offset],
   );
 
   const listQuery = useQuery({
@@ -147,7 +209,9 @@ export default function BudgetDetailPage() {
    */
   const selection = useMultiSelect(
     React.useMemo(() => items.map((item) => item.id), [items]),
-    { scopeKey: `${id}|${range.from}|${range.to}|${pager.offset}` },
+    {
+      scopeKey: `${id}|${range.from}|${range.to}|${kind}|${supplier}|${withoutSupplier}|${pager.offset}`,
+    },
   );
 
   // Une page qui s'est vidée sous les doigts ramène à la première. Le cas est ici
@@ -195,6 +259,9 @@ export default function BudgetDetailPage() {
   );
 
   const hasSpending = Boolean(insights && Number(insights.current.total) > 0);
+  /** Une liste réduite par un choix de l'utilisateur — la période n'en fait pas
+   *  partie, elle définit la fenêtre plutôt qu'elle ne la restreint. */
+  const isFiltered = Boolean(kind || supplier || withoutSupplier);
   const [bulkOpen, setBulkOpen] = React.useState(false);
 
   return (
@@ -320,18 +387,31 @@ export default function BudgetDetailPage() {
             </section>
           ) : null}
 
-          {items.length === 0 ? (
-            <EmptyState
-              icon={Receipt}
-              title={t('budgetDetail.empty')}
-              description={t('budgetDetail.emptyDescription')}
-            />
-          ) : (
-            <>
-              {/* Le bouton vit ici, contre la liste, et non en tête de page avec
-                  la période : entrer en sélection est un geste qui porte sur les
-                  lignes, et deux graphiques le séparent de son objet s'il monte. */}
-              <div className="flex justify-end">
+          {/* ⚠️ Les filtres se rendent **au-dessus** de la branche vide, et non
+              dedans : filtrés jusqu'à zéro ligne, ils disparaîtraient avec la
+              liste et il n'y aurait plus rien pour les relâcher. Ils s'affichent
+              dès que l'enveloppe a dépensé quelque chose sur la période —
+              `insights` ignorant les filtres, ce test reste vrai quand la liste
+              est vide *à cause* d'eux. */}
+          {hasSpending ? (
+            <div className="flex flex-wrap items-end justify-between gap-3">
+              <ExpenseFilters
+                period={period}
+                onPeriodChange={setPeriod}
+                supplier={supplier}
+                onSupplierChange={chooseSupplier}
+                withoutSupplier={withoutSupplier}
+                onWithoutSupplierToggle={toggleWithoutSupplier}
+                kind={kind}
+                onKindChange={setKind}
+                supplierOptions={supplierOptions}
+                kindOptions={kindOptions}
+                showPeriod={false}
+              />
+              {/* Entrer en sélection est un geste qui porte sur les lignes : le
+                  bouton reste contre elles, pas en tête de page où deux
+                  graphiques le sépareraient de son objet. */}
+              {items.length > 0 ? (
                 <Button
                   type="button"
                   variant="outline"
@@ -342,9 +422,32 @@ export default function BudgetDetailPage() {
                   <CheckSquare className="h-4 w-4" />
                   {selection.active ? t('common.cancel') : t('common.select')}
                 </Button>
-              </div>
+              ) : null}
+            </div>
+          ) : null}
+
+          {items.length === 0 ? (
+            <EmptyState
+              icon={Receipt}
+              // Filtrée jusqu'au vide, la liste ne dit pas la même chose qu'une
+              // période sans dépense : l'une se règle en relâchant une pastille,
+              // l'autre en changeant de période. Un seul message pour les deux
+              // enverrait la moitié des lecteurs au mauvais endroit.
+              title={isFiltered ? t('budgetDetail.emptyFiltered') : t('budgetDetail.empty')}
+              description={
+                isFiltered
+                  ? t('budgetDetail.emptyFilteredDescription')
+                  : t('budgetDetail.emptyDescription')
+              }
+            />
+          ) : (
+            <>
               <ExpenseList
                 items={items}
+                // La pastille a sa place ici depuis que la page porte le filtre
+                // « sans fournisseur » et la correction en lot : elle montre ce
+                // que le filtre irait chercher.
+                flagWithoutSupplier
                 onToggleSelected={
                   selection.active ? (item) => selection.toggle(item.id) : undefined
                 }

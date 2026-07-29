@@ -240,6 +240,13 @@ export interface InsightBudget {
   share: number;
 }
 
+/** Une nature de dépense présente dans la fenêtre — une option de filtre. */
+export interface InsightKind {
+  kind: string;
+  total: string;
+  count: number;
+}
+
 export interface BudgetInsights {
   period: { from: string | null; to: string | null };
   previous_period: { from: string | null; to: string | null };
@@ -250,6 +257,16 @@ export interface BudgetInsights {
   /** La fenêtre entière, **trous compris** : un jour vide vaut `"0.00"`. */
   buckets: InsightBucket[];
   suppliers: InsightSupplier[];
+  /**
+   * Les natures présentes dans la fenêtre, la plus lourde d'abord — **des
+   * options de filtre, pas une répartition** (donc pas de `share` : un second
+   * anneau décomposerait le même total que celui des fournisseurs sans que rien
+   * ne dise lequel lire).
+   *
+   * Elles viennent de la fenêtre entière et non de la page affichée : une
+   * pastille qui apparaît en tournant les pages fait douter de ce qu'on filtre.
+   */
+  kinds: InsightKind[];
   /** Rempli sur un scope de catégorie seulement : une enveloppe ne se répartit
    *  pas entre elle-même. Net **positif**, la plus grosse part d'abord. */
   budgets: InsightBudget[];

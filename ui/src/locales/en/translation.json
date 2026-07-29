@@ -1682,7 +1682,7 @@
           },
           "sheet": {
             "title": "Open a budget's sheet",
-            "body": "Tap a budget to open its sheet. Pick the period — the four shortcuts, or two free dates — and everything recomputes. Under the amount sits the comparison with the equivalent previous period: a month compares with the month before, a year with the year before, a free window with the same duration just before it. Below that, the spending rhythm day by day (month by month over a long window) and each supplier's share as a percentage. With nothing spent before, House says there is no comparison rather than inventing a percentage. « Unbudgeted » opens exactly the same way.\n\nAt the bottom, the period's expenses are browsed page by page. « Select » ticks several lines, then « Fix… » changes their supplier or their budget in one go — that is how you move what sits in the wrong envelope. Moved lines leave the sheet right away: they now count elsewhere."
+            "body": "Tap a budget to open its sheet. Pick the period — the four shortcuts, or two free dates — and everything recomputes. Under the amount sits the comparison with the equivalent previous period: a month compares with the month before, a year with the year before, a free window with the same duration just before it. Below that, the spending rhythm day by day (month by month over a long window) and each supplier's share as a percentage. With nothing spent before, House says there is no comparison rather than inventing a percentage. « Unbudgeted » opens exactly the same way.\n\nAt the bottom, the period's expenses are browsed page by page. « Select » ticks several lines, then « Fix… » changes their supplier or their budget in one go — that is how you move what sits in the wrong envelope. Moved lines leave the sheet right away: they now count elsewhere. The chips above the list narrow it down — a kind, a supplier, or « without supplier » to spot what is still to be filled in. They leave the total at the top alone: it keeps covering the whole period, because that is the figure compared with the ceiling."
           },
           "analysis": {
             "title": "See where it actually goes",
@@ -3431,6 +3431,8 @@
     "count_other": "{{count}} expenses",
     "empty": "No expense in this period",
     "emptyDescription": "Change the period, or sort some expenses into this budget.",
+    "emptyFiltered": "No expense matches these filters",
+    "emptyFilteredDescription": "Release a chip to widen the list — the total above keeps covering the whole period.",
     "refundsTitle": "Refunds over the period",
     "trend": {
       "title": "Spending rhythm",

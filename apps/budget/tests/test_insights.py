@@ -33,6 +33,7 @@ from budget.insights import compute_budget_insights
 from budget.models import Budget
 from households.models import HouseholdMember
 from interactions.aggregations import compute_expense_summary
+from interactions.models import Interaction
 from interactions.services import create_manual_expense_interaction
 
 from .factories import HouseholdFactory, HouseholdMemberFactory, UserFactory
@@ -351,6 +352,54 @@ class TestTheShareBySupplier:
 
         assert result["suppliers"] == []
         assert result["current"]["total"] == "0.00"
+
+
+@pytest.mark.django_db
+class TestTheFilterOptions:
+    """Ce sur quoi la fiche propose de filtrer sa liste, et d'où ça vient.
+
+    Les options viennent de la **fenêtre entière**, jamais des lignes de la page
+    affichée : une pastille qui apparaît en tournant les pages ferait douter de
+    ce qu'on filtre, et sur une enveloppe de trois cents dépenses la page 1 ne
+    connaît qu'un cinquième des natures.
+    """
+
+    def test_the_kinds_of_the_window_are_listed_heaviest_first(self, ctx):
+        household, owner, diy = ctx
+        light = _spend(household, owner, "10.00", on=date(2026, 7, 3), budget=diy)
+        heavy = _spend(household, owner, "90.00", on=date(2026, 7, 4), budget=diy)
+        Interaction.objects.filter(pk=light.pk).update(kind="stock_purchase")
+        Interaction.objects.filter(pk=heavy.pk).update(kind="bank")
+
+        result = _insights(household, diy, date(2026, 7, 1), date(2026, 7, 31))
+
+        assert [k["kind"] for k in result["kinds"]] == ["bank", "stock_purchase"]
+        assert result["kinds"][0]["total"] == "90.00"
+        assert result["kinds"][0]["count"] == 1
+
+    def test_a_kind_outside_the_window_is_not_an_option(self, ctx):
+        """Filtrer sur une nature qui ne rendrait aucune ligne n'aide personne."""
+        household, owner, diy = ctx
+        june = _spend(household, owner, "50.00", on=date(2026, 6, 15), budget=diy)
+        Interaction.objects.filter(pk=june.pk).update(kind="stock_purchase")
+        _spend(household, owner, "20.00", on=date(2026, 7, 4), budget=diy)
+
+        result = _insights(household, diy, date(2026, 7, 1), date(2026, 7, 31))
+
+        assert [k["kind"] for k in result["kinds"]] == ["manual"]
+
+    def test_an_empty_kind_never_becomes_a_pill(self, ctx):
+        """Une pastille sans libellé n'est pas un filtre, c'est un bouton muet."""
+        household, owner, diy = ctx
+        blank = _spend(household, owner, "30.00", on=date(2026, 7, 3), budget=diy)
+        Interaction.objects.filter(pk=blank.pk).update(kind="")
+
+        result = _insights(household, diy, date(2026, 7, 1), date(2026, 7, 31))
+
+        assert result["kinds"] == []
+        # La dépense reste comptée : elle n'est pas filtrable, elle n'est pas
+        # invisible.
+        assert result["current"]["total"] == "30.00"
 
 
 @pytest.mark.django_db
