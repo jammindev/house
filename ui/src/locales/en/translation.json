@@ -1689,7 +1689,7 @@
           },
           "cash": {
             "title": "Track cash too",
-            "body": "Create a “Cash” account for the household's physical money. It behaves like a bank account: withdrawals feed it, and a cash spend becomes an operation on it — so an expense the control can account for, like any other."
+            "body": "Create a “Cash” account for the household's physical money. It works like a bank account, and cash enters it two ways: “Feed cash” on a withdrawal line, and “Cash in” on the Accounts tab for money from elsewhere (a gift, a sale, a friend's share). A cash spend becomes an operation on that account — an expense the control can reconcile, like any other. If you pour only part of a withdrawal into the pot, the Control tells you: the rest would belong nowhere."
           },
           "openingBalance": {
             "title": "Set the starting balance",
@@ -3481,7 +3481,8 @@
       "noAccount": "No cash account",
       "noAccountHint": "Declare a “Cash” account in the Accounts tab: a cash spend then becomes an account operation, like every other.",
       "createAccount": "Create my cash account",
-      "defaultAccountName": "Cash"
+      "defaultAccountName": "Cash",
+      "deposited": "Cash deposit recorded."
     },
     "withdraw": {
       "title": "Move to cash",
@@ -3500,7 +3501,10 @@
       "linked": "Withdrawal mirrored onto cash.",
       "unlinked": "Cash counterpart removed.",
       "linkedBadge": "Cash",
-      "unlink": "Remove the counterpart"
+      "unlink": "Remove the counterpart",
+      "completeTitle": "Complete the cash pour",
+      "completeHint": "{{outflow}} withdrawn, of which {{mirrored}} declared as entering the cash pot. The rest belongs nowhere: neither a spend nor cash.",
+      "adjusted": "Share poured into cash corrected."
     },
     "allocation": {
       "title": "Split this operation",
@@ -3642,6 +3646,14 @@
       "removeSplit": "Remove the allocation",
       "removeSplitHint": "Deletes this expense; the bank operation is untouched and goes back to the queue.",
       "splitRemoved": "Allocation removed"
+    },
+    "deposit": {
+      "title": "Cash coming in",
+      "action": "Cash in",
+      "labelPlaceholder": "E.g. gift, bike sold, Marie's share",
+      "amount": "Amount received",
+      "date": "Date",
+      "natureHint": "An internal transfer is not recorded here: cash from a withdrawal is declared on the withdrawal line, with “Feed cash”."
     }
   },
   "pwa": {
@@ -3844,6 +3856,11 @@
           "title": "Partially credited refunds",
           "hint": "Part of what came back credits no envelope: those budgets' counters stay inflated by that much.",
           "resolution": "Complete the split from the queue, or arbitrate if the remainder concerns no envelope."
+        },
+        "cash_mirror_partial": {
+          "title": "Withdrawals only partly poured into cash",
+          "hint": "Part of the withdrawal is neither a spend nor declared cash: that money belongs nowhere.",
+          "resolution": "Correct the share that entered the cash pot, or arbitrate if the rest went elsewhere (own pocket, another household)."
         }
       },
       "blocked": "Control cannot be evaluated",
@@ -3856,7 +3873,9 @@
       "fix": "Fix",
       "findBalance": "Find the balance",
       "anchorDrift": "Balance you read: {{attested}} · computed today: {{computed}}",
-      "allocate": "Sort it"
+      "allocate": "Sort it",
+      "pour": "Correct the pour",
+      "cashMissing": "{{outflow}} withdrawn, {{mirrored}} poured into cash — {{missing}} belongs nowhere."
     },
     "pending": {
       "count": "{{count}} operation to sort",

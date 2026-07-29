@@ -1689,7 +1689,7 @@
           },
           "cash": {
             "title": "Auch Bargeld erfassen",
-            "body": "Legen Sie ein Konto vom Typ „Bargeld“ an. Es verhält sich wie ein Bankkonto: Abhebungen füllen es, und eine Barausgabe wird eine Buchung darauf — also eine Ausgabe, die die Kontrolle zuordnen kann, wie jede andere."
+            "body": "Erstelle ein Konto vom Typ „Bargeld“ für das Bargeld des Haushalts. Es funktioniert wie ein Bankkonto, und Bargeld kommt auf zwei Wegen hinein: „Kasse auffüllen“ auf einer Abhebungszeile, und „Bareingang“ im Tab Konten für Geld von außen (ein Geschenk, ein Verkauf, der Anteil einer Freundin). Eine Barausgabe wird zu einer Buchung dieses Kontos — also zu einer Ausgabe, die die Kontrolle zuordnen kann. Zahlst du nur einen Teil einer Abhebung in die Kasse ein, meldet es die Kontrolle: der Rest würde nirgendwohin gehören."
           },
           "openingBalance": {
             "title": "Anfangssaldo eintragen",
@@ -3481,7 +3481,8 @@
       "noAccount": "Kein Barkonto",
       "noAccountHint": "Legen Sie im Reiter Konten ein Konto „Bargeld“ an: eine Barausgabe wird dann eine Kontobuchung wie jede andere.",
       "createAccount": "Barkonto anlegen",
-      "defaultAccountName": "Bargeld"
+      "defaultAccountName": "Bargeld",
+      "deposited": "Bareingang erfasst."
     },
     "withdraw": {
       "title": "Auf Bargeld übertragen",
@@ -3500,7 +3501,10 @@
       "linked": "Abhebung auf Bargeld gespiegelt.",
       "unlinked": "Bargeld-Gegenbuchung entfernt.",
       "linkedBadge": "Bargeld",
-      "unlink": "Gegenbuchung entfernen"
+      "unlink": "Gegenbuchung entfernen",
+      "completeTitle": "Bareinlage vervollständigen",
+      "completeHint": "Abhebung von {{outflow}}, davon {{mirrored}} als in die Kasse eingegangen erklärt. Der Rest gehört nirgendwohin: weder Ausgabe noch Bargeld.",
+      "adjusted": "In die Kasse eingezahlter Anteil korrigiert."
     },
     "allocation": {
       "title": "Diese Buchung aufteilen",
@@ -3642,6 +3646,14 @@
       "removeSplit": "Aufteilung entfernen",
       "removeSplitHint": "Löscht diese Ausgabe; die Bankbuchung bleibt unberührt und kehrt in die Warteschlange zurück.",
       "splitRemoved": "Aufteilung entfernt"
+    },
+    "deposit": {
+      "title": "Bareingang",
+      "action": "Bareingang",
+      "labelPlaceholder": "z. B. Geschenk, Fahrrad verkauft, Maries Anteil",
+      "amount": "Erhaltener Betrag",
+      "date": "Datum",
+      "natureHint": "Eine interne Umbuchung wird hier nicht erfasst: Bargeld aus einer Abhebung wird auf der Abhebungszeile mit „Kasse auffüllen“ erklärt."
     }
   },
   "pwa": {
@@ -3844,6 +3856,11 @@
           "title": "Teilweise zugeordnete Rückzahlungen",
           "hint": "Ein Teil des zurückgekommenen Geldes erstattet kein Budget: deren Zähler bleiben um diesen Betrag zu hoch.",
           "resolution": "Vervollständigen Sie die Aufteilung in der Warteschlange, oder begründen Sie den Rest."
+        },
+        "cash_mirror_partial": {
+          "title": "Abhebungen nur teilweise in die Kasse eingezahlt",
+          "hint": "Ein Teil der Abhebung ist weder Ausgabe noch erklärtes Bargeld: dieses Geld gehört nirgendwohin.",
+          "resolution": "Korrigieren Sie den in die Kasse eingegangenen Anteil, oder entscheiden Sie begründet, wenn der Rest woanders hingegangen ist (eigene Tasche, anderer Haushalt)."
         }
       },
       "blocked": "Kontrolle nicht bewertbar",
@@ -3856,7 +3873,9 @@
       "fix": "Beheben",
       "findBalance": "Saldo ermitteln",
       "anchorDrift": "Abgelesener Saldo: {{attested}} · heute berechnet: {{computed}}",
-      "allocate": "Zuordnen"
+      "allocate": "Zuordnen",
+      "pour": "Einzahlung korrigieren",
+      "cashMissing": "Abhebung von {{outflow}}, {{mirrored}} in die Kasse — {{missing}} gehören nirgendwohin."
     },
     "pending": {
       "count": "{{count}} Buchung zuzuordnen",

@@ -1689,7 +1689,7 @@
           },
           "cash": {
             "title": "Suivre aussi les espèces",
-            "body": "Crée un compte de type « Espèces » pour l'argent liquide du foyer. Il fonctionne comme un compte bancaire : tes retraits l'alimentent, et une dépense en liquide devient une opération de ce compte — donc une dépense que le contrôle sait rattacher, comme les autres."
+            "body": "Crée un compte de type « Espèces » pour l'argent liquide du foyer. Il fonctionne comme un compte bancaire, et le liquide y entre par deux chemins : « Alimenter les espèces » sur une ligne de retrait, et « Rentrée d'espèces » dans l'onglet Comptes pour ce qui vient d'ailleurs (un cadeau, une vente, la part d'un ami). Une dépense en liquide devient une opération de ce compte — donc une dépense que le contrôle sait rattacher, comme les autres. Si tu ne verses qu'une partie d'un retrait dans la caisse, le Contrôle te le signale : le reste n'appartiendrait à rien."
           },
           "openingBalance": {
             "title": "Renseigner le solde de départ",
@@ -3481,7 +3481,8 @@
       "noAccount": "Aucun compte espèces",
       "noAccountHint": "Déclarez un compte « Espèces » dans l'onglet Comptes : une dépense en liquide devient alors une opération de compte, comme les autres.",
       "createAccount": "Créer mon compte espèces",
-      "defaultAccountName": "Espèces"
+      "defaultAccountName": "Espèces",
+      "deposited": "Rentrée d'espèces enregistrée."
     },
     "withdraw": {
       "title": "Retirer vers les espèces",
@@ -3500,7 +3501,10 @@
       "linked": "Retrait reflété sur les espèces.",
       "unlinked": "Contrepartie espèces supprimée.",
       "linkedBadge": "Espèces",
-      "unlink": "Supprimer la contrepartie"
+      "unlink": "Supprimer la contrepartie",
+      "completeTitle": "Compléter le versement en caisse",
+      "completeHint": "Retrait de {{outflow}}, dont {{mirrored}} déclarés entrés dans la caisse. Le reste n'appartient à rien : ni dépense, ni espèces.",
+      "adjusted": "Part versée en caisse corrigée."
     },
     "allocation": {
       "title": "Ventiler cette opération",
@@ -3642,6 +3646,14 @@
       "removeSplit": "Supprimer la ventilation",
       "removeSplitHint": "Supprime cette dépense ; l'opération bancaire n'est pas touchée et redevient à ranger.",
       "splitRemoved": "Ventilation supprimée"
+    },
+    "deposit": {
+      "title": "Rentrée d'espèces",
+      "action": "Rentrée d'espèces",
+      "labelPlaceholder": "Ex. : cadeau, vélo vendu, part de Marie",
+      "amount": "Montant reçu",
+      "date": "Date",
+      "natureHint": "Un transfert interne ne se saisit pas ici : des espèces venues d'un retrait se déclarent depuis la ligne de retrait, avec « Alimenter les espèces »."
     }
   },
   "pwa": {
@@ -3844,6 +3856,11 @@
           "title": "Remboursements partiellement attribués",
           "hint": "Une part de ce qui est revenu ne recrédite aucune enveloppe : les compteurs de ces budgets restent gonflés d'autant.",
           "resolution": "Complétez la répartition depuis « À ranger », ou arbitrez si le reste ne concerne aucune enveloppe."
+        },
+        "cash_mirror_partial": {
+          "title": "Retraits partiellement versés en caisse",
+          "hint": "Une partie du retrait n'est ni une dépense, ni des espèces déclarées : cet argent n'appartient à rien.",
+          "resolution": "Corrigez la part entrée dans la caisse, ou arbitrez si le reste est parti ailleurs (poche personnelle, autre foyer)."
         }
       },
       "blocked": "Contrôle non évaluable",
@@ -3856,7 +3873,9 @@
       "fix": "Corriger",
       "findBalance": "Retrouver le solde",
       "anchorDrift": "Solde constaté : {{attested}} · calculé aujourd'hui : {{computed}}",
-      "allocate": "Ranger"
+      "allocate": "Ranger",
+      "pour": "Corriger le versement",
+      "cashMissing": "Retrait de {{outflow}}, {{mirrored}} versés en caisse — {{missing}} n'appartiennent à rien."
     },
     "pending": {
       "count": "{{count}} opération à ranger",

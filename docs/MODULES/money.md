@@ -617,6 +617,25 @@ La fiche répond aux trois seules questions d'une dépense, dans cet ordre :
 Régression : `ui/src/features/money/ExpenseDetailPage.test.tsx` (dont la
 redirection, et le fait que la fiche générique reste celle d'une note).
 
+### Les espèces, des deux côtés
+
+Deux ajouts, côté UI, pour le dernier orphelin silencieux du modèle et pour son
+symétrique (détail du modèle : `docs/MODULES/banking.md`, « Les deux trous restants
+du liquide »).
+
+- **« Rentrée d'espèces »** vit dans l'onglet **Comptes**, pas dans Dépenses : ce
+  n'est pas une dépense, c'est de l'argent qui arrive dans une caisse — donc un
+  geste de compte. Le dialogue demande une **nature** (pas de transfert interne :
+  voir la doc banking) et, sur un remboursement, ses parts d'enveloppes dans le
+  même envoi.
+- **`cash_mirror_partial` reste hors de la file** et porte son geste dans le
+  Contrôle : « Corriger le versement ». Le `detail` du finding transporte déjà
+  `outflow` et `mirrored`, donc le dialogue s'ouvre **sans une requête de plus** —
+  même principe que le reste à ventiler affiché sur une ligne partielle.
+- La ligne d'écart affiche les trois chiffres (retiré / versé / manquant). « Le
+  versement est partiel » n'apprend rien ; c'est le montant orphelin qui dit s'il
+  faut corriger une faute de frappe ou arbitrer un choix.
+
 ### Reste ouvert
 
 Un seul point, et il attend de l'usage plutôt qu'un arbitrage : les **suggestions
