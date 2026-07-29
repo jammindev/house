@@ -1,11 +1,4 @@
-import { useQueryClient } from '@tanstack/react-query';
-import {
-  BANKING_ROOT,
-  BUDGET_ROOT,
-  COMPLIANCE_ROOT,
-  EXPENSES_ROOT,
-  INTERACTIONS_ROOT,
-} from './keys';
+import { useInvalidate } from '@/lib/invalidate';
 
 /**
  * Ce qu'une écriture sur l'argent rend périmé — **déclaré une fois**.
@@ -31,18 +24,15 @@ import {
  * touche à l'argent invalide tout l'argent.** Invalider trop large coûte
  * quelques requêtes sur des vues déjà montées ; invalider trop étroit coûte la
  * confiance dans les chiffres, et le bug est invisible en revue.
+ *
+ * ⚠️ Les cinq racines ne sont plus énumérées ici : elles sont **déclarées dans
+ * le graphe** de `lib/invalidate`, généralisation de cette règle au reste de
+ * l'app (le même oubli existait sur le dashboard, les alertes et le coût d'un
+ * projet). Passer par le graphe apporte en prime ce que l'argent périmait sans
+ * le dire : **le coût réel d'un projet** est une somme de dépenses, et
+ * l'activité du dashboard en est le fil.
  */
 export function useInvalidateMoney() {
-  const queryClient = useQueryClient();
-  return () => {
-    for (const root of [
-      BANKING_ROOT,
-      INTERACTIONS_ROOT,
-      EXPENSES_ROOT,
-      BUDGET_ROOT,
-      COMPLIANCE_ROOT,
-    ]) {
-      void queryClient.invalidateQueries({ queryKey: root });
-    }
-  };
+  const invalidate = useInvalidate();
+  return () => invalidate('interactions');
 }

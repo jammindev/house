@@ -790,6 +790,43 @@ deux voix » appliquée à un montant : **un compteur ne peut pas avoir deux
 définitions.** Régression :
 `apps/interactions/tests/test_period_bounds.py::TestTheTwoScreensAgree`.
 
+### Fraîcheur des données — une écriture déclare ce qu'elle écrit, jamais ce qu'elle rafraîchit
+
+Le pendant de la règle du dessus dans le temps : un chiffre juste affiché après
+coup est un chiffre faux. Toute la fraîcheur du front tient dans **deux règles,
+tenues par `ui/src/lib/invalidate.test.ts`** :
+
+1. **Une mutation vit dans le `hooks.ts` de sa feature.** Une fonction
+   d'écriture de `lib/api/` ne s'importe **que** là — un composant qui appelle
+   `updateInteraction()` en direct doit redéclarer l'invalidation, et ce doublon
+   a dérivé dix fois. Le test refuse l'import.
+2. **Le `onSuccess` déclare la racine écrite, pas la liste des caches** :
+   `invalidate('tasks')`, via `useInvalidate` de `ui/src/lib/invalidate.ts`. Ce
+   qui **dérive** de cette racine est déclaré une fois dans le graphe
+   `DERIVED_FROM` du même fichier, et la fermeture est **transitive** — ventiler
+   une ligne bancaire crée des dépenses, qui changent le coût d'un projet, qui
+   s'affiche sur le dashboard.
+
+**Ajouter un écran qui lit les données d'une autre feature = ajouter sa ligne
+dans `DERIVED_FROM`.** Sans elle, l'écran s'affiche juste à sa première écriture
+puis mentira jusqu'à la fin du `staleTime`.
+
+**Pourquoi un test et pas une relecture :** le défaut est invisible deux fois. En
+revue, le diff d'un `onSuccess` qui oublie une racine ressemble exactement à
+celui qui la liste. En développement, Vite recharge le cache à chaque
+sauvegarde : l'écran qu'on vient d'écrire est toujours frais chez celui qui
+l'écrit. Il ne se voit qu'en prod, et il se dit toujours pareil : « je dois
+recharger la page ». Constaté sur l'édition d'une dépense (fournisseur corrigé,
+liste inchangée au retour), puis retrouvé sur neuf autres composants, et sur
+trois racines que **personne** n'invalidait : `dashboard`, `alerts`, et
+`projects` vu depuis l'argent — alors que le coût réel d'un chantier est une
+somme de dépenses.
+
+Le `staleTime` de 5 min du `QueryClient` (avec `refetchOnWindowFocus: false`) est
+l'**amplificateur**, pas la cause : rien ne rattrape l'oubli avant l'expiration.
+Ne pas le baisser pour masquer un cache mal invalidé — ce serait une requête à
+chaque montage pour cacher le défaut au lieu de le corriger.
+
 ---
 
 ## Pattern standard — Feature page

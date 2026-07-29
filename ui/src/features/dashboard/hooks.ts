@@ -1,5 +1,6 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/axios';
+import { useInvalidate } from '@/lib/invalidate';
 import type { Task, TaskStatus } from '@/lib/api/tasks';
 import { updateTaskStatus } from '@/lib/api/tasks';
 
@@ -91,14 +92,13 @@ export function useActiveProjects() {
 
 /** Status toggle for "My week" checkboxes — invalidates both dashboard and tasks caches. */
 export function useSetTaskStatus() {
-  const qc = useQueryClient();
+  const invalidate = useInvalidate();
   return useMutation({
     mutationFn: ({ id, status }: { id: string; status: TaskStatus }) =>
       updateTaskStatus(id, status),
-    onSettled: () => {
-      void qc.invalidateQueries({ queryKey: dashboardKeys.myWeek() });
-      void qc.invalidateQueries({ queryKey: ['tasks'] });
-      void qc.invalidateQueries({ queryKey: ['alerts'] });
-    },
+    // Ce qu'on écrit, c'est une tâche : le dashboard et les alertes en dérivent
+    // (`lib/invalidate`). Cette liste-ci était la seule de l'app à connaître le
+    // lien tâche → alertes, et elle ne servait qu'à cet écran.
+    onSettled: () => invalidate('tasks'),
   });
 }

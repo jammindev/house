@@ -7,7 +7,8 @@ import { Select } from '@/design-system/select';
 import { Button } from '@/design-system/button';
 import { FormField } from '@/design-system/form-field';
 import { Label } from '@/design-system/label';
-import { createStructure, updateStructure, type Structure } from '@/lib/api/structures';
+import { type Structure } from '@/lib/api/structures';
+import { useCreateStructure, useUpdateStructure } from './hooks';
 
 const STRUCTURE_TYPES = ['company', 'association', 'administration', 'artisan', 'other'];
 
@@ -33,6 +34,9 @@ export default function StructureDialog({
   const [notes, setNotes] = React.useState('');
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+
+  const createMutation = useCreateStructure();
+  const updateMutation = useUpdateStructure();
 
   React.useEffect(() => {
     if (!open) return;
@@ -67,8 +71,12 @@ export default function StructureDialog({
     };
 
     const action = isEditing && existingStructure
-      ? updateStructure(existingStructure.id, values, existingStructure)
-      : createStructure(values);
+      ? updateMutation.mutateAsync({
+          id: existingStructure.id,
+          values,
+          existing: existingStructure,
+        })
+      : createMutation.mutateAsync(values);
 
     action
       .then(() => {

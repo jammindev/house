@@ -1,21 +1,20 @@
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
-import { useQueryClient } from '@tanstack/react-query';
 import { Paintbrush, Plus } from 'lucide-react';
 import { Button } from '@/design-system/button';
 import EmptyState from '@/components/EmptyState';
 import { useDelayedLoading } from '@/lib/useDelayedLoading';
 import { useDeleteWithUndo } from '@/lib/useDeleteWithUndo';
-import { deleteInteraction, type InteractionListItem } from '@/lib/api/interactions';
-import { useRenovationEntries, renovationKeys } from './hooks';
+import { type InteractionListItem } from '@/lib/api/interactions';
+import { useDeleteRenovation, useRenovationEntries } from './hooks';
 import RenovationCard from './RenovationCard';
 import RenovationDialog from './RenovationDialog';
 
 export default function RenovationTab({ zoneId }: { zoneId: string }) {
   const { t } = useTranslation();
-  const qc = useQueryClient();
   const { data, isLoading } = useRenovationEntries(zoneId);
   const entries = data?.items ?? [];
+  const deleteMutation = useDeleteRenovation();
 
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [editing, setEditing] = React.useState<InteractionListItem | undefined>(undefined);
@@ -23,12 +22,7 @@ export default function RenovationTab({ zoneId }: { zoneId: string }) {
 
   const { deleteWithUndo } = useDeleteWithUndo({
     label: t('renovation.deleted'),
-    onDelete: (id) =>
-      deleteInteraction(id).then(() => {
-        void qc.invalidateQueries({ queryKey: renovationKeys.all });
-        void qc.invalidateQueries({ queryKey: ['zones'] });
-        void qc.invalidateQueries({ queryKey: ['interactions'] });
-      }),
+    onDelete: (id) => deleteMutation.mutateAsync(id),
   });
 
   function openCreate() {

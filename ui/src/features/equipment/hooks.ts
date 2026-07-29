@@ -1,4 +1,5 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
+import { useInvalidate } from '@/lib/invalidate';
 import { useTranslation } from 'react-i18next';
 import {
   fetchEquipmentList,
@@ -58,40 +59,39 @@ export function useEquipmentHistory(id: string) {
 export { useZones } from '@/features/zones/hooks';
 
 export function useCreateEquipment() {
-  const qc = useQueryClient();
+  const invalidate = useInvalidate();
   return useMutation({
     mutationFn: (payload: EquipmentPayload) => createEquipment(payload),
-    onSuccess: () => qc.invalidateQueries({ queryKey: equipmentKeys.all }),
+    onSuccess: () => invalidate('equipment'),
   });
 }
 
 export function useUpdateEquipment() {
-  const qc = useQueryClient();
+  const invalidate = useInvalidate();
   return useMutation({
     mutationFn: ({ id, payload }: { id: string; payload: EquipmentPayload }) =>
       updateEquipment(id, payload),
-    onSuccess: () => qc.invalidateQueries({ queryKey: equipmentKeys.all }),
+    onSuccess: () => invalidate('equipment'),
   });
 }
 
 export function useDeleteEquipment() {
-  const qc = useQueryClient();
+  const invalidate = useInvalidate();
   return useMutation({
     mutationFn: (id: string) => deleteEquipment(id),
-    onSuccess: () => qc.invalidateQueries({ queryKey: equipmentKeys.all }),
+    onSuccess: () => invalidate('equipment'),
   });
 }
 
 export function useRegisterEquipmentPurchase() {
-  const qc = useQueryClient();
+  const invalidate = useInvalidate();
   const { t } = useTranslation();
   return useMutation({
     mutationFn: ({ id, payload }: { id: string; payload: EquipmentPurchasePayload }) =>
       registerEquipmentPurchase(id, payload),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: equipmentKeys.all });
-      qc.invalidateQueries({ queryKey: ['interactions'] });
-      toast({ description: t('equipment.purchase.created'), variant: 'success' });
+      invalidate('equipment', 'interactions');
+            toast({ description: t('equipment.purchase.created'), variant: 'success' });
     },
     onError: () => toast({ description: t('common.saveFailed'), variant: 'destructive' }),
   });

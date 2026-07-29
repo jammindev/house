@@ -16,9 +16,10 @@ import { fetchDocuments, fetchPhotoDocuments, type DocumentItem } from '@/lib/ap
 import { fetchInteractions, type InteractionListItem } from '@/lib/api/interactions';
 import { fetchZones } from '@/lib/api/zones';
 import {
-  createTask, updateTask,
+  type CreateTaskInput,
   type Zone, type Task, type HouseholdMember, type TaskPriority, type TaskStatus,
 } from '@/lib/api/tasks';
+import { useCreateTask, useUpdateTask } from './hooks';
 
 interface NewTaskDialogProps {
   open: boolean;
@@ -53,6 +54,8 @@ export default function NewTaskDialog({
   const isEditing = Boolean(existingTask);
   const { disabled } = useDisabledModules();
   const weatherEnabled = !disabled.has('weather');
+  const createMutation = useCreateTask();
+  const updateMutation = useUpdateTask();
 
   const priorityOptions = [
     { value: '1', label: t('tasks.priorityHigh_label') },
@@ -186,7 +189,8 @@ export default function NewTaskDialog({
     };
 
     if (isEditing && existingTask) {
-      updateTask(existingTask.id, payload)
+      updateMutation
+        .mutateAsync({ id: existingTask.id, payload })
         .then((updated) => {
           setLoading(false);
           onOpenChange(false);
@@ -197,13 +201,13 @@ export default function NewTaskDialog({
           setError(t('tasks.updateFailed'));
         });
     } else {
-      createTask({
+      createMutation.mutateAsync({
         ...payload,
         status: status as TaskStatus,
         document_ids: selectedDocumentIds.length > 0 ? selectedDocumentIds : undefined,
         interaction_ids: selectedInteractionIds.length > 0 ? selectedInteractionIds : undefined,
         source_interaction: sourceInteractionId ?? undefined,
-      } as Parameters<typeof createTask>[0])
+      } as CreateTaskInput)
         .then(() => {
           setLoading(false);
           onOpenChange(false);

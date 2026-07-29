@@ -1,7 +1,6 @@
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useQueryClient } from '@tanstack/react-query';
 import { Droplets, ListPlus, MessageCircle, Receipt, StickyNote, Zap } from 'lucide-react';
 import { Button } from '@/design-system/button';
 import { useToast } from '@/lib/toast';
@@ -12,7 +11,6 @@ import WaterReadingDialog from '@/features/water/WaterReadingDialog';
 import ReadingDialog from '@/features/electricity/ReadingDialog';
 import { useMeters } from '@/features/electricity/hooks';
 import { useWaterReadings } from '@/features/water/hooks';
-import { dashboardKeys } from './hooks';
 
 /** One-tap entry points for the most frequent captures. Module-specific
  * actions (readings) only show up once the module holds data. */
@@ -21,7 +19,6 @@ export default function QuickActions() {
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
-  const qc = useQueryClient();
   const [expenseOpen, setExpenseOpen] = React.useState(false);
   const [taskOpen, setTaskOpen] = React.useState(false);
   const [waterOpen, setWaterOpen] = React.useState(false);
@@ -73,8 +70,10 @@ export default function QuickActions() {
       <NewTaskDialog
         open={taskOpen}
         onOpenChange={setTaskOpen}
+        // Pas d'invalidation ici : c'est `useCreateTask` qui périme ce qui
+        // dérive d'une tâche, dashboard compris. Ce point d'appel n'invalidait
+        // que « Ma semaine » — la page Tâches restait sur sa liste d'avant.
         onCreated={() => {
-          void qc.invalidateQueries({ queryKey: dashboardKeys.myWeek() });
           toast({ description: t('dashboard.quickActions.taskCreated'), variant: 'success' });
         }}
       />

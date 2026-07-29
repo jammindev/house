@@ -10,6 +10,7 @@ import {
   detachEntityDocument,
   entityDetailQueryKey,
   type DocumentFilters,
+  type PhotoPhase,
   type UploadDocumentInput,
 } from '@/lib/api/documents';
 import type { QueryClient } from '@tanstack/react-query';
@@ -28,11 +29,18 @@ function invalidateEntityDocuments(qc: QueryClient, entityType: string) {
   if (detailKey) void qc.invalidateQueries({ queryKey: detailKey });
 }
 
-/** Attach an existing document to any linkable entity (project, equipment, …). */
+/**
+ * Attach an existing document to any linkable entity (project, equipment, …).
+ *
+ * `phase` ne concerne que les photos (avant/après) : le dialogue de rattachement
+ * en lot le passe, l'onglet Documents l'omet. C'est le seul paramètre qui
+ * justifiait un appel direct à l'API depuis un composant — il vit donc ici.
+ */
 export function useAttachEntityDocument(entityType: string, objectId: string) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (documentId: string) => attachEntityDocument(entityType, objectId, documentId),
+    mutationFn: ({ documentId, phase }: { documentId: string; phase?: PhotoPhase | '' }) =>
+      attachEntityDocument(entityType, objectId, documentId, phase),
     onSuccess: () => invalidateEntityDocuments(qc, entityType),
   });
 }

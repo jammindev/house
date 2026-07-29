@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
+import { useInvalidate } from '@/lib/invalidate';
 import {
   fetchProjects,
   fetchProject,
@@ -73,65 +74,63 @@ export function useProjectGroups() {
 }
 
 export function useCreateProject() {
-  const qc = useQueryClient();
+  const invalidate = useInvalidate();
   return useMutation({
     mutationFn: (payload: ProjectPayload) => createProject(payload),
-    onSuccess: () => qc.invalidateQueries({ queryKey: projectKeys.all }),
+    onSuccess: () => invalidate('projects'),
   });
 }
 
 export function useUpdateProject() {
-  const qc = useQueryClient();
+  const invalidate = useInvalidate();
   return useMutation({
     mutationFn: ({ id, payload }: { id: string; payload: Partial<ProjectPayload> }) =>
       updateProject(id, payload),
-    onSuccess: () => qc.invalidateQueries({ queryKey: projectKeys.all }),
+    onSuccess: () => invalidate('projects'),
   });
 }
 
 export function useDeleteProject() {
-  const qc = useQueryClient();
+  const invalidate = useInvalidate();
   return useMutation({
     mutationFn: (id: string) => deleteProject(id),
-    onSuccess: () => qc.invalidateQueries({ queryKey: projectKeys.all }),
+    onSuccess: () => invalidate('projects'),
   });
 }
 
 export function useCreateGroup() {
-  const qc = useQueryClient();
+  const invalidate = useInvalidate();
   return useMutation({
     mutationFn: (payload: ProjectGroupPayload) => createProjectGroup(payload),
-    onSuccess: () => qc.invalidateQueries({ queryKey: projectKeys.groups() }),
+    onSuccess: () => invalidate('projects'),
   });
 }
 
 export function useUpdateGroup() {
-  const qc = useQueryClient();
+  const invalidate = useInvalidate();
   return useMutation({
     mutationFn: ({ id, payload }: { id: string; payload: Partial<ProjectGroupPayload> }) =>
       updateProjectGroup(id, payload),
-    onSuccess: () => qc.invalidateQueries({ queryKey: projectKeys.groups() }),
+    onSuccess: () => invalidate('projects'),
   });
 }
 
 export function useDeleteGroup() {
-  const qc = useQueryClient();
+  const invalidate = useInvalidate();
   return useMutation({
     mutationFn: (id: string) => deleteProjectGroup(id),
-    onSuccess: () => qc.invalidateQueries({ queryKey: projectKeys.groups() }),
+    onSuccess: () => invalidate('projects'),
   });
 }
 
 export function useRegisterProjectPurchase() {
-  const qc = useQueryClient();
+  const invalidate = useInvalidate();
   const { t } = useTranslation();
   return useMutation({
     mutationFn: ({ id, payload }: { id: string; payload: ProjectPurchasePayload }) =>
       registerProjectPurchase(id, payload),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: projectKeys.all });
-      qc.invalidateQueries({ queryKey: ['interactions'] });
-      qc.invalidateQueries({ queryKey: ['expenses'] });
+      invalidate('projects', 'interactions');
       toast({ description: t('projects.purchase.created'), variant: 'success' });
     },
     onError: () => toast({ description: t('common.saveFailed'), variant: 'destructive' }),
@@ -140,6 +139,7 @@ export function useRegisterProjectPurchase() {
 
 export function usePinProject() {
   const qc = useQueryClient();
+  const invalidate = useInvalidate();
   return useMutation({
     mutationFn: ({ id, pinned }: { id: string; pinned: boolean }) =>
       pinned ? unpinProject(id) : pinProject(id),
@@ -151,6 +151,6 @@ export function usePinProject() {
         return old.map((p) => (p.id === id ? { ...p, is_pinned: !pinned } : p));
       });
     },
-    onSettled: () => qc.invalidateQueries({ queryKey: projectKeys.all }),
+    onSettled: () => invalidate('projects'),
   });
 }

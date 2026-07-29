@@ -10,12 +10,11 @@ import { Textarea } from '@/design-system/textarea';
 import { fetchContacts, type Contact } from '@/lib/api/contacts';
 import { fetchStructures, type Structure } from '@/lib/api/structures';
 import { fetchEquipmentList, type EquipmentListItem } from '@/lib/api/equipment';
-import { updateInteraction } from '@/lib/api/interactions';
 import { fetchHouseholdMembers, type HouseholdMember } from '@/lib/api/tasks';
 import NewTaskDialog from '@/features/tasks/NewTaskDialog';
 import { isOwnedByAllocationEditor } from '@/features/banking/ownership';
 import InteractionDeleteAction from './InteractionDeleteAction';
-import { useInteraction } from './hooks';
+import { useInteraction, useUpdateInteraction } from './hooks';
 import { useDelayedLoading } from '@/lib/useDelayedLoading';
 import { useNavigateBack } from '@/lib/backNavigation';
 import ExpenseFields from './ExpenseFields';
@@ -46,6 +45,10 @@ export default function InteractionEditPage() {
   const navigateBackAfterDelete = useNavigateBack('/app/money?tab=expenses');
 
   const { data: interaction, isLoading, error } = useInteraction(id ?? '');
+  // Le hook, jamais `updateInteraction` en direct : c'est lui qui périme les
+  // caches de l'argent. Sans lui, corriger un fournisseur puis revenir en
+  // arrière affichait la liste d'avant jusqu'à un rechargement de la page.
+  const updateMutation = useUpdateInteraction();
 
   const [subject, setSubject] = React.useState('');
   const [occurredOn, setOccurredOn] = React.useState('');
@@ -150,16 +153,19 @@ export default function InteractionEditPage() {
 
     try {
       setSubmitting(true);
-      await updateInteraction(id ?? '', {
-        subject: subject.trim(),
-        content: description,
-        occurred_at: occurredAt.toISOString(),
-        zone_ids: zoneId ? [zoneId] : [],
-        tags_input: tags,
-        contact_ids: contactId ? [contactId] : [],
-        structure_ids: structureId ? [structureId] : [],
-        equipment_ids: equipmentId ? [equipmentId] : [],
-        ...expenseFields,
+      await updateMutation.mutateAsync({
+        id: id ?? '',
+        payload: {
+          subject: subject.trim(),
+          content: description,
+          occurred_at: occurredAt.toISOString(),
+          zone_ids: zoneId ? [zoneId] : [],
+          tags_input: tags,
+          contact_ids: contactId ? [contactId] : [],
+          structure_ids: structureId ? [structureId] : [],
+          equipment_ids: equipmentId ? [equipmentId] : [],
+          ...expenseFields,
+        },
       });
       navigate(-1);
     } catch {

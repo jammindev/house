@@ -176,6 +176,23 @@ export function useUpdateRecurringExpense() {
   });
 }
 
+/**
+ * Variante muette de la mutation ci-dessus, pour l'annulation d'une
+ * confirmation d'échéance.
+ *
+ * Elle existe pour le **toast**, pas pour le cache : annoncer « échéance mise à
+ * jour » par-dessus l'undo que l'utilisateur vient de cliquer dit le contraire
+ * de ce qu'il a fait. L'invalidation, elle, reste celle de l'argent.
+ */
+export function useRestoreRecurringSchedule() {
+  const invalidate = useInvalidateMoney();
+  return useMutation({
+    mutationFn: ({ id, nextDueDate }: { id: string; nextDueDate: string | null | undefined }) =>
+      updateRecurringExpense(id, { next_due_date: nextDueDate ?? undefined }),
+    onSuccess: invalidate,
+  });
+}
+
 /** Bare delete mutation — the page wraps it in useDeleteWithUndo. */
 export function useDeleteRecurringExpense() {
   const invalidate = useInvalidateMoney();

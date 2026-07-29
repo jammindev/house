@@ -1,15 +1,13 @@
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { SheetDialog } from '@/design-system/sheet-dialog';
 import { Input } from '@/design-system/input';
 import { Button } from '@/design-system/button';
-import { documentKeys } from './hooks';
+import { documentKeys, useAttachEntityDocument } from './hooks';
 import {
   fetchDocuments,
   fetchPhotoDocuments,
-  attachEntityDocument,
-  entityDetailQueryKey,
   type DocumentItem,
   type PhotoPhase,
 } from '@/lib/api/documents';
@@ -42,7 +40,7 @@ export default function EntityAttachDocumentDialog({
   title,
 }: Props) {
   const { t } = useTranslation();
-  const qc = useQueryClient();
+  const attachMutation = useAttachEntityDocument(entityType, objectId);
   const [search, setSearch] = React.useState('');
   const [selected, setSelected] = React.useState<Set<string>>(new Set());
   const [error, setError] = React.useState<string | null>(null);
@@ -86,13 +84,8 @@ export default function EntityAttachDocumentDialog({
     setIsAttaching(true);
     try {
       await Promise.all(
-        Array.from(selected).map((id) =>
-          attachEntityDocument(entityType, objectId, id, phase),
-        ),
+        Array.from(selected).map((id) => attachMutation.mutateAsync({ documentId: id, phase })),
       );
-      void qc.invalidateQueries({ queryKey: documentKeys.all });
-      const detailKey = entityDetailQueryKey(entityType);
-      if (detailKey) void qc.invalidateQueries({ queryKey: detailKey });
       onAttached?.();
       onOpenChange(false);
     } catch {

@@ -156,23 +156,28 @@ export async function updateTask(
   return data as Task;
 }
 
-export async function createTask(
-  payload: {
-    subject: string;
-    content?: string;
-    zone_ids: string[];
-    due_date?: string | null;
-    priority?: TaskPriority;
-    assigned_to_id?: string | null;
-    status?: TaskStatus;
-    project?: string | null;
-    is_private?: boolean;
-    needs_dry_weather?: boolean;
-    document_ids?: string[];
-    interaction_ids?: string[];
-    source_interaction?: string | null;
-  },
-): Promise<Task> {
+/**
+ * Nommé (et pas anonyme dans la signature) pour que le dialogue puisse typer
+ * son payload **sans importer `createTask`** : les fonctions d'écriture ne
+ * s'importent que dans un `hooks.ts` (voir `lib/invalidate.test.ts`).
+ */
+export interface CreateTaskInput {
+  subject: string;
+  content?: string;
+  zone_ids: string[];
+  due_date?: string | null;
+  priority?: TaskPriority;
+  assigned_to_id?: string | null;
+  status?: TaskStatus;
+  project?: string | null;
+  is_private?: boolean;
+  needs_dry_weather?: boolean;
+  document_ids?: string[];
+  interaction_ids?: string[];
+  source_interaction?: string | null;
+}
+
+export async function createTask(payload: CreateTaskInput): Promise<Task> {
   const { data } = await api.post('/tasks/tasks/', { status: 'pending', ...payload });
   return data as Task;
 }
