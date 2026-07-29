@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Pencil, Trash2 } from 'lucide-react';
 import CardActions, { type CardAction } from '@/components/CardActions';
@@ -22,6 +23,8 @@ interface BudgetCategoryCardProps {
   row: BudgetCategoryRow;
   onEdit: () => void;
   onDelete: () => void;
+  /** Ouvre sa fiche. Pile de retour, pour qu'elle sache d'où on vient. */
+  backState?: unknown;
 }
 
 /**
@@ -32,11 +35,17 @@ interface BudgetCategoryCardProps {
  * sien à « combien a-t-on dépensé ? », et deux compteurs qui se contredisent
  * dans le même écran se décrédibilisent l'un l'autre.
  *
- * Pas de `Link` : une catégorie ne porte aucune dépense, donc il n'y a pas de
- * page « de quoi ce compteur est-il fait » à ouvrir — ce sont les budgets
- * en dessous qui mènent quelque part.
+ * Le nom **ouvre sa fiche**. Une catégorie ne porte aucune dépense, mais elle
+ * porte une question que les budgets en dessous ne posent pas : *laquelle de mes
+ * enveloppes mange ce total ?* — et les lire une par une pour la reconstituer de
+ * tête ne répond jamais qu'à peu près.
  */
-export default function BudgetCategoryCard({ row, onEdit, onDelete }: BudgetCategoryCardProps) {
+export default function BudgetCategoryCard({
+  row,
+  onEdit,
+  onDelete,
+  backState,
+}: BudgetCategoryCardProps) {
   const { t } = useTranslation();
   // Pas de plafond → pas de barre ni de pourcentage : rien à mesurer. Une barre
   // verte à 0 % sur ce qui n'a pas d'échelle est le même mensonge qu'une coche
@@ -52,9 +61,18 @@ export default function BudgetCategoryCard({ row, onEdit, onDelete }: BudgetCate
 
   return (
     <div className="flex items-start justify-between gap-2 px-1">
-      <div className="min-w-0 flex-1">
+      {/* Le lien porte l'en-tête, pas le bloc entier : le dropdown d'actions est
+          un enfant, et l'imbriquer dans un <a> en ferait un déclencheur de
+          navigation au premier clic. */}
+      <Link
+        to={`/app/money/categories/${row.id}`}
+        state={backState}
+        className="group min-w-0 flex-1"
+      >
         <div className="flex items-baseline justify-between gap-2">
-          <h3 className="truncate text-sm font-semibold text-foreground">{row.name}</h3>
+          <h3 className="truncate text-sm font-semibold text-foreground group-hover:underline">
+            {row.name}
+          </h3>
           <span className={`shrink-0 text-sm tabular-nums ${TEXT_CLASS[row.state]}`}>
             {uncapped
               ? formatAmount(row.net_spent)
@@ -86,7 +104,7 @@ export default function BudgetCategoryCard({ row, onEdit, onDelete }: BudgetCate
               chiffre a été saisi quelque part. */}
           {!uncapped && !row.has_own_amount ? ` · ${t('budget.category.sumHint')}` : ''}
         </p>
-      </div>
+      </Link>
 
       <CardActions actions={actions} />
     </div>

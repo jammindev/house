@@ -43,6 +43,10 @@ export const budgetKeys = {
     [...budgetKeys.all, 'analysis', months, budget] as const,
   insights: (budget: string, from?: string, to?: string) =>
     [...budgetKeys.all, 'insights', budget, from ?? '', to ?? ''] as const,
+  // Une clé à part : un id de catégorie et un id de budget se ressemblent, et
+  // les deux fiches ne répondent pas la même chose sur la même fenêtre.
+  categoryInsights: (category: string, from?: string, to?: string) =>
+    [...budgetKeys.all, 'insights', 'category', category, from ?? '', to ?? ''] as const,
 };
 
 export function useBudgets() {
@@ -233,6 +237,24 @@ export function useBudgetInsights(budget: string, from?: string, to?: string) {
   return useQuery({
     queryKey: budgetKeys.insights(budget, from, to),
     queryFn: () => fetchBudgetInsights({ budget, from, to }),
+    staleTime: 60_000,
+  });
+}
+
+/**
+ * La fiche d'une **catégorie** : les mêmes lectures sur toutes ses enveloppes,
+ * plus la répartition entre elles (`budgets`).
+ *
+ * Même endpoint, même code de calcul — délibérément. Une catégorie ne porte
+ * aucune dépense : son sous-total ne peut être qu'une lecture de celles de ses
+ * enveloppes, et il n'a le droit d'exister qu'à un seul endroit. Un second
+ * compteur finirait par ne plus dire la même chose que le panneau Budgets, et
+ * cliquer sur un chiffre ouvrirait son démenti.
+ */
+export function useBudgetCategoryInsights(category: string, from?: string, to?: string) {
+  return useQuery({
+    queryKey: budgetKeys.categoryInsights(category, from, to),
+    queryFn: () => fetchBudgetInsights({ category, from, to }),
     staleTime: 60_000,
   });
 }

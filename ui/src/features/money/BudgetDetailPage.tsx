@@ -2,7 +2,7 @@ import * as React from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
-import { Receipt, TrendingDown, TrendingUp } from 'lucide-react';
+import { Receipt } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
 import BackLink from '@/components/BackLink';
 import EmptyState from '@/components/EmptyState';
@@ -15,7 +15,6 @@ import { chartColor } from '@/lib/chartColors';
 import { useDelayedLoading } from '@/lib/useDelayedLoading';
 import { useSessionState } from '@/lib/useSessionState';
 import { fetchInteractions, type InteractionListItem } from '@/lib/api/interactions';
-import type { BudgetInsights } from '@/lib/api/budget';
 import { interactionKeys } from '@/features/interactions/hooks';
 import { useBudgetInsights, useBudgetOverview } from '@/features/budget/hooks';
 import { useTransactions } from '@/features/banking/hooks';
@@ -23,6 +22,7 @@ import { resolvePeriod, type PeriodRange } from '@/features/expenses/period';
 import PeriodPicker from '@/features/expenses/PeriodPicker';
 import ExpenseList from '@/features/expenses/ExpenseList';
 import ShareChart, { type ShareRow } from './ShareChart';
+import InsightComparison from './InsightComparison';
 
 /** Le seau « hors budget » s'ouvre comme une enveloppe — même page, même geste. */
 export const UNBUDGETED = 'none';
@@ -184,7 +184,7 @@ export default function BudgetDetailPage() {
                 })}
               </p>
             ) : null}
-            <Comparison insights={insights} locale={i18n.language} />
+            <InsightComparison insights={insights} locale={i18n.language} />
           </Card>
 
           {hasSpending ? (
@@ -284,70 +284,4 @@ export default function BudgetDetailPage() {
       ) : null}
     </>
   );
-}
-
-/**
- * « −12 % par rapport à juin 2026 (170 €) ».
- *
- * La période de référence a la **même forme** que celle affichée — un mois se
- * compare au mois d'avant, pas aux trente-et-un jours d'avant — et c'est le
- * serveur qui la choisit, pour que la phrase et le chiffre ne puissent pas
- * dériver l'un de l'autre.
- *
- * Sans dépense avant, il n'y a pas de pourcentage : on le dit avec des mots.
- * « +∞ % » serait le même mensonge qu'une part sur un total nul.
- */
-function Comparison({ insights, locale }: { insights: BudgetInsights; locale: string }) {
-  const { t } = useTranslation();
-  const { delta, previous, previous_period: window } = insights;
-  const ratio = delta.ratio;
-  const label = window.from ? rangeLabel(window.from, window.to, locale) : '';
-
-  if (ratio === null) {
-    return (
-      <p className="mt-2 text-xs text-muted-foreground">
-        {t('budgetDetail.compare.noBaseline', { period: label })}
-      </p>
-    );
-  }
-
-  const up = ratio > 0;
-  const Icon = up ? TrendingUp : TrendingDown;
-
-  return (
-    <p className="mt-2 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
-      <span
-        className={`inline-flex items-center gap-1 font-medium tabular-nums ${
-          up ? 'text-destructive' : 'text-primary'
-        }`}
-      >
-        <Icon className="h-3.5 w-3.5" aria-hidden />
-        {up ? '+' : ''}
-        {Math.round(ratio * 100)}%
-      </span>
-      <span>
-        {t('budgetDetail.compare.versus', {
-          period: label,
-          amount: formatAmount(previous.net_total, { fractionDigits: 0 }),
-        })}
-      </span>
-    </p>
-  );
-}
-
-/** « juin 2026 » pour un mois plein, « 1 – 10 juil. » sinon. */
-function rangeLabel(from: string, to: string | null, locale: string): string {
-  const start = new Date(`${from}T12:00:00`);
-  const end = new Date(`${to ?? from}T12:00:00`);
-  const isFullMonth =
-    start.getDate() === 1 &&
-    start.getMonth() === end.getMonth() &&
-    start.getFullYear() === end.getFullYear() &&
-    new Date(end.getFullYear(), end.getMonth() + 1, 0).getDate() === end.getDate();
-
-  if (isFullMonth) {
-    return new Intl.DateTimeFormat(locale, { month: 'long', year: 'numeric' }).format(start);
-  }
-  const format = new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'short' });
-  return `${format.format(start)} – ${format.format(end)}`;
 }

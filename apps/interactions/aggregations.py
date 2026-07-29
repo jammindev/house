@@ -25,7 +25,7 @@ UNBUDGETED = 'none'
 
 def expense_qs(household_id, from_dt: datetime | None, to_dt: datetime | None,
                supplier: str | None = None, kind: str | None = None,
-               budget: str | None = None):
+               budget: str | None = None, category: str | None = None):
     """Les dépenses d'une période, filtrées comme le résumé les filtre.
 
     Public — et pas seulement parce qu'un second module s'en sert. La fiche d'un
@@ -33,6 +33,12 @@ def expense_qs(household_id, from_dt: datetime | None, to_dt: datetime | None,
     fournisseur : si les deux ne partaient pas du même queryset, le graphique
     finirait par ne plus recomposer le chiffre écrit juste au-dessus de lui, et
     aucun des deux ne dirait lequel se trompe.
+
+    ``category`` élargit le scope d'une enveloppe à **toutes celles rangées sous
+    une même catégorie**. Une catégorie ne porte aucune dépense — c'est ce qui
+    permet à « dépensé » de garder une seule définition — donc la seule façon de
+    lire son total est de lire les dépenses de ses budgets. Un filtre de scope,
+    jamais un compteur de plus.
     """
     qs = expenses(household_id=household_id)
     if from_dt is not None:
@@ -45,6 +51,8 @@ def expense_qs(household_id, from_dt: datetime | None, to_dt: datetime | None,
         qs = qs.filter(kind=kind)
     if budget is not None:
         qs = qs.filter(budget__isnull=True) if budget == UNBUDGETED else qs.filter(budget_id=budget)
+    if category is not None:
+        qs = qs.filter(budget__category_id=category)
     return qs
 
 
@@ -64,13 +72,15 @@ def compute_expense_summary(
     supplier: str | None = None,
     kind: str | None = None,
     budget: str | None = None,
+    category: str | None = None,
 ) -> dict[str, Any]:
     """Return totals + breakdowns for expense interactions in the period.
 
     ``budget`` restreint le calcul à une enveloppe, ou au seau « hors budget »
     avec la valeur ``'none'`` — c'est ce qui permet d'ouvrir un compteur pour
     voir de quelles dépenses il est fait, sans charger le journal entier côté
-    client pour le refiltrer.
+    client pour le refiltrer. ``category`` fait la même chose pour **toutes** les
+    enveloppes d'une catégorie.
 
     Shape:
         {
@@ -82,7 +92,10 @@ def compute_expense_summary(
           "by_month": [{"month": "2026-05", "total": "1247.83", "count": 18}, ...],
         }
     """
-    qs = expense_qs(household_id, from_dt, to_dt, supplier=supplier, kind=kind, budget=budget)
+    qs = expense_qs(
+        household_id, from_dt, to_dt, supplier=supplier, kind=kind, budget=budget,
+        category=category,
+    )
 
     overall = qs.aggregate(
         total=Coalesce(Sum('amount'), _zero()),
@@ -132,7 +145,7 @@ def compute_expense_summary(
         for row in by_month_rows
     ]
 
-    refunded = _refunded_total(household_id, from_dt, to_dt, budget=budget)
+    refunded = _refunded_total(household_id, from_dt, to_dt, budget=budget, category=category)
 
     return {
         'period': {
@@ -152,7 +165,9 @@ def compute_expense_summary(
     }
 
 
-def _refunded_total(household_id, from_dt, to_dt, *, budget: str | None) -> Decimal:
+def _refunded_total(
+    household_id, from_dt, to_dt, *, budget: str | None, category: str | None = None
+) -> Decimal:
     """Somme des remboursements de la période, cadrée sur le même filtre budget.
 
     Trois lectures, cohérentes avec le filtre demandé : une enveloppe précise
@@ -160,6 +175,10 @@ def _refunded_total(household_id, from_dt, to_dt, *, budget: str | None) -> Deci
     créditent personne, et l'absence de filtre donne tout ce qui est revenu sur
     la période. Renvoyer zéro quand on ne sait pas serait le silence que le
     module refuse.
+
+    ``category`` suit exactement le scope des dépenses : un avoir attribué à une
+    enveloppe d'une **autre** catégorie ne recrédite pas celle-ci, sinon le net
+    de la fiche ne serait plus le brut moins ses propres rendus.
 
     Le remboursement est daté par ``booked_on`` (la banque), la dépense par
     ``occurred_at`` (le foyer) : deux dates différentes pour deux faits
@@ -182,6 +201,8 @@ def _refunded_total(household_id, from_dt, to_dt, *, budget: str | None) -> Deci
         return Decimal('0.00')
     if budget:
         qs = qs.filter(budget_id=budget)
+    if category is not None:
+        qs = qs.filter(budget__category_id=category)
 
     if from_dt is not None:
         qs = qs.filter(transaction__booked_on__gte=from_dt.date())

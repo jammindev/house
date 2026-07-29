@@ -123,8 +123,8 @@ l'enfant, ce qui rend le mécanisme fiable plutôt que fragile.
 
 Sous-pages autonomes (avec `BackLink`) : `/app/money/transactions`,
 `/app/money/transactions/:id`, `/app/money/analysis`, `/app/money/accounts/:id`,
-`/app/money/budgets/:id`, `/app/money/expenses/:id`, `/app/money/recurring`,
-`/app/money/reports`.
+`/app/money/budgets/:id`, `/app/money/categories/:id`, `/app/money/expenses/:id`,
+`/app/money/recurring`, `/app/money/reports`.
 
 Les deux dernières ont rejoint la famille en juillet 2026 ; `/app/budget/recurring`
 et `/app/budget/reports` redirigent via `PreserveQueryRedirect`, qui conserve la
@@ -138,6 +138,26 @@ produire de nouveaux.
 par budget, répartition, fournisseurs, plus grosses dépenses) — le panneau
 Budgets ne regarde que le mois en cours. Détail du calcul et de ce qu'il refuse
 d'inventer : `docs/MODULES/budget.md`, section « Analyse fine ».
+
+`/app/money/categories/:id` est la fiche d'une **catégorie** de budget : l'anneau
+de répartition du dépensé **entre ses enveloppes**, la comparaison à la période
+précédente, la courbe, puis les enveloppes elles-mêmes (chacune ouvrant sa propre
+fiche). C'est la question qu'aucun autre écran ne pose — sur une enveloppe on
+demande *chez qui* l'argent est parti, sur une catégorie *laquelle de mes
+enveloppes* mange le total.
+
+Elle passe par l'action **existante** `GET /budget/budgets/insights/?category=<id>`,
+et pas par une action sur `BudgetCategoryViewSet`, qui ne porte délibérément
+aucune agrégation : une catégorie ne détient aucune dépense, donc son sous-total
+ne peut être qu'une lecture de celles de ses enveloppes, et il n'a le droit
+d'exister qu'à un seul endroit. Un second compteur finirait par ne plus dire la
+même chose que le panneau, et **cliquer sur un chiffre ouvrirait son démenti**.
+Régression : `budget/tests/test_category_insights.py::TestTheCategoryTotalAgreesWithThePanel`.
+Corollaires tenus par les tests : les deux scopes sont exclusifs (un budget *et*
+sa catégorie est une ambiguïté, donc un 400), le remboursement est cadré par le
+même scope que les dépenses, et une enveloppe sans dépense sur la fenêtre est
+absente de l'anneau — une part à 0 % est un filet illisible — mais **présente
+dans la liste en dessous**.
 
 ## i18n
 

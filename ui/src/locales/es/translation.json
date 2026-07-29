@@ -3347,6 +3347,16 @@
       "edit": {
         "title": "Editar categoría"
       },
+      "detail": {
+        "fallbackTitle": "Categoría de presupuesto",
+        "description": "Cómo se reparte el total de esta categoría entre sus presupuestos.",
+        "share": {
+          "title": "Qué presupuesto se come el total",
+          "hint": "Parte de cada presupuesto en el total bruto del periodo. Un presupuesto sin gastos no aparece."
+        },
+        "envelopes": "Sus presupuestos",
+        "emptyDescription": "Asigna un presupuesto a esta categoría desde la pestaña Presupuestos."
+      },
       "namePlaceholder": "p. ej. Casa",
       "amountHint": "Déjalo vacío: la categoría valdrá la suma de los topes que contiene.",
       "sumHint": "suma de sus presupuestos",

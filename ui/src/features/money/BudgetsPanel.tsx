@@ -263,6 +263,7 @@ export default function BudgetsPanel() {
                     <div key={category.id} className="space-y-2">
                       <BudgetCategoryCard
                         row={category}
+                        backState={pushBack(location)}
                         onEdit={() => openEditCategory(rowToCategory(category))}
                         onDelete={() => handleDeleteCategory(category.id)}
                       />

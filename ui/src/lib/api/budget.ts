@@ -219,6 +219,22 @@ export interface InsightSupplier {
   share: number;
 }
 
+/**
+ * Une part de l'anneau d'une **catégorie** : quelle enveloppe mange son total.
+ *
+ * Une enveloppe sans dépense sur la fenêtre est absente de la liste — une part
+ * à 0 % est un filet illisible. C'est la liste des enveloppes, à côté de
+ * l'anneau, qui montre celles qui n'ont rien consommé.
+ */
+export interface InsightBudget {
+  budget_id: string;
+  name: string;
+  total: string;
+  count: number;
+  /** Part du brut de la période, entre 0 et 1. */
+  share: number;
+}
+
 export interface BudgetInsights {
   period: { from: string | null; to: string | null };
   previous_period: { from: string | null; to: string | null };
@@ -229,16 +245,25 @@ export interface BudgetInsights {
   /** La fenêtre entière, **trous compris** : un jour vide vaut `"0.00"`. */
   buckets: InsightBucket[];
   suppliers: InsightSupplier[];
+  /** Rempli sur un scope de catégorie seulement : une enveloppe ne se répartit
+   *  pas entre elle-même. */
+  budgets: InsightBudget[];
 }
 
-export async function fetchBudgetInsights(params: {
-  budget: string;
-  from?: string;
-  to?: string;
-}): Promise<BudgetInsights> {
+/**
+ * Un scope, jamais deux : une enveloppe **ou** une catégorie.
+ *
+ * Le serveur refuse les deux ensemble (400) — un budget et sa catégorie n'est
+ * pas une fenêtre, et en trancher une en silence afficherait un total juste
+ * sous un titre faux.
+ */
+export async function fetchBudgetInsights(
+  params: ({ budget: string } | { category: string }) & { from?: string; to?: string },
+): Promise<BudgetInsights> {
+  const scope = 'budget' in params ? { budget: params.budget } : { category: params.category };
   const { data } = await api.get<BudgetInsights>('/budget/budgets/insights/', {
     params: {
-      budget: params.budget,
+      ...scope,
       ...(params.from ? { from: params.from } : {}),
       ...(params.to ? { to: params.to } : {}),
     },

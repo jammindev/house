@@ -3347,6 +3347,16 @@
       "edit": {
         "title": "Kategorie bearbeiten"
       },
+      "detail": {
+        "fallbackTitle": "Budgetkategorie",
+        "description": "Wie sich die Summe dieser Kategorie auf ihre Budgets verteilt.",
+        "share": {
+          "title": "Welches Budget die Summe verbraucht",
+          "hint": "Anteil jedes Budgets am Bruttototal des Zeitraums. Ein Budget ohne Ausgaben erscheint nicht."
+        },
+        "envelopes": "Ihre Budgets",
+        "emptyDescription": "Ordne im Tab „Budgets“ ein Budget dieser Kategorie zu."
+      },
       "namePlaceholder": "z. B. Haus",
       "amountHint": "Leer lassen: Die Kategorie entspricht der Summe der enthaltenen Obergrenzen.",
       "sumHint": "Summe ihrer Budgets",

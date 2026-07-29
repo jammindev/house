@@ -3347,6 +3347,16 @@
       "edit": {
         "title": "Modifier la catégorie"
       },
+      "detail": {
+        "fallbackTitle": "Catégorie de budget",
+        "description": "Comment le total de cette catégorie se répartit entre ses enveloppes.",
+        "share": {
+          "title": "Quelle enveloppe mange le total",
+          "hint": "Part de chaque enveloppe dans le total brut de la période. Une enveloppe sans dépense n'y figure pas."
+        },
+        "envelopes": "Ses enveloppes",
+        "emptyDescription": "Range un budget dans cette catégorie depuis l'onglet Budgets."
+      },
       "namePlaceholder": "ex. Maison",
       "amountHint": "Laisse vide : la catégorie vaudra la somme des plafonds qu'elle contient.",
       "sumHint": "somme de ses budgets",

@@ -22,8 +22,13 @@ const TEXT_CLASS: Record<BudgetState, string> = {
 
 interface BudgetCardProps {
   row: BudgetOverviewRow;
-  onEdit: () => void;
-  onDelete: () => void;
+  /**
+   * Éditer / supprimer — **omis** hors du panneau Budgets, seul écran où gérer
+   * ses enveloppes a un sens. Ailleurs (fiche d'une catégorie) la carte est une
+   * lecture : un menu d'actions vide serait un contrôle qui ne fait rien.
+   */
+  onEdit?: () => void;
+  onDelete?: () => void;
   /** Ouvre le détail — « de quoi ce compteur est-il fait ». */
   to: string;
   /** Pile de retour, pour que le détail sache d'où on vient. */
@@ -55,8 +60,17 @@ export default function BudgetCard({ row, onEdit, onDelete, to, backState }: Bud
   const attestedPct = spent > 0 ? (Number(row.spent_attested) / spent) * pct : pct;
 
   const actions: CardAction[] = [
-    { label: t('common.edit'), icon: Pencil, onClick: onEdit },
-    { label: t('common.delete'), icon: Trash2, onClick: onDelete, variant: 'danger' },
+    ...(onEdit ? [{ label: t('common.edit'), icon: Pencil, onClick: onEdit }] : []),
+    ...(onDelete
+      ? [
+          {
+            label: t('common.delete'),
+            icon: Trash2,
+            onClick: onDelete,
+            variant: 'danger' as const,
+          },
+        ]
+      : []),
   ];
 
   return (
@@ -125,7 +139,7 @@ export default function BudgetCard({ row, onEdit, onDelete, to, backState }: Bud
           ) : null}
         </Link>
 
-        <CardActions actions={actions} />
+        {actions.length > 0 ? <CardActions actions={actions} /> : null}
       </div>
     </Card>
   );

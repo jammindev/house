@@ -56,6 +56,9 @@ const ReportsPage = lazyWithReload(() => import('./features/budget/ReportsPage')
 const MoneyAnalysisPage = lazyWithReload(() => import('./features/money/AnalysisPage'));
 const AccountDetailPage = lazyWithReload(() => import('./features/money/AccountDetailPage'));
 const BudgetDetailPage = lazyWithReload(() => import('./features/money/BudgetDetailPage'));
+const BudgetCategoryDetailPage = lazyWithReload(
+  () => import('./features/money/BudgetCategoryDetailPage'),
+);
 const ExpenseDetailPage = lazyWithReload(() => import('./features/money/ExpenseDetailPage'));
 const BankingTransactionsPage = lazyWithReload(
   () => import('./features/banking/TransactionsPage'),
@@ -106,6 +109,7 @@ export const router = createBrowserRouter([
       { path: 'money/analysis', element: <MoneyAnalysisPage /> },
       { path: 'money/accounts/:id', element: <AccountDetailPage /> },
       { path: 'money/budgets/:id', element: <BudgetDetailPage /> },
+      { path: 'money/categories/:id', element: <BudgetCategoryDetailPage /> },
       // Une dépense est une `Interaction`, mais sa fiche appartient à la famille
       // argent : elle vit donc sous `/app/money`, comme toute URL de la famille.
       { path: 'money/expenses/:id', element: <ExpenseDetailPage /> },

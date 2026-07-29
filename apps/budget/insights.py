@@ -44,12 +44,22 @@ DAILY_MAX_DAYS = 62
 
 
 def compute_budget_insights(
-    *, household, budget: str | None, start: date, end: date, today: date | None = None
+    *,
+    household,
+    budget: str | None,
+    start: date,
+    end: date,
+    today: date | None = None,
+    category: str | None = None,
 ) -> dict[str, Any]:
     """Ce qu'une enveloppe a dépensé sur ``[start, end]``, et ce que ça vaut.
 
     ``budget`` est un id d'enveloppe, ``'none'`` pour le seau « hors budget », ou
-    ``None`` pour toutes les dépenses confondues.
+    ``None`` pour toutes les dépenses confondues. ``category`` ouvre la même
+    fiche sur **toutes les enveloppes d'une catégorie** ; les deux scopes sont
+    exclusifs — un budget *et* sa catégorie n'est pas une fenêtre, c'est une
+    ambiguïté, et en trancher une en silence donnerait un total juste sous un
+    titre faux.
 
     Shape::
 
@@ -62,22 +72,30 @@ def compute_budget_insights(
           "granularity": "day" | "month",
           "buckets": [{"label": "2026-07-01", "total": "0.00"}, …],
           "suppliers": [{"supplier", "total", "count", "share"}, …],
+          "budgets": [{"budget_id", "name", "total", "count", "share"}, …],
         }
+
+    ``budgets`` ne se remplit que sur un scope de catégorie : une enveloppe ne se
+    répartit pas entre elle-même.
     """
+    if budget is not None and category is not None:
+        raise ValueError("Pass a budget or a category, never both — the scope must be one window.")
     if today is None:
         today = household_today(household)
     prev_start, prev_end = previous_period(start, end, today=today)
 
-    current = _totals(household, budget, start, end)
-    previous = _totals(household, budget, prev_start, prev_end)
+    current = _totals(household, budget, start, end, category=category)
+    previous = _totals(household, budget, prev_start, prev_end, category=category)
 
     qs = expense_qs(
         household.id,
         start_of_day(start, household),
         end_of_day(end, household),
         budget=budget,
+        category=category,
     )
     granularity = "day" if (end - start).days < DAILY_MAX_DAYS else "month"
+    total = Decimal(current["total"])
 
     return {
         "period": {"from": start.isoformat(), "to": end.isoformat()},
@@ -87,7 +105,8 @@ def compute_budget_insights(
         "delta": _delta(current["net_total"], previous["net_total"]),
         "granularity": granularity,
         "buckets": _buckets(qs, household, start, end, granularity),
-        "suppliers": _suppliers(qs, Decimal(current["total"])),
+        "suppliers": _suppliers(qs, total),
+        "budgets": _budgets(qs, total) if category is not None else [],
     }
 
 
@@ -139,13 +158,16 @@ def _is_full_year(start: date, end: date) -> bool:
     return (start.month, start.day) == (1, 1) and (end.month, end.day) == (12, 31)
 
 
-def _totals(household, budget: str | None, start: date, end: date) -> dict[str, Any]:
+def _totals(
+    household, budget: str | None, start: date, end: date, *, category: str | None = None
+) -> dict[str, Any]:
     """Les quatre chiffres d'une période, tels que la carte du haut les affiche."""
     summary = compute_expense_summary(
         household_id=household.id,
         from_dt=start_of_day(start, household),
         to_dt=end_of_day(end, household),
         budget=budget,
+        category=category,
     )
     return {
         "total": summary["total"],
@@ -240,6 +262,39 @@ def _suppliers(qs, total: Decimal) -> list[dict[str, Any]]:
     return [
         {
             "supplier": row["supplier"] or "",
+            "total": str(row["total"] or ZERO),
+            "count": row["count"],
+            "share": round(float((row["total"] or ZERO) / total), 4),
+        }
+        for row in rows
+    ]
+
+
+def _budgets(qs, total: Decimal) -> list[dict[str, Any]]:
+    """Laquelle des enveloppes de la catégorie mange le total, et pour quelle part.
+
+    C'est la question propre à une catégorie : sur une enveloppe on demande *chez
+    qui* l'argent est parti, sur une catégorie *laquelle de mes enveloppes*.
+
+    Une enveloppe **sans dépense sur la fenêtre est absente**, et ce n'est pas
+    une omission : une part à 0 % est un filet illisible qui prend une couleur
+    pour rien. La liste des enveloppes de la catégorie, elle, s'affiche à côté de
+    l'anneau — c'est là qu'on voit celles qui n'ont rien consommé.
+
+    Un seul ``GROUP BY``, sur le même queryset que le total et les barres : la
+    part et le chiffre qu'elle décompose ne peuvent pas dériver l'un de l'autre.
+    """
+    if total <= 0:
+        return []
+    rows = (
+        qs.values("budget_id", "budget__name")
+        .annotate(total=Coalesce(Sum("amount"), ZERO), count=Count("id"))
+        .order_by("-total")
+    )
+    return [
+        {
+            "budget_id": str(row["budget_id"]),
+            "name": row["budget__name"] or "",
             "total": str(row["total"] or ZERO),
             "count": row["count"],
             "share": round(float((row["total"] or ZERO) / total), 4),

@@ -174,7 +174,7 @@ class BudgetViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=["get"])
     def insights(self, request):
-        """GET /api/budget/budgets/insights/?budget=<id|none>&from=&to=
+        """GET /api/budget/budgets/insights/?budget=<id|none>&category=<id>&from=&to=
 
         De quoi la fiche d'une enveloppe est faite : le total de la période, le
         même total sur la période **précédente équivalente** avec l'écart, la
@@ -188,12 +188,24 @@ class BudgetViewSet(viewsets.ModelViewSet):
         ``budget=none`` ouvre le seau « hors budget » — même page, même geste.
         Sans période, on répond sur le mois en cours **chez le foyer** : ouvrir
         une enveloppe doit afficher le total sur lequel on vient de cliquer.
+
+        ``category=<id>`` ouvre la fiche d'une **catégorie** : mêmes lectures sur
+        toutes ses enveloppes, plus la répartition entre elles (``budgets``).
+        C'est ici que ça se joue et non sur ``BudgetCategoryViewSet``, qui ne
+        porte aucune agrégation : le sous-total d'une catégorie n'a le droit
+        d'exister qu'à un seul endroit, sinon la fiche et le panneau finissent
+        par répondre chacun le sien à « combien a-t-on dépensé ? ».
         """
         household = request.household
         if household is None:
             return Response(_EMPTY_INSIGHTS)
 
         budget = request.query_params.get("budget") or None
+        category = request.query_params.get("category") or None
+        if budget and category:
+            raise ValidationError(
+                {"category": "Pass a budget or a category, never both."}
+            )
         if budget and budget != UNBUDGETED:
             try:
                 uuid.UUID(budget)
@@ -203,12 +215,28 @@ class BudgetViewSet(viewsets.ModelViewSet):
                 raise ValidationError({"budget": 'Expected a budget id or "none".'})
             if not Budget.objects.filter(household_id=household.id, pk=budget).exists():
                 raise ValidationError({"budget": "Unknown budget for this household."})
+        if category:
+            try:
+                uuid.UUID(category)
+            except ValueError:
+                raise ValidationError({"category": "Expected a budget category id."})
+            # Le scope s'applique **après** le foyer, donc il ne peut pas
+            # l'élargir ; on refuse quand même une catégorie inconnue plutôt que
+            # de répondre une fenêtre vide, qui se lirait « rien dépensé ».
+            if not BudgetCategory.objects.filter(household_id=household.id, pk=category).exists():
+                raise ValidationError({"category": "Unknown budget category for this household."})
 
         start, end = _parse_window(
             request.query_params.get("from"), request.query_params.get("to"), household
         )
         return Response(
-            compute_budget_insights(household=household, budget=budget, start=start, end=end)
+            compute_budget_insights(
+                household=household,
+                budget=budget,
+                category=category,
+                start=start,
+                end=end,
+            )
         )
 
 
@@ -224,6 +252,7 @@ _EMPTY_INSIGHTS = {
     "granularity": "day",
     "buckets": [],
     "suppliers": [],
+    "budgets": [],
 }
 
 
