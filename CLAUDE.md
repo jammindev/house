@@ -1055,6 +1055,44 @@ globale ».
 
 ---
 
+## Notifications — prévenir un foyer passe par `notify_household`
+
+Toute notification de la famille « **un membre a fait quelque chose** » (tâche
+cochée, dépense saisie, arrivant dans le foyer) passe par
+`notifications.service.notify_household`. Ajouter un émetteur, c'est écrire ce
+qu'il dit, pas comment il le diffuse. Doc : `docs/MODULES/notifications.md`.
+
+- **`text` est un callable `() -> (title, body)`, jamais deux strings.** Il est
+  appelé une fois par destinataire dans `translation.override(sa locale)`. Le
+  texte est stocké en clair (même règle write-time que le `subject` d'une
+  `Interaction`) : il n'y a **pas** de seconde chance à l'affichage, donc un
+  appelant qui rend sa phrase une seule fois poste à tout le foyer la langue de
+  celui qui a agi. Ce bug a vécu en prod dans `stock/notifications.py`,
+  invisible parce que la phrase était parfaitement valide — simplement pas dans
+  la bonne langue. Régression :
+  `stock/tests/test_api_stock_extra.py::TestTheWarningIsWrittenInEachReadersLanguage`.
+- **L'`actor` est exclu des destinataires** — on ne notifie personne de sa propre
+  action. `actor=None` pour un fait sans auteur (seuil de stock, alerte météo).
+- **`url` est porté par la ligne, `_DEEP_LINKS` n'est qu'un fallback.** La famille
+  est entité-scopée : « Bob a terminé Tondre la pelouse » doit ouvrir *cette*
+  tâche. Une notification qui annonce sans mener fait refaire au lecteur la
+  recherche qu'elle venait de faire pour lui.
+- **`dedup_key` remplace les anti-doublons maison** (il y en avait trois formes).
+  Portée `(user, type, key)` **vivant** : soft-supprimer libère la clé, parce que
+  c'est l'utilisateur qui dit qu'il en a fini.
+- **Un type se déclare dans `Notification.Type`, sans exception.** `choices` n'est
+  pas contraint en base et `.create()` ne fait pas de `full_clean` : une string
+  littérale persiste sans broncher, et `weather_alert` a ainsi vécu hors de
+  l'affichage admin, hors de `MUTABLE_TYPES`, invisible pour qui lisait la liste.
+- **Ce qui est fréquent se coupe, ce qui est actionnable ne se coupe pas.**
+  `MUTABLE_TYPES` liste ce que `User.muted_notification_types` a le droit de
+  faire taire ; une invitation n'en fait pas partie, et le serializer **refuse en
+  400** plutôt que d'ignorer — croire qu'on a coupé une invitation est pire que
+  s'entendre dire qu'on ne peut pas. Le filtre vit dans `send()`, pas à l'écran :
+  un type qui sort de `MUTABLE_TYPES` doit cesser d'être silencié tout de suite.
+
+---
+
 ## Page Tutoriel (`ui/src/features/tutorials/`)
 
 Page `/app/tutorial` (sidebar, section Compte) : checklist « Bien démarrer » +

@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useToast } from '@/lib/toast';
 import { syncAppBadge } from '@/lib/pwa/platform';
 import {
+  fetchMutableNotificationTypes,
   fetchNotifications,
   fetchUnreadCount,
   markAllNotificationsRead,
@@ -14,12 +15,23 @@ export const notificationKeys = {
   all: ['notifications'] as const,
   list: () => [...notificationKeys.all, 'list'] as const,
   unreadCount: () => [...notificationKeys.all, 'unread-count'] as const,
+  mutableTypes: () => [...notificationKeys.all, 'mutable-types'] as const,
 };
 
 export function useNotifications() {
   return useQuery({
     queryKey: notificationKeys.list(),
     queryFn: fetchNotifications,
+  });
+}
+
+/** Les types silenciables, tels que le backend les déclare. Quasi statiques :
+ * inutile de les re-demander à chaque montage de la page de réglages. */
+export function useMutableNotificationTypes() {
+  return useQuery({
+    queryKey: notificationKeys.mutableTypes(),
+    queryFn: fetchMutableNotificationTypes,
+    staleTime: Infinity,
   });
 }
 

@@ -1125,7 +1125,11 @@
     },
     "createHouseholdTitle": "Create household",
     "avatarUploadFailed": "Upload failed.",
-    "avatarDeleteFailed": "Delete failed."
+    "avatarDeleteFailed": "Delete failed.",
+    "notifications": {
+      "title": "Notifications",
+      "description": "Choose what lands in your bell. Untick to stop receiving a kind of notification."
+    }
   },
   "tutorials": {
     "title": "Tutorial",
@@ -2735,6 +2739,11 @@
     "filters": {
       "all": "All",
       "unread": "Unread"
+    },
+    "type": {
+      "stock_low": "Low stock",
+      "stock_out": "Out of stock",
+      "weather_alert": "Weather alert"
     }
   },
   "invitations": {

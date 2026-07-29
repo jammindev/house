@@ -4,7 +4,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from .models import Notification
+from .models import MUTABLE_TYPES, Notification
 from .serializers import NotificationSerializer
 
 
@@ -14,6 +14,16 @@ class NotificationViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         return Notification.objects.filter(user=self.request.user, deleted_at__isnull=True)
+
+    @action(detail=False, methods=["get"], url_path="mutable-types")
+    def mutable_types(self, request):
+        """The types the settings screen may offer to silence.
+
+        Served rather than duplicated in the front: `MUTABLE_TYPES` is what the
+        write path actually enforces, so a hard-coded list would eventually
+        offer a checkbox the API refuses, or hide one it would accept.
+        """
+        return Response({"types": sorted(MUTABLE_TYPES)})
 
     @action(detail=False, methods=["get"], url_path="unread-count")
     def unread_count(self, request):

@@ -18,6 +18,9 @@ export interface UserProfile {
   digest_disabled_sections: string[];
   /** Recap chapters the user muted — a read preference, the snapshot is untouched. */
   recap_disabled_chapters: string[];
+  /** Notification types silenced. Only types the API declares mutable are accepted —
+   * an invitation is not something a checkbox may hide. */
+  muted_notification_types: string[];
   agent_memory_enabled: boolean;
   /** Instance capability: true only when the deployment enabled agent web search
    * (implies a Sonnet 4.6+ model). Gates the per-conversation web-search toggle. */
@@ -59,6 +62,7 @@ export interface UpdateProfileInput {
   completed_tutorials?: string[];
   digest_disabled_sections?: string[];
   recap_disabled_chapters?: string[];
+  muted_notification_types?: string[];
   agent_memory_enabled?: boolean;
 }
 

@@ -9,6 +9,17 @@ User = get_user_model()
 
 
 class UserSerializer(serializers.ModelSerializer):
+    # What a user may change about themselves through `/users/me/`. Declared
+    # here rather than in the view so it sits beside the `validate_*` methods
+    # that police the very same fields — one place to add a preference to, and
+    # one place a reviewer checks that `is_staff` is not in.
+    SELF_EDITABLE_FIELDS = frozenset({
+        "display_name", "locale", "theme", "color_theme", "email",
+        "agent_memory_enabled", "pinned_modules", "completed_tutorials",
+        "digest_disabled_sections", "recap_disabled_chapters",
+        "muted_notification_types",
+    })
+
     password = serializers.CharField(write_only=True, required=False)
     full_name = serializers.ReadOnlyField()
     # Instance-level capability gate for the agent's web search: True only when the
@@ -33,6 +44,7 @@ class UserSerializer(serializers.ModelSerializer):
             "completed_tutorials",
             "digest_disabled_sections",
             "recap_disabled_chapters",
+            "muted_notification_types",
             "agent_memory_enabled",
             "agent_web_search_available",
             "full_name",
@@ -75,6 +87,22 @@ class UserSerializer(serializers.ModelSerializer):
         if len(deduped) > 500:
             raise serializers.ValidationError(_("Too many tutorial keys."))
         return deduped
+
+    def validate_muted_notification_types(self, value):
+        # Refused rather than ignored: silently dropping an unmutable type would
+        # leave the user's screen showing a checkbox they think they ticked, and
+        # believing they muted an invitation is worse than being told they can't.
+        if not isinstance(value, list) or not all(isinstance(k, str) for k in value):
+            raise serializers.ValidationError(_("Expected a list of notification types."))
+        from notifications.models import MUTABLE_TYPES
+
+        unknown = [k for k in value if k not in MUTABLE_TYPES]
+        if unknown:
+            raise serializers.ValidationError(
+                _("Notification type(s) cannot be muted: %(keys)s")
+                % {'keys': ', '.join(sorted(unknown))}
+            )
+        return list(dict.fromkeys(value))
 
     def validate_digest_disabled_sections(self, value):
         # Section keys live in agent.digest.collectors — validate against them

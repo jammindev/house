@@ -1125,7 +1125,11 @@
     },
     "createHouseholdTitle": "Créer un foyer",
     "avatarUploadFailed": "Échec de l'envoi de la photo.",
-    "avatarDeleteFailed": "Échec de la suppression de la photo."
+    "avatarDeleteFailed": "Échec de la suppression de la photo.",
+    "notifications": {
+      "title": "Notifications",
+      "description": "Choisissez ce qui arrive dans votre cloche. Décochez pour ne plus recevoir un type de notification."
+    }
   },
   "tutorials": {
     "title": "Tutoriel",
@@ -2735,6 +2739,11 @@
     "filters": {
       "all": "Toutes",
       "unread": "Non lues"
+    },
+    "type": {
+      "stock_low": "Stock bas",
+      "stock_out": "Stock épuisé",
+      "weather_alert": "Alerte météo"
     }
   },
   "invitations": {

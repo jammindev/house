@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 import PageHeader from '@/components/PageHeader';
 import { useDelayedLoading } from '@/lib/useDelayedLoading';
 import { useCurrentUser } from './hooks';
+import { NotificationsSection } from './components/NotificationsSection';
 import { ProactiveSection } from './components/ProactiveSection';
 import { ProfileSection } from './components/ProfileSection';
 import { TelegramSection } from './components/TelegramSection';
@@ -42,6 +43,7 @@ export default function SettingsPage() {
       <ProfileSection />
       <TelegramSection />
       <WebPushSection />
+      <NotificationsSection />
       <ProactiveSection />
       <ThemeSection />
       <AgentMemorySection />

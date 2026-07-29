@@ -211,14 +211,16 @@ class UserViewSet(viewsets.ModelViewSet):
             serializer = self.get_serializer(request.user)
             return Response(serializer.data)
 
-        # PATCH — only allow display_name, locale, theme, color_theme, email,
-        # agent_memory_enabled
-        allowed_fields = {
-            'display_name', 'locale', 'theme', 'color_theme', 'email',
-            'agent_memory_enabled', 'pinned_modules', 'completed_tutorials',
-            'digest_disabled_sections',
+        # PATCH — a user may only edit their own presentation and preferences,
+        # never `is_staff` & co. The list lives on the serializer, next to the
+        # validators that police those same fields: kept here, it drifted, and
+        # `recap_disabled_chapters` was missing for as long as the recap page
+        # had been sending it. Anything not listed is dropped in silence, so a
+        # forgotten entry looks exactly like a saved preference that resets.
+        data = {
+            k: v for k, v in request.data.items()
+            if k in UserSerializer.SELF_EDITABLE_FIELDS
         }
-        data = {k: v for k, v in request.data.items() if k in allowed_fields}
         serializer = self.get_serializer(
             request.user, data=data, partial=True
         )
