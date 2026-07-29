@@ -2,6 +2,7 @@ import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 import { SheetDialog } from '@/design-system/sheet-dialog';
 import { Input } from '@/design-system/input';
+import { DecimalInput } from '@/design-system/decimal-input';
 import { Textarea } from '@/design-system/textarea';
 import { Button } from '@/design-system/button';
 import { Select } from '@/design-system/select';
@@ -217,13 +218,10 @@ export default function ProjectDialog({
 
           {/* Budget */}
           <FormField label={t('projects.form.fields.planned_budget')} htmlFor="proj-budget">
-            <Input
+            <DecimalInput
               id="proj-budget"
-              type="number"
-              step="0.01"
-              min="0"
               value={plannedBudget}
-              onChange={(e) => setPlannedBudget(e.target.value)}
+              onChange={setPlannedBudget}
             />
           </FormField>
 

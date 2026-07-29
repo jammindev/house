@@ -2,7 +2,7 @@ import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 import { SheetDialog } from '@/design-system/sheet-dialog';
 import { FormField } from '@/design-system/form-field';
-import { Input } from '@/design-system/input';
+import { DecimalInput } from '@/design-system/decimal-input';
 import { Select } from '@/design-system/select';
 import { Button } from '@/design-system/button';
 import { formatAmount } from '@/lib/format';
@@ -52,7 +52,7 @@ export default function WithdrawToCashDialog({
       setError(t('banking.withdraw.errors.accountRequired'));
       return;
     }
-    const parsed = Number(amount.trim().replace(',', '.'));
+    const parsed = Number(amount.trim());
     if (!Number.isFinite(parsed) || parsed <= 0 || parsed > Number(fullAmount)) {
       setError(t('banking.withdraw.errors.amountInvalid', { max: formatAmount(fullAmount) }));
       return;
@@ -98,14 +98,10 @@ export default function WithdrawToCashDialog({
             </FormField>
 
             <FormField label={t('banking.withdraw.fields.amount')} htmlFor="cash-amount">
-              <Input
+              <DecimalInput
                 id="cash-amount"
-                type="number"
-                step="0.01"
-                min="0"
-                max={fullAmount}
                 value={amount}
-                onChange={(e) => setAmount(e.target.value)}
+                onChange={setAmount}
               />
               <p className="text-xs text-muted-foreground">{t('banking.withdraw.fields.amountHint')}</p>
             </FormField>

@@ -2,6 +2,7 @@ import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 import { SheetDialog } from '@/design-system/sheet-dialog';
 import { Input } from '@/design-system/input';
+import { DecimalInput } from '@/design-system/decimal-input';
 import { Select } from '@/design-system/select';
 import { Textarea } from '@/design-system/textarea';
 import { Button } from '@/design-system/button';
@@ -273,12 +274,10 @@ export default function EquipmentDialog({
               />
             </FormField>
             <FormField label={t('equipment.form.fields.purchase_price')} htmlFor="eq-purchase-price">
-              <Input
+              <DecimalInput
                 id="eq-purchase-price"
-                type="number"
-                step="0.01"
                 value={form.purchase_price}
-                onChange={(e) => updateField('purchase_price', e.target.value)}
+                onChange={(value) => updateField('purchase_price', value)}
               />
             </FormField>
             <FormField label={t('equipment.form.fields.purchase_vendor')} htmlFor="eq-purchase-vendor">

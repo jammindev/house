@@ -5,6 +5,7 @@ import UnreconciledPicker from './UnreconciledPicker';
 import { SheetDialog } from '@/design-system/sheet-dialog';
 import { FormField } from '@/design-system/form-field';
 import { Input } from '@/design-system/input';
+import { DecimalInput } from '@/design-system/decimal-input';
 import { Select } from '@/design-system/select';
 import { Button } from '@/design-system/button';
 import { formatAmount } from '@/lib/format';
@@ -114,7 +115,7 @@ export default function AllocationDialog({
   }, [open, allocationsQuery.data, label, total]);
 
   const allocated = lines.reduce((sum, line) => {
-    const value = Number(line.amount.replace(',', '.'));
+    const value = Number(line.amount);
     return sum + (Number.isFinite(value) ? value : 0);
   }, 0);
   const remaining = editable - allocated;
@@ -133,7 +134,7 @@ export default function AllocationDialog({
 
     const payload: AllocationLine[] = [];
     for (const line of lines) {
-      const value = Number(line.amount.replace(',', '.'));
+      const value = Number(line.amount);
       if (!Number.isFinite(value) || value <= 0) {
         setError(t('banking.allocation.errors.amountInvalid'));
         return;
@@ -282,13 +283,10 @@ export default function AllocationDialog({
                     label={t('banking.allocation.fields.amount')}
                     htmlFor={`a-${line.key}`}
                   >
-                    <Input
+                    <DecimalInput
                       id={`a-${line.key}`}
-                      type="number"
-                      step="0.01"
-                      min="0"
                       value={line.amount}
-                      onChange={(e) => update(line.key, { amount: e.target.value })}
+                      onChange={(value) => update(line.key, { amount: value })}
                     />
                   </FormField>
 

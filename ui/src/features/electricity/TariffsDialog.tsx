@@ -5,6 +5,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { SheetDialog } from '@/design-system/sheet-dialog';
 import { Card } from '@/design-system/card';
 import { Input } from '@/design-system/input';
+import { DecimalInput } from '@/design-system/decimal-input';
 import { Button } from '@/design-system/button';
 import { FormField } from '@/design-system/form-field';
 import CardActions, { type CardAction } from '@/components/CardActions';
@@ -138,27 +139,21 @@ export default function TariffsDialog({ open, onOpenChange, meter }: TariffsDial
           {isHpHc ? (
             <div className="grid grid-cols-2 gap-3">
               <FormField label={t('electricity.tariff.priceHp')} htmlFor="tariff-price-hp">
-                <Input
+                <DecimalInput
                   id="tariff-price-hp"
-                  type="number"
-                  step="0.00001"
-                  min="0"
-                  inputMode="decimal"
+                  decimals={5}
                   value={priceHp}
-                  onChange={(e) => setPriceHp(e.target.value)}
+                  onChange={setPriceHp}
                   placeholder="0.27"
                   required
                 />
               </FormField>
               <FormField label={t('electricity.tariff.priceHc')} htmlFor="tariff-price-hc">
-                <Input
+                <DecimalInput
                   id="tariff-price-hc"
-                  type="number"
-                  step="0.00001"
-                  min="0"
-                  inputMode="decimal"
+                  decimals={5}
                   value={priceHc}
-                  onChange={(e) => setPriceHc(e.target.value)}
+                  onChange={setPriceHc}
                   placeholder="0.2068"
                   required
                 />
@@ -166,28 +161,21 @@ export default function TariffsDialog({ open, onOpenChange, meter }: TariffsDial
             </div>
           ) : (
             <FormField label={t('electricity.tariff.priceBase')} htmlFor="tariff-price-base">
-              <Input
+              <DecimalInput
                 id="tariff-price-base"
-                type="number"
-                step="0.00001"
-                min="0"
-                inputMode="decimal"
+                decimals={5}
                 value={priceBase}
-                onChange={(e) => setPriceBase(e.target.value)}
+                onChange={setPriceBase}
                 placeholder="0.2516"
                 required
               />
             </FormField>
           )}
           <FormField label={t('electricity.tariff.subscription')} htmlFor="tariff-subscription">
-            <Input
+            <DecimalInput
               id="tariff-subscription"
-              type="number"
-              step="0.01"
-              min="0"
-              inputMode="decimal"
               value={subscription}
-              onChange={(e) => setSubscription(e.target.value)}
+              onChange={setSubscription}
               placeholder="12.44"
             />
           </FormField>

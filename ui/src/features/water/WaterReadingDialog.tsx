@@ -2,6 +2,7 @@ import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 import { SheetDialog } from '@/design-system/sheet-dialog';
 import { Input } from '@/design-system/input';
+import { DecimalInput } from '@/design-system/decimal-input';
 import { Button } from '@/design-system/button';
 import { FormField } from '@/design-system/form-field';
 import { isoDate } from '@/lib/period';
@@ -83,14 +84,11 @@ export default function WaterReadingDialog({ open, onOpenChange, existing }: Wat
             />
           </FormField>
           <FormField label={t('water.reading.indexM3')} htmlFor="water-reading-index">
-            <Input
+            <DecimalInput
               id="water-reading-index"
-              type="number"
-              step="0.001"
-              min="0"
-              inputMode="decimal"
+              decimals={3}
               value={indexM3}
-              onChange={(e) => setIndexM3(e.target.value)}
+              onChange={setIndexM3}
               placeholder="1250.5"
               required
             />

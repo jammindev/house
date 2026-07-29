@@ -2,7 +2,7 @@ import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 import { SheetDialog } from '@/design-system/sheet-dialog';
 import { FormField } from '@/design-system/form-field';
-import { Input } from '@/design-system/input';
+import { DecimalInput } from '@/design-system/decimal-input';
 import { Button } from '@/design-system/button';
 import type { RecurringExpense } from '@/lib/api/budget';
 
@@ -36,7 +36,7 @@ export default function ConfirmOccurrenceDialog({
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    const parsed = Number(amount.trim().replace(',', '.'));
+    const parsed = Number(amount.trim());
     if (!Number.isFinite(parsed) || parsed <= 0) {
       setError(t('recurring.errors.amountInvalid'));
       return;
@@ -54,13 +54,10 @@ export default function ConfirmOccurrenceDialog({
       <form onSubmit={handleSubmit} className="mt-4 space-y-4">
         <p className="text-sm text-muted-foreground">{t('recurring.confirm.hint')}</p>
         <FormField label={`${t('recurring.confirm.amount')} *`} htmlFor="confirm-amount">
-          <Input
+          <DecimalInput
             id="confirm-amount"
-            type="number"
-            step="0.01"
-            min="0"
             value={amount}
-            onChange={(e) => setAmount(e.target.value)}
+            onChange={setAmount}
             autoFocus
           />
         </FormField>
