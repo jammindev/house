@@ -2,17 +2,22 @@ import * as React from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
-import { Receipt } from 'lucide-react';
+import { CheckSquare, Pencil, Receipt } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
 import BackLink from '@/components/BackLink';
 import EmptyState from '@/components/EmptyState';
+import Pager from '@/components/Pager';
+import SelectionBar from '@/components/SelectionBar';
 import ConsumptionBarChart, {
   type ConsumptionChartBucket,
 } from '@/components/charts/ConsumptionBarChart';
+import { Button } from '@/design-system/button';
 import { Card, CardTitle } from '@/design-system/card';
 import { formatAmount, formatDate } from '@/lib/format';
 import { chartColor } from '@/lib/chartColors';
 import { useDelayedLoading } from '@/lib/useDelayedLoading';
+import { useMultiSelect } from '@/lib/useMultiSelect';
+import { usePager } from '@/lib/usePager';
 import { useSessionState } from '@/lib/useSessionState';
 import { fetchInteractions, type InteractionListItem } from '@/lib/api/interactions';
 import { interactionKeys } from '@/features/interactions/hooks';
@@ -21,6 +26,7 @@ import { useTransactions } from '@/features/banking/hooks';
 import { resolvePeriod, type PeriodRange } from '@/features/expenses/period';
 import PeriodPicker from '@/features/expenses/PeriodPicker';
 import ExpenseList from '@/features/expenses/ExpenseList';
+import BulkEditDialog from '@/features/expenses/BulkEditDialog';
 import ShareChart, { type ShareRow } from './ShareChart';
 import InsightComparison from './InsightComparison';
 
@@ -46,6 +52,12 @@ export const UNBUDGETED = 'none';
  * par fournisseur). Tout arrive du serveur en un appel : refaire ces agrégats
  * ici imposerait de charger toutes les dépenses de la fenêtre, et donnerait au
  * compteur affiché juste au-dessus une seconde définition.
+ *
+ * Et une fois qu'on voit *lesquelles*, le geste suivant est de **corriger** —
+ * typiquement déplacer trois lignes mal rangées dans une autre enveloppe. D'où
+ * la même sélection multiple que l'onglet Dépenses, sur les mêmes composants
+ * génériques : cette page n'a pas de règle propre à la sélection, seulement une
+ * portée à elle (voir `selection` plus bas).
  */
 export default function BudgetDetailPage() {
   const { t, i18n } = useTranslation();
@@ -69,15 +81,29 @@ export default function BudgetDetailPage() {
   const insightsQuery = useBudgetInsights(id, range.from, range.to);
   const insights = insightsQuery.data;
 
+  /**
+   * La liste se **parcourt**, elle ne se plafonne pas.
+   *
+   * Elle s'arrêtait à 100 lignes avec une note de troncature. Sur une enveloppe
+   * chargée c'était déjà gênant à lire ; avec la sélection multiple ça devenait
+   * faux : « tout sélectionner » n'aurait porté que sur les cent premières
+   * pendant que le compteur du haut en annonce trois cents, et un lot qui
+   * prétend traiter *tout* en laissant deux cents lignes derrière est exactement
+   * le dégât qu'aucun écran ne rattrape. Le serveur plafonne d'ailleurs à 100
+   * par requête — une fenêtre qu'on agrandit s'y serait arrêtée sans le dire.
+   */
+  const pager = usePager(50, `${id}|${range.from}|${range.to}`);
+
   const listFilters = React.useMemo(
     () => ({
       type: 'expense' as const,
       budget: id,
       ...(range.from ? { start_date: range.from } : {}),
       ...(range.to ? { end_date: range.to } : {}),
-      limit: 100,
+      limit: pager.limit,
+      offset: pager.offset,
     }),
-    [id, range.from, range.to],
+    [id, range.from, range.to, pager.limit, pager.offset],
   );
 
   const listQuery = useQuery({
@@ -98,7 +124,41 @@ export default function BudgetDetailPage() {
   const refundsQuery = useTransactions(refundFilters, 50, { enabled: !isUnbudgeted });
   const refunds = refundsQuery.data?.results ?? [];
 
-  const items: InteractionListItem[] = listQuery.data?.items ?? [];
+  // Mémoïsé : le `?? []` fabriquait un tableau neuf à chaque rendu, donc la liste
+  // d'ids que lit `useMultiSelect` changeait d'identité en permanence et
+  // recalculait la sélection pour rien. Inoffensif tant que rien ne la lisait.
+  const items: InteractionListItem[] = React.useMemo(
+    () => listQuery.data?.items ?? [],
+    [listQuery.data],
+  );
+
+  /**
+   * La portée de la sélection porte **l'enveloppe** en plus de la période et de
+   * la page, parce que la route est la même d'une enveloppe à l'autre : `:id`
+   * change, le composant reste monté.
+   *
+   * La dérivation par les ids affichés fait déjà tomber le compteur à zéro en
+   * arrivant sur « Courses » — ce n'est pas ce que l'id protège. Ce qu'il protège
+   * est le **retour** : sans lui, les trois lignes cochées sur « Bricolage »
+   * dorment dans le `Set` et se rallument au premier détour ramenant à elles,
+   * alors que l'utilisateur a composé son lot deux écrans plus tôt et ne le sait
+   * plus. Un lot qu'on n'a pas conscience de tenir est exactement celui qu'on
+   * envoie de travers.
+   */
+  const selection = useMultiSelect(
+    React.useMemo(() => items.map((item) => item.id), [items]),
+    { scopeKey: `${id}|${range.from}|${range.to}|${pager.offset}` },
+  );
+
+  // Une page qui s'est vidée sous les doigts ramène à la première. Le cas est ici
+  // la règle plutôt que l'exception : déplacer tout un lot vers une autre
+  // enveloppe le fait **sortir** de cette liste, qui est filtrée par budget.
+  // Rester sur une page vide afficherait « aucune dépense » sur une enveloppe qui
+  // en compte deux cents.
+  React.useEffect(() => {
+    if (!listQuery.isFetching && items.length === 0 && pager.offset > 0) pager.reset();
+  }, [listQuery.isFetching, items.length, pager]);
+
   const isLoading = insightsQuery.isLoading || listQuery.isLoading;
   const showSkeleton = useDelayedLoading(isLoading);
 
@@ -135,6 +195,7 @@ export default function BudgetDetailPage() {
   );
 
   const hasSpending = Boolean(insights && Number(insights.current.total) > 0);
+  const [bulkOpen, setBulkOpen] = React.useState(false);
 
   return (
     <>
@@ -267,21 +328,70 @@ export default function BudgetDetailPage() {
             />
           ) : (
             <>
-              <ExpenseList items={items} />
-              {/* La liste est plafonnée : le dire plutôt que laisser croire que
-                  le total ne correspond pas aux lignes affichées. */}
-              {(listQuery.data?.count ?? 0) > items.length ? (
-                <p className="text-center text-xs text-muted-foreground">
-                  {t('budgetDetail.truncated', {
-                    shown: items.length,
-                    total: listQuery.data?.count ?? 0,
-                  })}
-                </p>
+              {/* Le bouton vit ici, contre la liste, et non en tête de page avec
+                  la période : entrer en sélection est un geste qui porte sur les
+                  lignes, et deux graphiques le séparent de son objet s'il monte. */}
+              <div className="flex justify-end">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => (selection.active ? selection.exit() : selection.enter())}
+                  className="gap-1.5"
+                >
+                  <CheckSquare className="h-4 w-4" />
+                  {selection.active ? t('common.cancel') : t('common.select')}
+                </Button>
+              </div>
+              <ExpenseList
+                items={items}
+                onToggleSelected={
+                  selection.active ? (item) => selection.toggle(item.id) : undefined
+                }
+                isSelected={(item) => selection.isSelected(item.id)}
+              />
+              {selection.active ? (
+                <SelectionBar
+                  label={t('expenses.bulk.selected', { count: selection.count })}
+                  allSelected={selection.allSelected}
+                  onToggleAll={selection.allSelected ? selection.clear : selection.selectAll}
+                  onExit={selection.exit}
+                >
+                  <Button
+                    type="button"
+                    size="sm"
+                    disabled={selection.count === 0}
+                    onClick={() => setBulkOpen(true)}
+                    className="gap-1.5"
+                  >
+                    <Pencil className="h-4 w-4" />
+                    {t('expenses.bulk.action')}
+                  </Button>
+                </SelectionBar>
               ) : null}
+              <Pager
+                offset={pager.offset}
+                limit={pager.limit}
+                shown={items.length}
+                total={listQuery.data?.count ?? items.length}
+                onPrevious={pager.previous}
+                onNext={pager.next}
+                isFetching={listQuery.isFetching}
+              />
             </>
           )}
         </div>
       ) : null}
+
+      {/* Le même dialogue que l'onglet Dépenses, sans une ligne de plus : il ne
+          prend qu'une liste d'ids. Son champ budget est justement le geste qu'on
+          vient chercher ici — ranger ailleurs ce qui est mal rangé. */}
+      <BulkEditDialog
+        open={bulkOpen}
+        onOpenChange={setBulkOpen}
+        ids={selection.selectedIds}
+        onDone={selection.exit}
+      />
     </>
   );
 }
