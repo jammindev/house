@@ -1,5 +1,6 @@
 """Budget REST API views."""
 from django.core.exceptions import ValidationError as DjangoValidationError
+from django.db.models import Count
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
@@ -180,8 +181,14 @@ class BudgetCategoryViewSet(viewsets.ModelViewSet):
     serializer_class = BudgetCategorySerializer
 
     def get_queryset(self):
-        qs = BudgetCategory.objects.for_user_households(self.request.user).select_related(
-            "created_by"
+        # ``budget_count`` est annoté ici plutôt que compté par ligne dans le
+        # sérialiseur : un ``obj.budgets.count()`` par catégorie fait un
+        # aller-retour de plus à chaque ligne, pour un chiffre que le même
+        # GROUP BY donne gratuitement.
+        qs = (
+            BudgetCategory.objects.for_user_households(self.request.user)
+            .select_related("created_by")
+            .annotate(budgets_total=Count("budgets"))
         )
         if self.request.household:
             qs = qs.filter(household=self.request.household)

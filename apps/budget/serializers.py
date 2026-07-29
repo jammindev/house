@@ -39,7 +39,10 @@ class BudgetCategorySerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "household", "created_at", "updated_at", "created_by"]
 
     def get_budget_count(self, obj):
-        return obj.budgets.count()
+        # Annoté par la vue liste (``budgets_total``) ; le ``count()`` reste le
+        # repli pour une instance fraîchement créée, qui n'est pas annotée.
+        annotated = getattr(obj, "budgets_total", None)
+        return annotated if annotated is not None else obj.budgets.count()
 
     def validate_name(self, value):
         value = (value or "").strip()
@@ -163,6 +166,15 @@ class BudgetSerializer(serializers.ModelSerializer):
         is_global = attrs.get("is_global", getattr(self.instance, "is_global", False))
         if not is_global:
             return attrs
+
+        # ⚠️ L'invariant ne doit pas dépendre des clés que le client a envoyées.
+        # Refuser ``category_id`` sur un budget global (plus haut) ne couvre que
+        # les requêtes qui en parlent : un PATCH portant le seul ``is_global``
+        # n'atteint jamais ce contrôle, et laissait un budget global rangé dans
+        # une catégorie — c'est-à-dire membre de ce qu'il mesure. On le sort,
+        # plutôt que de refuser : promouvoir une enveloppe en plafond global est
+        # une demande claire, et sa catégorie n'a simplement plus de sens.
+        attrs["category"] = None
 
         amount = attrs.get(
             "monthly_amount", getattr(self.instance, "monthly_amount", None)

@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { SheetDialog } from '@/design-system/sheet-dialog';
 import { FormField } from '@/design-system/form-field';
 import { Input } from '@/design-system/input';
+import { DecimalInput } from '@/design-system/decimal-input';
 import { Button } from '@/design-system/button';
 import type { BudgetCategory } from '@/lib/api/budget';
 import { useCreateBudgetCategory, useUpdateBudgetCategory } from './hooks';
@@ -48,7 +49,9 @@ export default function BudgetCategoryDialog({
     e.preventDefault();
     setError(null);
 
-    const raw = amount.trim().replace(',', '.');
+    // Pas de `.replace(',', '.')` : l'état du parent est déjà canonique, c'est
+    // `DecimalInput` qui affiche le séparateur de la locale.
+    const raw = amount.trim();
     const parsed = Number(raw);
     const hasAmount = raw !== '';
 
@@ -110,13 +113,10 @@ export default function BudgetCategoryDialog({
           label={t('budget.fields.monthlyAmountOptional')}
           htmlFor="budget-category-amount"
         >
-          <Input
+          <DecimalInput
             id="budget-category-amount"
-            type="number"
-            step="0.01"
-            min="0"
             value={amount}
-            onChange={(e) => setAmount(e.target.value)}
+            onChange={setAmount}
             placeholder="0.00"
           />
           <p className="text-xs text-muted-foreground">{t('budget.category.amountHint')}</p>

@@ -423,3 +423,56 @@ class TestDeletingACategoryFreesItsBudgets:
 
         rows = response.data["results"] if isinstance(response.data, dict) else response.data
         assert [row["name"] for row in rows] == ["Maison"]
+
+
+class TestTheGlobalBudgetStaysFiledUnderNothing:
+    def test_promoting_a_filed_budget_to_global_unfiles_it(self, context):
+        """L'invariant ne doit pas dépendre des clés que le client a envoyées.
+
+        Refuser `category_id` sur un budget global ne suffit pas : un PATCH qui
+        ne parle que d'`is_global` n'atteint jamais ce contrôle, et laissait un
+        budget global rangé dans une catégorie — c'est-à-dire membre de ce qu'il
+        mesure.
+        """
+        hh = context["household"]
+        house = make_category(hh, "Maison")
+        diy = make_budget(hh, "Bricolage", "200", category=house)
+
+        response = context["client"].patch(
+            f"{BUDGETS_URL}{diy.id}/", {"is_global": True}, format="json"
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        diy.refresh_from_db()
+        assert diy.is_global is True
+        assert diy.category_id is None
+
+    def test_the_agent_can_file_a_budget_at_creation(self, context):
+        """Le mapping de l'agent est un allowlist lui aussi.
+
+        Même classe de défaut que celle qui a tué la PR #432 : un champ absent
+        du mapping est jeté sans un mot.
+        """
+        from budget.apps import _create_budget_from_agent
+
+        house = make_category(context["household"], "Maison")
+        budget = _create_budget_from_agent(
+            context["household"],
+            context["user"],
+            {"name": "Énergie", "monthly_amount": "250", "category_id": str(house.id)},
+        )
+
+        assert Budget.objects.get(pk=budget.pk).category_id == house.id
+
+    def test_listing_categories_costs_one_query_per_page(self, context, django_assert_max_num_queries):
+        """``budget_count`` est annoté, pas compté par ligne."""
+        hh = context["household"]
+        for name in ("Maison", "Loisirs", "Santé"):
+            category = make_category(hh, name)
+            make_budget(hh, f"Budget {name}", "100", category=category)
+
+        with django_assert_max_num_queries(4):
+            response = context["client"].get(CATEGORIES_URL)
+
+        rows = response.data["results"] if isinstance(response.data, dict) else response.data
+        assert sorted(r["budget_count"] for r in rows) == [1, 1, 1]

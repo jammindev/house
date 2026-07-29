@@ -79,6 +79,10 @@ def _create_budget_from_agent(household, user, fields, *, anchor=None):
         name=(fields.get("name") or "").strip(),
         monthly_amount=fields.get("monthly_amount"),
         is_global=bool(fields.get("is_global")),
+        # Même leçon que la vue REST : ce mapping est un allowlist, et un champ
+        # qu'on oublie d'y ajouter est jeté en silence — c'est exactement ainsi
+        # que le regroupement précédent est parti en production sans marcher.
+        category_id=fields.get("category_id"),
     )
 
 
