@@ -125,14 +125,43 @@ def get_pending_invitation(token):
     one stays visible, so the page can say "expired" instead of "invalid" — that
     distinction is actionable (ask for a new link) and leaks nothing new, since
     the link was legitimately shared with this person.
+
+    Archived households are excluded too: `destroy` is a soft delete, so without
+    this an old link kept opening a foyer that no longer exists — and since
+    `HouseholdViewSet.get_queryset` filters archived ones out, the newcomer
+    joined a household they could never see.
     """
     if not token:
         return None
     return (
         HouseholdInvitation.objects
         .select_related("household", "invited_by")
-        .filter(token=token, status=HouseholdInvitation.Status.PENDING)
+        .filter(
+            token=token,
+            status=HouseholdInvitation.Status.PENDING,
+            household__archived_at__isnull=True,
+        )
         .first()
+    )
+
+
+def assert_addressed_to(invitation, user):
+    """An addressed invitation is for that address — whoever is logged in.
+
+    The anonymous path pins the email by construction (it *creates* the account),
+    but the authenticated path used to accept anybody holding the link: a
+    forwarded invitation addressed to Claire enrolled Marc's existing account.
+    Pinning on one side only was the surprising half of a rule stated as whole.
+    """
+    if not invitation.email:
+        return
+    if invitation.invited_user_id == user.id:
+        return
+    if (user.email or "").strip().lower() == invitation.email:
+        return
+    raise InvitationError(
+        _("This invitation is addressed to %(email)s. Log in with that account to accept it.")
+        % {"email": invitation.email}
     )
 
 
@@ -145,15 +174,25 @@ def consume_invitation(invitation, user, *, switch=True):
     itself used rather than showing them an error about a household they are
     already in.
     """
+    # Claim the link with a conditional UPDATE before doing anything else: two
+    # requests arriving together both saw it `pending`, and a blind save let each
+    # create its own account and membership — a single link enrolling two people.
+    # Postgres serialises the UPDATE, so exactly one gets a row.
+    claimed = (
+        HouseholdInvitation.objects
+        .filter(pk=invitation.pk, status=HouseholdInvitation.Status.PENDING)
+        .update(status=HouseholdInvitation.Status.ACCEPTED, invited_user=user)
+    )
+    if not claimed:
+        raise InvitationError(_("This invitation link has already been used."))
+    invitation.status = HouseholdInvitation.Status.ACCEPTED
+    invitation.invited_user = user
+
     membership, created = HouseholdMember.objects.get_or_create(
         household=invitation.household,
         user=user,
         defaults={"role": invitation.role},
     )
-
-    invitation.status = HouseholdInvitation.Status.ACCEPTED
-    invitation.invited_user = user
-    invitation.save(update_fields=["status", "invited_user"])
 
     # A user with no active household would otherwise land on an empty app.
     if switch or not user.active_household_id:

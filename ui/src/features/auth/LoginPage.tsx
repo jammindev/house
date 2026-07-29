@@ -12,7 +12,9 @@ import { Input } from '../../design-system/input';
  */
 function safeNext(raw: string | null): string {
   if (!raw) return '/app/dashboard';
-  if (!raw.startsWith('/') || raw.startsWith('//')) return '/app/dashboard';
+  // Must be a single-slash absolute path. `//host` is protocol-relative, and
+  // browsers normalise `\` to `/`, so `/\host` is the same trick spelled twice.
+  if (!raw.startsWith('/') || raw.startsWith('//') || /[\\]/.test(raw)) return '/app/dashboard';
   return raw;
 }
 

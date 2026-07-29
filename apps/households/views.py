@@ -412,6 +412,7 @@ class JoinHouseholdView(APIView):
 
         # Already logged in — no account to create, just enroll.
         if request.user and request.user.is_authenticated:
+            services.assert_addressed_to(invitation, request.user)
             _membership, already_member = services.consume_invitation(
                 invitation, request.user, switch=True
             )

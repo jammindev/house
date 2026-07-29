@@ -623,3 +623,91 @@ class TestJoinIsThrottled:
             invitation = HouseholdInvitation.objects.create(household=household, invited_by=owner)
             response = invitee_client.post(join_url(invitation), {}, format="json")
             assert response.status_code == status.HTTP_200_OK
+
+
+# ---------------------------------------------------------------------------
+# Garde-fous trouvés en revue de la PR #462
+# ---------------------------------------------------------------------------
+
+@pytest.mark.django_db
+class TestALinkNeverOutlivesWhatItOpens:
+    """Trois trous que la première version du lien laissait ouverts."""
+
+    def test_a_link_to_an_archived_household_opens_nothing(self, api_client, household, link):
+        """`destroy` est un soft-delete : sans ce filtre le lien survivait au foyer.
+
+        Et comme `HouseholdViewSet.get_queryset` masque les foyers archivés, la
+        personne rejoignait un foyer qu'elle ne pourrait jamais voir.
+        """
+        household.archived_at = timezone.now()
+        household.save(update_fields=["archived_at"])
+
+        assert api_client.get(join_url(link)).status_code == status.HTTP_404_NOT_FOUND
+        response = api_client.post(
+            join_url(link),
+            {"email": "claire@example.com", "password": "un-mot-de-passe-solide"},
+            format="json",
+        )
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert not User.objects.filter(email="claire@example.com").exists()
+
+    def test_an_addressed_link_is_pinned_for_a_logged_in_account_too(
+        self, db, household, owner, invitee
+    ):
+        """L'épinglage valait pour le join anonyme seulement.
+
+        Un lien adressé à Claire, transféré à quelqu'un qui a déjà un compte,
+        enrôlait ce compte-là. Épingler d'un seul côté, c'est énoncer la règle
+        entière et n'en tenir que la moitié.
+        """
+        invitation = HouseholdInvitation.objects.create(
+            household=household, invited_by=owner, email="claire@example.com",
+        )
+        client = APIClient()
+        client.force_authenticate(user=invitee)
+
+        response = client.post(join_url(invitation), {}, format="json")
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "claire@example.com" in response.data["detail"]
+        assert not HouseholdMember.objects.filter(household=household, user=invitee).exists()
+        # Et le refus ne brûle pas le lien : Claire peut encore s'en servir.
+        invitation.refresh_from_db()
+        assert invitation.status == HouseholdInvitation.Status.PENDING
+
+    def test_the_invited_account_still_accepts_its_own_addressed_link(
+        self, db, household, owner, invitee
+    ):
+        invitation = HouseholdInvitation.objects.create(
+            household=household, invited_by=owner, email=invitee.email,
+        )
+        client = APIClient()
+        client.force_authenticate(user=invitee)
+
+        response = client.post(join_url(invitation), {}, format="json")
+
+        assert response.status_code == status.HTTP_200_OK
+        assert HouseholdMember.objects.filter(household=household, user=invitee).exists()
+
+    def test_a_link_enrolls_exactly_one_person_even_read_twice(self, db, household, link):
+        """L'usage unique ne tenait pas sous concurrence.
+
+        Deux requêtes simultanées résolvaient le token avant que l'une l'ait
+        consommé, chacune voyait `pending`, et un `save()` aveugle laissait les
+        deux aboutir — un seul lien pour deux membres. La revendication est
+        maintenant un UPDATE conditionnel, que Postgres sérialise.
+        """
+        from households import services
+
+        first = services.get_pending_invitation(link.token)
+        second = services.get_pending_invitation(link.token)
+        assert first is not None and second is not None
+
+        winner, loser = UserFactory(), UserFactory()
+        services.consume_invitation(first, winner)
+
+        with pytest.raises(services.InvitationError):
+            services.consume_invitation(second, loser)
+
+        joined = HouseholdMember.objects.filter(household=household).exclude(role="owner")
+        assert [m.user_id for m in joined] == [winner.id]
