@@ -1709,6 +1709,10 @@
           "balance": {
             "title": "Vérifier ton solde",
             "body": "Chaque compte affiche son solde, calculé à la lecture — il n'est jamais figé en base. Si ta banque exporte la colonne solde, House s'y ancre et vérifie au passage que la chaîne des relevés est complète : s'il manque des opérations, tu vois « chaîne rompue » avec la période et le montant manquant, plutôt qu'un chiffre plausible mais faux. C'est le meilleur test de tes imports : si le solde affiché tombe sur celui de ton relevé papier, tout est bon. Pour le liquide, ouvre le journal et utilise « Verser aux espèces » sur un retrait : il sort des totaux de dépenses et alimente le solde de ton compte espèces."
+          },
+          "sheet": {
+            "title": "Ouvrir la fiche d'un compte",
+            "body": "Touche le nom d'un compte pour ouvrir sa fiche. Tout ce que House sait de lui y est réuni : son solde et d'où il vient, la **période contrôlée** (hors de cette période, House n'exige rien — avant c'est de l'histoire, après le relevé n'est pas encore arrivé), les périodes qu'aucun relevé n'a jamais couvertes, l'historique complet de tes imports avec ce que chacun a créé, ignoré et rapproché tout seul, et le nombre d'opérations qui attendent encore d'être rangées sur ce compte. Si la fiche annonce qu'aucun contrôle ne porte sur ce compte, corrige-le là : c'est le seul réglage qui rend tous les autres contrôles mesurables."
           }
         }
       },
@@ -3445,7 +3449,12 @@
         "skipped_one": "{{count}} déjà présente, ignorée",
         "skipped_other": "{{count}} déjà présentes, ignorées",
         "nothingNew": "Rien de nouveau dans ce fichier",
-        "failed": "Fichier illisible — rien n'a été importé"
+        "failed": "Fichier illisible — rien n'a été importé",
+        "autoMatched_one": "{{count}} rapprochée automatiquement",
+        "autoMatched_other": "{{count}} rapprochées automatiquement",
+        "period": "Période du {{from}} au {{to}}",
+        "more_one": "et {{count}} dépôt plus ancien",
+        "more_other": "et {{count}} dépôts plus anciens"
       },
       "errors": {
         "previewFailed": "Impossible de lire ce fichier. Vérifie qu'il s'agit bien d'un CSV ou d'un Excel.",
@@ -3686,6 +3695,44 @@
       "amount": "Montant reçu",
       "date": "Date",
       "natureHint": "Un transfert interne ne se saisit pas ici : des espèces venues d'un retrait se déclarent depuis la ligne de retrait, avec « Alimenter les espèces »."
+    },
+    "account": {
+      "notFound": "Compte introuvable.",
+      "archivedHint": "Ce compte est archivé : il n'apparaît plus dans la liste et son solde n'est plus suivi. Rien n'a été supprimé — tu peux le rouvrir.",
+      "balanceTitle": "Solde",
+      "balanceSource": {
+        "anchored": "Lu sur le relevé",
+        "derived": "Calculé depuis le solde de départ"
+      },
+      "balanceAsOf": "au {{date}}",
+      "balanceUnavailable": "Solde non calculé pour ce compte.",
+      "coverageTitle": "Période contrôlée",
+      "coverageWindow": "Du {{from}} au {{to}}",
+      "coverageHint": "En dehors, House n'exige rien : avant, c'est de l'histoire ; après, le relevé n'est pas encore arrivé.",
+      "coverageNone": {
+        "no_opening_date": "Aucune date de solde de départ : aucun contrôle ne porte sur ce compte.",
+        "opening_date_after_data": "Ta date de solde de départ ({{openingDate}}) est postérieure à ta plus ancienne opération ({{earliestLine}}) : la période contrôlée est vide, donc aucun contrôle ne porte sur ce compte.",
+        "no_data": "Aucune opération sur ce compte pour l'instant : il n'y a rien à contrôler. Importe un relevé pour ouvrir la période."
+      },
+      "gapsTitle": "Périodes jamais importées",
+      "coverageGap_one": "Aucun relevé du {{from}} au {{to}} ({{count}} jour)",
+      "coverageGap_other": "Aucun relevé du {{from}} au {{to}} ({{count}} jours)",
+      "flowTitle": "Ce qui est entré et sorti",
+      "flowHint": "Vue « banque », sur tout l'historique du compte. Ces totaux ne s'additionnent jamais à ceux des budgets : le pont est le taux de couverture.",
+      "pendingCount_one": "{{count}} opération attend d'être rangée sur ce compte",
+      "pendingCount_other": "{{count}} opérations attendent d'être rangées sur ce compte",
+      "pendingNone": "Rien n'attend d'être rangé sur ce compte.",
+      "pendingAction": "Ranger ces opérations",
+      "recentTitle": "Dernières opérations",
+      "seeAll": "Voir toutes les opérations",
+      "noOperations": "Aucune opération sur ce compte.",
+      "noImports": "Aucun relevé importé pour l'instant.",
+      "noImportsCash": "Un compte espèces n'a pas de relevé : ses opérations se saisissent à la main.",
+      "detailsTitle": "Fiche du compte",
+      "transactionsLabel": "Opérations détenues",
+      "transactionCount_one": "{{count}} opération",
+      "transactionCount_other": "{{count}} opérations",
+      "currencyLabel": "Devise"
     }
   },
   "pwa": {

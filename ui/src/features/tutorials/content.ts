@@ -86,7 +86,7 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
   { key: 'money', moduleKey: 'money', Icon: ShieldCheck, to: '/app/money?tab=control', stepIds: ['source', 'allocation', 'axes', 'window', 'arbitrate', 'notEvaluable', 'cash'] },
   { key: 'expenses', moduleKey: 'money', Icon: Receipt, to: '/app/money?tab=pending', stepIds: ['record', 'sort', 'control', 'sources', 'sheet', 'trace', 'review'] },
   { key: 'budget', moduleKey: 'money', Icon: PiggyBank, to: '/app/money?tab=budgets', stepIds: ['create', 'assign', 'track', 'analysis', 'recurring', 'report'] },
-  { key: 'banking', moduleKey: 'money', Icon: Landmark, to: '/app/money?tab=accounts', stepIds: ['accounts', 'cash', 'openingBalance', 'import', 'journal', 'balance'] },
+  { key: 'banking', moduleKey: 'money', Icon: Landmark, to: '/app/money?tab=accounts', stepIds: ['accounts', 'cash', 'openingBalance', 'import', 'journal', 'balance', 'sheet'] },
   { key: 'documents', moduleKey: 'documents', to: '/app/documents', stepIds: ['upload', 'link', 'find'] },
   { key: 'photos', moduleKey: 'photos', to: '/app/photos', stepIds: ['browse', 'add', 'file'] },
   { key: 'directory', moduleKey: 'directory', to: '/app/directory', stepIds: ['contacts', 'structures'] },

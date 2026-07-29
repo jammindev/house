@@ -1709,6 +1709,10 @@
           "balance": {
             "title": "Check your balance",
             "body": "Each account shows its balance, computed at read time — never frozen in the database. If your bank exports a balance column, House anchors on it and checks the statement chain along the way: when operations are missing you get “chain broken” with the period and the missing amount, rather than a plausible but wrong figure. This is the best test of your imports: if the balance shown matches your paper statement, everything is right. For cash, open the journal and use “Move to cash” on a withdrawal — it leaves the spending totals and feeds your cash account balance."
+          },
+          "sheet": {
+            "title": "Open an account's sheet",
+            "body": "Tap an account's name to open its sheet. Everything House knows about it is gathered there: its balance and where that figure comes from, the **checked period** (outside it House requires nothing — before is history, after is a statement that has not arrived yet), the periods no statement ever covered, the full history of your imports with what each one created, skipped and reconciled by itself, and how many operations are still waiting to be sorted out on this account. If the sheet says no check applies to this account, fix it right there: it is the one setting that makes every other check meaningful."
           }
         }
       },
@@ -3445,7 +3449,12 @@
         "skipped_one": "{{count}} already there, skipped",
         "skipped_other": "{{count}} already there, skipped",
         "nothingNew": "Nothing new in this file",
-        "failed": "Unreadable file — nothing was imported"
+        "failed": "Unreadable file — nothing was imported",
+        "autoMatched_one": "{{count}} reconciled automatically",
+        "autoMatched_other": "{{count}} reconciled automatically",
+        "period": "Period from {{from}} to {{to}}",
+        "more_one": "and {{count}} older upload",
+        "more_other": "and {{count}} older uploads"
       },
       "errors": {
         "previewFailed": "Could not read this file. Check that it is a CSV or an Excel file.",
@@ -3686,6 +3695,44 @@
       "amount": "Amount received",
       "date": "Date",
       "natureHint": "An internal transfer is not recorded here: cash from a withdrawal is declared on the withdrawal line, with “Feed cash”."
+    },
+    "account": {
+      "notFound": "Account not found.",
+      "archivedHint": "This account is archived: it no longer shows in the list and its balance is no longer tracked. Nothing was deleted — you can reopen it.",
+      "balanceTitle": "Balance",
+      "balanceSource": {
+        "anchored": "Read from the statement",
+        "derived": "Computed from the opening balance"
+      },
+      "balanceAsOf": "as of {{date}}",
+      "balanceUnavailable": "No balance computed for this account.",
+      "coverageTitle": "Checked period",
+      "coverageWindow": "From {{from}} to {{to}}",
+      "coverageHint": "Outside it, House requires nothing: before is history, after is a statement that has not arrived yet.",
+      "coverageNone": {
+        "no_opening_date": "No opening balance date: no check applies to this account.",
+        "opening_date_after_data": "Your opening balance date ({{openingDate}}) is later than your oldest operation ({{earliestLine}}): the checked period is empty, so no check applies to this account.",
+        "no_data": "No operation on this account yet, so there is nothing to check. Import a statement to open the period."
+      },
+      "gapsTitle": "Periods never imported",
+      "coverageGap_one": "No statement from {{from}} to {{to}} ({{count}} day)",
+      "coverageGap_other": "No statement from {{from}} to {{to}} ({{count}} days)",
+      "flowTitle": "What came in and went out",
+      "flowHint": "The bank view, over the whole history of the account. These totals are never added to budget totals: the bridge is the coverage ratio.",
+      "pendingCount_one": "{{count}} operation still to sort out on this account",
+      "pendingCount_other": "{{count}} operations still to sort out on this account",
+      "pendingNone": "Nothing left to sort out on this account.",
+      "pendingAction": "Sort these out",
+      "recentTitle": "Latest operations",
+      "seeAll": "See every operation",
+      "noOperations": "No operation on this account.",
+      "noImports": "No statement imported yet.",
+      "noImportsCash": "A cash account has no statement: its operations are typed in by hand.",
+      "detailsTitle": "Account details",
+      "transactionsLabel": "Operations held",
+      "transactionCount_one": "{{count}} operation",
+      "transactionCount_other": "{{count}} operations",
+      "currencyLabel": "Currency"
     }
   },
   "pwa": {

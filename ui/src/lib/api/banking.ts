@@ -132,6 +132,35 @@ export async function setBalanceAnchor(
   return data;
 }
 
+// --- Fenêtre de conformité d'un compte --------------------------------------
+
+/**
+ * Pourquoi ce compte a — ou n'a pas — une fenêtre de conformité.
+ *
+ * `''` = il en a une. Les trois autres ne se valent pas : `no_data` est normal
+ * (rien d'importé, rien à affirmer), les deux autres rendent le compte invisible
+ * à **tous** les contrôles. Ne jamais les fondre en « pas couvert » : c'est cette
+ * confusion qui a affiché une coche verte sur un compte non vérifié.
+ */
+export type CoverageStatus = '' | 'no_opening_date' | 'opening_date_after_data' | 'no_data';
+
+export interface AccountCoverage {
+  status: CoverageStatus;
+  /** Bornes de la fenêtre, `null` dès que `status` n'est pas vide. */
+  start: string | null;
+  end: string | null;
+  /** Périodes qu'aucun relevé n'a jamais couvertes, bornées à la fenêtre. */
+  gaps: { gap_start: string; gap_end: string; days: number }[];
+  first_line: string | null;
+  last_line: string | null;
+  transaction_count: number;
+}
+
+export async function fetchAccountCoverage(accountId: string): Promise<AccountCoverage> {
+  const { data } = await api.get<AccountCoverage>(`/banking/accounts/${accountId}/coverage/`);
+  return data;
+}
+
 // --- Import de relevés (parcours 25, lot 2) ---------------------------------
 
 export type ImportStatus = 'completed' | 'failed';
@@ -146,6 +175,12 @@ export interface StatementImport {
   status: ImportStatus;
   created_count: number;
   skipped_count: number;
+  /**
+   * Lignes que cet import a rapprochées tout seul de dépenses déjà saisies. Le
+   * chiffre qui intéresse vraiment : c'est ce que l'utilisateur n'a **pas** eu à
+   * ranger à la main.
+   */
+  auto_matched_count: number;
   error: string;
   period_start: string | null;
   period_end: string | null;

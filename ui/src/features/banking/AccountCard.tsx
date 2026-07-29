@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next';
+import { Link, useLocation } from 'react-router-dom';
 import {
   ArchiveRestore,
   Banknote,
@@ -10,7 +11,8 @@ import {
 } from 'lucide-react';
 import { Card, CardTitle } from '@/design-system/card';
 import CardActions, { type CardAction } from '@/components/CardActions';
-import { formatAmount } from '@/lib/format';
+import { pushBack } from '@/lib/backNavigation';
+import { formatAmount, formatDate } from '@/lib/format';
 import type { BankAccount } from '@/lib/api/banking';
 import { useAccountBalance } from './hooks';
 import BalanceBadge from './BalanceBadge';
@@ -35,6 +37,7 @@ export default function AccountCard({
   onFindBalance,
 }: AccountCardProps) {
   const { t } = useTranslation();
+  const location = useLocation();
   const isCash = account.kind === 'cash';
   const Icon = isCash ? Banknote : Landmark;
   // Un compte archivé n'a plus de solde à surveiller — on évite la requête.
@@ -69,7 +72,17 @@ export default function AccountCard({
 
           <div className="min-w-0 flex-1">
             <div className="flex items-baseline justify-between gap-2">
-              <CardTitle className="truncate">{account.name}</CardTitle>
+              {/* La carte choisit, la fiche explique : imports, période contrôlée,
+                  reste à ranger. Le nom est donc un lien, comme sur toute liste. */}
+              <Link
+                to={`/app/money/accounts/${account.id}`}
+                state={pushBack(location)}
+                className="group min-w-0 text-foreground hover:text-primary"
+              >
+                <CardTitle className="truncate text-inherit [&>span:last-child]:group-hover:underline">
+                  {account.name}
+                </CardTitle>
+              </Link>
               {!account.archived ? (
                 <BalanceBadge balance={balanceQuery.data} isLoading={balanceQuery.isLoading} />
               ) : null}
@@ -83,7 +96,7 @@ export default function AccountCard({
               <p className="mt-1 text-xs text-muted-foreground tabular-nums">
                 {t('banking.openingBalanceOn', {
                   amount: formatAmount(account.opening_balance),
-                  date: new Date(account.opening_balance_date).toLocaleDateString(),
+                  date: formatDate(account.opening_balance_date),
                 })}
               </p>
             ) : (
@@ -96,7 +109,7 @@ export default function AccountCard({
               <p className="mt-0.5 text-xs text-muted-foreground">
                 {t('banking.anchor.attestedOn', {
                   amount: formatAmount(account.attested_balance ?? '0'),
-                  date: new Date(account.attested_on).toLocaleDateString(),
+                  date: formatDate(account.attested_on),
                 })}
               </p>
             ) : null}

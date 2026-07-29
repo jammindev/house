@@ -1709,6 +1709,10 @@
           "balance": {
             "title": "Comprobar tu saldo",
             "body": "Cada cuenta muestra su saldo, calculado al leer: nunca queda congelado en la base de datos. Si tu banco exporta la columna de saldo, House se ancla en ella y comprueba de paso que la cadena de extractos esté completa: si faltan operaciones verás «cadena rota» con el periodo y el importe que falta, en lugar de una cifra plausible pero falsa. Es la mejor prueba de tus importaciones: si el saldo mostrado coincide con tu extracto en papel, todo está bien. Para el efectivo, abre el diario y usa «Pasar al efectivo» en una retirada: sale de los totales de gasto y alimenta el saldo de tu cuenta de efectivo."
+          },
+          "sheet": {
+            "title": "Abrir la ficha de una cuenta",
+            "body": "Toca el nombre de una cuenta para abrir su ficha. Allí se reúne todo lo que House sabe de ella: su saldo y de dónde viene, el **periodo controlado** (fuera de él House no exige nada — antes es historia; después, el extracto aún no ha llegado), los periodos que ningún extracto ha cubierto nunca, el historial completo de tus importaciones con lo que cada una creó, omitió y concilió por sí sola, y cuántas operaciones siguen pendientes de clasificar en esta cuenta. Si la ficha indica que ningún control se aplica a esta cuenta, corrígelo ahí mismo: es el único ajuste que hace medibles todos los demás controles."
           }
         }
       },
@@ -3445,7 +3449,12 @@
         "skipped_one": "{{count}} ya presente, omitida",
         "skipped_other": "{{count}} ya presentes, omitidas",
         "nothingNew": "Nada nuevo en este archivo",
-        "failed": "Archivo ilegible: no se ha importado nada"
+        "failed": "Archivo ilegible: no se ha importado nada",
+        "autoMatched_one": "{{count}} conciliada automáticamente",
+        "autoMatched_other": "{{count}} conciliadas automáticamente",
+        "period": "Periodo del {{from}} al {{to}}",
+        "more_one": "y {{count}} carga más antigua",
+        "more_other": "y {{count}} cargas más antiguas"
       },
       "errors": {
         "previewFailed": "No se ha podido leer este archivo. Comprueba que sea un CSV o un Excel.",
@@ -3686,6 +3695,44 @@
       "amount": "Importe recibido",
       "date": "Fecha",
       "natureHint": "Una transferencia interna no se registra aquí: el efectivo procedente de una retirada se declara desde la línea de retirada, con «Alimentar el efectivo»."
+    },
+    "account": {
+      "notFound": "Cuenta no encontrada.",
+      "archivedHint": "Esta cuenta está archivada: ya no aparece en la lista y su saldo ya no se sigue. No se ha borrado nada — puedes reabrirla.",
+      "balanceTitle": "Saldo",
+      "balanceSource": {
+        "anchored": "Leído en el extracto",
+        "derived": "Calculado desde el saldo inicial"
+      },
+      "balanceAsOf": "a fecha del {{date}}",
+      "balanceUnavailable": "No se ha calculado ningún saldo para esta cuenta.",
+      "coverageTitle": "Periodo controlado",
+      "coverageWindow": "Del {{from}} al {{to}}",
+      "coverageHint": "Fuera de él, House no exige nada: antes es historia; después, el extracto aún no ha llegado.",
+      "coverageNone": {
+        "no_opening_date": "Sin fecha de saldo inicial: ningún control se aplica a esta cuenta.",
+        "opening_date_after_data": "La fecha de tu saldo inicial ({{openingDate}}) es posterior a tu operación más antigua ({{earliestLine}}): el periodo controlado está vacío, así que ningún control se aplica a esta cuenta.",
+        "no_data": "Todavía no hay ninguna operación en esta cuenta, así que no hay nada que controlar. Importa un extracto para abrir el periodo."
+      },
+      "gapsTitle": "Periodos nunca importados",
+      "coverageGap_one": "Ningún extracto del {{from}} al {{to}} ({{count}} día)",
+      "coverageGap_other": "Ningún extracto del {{from}} al {{to}} ({{count}} días)",
+      "flowTitle": "Lo que ha entrado y salido",
+      "flowHint": "Vista «banco», sobre todo el historial de la cuenta. Estos totales nunca se suman a los de los presupuestos: el puente es la tasa de cobertura.",
+      "pendingCount_one": "{{count}} operación pendiente de clasificar en esta cuenta",
+      "pendingCount_other": "{{count}} operaciones pendientes de clasificar en esta cuenta",
+      "pendingNone": "No queda nada por clasificar en esta cuenta.",
+      "pendingAction": "Clasificar estas operaciones",
+      "recentTitle": "Últimas operaciones",
+      "seeAll": "Ver todas las operaciones",
+      "noOperations": "Ninguna operación en esta cuenta.",
+      "noImports": "Ningún extracto importado todavía.",
+      "noImportsCash": "Una cuenta de efectivo no tiene extracto: sus operaciones se introducen a mano.",
+      "detailsTitle": "Ficha de la cuenta",
+      "transactionsLabel": "Operaciones registradas",
+      "transactionCount_one": "{{count}} operación",
+      "transactionCount_other": "{{count}} operaciones",
+      "currencyLabel": "Divisa"
     }
   },
   "pwa": {

@@ -30,7 +30,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import date, timedelta
 
-from django.db.models import Max
+from django.db.models import Count, Max, Min
 
 from .models import BankAccount, BankTransaction, ImportStatus, StatementImport
 
@@ -106,6 +106,37 @@ def _latest_known_date(account) -> date | None:
 
     candidates = [d for d in (from_imports, from_lines) if d is not None]
     return max(candidates) if candidates else None
+
+
+def serialize_coverage(account) -> dict:
+    """What the control can assert about ``account`` — and otherwise why it cannot.
+
+    Exists for the account page, and it carries the ``status`` rather than just the
+    two bounds for the reason stated at the top of this module: a window of ``None``
+    has three completely different meanings (no starting point, a starting point
+    later than the data, nothing imported yet), and only the first two are problems.
+    A page that rendered them all as "not covered" would repeat the bug the
+    ``window_status`` split was introduced to kill.
+
+    ``first_line`` / ``last_line`` are what makes the second case *readable*: « ta
+    date de solde d'ouverture est postérieure à ta plus ancienne opération » cannot
+    be said without naming that operation's date.
+    """
+    status, window = window_status(account)
+    lines = BankTransaction.objects.filter(account=account).aggregate(
+        first=Min("booked_on"), last=Max("booked_on"), total=Count("pk")
+    )
+    return {
+        "status": status,
+        "start": window.start.isoformat() if window else None,
+        "end": window.end.isoformat() if window else None,
+        # Bornées à la fenêtre quand il y en a une : une période manquante hors
+        # fenêtre n'est pas un écart, et l'annoncer ferait une liste irrésoluble.
+        "gaps": period_gaps(account, between=window),
+        "first_line": lines["first"].isoformat() if lines["first"] else None,
+        "last_line": lines["last"].isoformat() if lines["last"] else None,
+        "transaction_count": lines["total"],
+    }
 
 
 def period_gaps(account, *, between: Window | None = None) -> list[dict]:

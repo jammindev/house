@@ -24,6 +24,7 @@ from .anchoring import (
     serialize_anchor_context,
 )
 from .balances import compute_balance, serialize_balance
+from .coverage import serialize_coverage
 from .compliance import (
     get_detector,
     group_result,
@@ -160,6 +161,23 @@ class BankAccountViewSet(viewsets.ModelViewSet):
         account = self.get_object()
         as_of = _parse_date_param(request.query_params.get("as_of"), "as_of")
         return Response(serialize_balance(compute_balance(account=account, as_of=as_of)))
+
+    @action(detail=True, methods=["get"], url_path="coverage")
+    def coverage(self, request, pk=None):
+        """What the conformity control can — or cannot — assert about this account.
+
+        Its own endpoint rather than fields on the account: the window is derived
+        from the imports and the lines, so it changes without the account row ever
+        being written, and serializing it inline would make every list of accounts
+        pay two aggregates per row.
+
+        ⚠️ It answers with a **reason**, never a bare "no window". An account
+        nobody has imported anything into is normal; an account whose opening
+        balance date postdates its own statements is invisible to every control,
+        and must say so — that confusion once shipped a green checkmark over an
+        unchecked account (see ``banking.coverage``).
+        """
+        return Response(serialize_coverage(self.get_object()))
 
     @action(detail=True, methods=["get", "post"], url_path="balance-anchor")
     def balance_anchor(self, request, pk=None):
