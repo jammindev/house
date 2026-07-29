@@ -641,6 +641,10 @@ def set_allocations(*, household, user, transaction, lines: list[dict]) -> list:
                         budget_id=line.get("budget_id"),
                         zone_ids=line.get("zone_ids"),
                         notes=str(line.get("notes") or ""),
+                        # Stored as sent, never guessed here: the derivation from
+                        # the bank label lives in ``rules.guess_supplier`` and is
+                        # shown in the dialog, where it is read before it is kept.
+                        supplier=str(line.get("supplier") or ""),
                         # Budget and project are independent axes (lot 3): a line
                         # can carry both, and counts in both.
                         source_type=line.get("source_type"),

@@ -1512,6 +1512,10 @@
             "title": "Enter an expense",
             "body": "Restaurant, gift, groceries: add a one-off expense with amount and supplier."
           },
+          "supplier": {
+            "title": "Pick a supplier, never retype one",
+            "body": "The supplier field is a searchable list built from your own entries, most-used first. An unknown shop is simply typed in — it joins the list for next time, with no form to fill in.\n\nCase and accents no longer create duplicates: \"leroy merlin\" lands on \"Leroy Merlin\". That is what keeps one filter and one total per shop, where three spellings used to give three.\n\nWhen you split a statement line, the app also offers the merchant read from the operation label — so the common case takes no typing at all."
+          },
           "sources": {
             "title": "Understand automatic expenses",
             "body": "Stock or equipment purchases create their expense on their own — nothing to re-enter."
@@ -3640,6 +3644,7 @@
       "fields": {
         "subject": "Label",
         "amount": "Amount",
+        "supplier": "Supplier",
         "budget": "Budget",
         "attachTo": "Attach to",
         "zones": "Zones"
@@ -4121,5 +4126,13 @@
       "home": "The house",
       "memories": "Memories"
     }
+  },
+  "suppliers": {
+    "placeholder": "Search or type a supplier",
+    "toggle": "Show known suppliers",
+    "listLabel": "Household suppliers",
+    "empty": "No supplier recorded yet",
+    "willBeAdded": "New supplier — it will be added",
+    "fromLabel": "From the operation label"
   }
 }

@@ -2,7 +2,7 @@
 Interactions admin configuration.
 """
 from django.contrib import admin
-from .models import Interaction, InteractionZone
+from .models import Interaction, InteractionZone, Supplier
 
 
 class InteractionZoneInline(admin.TabularInline):
@@ -42,3 +42,20 @@ class InteractionZoneAdmin(admin.ModelAdmin):
     list_display = ['interaction', 'zone']
     list_filter = ['zone__household']
     autocomplete_fields = ['interaction', 'zone']
+
+
+@admin.register(Supplier)
+class SupplierAdmin(admin.ModelAdmin):
+    """Le catalogue en lecture, plus une porte de secours pour le renommer.
+
+    Le foyer n'a pas d'écran de gestion — la table se remplit à l'usage, ce qui
+    couvre tout le besoin courant. Renommer reste l'affaire de l'admin, et **ne
+    propage rien** : `Interaction.supplier` garde l'ancien texte, puisqu'il n'y a
+    pas de FK. Une fusion propre demanderait un service dédié, à écrire le jour où
+    le besoin se présente.
+    """
+
+    list_display = ['name', 'household', 'created_at']
+    list_filter = ['household']
+    search_fields = ['name', 'normalized_name']
+    readonly_fields = ['normalized_name']

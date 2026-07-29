@@ -279,3 +279,29 @@ export async function linkDocumentToInteraction(
     note: input.note ?? '',
   });
 }
+
+/**
+ * Un fournisseur du catalogue du foyer (table `interactions.Supplier`).
+ *
+ * `count` est le nombre de dépenses qui le portent — calculé à la lecture, jamais
+ * dénormalisé sur la table : un compteur stocké aurait deux définitions dès la
+ * première suppression de dépense. Il sert à l'ordre (le plus employé d'abord) et
+ * à un discret repère à l'écran. `0` veut dire « au catalogue, pas encore
+ * employé », ce qui reste une raison de le proposer.
+ */
+export interface SupplierSuggestion {
+  name: string;
+  count: number;
+}
+
+/**
+ * La liste entière, sans pagination ni recherche serveur : le filtrage se fait à
+ * la frappe côté client, et un foyer compte ses fournisseurs en dizaines. Un
+ * aller-retour par caractère coûterait plus cher que la liste complète.
+ */
+export async function fetchSuppliers(): Promise<SupplierSuggestion[]> {
+  const { data } = await api.get<{ results: SupplierSuggestion[] }>(
+    '/interactions/interactions/suppliers/',
+  );
+  return data.results ?? [];
+}

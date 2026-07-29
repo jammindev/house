@@ -26,7 +26,13 @@ from core.timezones import (
 from documents.models import Document, DocumentLink
 from zones.models import Zone
 from .aggregations import UNBUDGETED, compute_expense_summary
-from .models import Interaction, InteractionZone, InteractionContact, InteractionStructure
+from .models import (
+    Interaction,
+    InteractionZone,
+    InteractionContact,
+    InteractionStructure,
+    Supplier,
+)
 from .serializers import (
     InteractionSerializer,
     InteractionDetailSerializer,
@@ -404,6 +410,47 @@ class InteractionViewSet(viewsets.ModelViewSet):
 
         payload = InteractionSerializer(interaction, context={"request": request}).data
         return Response(payload, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['get'], url_path='suppliers')
+    def suppliers(self, request):
+        """GET /api/interactions/suppliers/ — le catalogue des fournisseurs du foyer.
+
+        La table `Supplier`, dans l'ordre où elle sert : **le plus employé
+        d'abord**. Un tri alphabétique remettrait le magasin des courses
+        hebdomadaires derrière un achat unique d'il y a deux ans, ce qui rend le
+        select aussi lent à parcourir que le champ libre qu'il remplace.
+
+        Le compte se calcule ici, en un `GROUP BY` sur la colonne texte, et n'est
+        **pas** dénormalisé sur la table : un compteur stocké est un compteur à
+        deux définitions dès la première suppression de dépense — même règle que le
+        « dépensé » d'un budget. Un fournisseur au catalogue mais jamais employé
+        (créé, puis la dépense annulée) sort avec `count: 0` et passe après les
+        autres ; il reste proposé, parce que l'avoir tapé une fois est déjà un
+        signe qu'on le retapera.
+
+        Pas de pagination ni de recherche serveur : le filtrage se fait à la frappe
+        côté client, et un foyer compte ses fournisseurs en dizaines. Un
+        aller-retour par caractère coûterait plus cher que la liste entière.
+        """
+        household = request.household
+        if household is None:
+            return Response({'results': []})
+
+        counts = dict(
+            Interaction.objects
+            .filter(household_id=household.id)
+            .exclude(supplier='')
+            .values_list('supplier')
+            .annotate(total=Count('id'))
+        )
+        rows = [
+            {'name': name, 'count': counts.get(name, 0)}
+            for name in Supplier.objects
+            .filter(household_id=household.id)
+            .values_list('name', flat=True)
+        ]
+        rows.sort(key=lambda row: (-row['count'], row['name'].casefold()))
+        return Response({'results': rows})
 
     @action(detail=False, methods=['get'], url_path='expenses/summary')
     def expenses_summary(self, request):

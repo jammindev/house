@@ -4,6 +4,7 @@ import {
   createInteraction,
   deleteInteraction,
   fetchInteraction,
+  fetchSuppliers,
   updateInteraction,
   linkDocumentToInteraction,
   type CreateInteractionInput,
@@ -32,6 +33,7 @@ export const interactionKeys = {
   list: (filters?: InteractionFilters) =>
     [...interactionKeys.all, 'list', filters] as const,
   detail: (id: string) => [...interactionKeys.all, 'detail', id] as const,
+  suppliers: () => [...interactionKeys.all, 'suppliers'] as const,
 };
 
 export function useInteractions(filters: InteractionFilters = {}) {
@@ -87,5 +89,20 @@ export function useUpdateInteraction() {
     mutationFn: ({ id, payload }: { id: string; payload: Partial<CreateInteractionInput> }) =>
       updateInteraction(id, payload),
     onSuccess: invalidate,
+  });
+}
+
+/**
+ * Les fournisseurs que le foyer connaît — la liste du `SupplierCombobox`.
+ *
+ * Clé sous la racine `interactions`, donc rafraîchie par `useInvalidateMoney` :
+ * une dépense enregistrée chez un nouveau fournisseur doit le proposer au
+ * formulaire suivant, sinon le select promet une mémoire qu'il n'a pas.
+ */
+export function useSuppliers() {
+  return useQuery({
+    queryKey: interactionKeys.suppliers(),
+    queryFn: fetchSuppliers,
+    staleTime: 60_000,
   });
 }

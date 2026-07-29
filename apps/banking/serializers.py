@@ -183,6 +183,11 @@ class BankTransactionSerializer(serializers.ModelSerializer):
     # ventilation d'une sortie.
     refund_allocations = serializers.SerializerMethodField()
     refund_remaining = serializers.SerializerMethodField()
+    # Le marchand que le libellé nomme déjà, pour que ventiler ne consiste pas à
+    # le retaper. Servi ici et non recalculé côté client : les motifs de libellés
+    # bancaires vivent dans ``rules``, et une seconde implémentation en TypeScript
+    # dériverait de celle-ci sans que rien ne le signale.
+    supplier_guess = serializers.SerializerMethodField()
 
     class Meta:
         model = BankTransaction
@@ -207,6 +212,7 @@ class BankTransactionSerializer(serializers.ModelSerializer):
             "allocated_amount",
             "remaining_amount",
             "allocation_state",
+            "supplier_guess",
             "created_at",
         ]
         read_only_fields = [
@@ -224,8 +230,21 @@ class BankTransactionSerializer(serializers.ModelSerializer):
             "transfer_counterpart",
             "refund_allocations",
             "refund_remaining",
+            "supplier_guess",
             "created_at",
         ]
+
+    def get_supplier_guess(self, obj) -> str:
+        """Le fournisseur que le libellé suggère — proposé, jamais appliqué.
+
+        Pure manipulation de chaînes, donc gratuite même sur une page de cinquante
+        lignes : aucune requête, aucun accès à autre chose que le libellé déjà
+        chargé.
+        """
+        from .importers.parsing import normalize_label
+        from .rules import guess_supplier
+
+        return guess_supplier(obj.label_norm or normalize_label(obj.label_raw))
 
     def get_refund_allocations(self, obj) -> list:
         """Ce que cette recette rend, enveloppe par enveloppe.

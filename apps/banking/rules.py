@@ -72,3 +72,78 @@ def guess_inflow_nature(label_norm: str) -> str:
         if any(pattern in label for pattern in patterns):
             return nature
     return ""
+
+
+#: Payment plumbing that precedes the merchant in a statement label. Removed word
+#: by word from the front, so ``PAIEMENT CB DECATHLON`` and ``CB DECATHLON`` land
+#: on the same answer without needing an entry each.
+PAYMENT_NOISE_WORDS = frozenset({
+    "ACHAT",
+    "ACHATS",
+    "BANCAIRE",
+    "CARTE",
+    "CB",
+    "DEBIT",
+    "FACTURE",
+    "PAIEMENT",
+    "PAIEMENTS",
+    "PRELEVEMENT",
+    "PRLV",
+    "SEPA",
+    "VIR",
+    "VIREMENT",
+})
+
+
+def guess_supplier(label_norm: str) -> str:
+    """Best guess at the merchant a statement line paid. ``""`` when unsure.
+
+    A **starting value**, like everything else in this module: the client shows it
+    in the allocation dialog, where it is read and corrected before anything is
+    saved. Nothing here writes it — see
+    ``banking.services.set_allocations``, which stores exactly what the client
+    sent and leaves ``supplier`` empty when the client sent nothing.
+
+    Why derive it at all: the label already names the merchant (``CB LEROY MERLIN
+    12/07``), so asking the user to retype it is asking for information House can
+    compute. Why derive it only as a suggestion: a supplier applied silently would
+    end up in the filter chips and in ``by_supplier`` as a fact nobody checked,
+    and ``matching`` compares it as a substring of the very label it came from —
+    a wrong guess would look self-confirming.
+
+    Deliberately dumb, for the reason the module docstring gives: a clever
+    pattern list mislabels the one line a year that matters. It strips the payment
+    plumbing, drops references and dates, and keeps what is left. The real
+    normalisation happens elsewhere and for free — the client prefers a spelling
+    the household already uses whenever one matches, so choosing beats typing and
+    the values converge on their own.
+    """
+    label = (label_norm or "").upper()
+
+    # An ATM withdrawal or an internal transfer has no merchant at all: the money
+    # has not been spent yet. Proposing "Retrait Dab" would be a wrong entry
+    # dressed up as a service.
+    if any(p in label for p in INTERNAL_OUTFLOW_PATTERNS + INTERNAL_INFLOW_PATTERNS):
+        return ""
+
+    words = [w for w in label.split() if w]
+    # Only from the front: a word that looks like plumbing *inside* a name
+    # (``CARTE BLANCHE SARL``) is part of the name.
+    while words and words[0] in PAYMENT_NOISE_WORDS:
+        words.pop(0)
+
+    kept = [
+        word
+        for word in words
+        # A reference (``123456``) or a date (``12/07``) tells two lines apart —
+        # it says nothing about who was paid.
+        if not word.isdigit() and "/" not in word
+    ][:5]
+
+    if not kept or len("".join(kept)) < 2:
+        return ""
+
+    # A three- or four-letter word is nearly always an acronym, and ``Edf`` is a
+    # word nobody writes. Longer words get title case, because a supplier lives in
+    # sentences ("dépense chez Leroy Merlin"), not in a bank's upper-case export.
+    return " ".join(word if len(word) <= 4 else word.title() for word in kept)

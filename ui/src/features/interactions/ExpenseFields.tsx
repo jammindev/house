@@ -1,13 +1,13 @@
 import * as React from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Input } from '@/design-system/input';
 import { DecimalInput } from '@/design-system/decimal-input';
 import { Badge } from '@/design-system/badge';
 import { Select } from '@/design-system/select';
 import { FormField } from '@/design-system/form-field';
 import { useBudgets } from '@/features/budget/hooks';
 import { selectableBudgets } from '@/features/budget/tree';
+import SupplierCombobox from './SupplierCombobox';
 import LinkedLineActions from '@/features/banking/LinkedLineActions';
 import { isOwnedByAllocationEditor } from '@/features/banking/ownership';
 import type { BankLineRef } from '@/lib/api/interactions';
@@ -140,12 +140,11 @@ export default function ExpenseFields({
           <label htmlFor="expense-supplier" className="text-sm font-medium">
             {t('interactions.expense.supplier_label')}
           </label>
-          <Input
+          <SupplierCombobox
             id="expense-supplier"
             value={supplier}
-            onChange={(e) => onSupplierChange(e.target.value)}
+            onChange={onSupplierChange}
             placeholder={t('interactions.expense.supplier_placeholder')}
-            autoComplete="off"
           />
         </div>
       </div>

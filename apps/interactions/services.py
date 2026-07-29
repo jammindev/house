@@ -15,7 +15,7 @@ from typing import Any
 from uuid import UUID
 
 from django.contrib.contenttypes.models import ContentType
-from django.db import transaction
+from django.db import IntegrityError, transaction
 # Aliased: `create_bank_expense_interaction` takes a BankTransaction parameter
 # named `transaction`, which would otherwise shadow the Django module.
 from django.db.transaction import atomic as transaction_atomic
@@ -25,7 +25,70 @@ from django.utils.translation import gettext_lazy as _
 from core.timezones import household_tz
 from zones.models import Zone
 
-from .models import Interaction, InteractionZone
+from .models import Interaction, InteractionZone, Supplier
+
+
+def normalize_supplier_name(name: str) -> str:
+    """La clé d'unicité d'un fournisseur — casse, accents et espaces neutralisés.
+
+    Ce qui distingue deux fournisseurs, c'est le nom que le foyer leur donne, pas
+    la façon dont il l'a tapé ce jour-là. « leroy merlin », « Leroy  Merlin » et
+    « LEROY MERLIN » doivent retomber sur la même ligne, sinon le catalogue
+    fragmente exactement ce qu'il existe pour rassembler.
+    """
+    import unicodedata
+
+    text = unicodedata.normalize("NFKD", str(name or ""))
+    text = "".join(ch for ch in text if not unicodedata.combining(ch))
+    return " ".join(text.casefold().split())
+
+
+def register_supplier(*, household_id, user=None, name: str) -> str:
+    """Inscrire un fournisseur au catalogue du foyer et renvoyer son nom canonique.
+
+    Le **seul** chemin par lequel un fournisseur entre dans la table, et il est
+    appelé par chaque écriture de dépense : la table se remplit donc toute seule,
+    sans écran de gestion ni déclaration préalable. Exiger de déclarer un
+    fournisseur avant de pouvoir saisir la dépense qui le fait connaître serait le
+    formulaire en trop que ce chantier supprime.
+
+    Renvoie **l'orthographe déjà connue** quand la clé normalisée existe : taper
+    « leroy merlin » sur un catalogue qui contient « Leroy Merlin » enregistre
+    « Leroy Merlin ». C'est ce retour qui fait converger les valeurs de la colonne
+    ``Interaction.supplier`` au lieu de les multiplier — et c'est pour ça que les
+    appelants doivent stocker ce qu'il renvoie, pas ce qu'ils ont reçu.
+
+    Une chaîne vide n'inscrit rien et renvoie ``""`` : l'absence de fournisseur
+    est une absence de saisie, pas un fournisseur nommé « rien ».
+    """
+    label = " ".join(str(name or "").split())
+    if not label:
+        return ""
+
+    key = normalize_supplier_name(label)
+    existing = Supplier.objects.filter(household_id=household_id, normalized_name=key).first()
+    if existing is not None:
+        return existing.name
+
+    try:
+        # Point de sauvegarde à part : sans lui, le heurt d'unicité avorterait la
+        # transaction de l'appelant, et une dépense parfaitement valide échouerait
+        # à cause du catalogue censé l'aider.
+        with transaction_atomic():
+            created = Supplier.objects.create(
+                household_id=household_id,
+                created_by=user,
+                name=label,
+                normalized_name=key,
+            )
+        return created.name
+    except IntegrityError:
+        # Deux saisies simultanées du même nouveau fournisseur : la contrainte
+        # d'unicité tranche, et le perdant lit le gagnant.
+        winner = Supplier.objects.filter(
+            household_id=household_id, normalized_name=key
+        ).first()
+        return winner.name if winner else label
 
 
 # Templates registry: maps a kind discriminator to a translatable subject template.
@@ -420,6 +483,11 @@ def create_expense_interaction(
     source_ct = ContentType.objects.get_for_model(source.__class__)
 
     budget = _resolve_expense_budget(source.household_id, budget_id)
+    # Le catalogue tranche l'orthographe : on stocke ce qu'il renvoie, pas ce
+    # qu'on a reçu, sinon « leroy merlin » créerait un second fournisseur.
+    canonical_supplier = register_supplier(
+        household_id=source.household_id, user=user, name=supplier
+    )
 
     with transaction.atomic():
         interaction = Interaction.objects.create(
@@ -431,7 +499,7 @@ def create_expense_interaction(
             occurred_at=occurred_at or timezone.now(),
             amount=amount,
             kind=resolved_kind,
-            supplier=supplier or "",
+            supplier=canonical_supplier,
             metadata=metadata,
             source_content_type=source_ct,
             source_object_id=source.pk,
@@ -500,6 +568,9 @@ def create_manual_expense_interaction(
             )
 
     budget = _resolve_expense_budget(household.id, budget_id)
+    canonical_supplier = register_supplier(
+        household_id=household.id, user=user, name=supplier
+    )
 
     with transaction.atomic():
         interaction = Interaction.objects.create(
@@ -511,7 +582,7 @@ def create_manual_expense_interaction(
             occurred_at=occurred_at or timezone.now(),
             amount=amount,
             kind=kind,
-            supplier=supplier or "",
+            supplier=canonical_supplier,
             metadata=metadata,
             source_content_type=None,
             source_object_id=None,
@@ -681,6 +752,7 @@ def create_bank_expense_interaction(
     budget_id=None,
     zone_ids: list[UUID] | None = None,
     notes: str = "",
+    supplier: str = "",
     source_type: str | None = None,
     source_id=None,
 ) -> Interaction:
@@ -696,6 +768,14 @@ def create_bank_expense_interaction(
     to the DIY store counts in the bathroom project *and* in the "Bricolage"
     envelope. Without the source FK the project side would simply not exist —
     ``projects.services`` aggregates costs through that FK and nothing else.
+
+    ``supplier`` is the merchant, and it is stored **exactly as the client sent
+    it** — empty when nothing was sent. The dialog offers a guess derived from the
+    bank label (``banking.rules.guess_supplier``) but the derivation stops at the
+    screen: an expense born of a statement line used to land with ``supplier=""``,
+    which made the largest source of expenses in the app invisible to the filter
+    chips, to ``by_supplier``, and to the substring matching that looks for a
+    supplier inside a bank label.
 
     ``occurred_at`` is set to **noon in the household's timezone**, never
     midnight: an operation booked on the 1st or the 31st would otherwise slide
@@ -718,6 +798,9 @@ def create_bank_expense_interaction(
 
     budget = _resolve_expense_budget(household.id, budget_id)
     source_ct, source_pk = resolve_allocation_source(household.id, source_type, source_id)
+    canonical_supplier = register_supplier(
+        household_id=household.id, user=user, name=supplier
+    )
 
     with transaction_atomic():
         interaction = Interaction.objects.create(
@@ -733,7 +816,7 @@ def create_bank_expense_interaction(
             # editor's ownership rule reads this field and nothing else — see
             # ``banking.services.set_allocations``.
             kind=KIND_BANK,
-            supplier="",
+            supplier=canonical_supplier,
             metadata=_build_expense_metadata(source_name=None, unit_price=None, extra=None),
             source_content_type=source_ct,
             source_object_id=source_pk,

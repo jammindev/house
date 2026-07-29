@@ -293,6 +293,13 @@ export interface BankTransaction {
   /** Ce qui reste à expliquer, jamais négatif. */
   remaining_amount: string;
   allocation_state: AllocationProgress;
+  /**
+   * Le marchand que le libellé nomme déjà — proposé au dialog de ventilation,
+   * jamais appliqué. Dérivé côté serveur (`banking.rules.guess_supplier`) parce
+   * que les motifs de libellés bancaires y vivent déjà : une seconde
+   * implémentation en TypeScript dériverait de celle-ci sans rien signaler.
+   */
+  supplier_guess: string;
   created_at: string;
 }
 
@@ -473,6 +480,13 @@ export async function adjustCashMirror(
 export interface AllocationLine {
   subject: string;
   amount: string;
+  /**
+   * Le marchand. Par ligne dans le contrat, choisi **une fois pour l'opération**
+   * dans le dialog : une ligne bancaire est un paiement à un marchand. Garder le
+   * champ par ligne laisse l'exception (« CB AMAZON » qui cache deux vendeurs)
+   * ouvrable sans toucher à l'API.
+   */
+  supplier?: string;
   budget_id?: string | null;
   /** `projects.project` | `equipment.equipment` | `stock.stockitem`. */
   source_type?: string | null;
@@ -486,6 +500,7 @@ export interface AllocatedExpense {
   id: string;
   subject: string;
   amount: string | null;
+  supplier: string;
   kind: string;
   budget: { id: string; name: string } | null;
   source_type: string | null;

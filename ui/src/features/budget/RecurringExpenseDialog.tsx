@@ -11,6 +11,7 @@ import type { Cadence, RecurringExpense } from '@/lib/api/budget';
 import { useBudgets, useCreateRecurringExpense, useUpdateRecurringExpense } from './hooks';
 import { todayISO } from '@/lib/format';
 import { selectableBudgets } from '@/features/budget/tree';
+import SupplierCombobox from '@/features/interactions/SupplierCombobox';
 
 const CADENCES: Cadence[] = ['monthly', 'quarterly', 'yearly'];
 
@@ -148,12 +149,7 @@ export default function RecurringExpenseDialog({ open, onOpenChange, existing }:
             />
           </FormField>
           <FormField label={t('recurring.fields.supplier')} htmlFor="rec-supplier">
-            <Input
-              id="rec-supplier"
-              value={supplier}
-              onChange={(e) => setSupplier(e.target.value)}
-              autoComplete="off"
-            />
+            <SupplierCombobox id="rec-supplier" value={supplier} onChange={setSupplier} />
           </FormField>
         </div>
 

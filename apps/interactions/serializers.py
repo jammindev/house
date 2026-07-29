@@ -449,11 +449,26 @@ class InteractionSerializer(serializers.ModelSerializer):
         equipment_ids = validated_data.pop('equipment_ids', [])
         budget_id = validated_data.pop('budget_id', None)
 
+        household_id = (
+            validated_data.get('household_id')
+            or getattr(validated_data.get('household'), 'id', None)
+        )
         self._validate_source_in_household(
             validated_data.get('source_content_type'),
             validated_data.get('source_object_id'),
-            validated_data.get('household_id') or getattr(validated_data.get('household'), 'id', None),
+            household_id,
         )
+
+        if validated_data.get('supplier') and household_id:
+            # Même contrat que les créateurs de `services.py` : le catalogue
+            # tranche l'orthographe, et on stocke ce qu'il renvoie.
+            from .services import register_supplier
+
+            validated_data['supplier'] = register_supplier(
+                household_id=household_id,
+                user=validated_data.get('created_by'),
+                name=validated_data['supplier'],
+            )
 
         with transaction.atomic():
             interaction = Interaction.objects.create(**validated_data)
@@ -495,6 +510,18 @@ class InteractionSerializer(serializers.ModelSerializer):
 
         # Update interaction fields (amount/kind/supplier are now real columns,
         # written directly from validated_data — no metadata round-trip).
+        if 'supplier' in validated_data:
+            # Le catalogue passe aussi par ici : éditer une dépense est le geste
+            # le plus courant pour corriger un fournisseur, et il doit inscrire le
+            # nouveau nom comme le fait une création. Sans ça le select ne
+            # connaîtrait que les fournisseurs saisis du premier coup.
+            from .services import register_supplier
+
+            validated_data['supplier'] = register_supplier(
+                household_id=instance.household_id,
+                user=self.context.get('request').user if self.context.get('request') else None,
+                name=validated_data['supplier'],
+            )
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
         if budget_id is not ...:

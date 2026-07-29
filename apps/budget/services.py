@@ -259,13 +259,21 @@ def create_recurring_expense(
     Validates scalars through ``RecurringExpenseSerializer`` and resolves the
     optional budget separately (household-scoped, never the global budget).
     """
+    # Le fournisseur d'une récurrence entre au catalogue comme celui d'une dépense :
+    # c'est lui que ``banking.matching`` recopie sur l'occurrence confirmée, donc une
+    # échéance saisie hors catalogue y ferait entrer une orthographe parallèle par la
+    # petite porte.
+    from interactions.services import register_supplier
+
     serializer = RecurringExpenseSerializer(
         data={
             "label": label,
             "amount": amount,
             "cadence": cadence,
             "next_due_date": next_due_date,
-            "supplier": supplier or "",
+            "supplier": register_supplier(
+                household_id=household.id, user=user, name=supplier or ""
+            ),
             "notes": notes or "",
         }
     )
@@ -281,6 +289,12 @@ def update_recurring_expense(household, user, recurring: RecurringExpense, *, fi
         raise ValueError("update_recurring_expense: belongs to another household")
     allowed = {"label", "amount", "cadence", "next_due_date", "supplier", "notes"}
     payload = {k: v for k, v in fields.items() if k in allowed}
+    if payload.get("supplier"):
+        from interactions.services import register_supplier
+
+        payload["supplier"] = register_supplier(
+            household_id=household.id, user=user, name=payload["supplier"]
+        )
 
     serializer = RecurringExpenseSerializer(recurring, data=payload, partial=True)
     serializer.is_valid(raise_exception=True)

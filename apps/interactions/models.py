@@ -223,6 +223,66 @@ class Interaction(HouseholdScopedModel):
         return f"{self.subject} ({self.type})"
 
 
+class Supplier(HouseholdScopedModel):
+    """Le catalogue des fournisseurs du foyer — magasins, prestataires, marchands.
+
+    **Pourquoi une table** et pas les valeurs distinctes de ``Interaction.supplier``,
+    qui existaient déjà : sans elle rien n'empêche « Leroy Merlin », « leroy
+    merlin » et « LEROY MERLIN » de vivre côte à côte comme trois fournisseurs
+    différents. Les chips de filtre en montraient trois, ``by_supplier`` répartissait
+    la dépense sur trois lignes, et le rapprochement n'en reconnaissait qu'une. Une
+    liste de valeurs libres ne peut pas porter cette contrainte ; c'est le critère
+    exact du CLAUDE.md pour sortir d'``Interaction`` — *contrainte DB (unicité) sur
+    les données métier*.
+
+    ``normalized_name`` porte l'unicité, ``name`` porte l'orthographe. Le foyer
+    écrit « Leroy Merlin » et le voit tel quel partout ; la clé, elle, ignore la
+    casse, les accents et les espaces multiples, donc retaper « leroy merlin »
+    retombe sur la même ligne au lieu d'en créer une seconde.
+
+    **La table se remplit toute seule.** Aucun écran de gestion, aucune étape
+    préalable : chaque écriture de dépense passe par
+    ``services.register_supplier``, qui fait le get-or-create et renvoie
+    l'orthographe canonique. Demander de déclarer un fournisseur *avant* de
+    pouvoir saisir la dépense qui le fait connaître serait exactement le formulaire
+    en trop que ce chantier supprime.
+
+    **Pas de FK depuis ``Interaction``, volontairement.** ``supplier`` y reste une
+    colonne texte, remplie avec le nom canonique de la table. Une FK obligerait
+    ``matching`` — qui cherche le fournisseur en **sous-chaîne** du libellé
+    bancaire — à passer par une jointure, transformerait les sept agrégations qui
+    lisent la colonne en migration destructive à livrer en deux fois, et ferait
+    d'une dépense chez un marchand inconnu une écriture impossible. Le catalogue
+    normalise la saisie sans devenir un préalable à l'enregistrement.
+    """
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=200, verbose_name=_('name'))
+    #: Clé d'unicité — casse, accents et espaces neutralisés. Calculée par
+    #: ``services.normalize_supplier_name``, jamais saisie.
+    normalized_name = models.CharField(max_length=200, editable=False)
+
+    objects = HouseholdScopedManager()
+
+    class Meta:
+        db_table = 'suppliers'
+        verbose_name = _('supplier')
+        verbose_name_plural = _('suppliers')
+        ordering = ['name']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['household', 'normalized_name'],
+                name='suppliers_unique_per_household',
+            ),
+        ]
+        indexes = [
+            models.Index(fields=['household', 'name'], name='idx_supplier_hh_name'),
+        ]
+
+    def __str__(self):
+        return self.name
+
+
 class InteractionZone(models.Model):
     """
     M2M through table linking interactions to zones.

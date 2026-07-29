@@ -14,6 +14,7 @@ import type { AllocationLine } from '@/lib/api/banking';
 import { useBudgets } from '@/features/budget/hooks';
 import { selectableBudgets } from '@/features/budget/tree';
 import { useAllocations, useSetAllocations, useUnlinkAllocation } from './hooks';
+import SupplierCombobox from '@/features/interactions/SupplierCombobox';
 import AllocationSourceSelect from './AllocationSourceSelect';
 import { NO_SOURCE, type AllocationSource } from './allocationSource';
 import { isOwnedByAllocationEditor } from './ownership';
@@ -72,6 +73,13 @@ export default function AllocationDialog({
   const unlinkMutation = useUnlinkAllocation();
 
   const [lines, setLines] = React.useState<DraftLine[]>([]);
+  /**
+   * Le fournisseur, au niveau de **l'opération** et non de la ligne : une ligne
+   * bancaire est un paiement à un marchand, donc le demander par ligne serait
+   * demander trois fois la même réponse sur une ventilation à trois postes. Le
+   * contrat d'API le garde par ligne, ce qui laisse l'exception ouvrable.
+   */
+  const [supplier, setSupplier] = React.useState('');
   const [error, setError] = React.useState<string | null>(null);
 
   const transaction = allocationsQuery.data?.transaction;
@@ -89,6 +97,11 @@ export default function AllocationDialog({
     setError(null);
     const rows = allocationsQuery.data.allocations;
     const owned = rows.filter((a) => isOwnedByAllocationEditor(a.kind));
+    // À la ré-édition, on relit le fournisseur déjà enregistré. La dérivation du
+    // libellé (`supplier_guess`) n'est offerte que sur une première ventilation,
+    // et **jamais appliquée d'office** : elle est proposée en tête du panneau du
+    // champ, où elle se lit avant d'être retenue.
+    setSupplier(owned.find((a) => a.supplier)?.supplier ?? '');
     const free =
       total - rows.filter((a) => !isOwnedByAllocationEditor(a.kind)).reduce((s, a) => s + Number(a.amount ?? 0), 0);
     setLines(
@@ -148,6 +161,7 @@ export default function AllocationDialog({
       payload.push({
         subject: line.subject.trim() || label,
         amount: value.toFixed(2),
+        supplier: supplier.trim(),
         budget_id: line.budgetId || null,
         source_type: line.source.type || null,
         source_id: line.source.id || null,
@@ -189,6 +203,19 @@ export default function AllocationDialog({
             </p>
           ) : null}
         </div>
+
+        {/* Le marchand, une fois pour toute l'opération. Il vit **au-dessus** des
+            lignes parce qu'il ne varie pas avec elles : 90 € de peinture et 60 €
+            de visserie sortent du même magasin. Le panneau propose ce que le
+            libellé nomme déjà, ce qui rend le cas courant sans frappe du tout. */}
+        <FormField label={t('banking.allocation.fields.supplier')} htmlFor="alloc-supplier">
+          <SupplierCombobox
+            id="alloc-supplier"
+            value={supplier}
+            onChange={setSupplier}
+            suggestion={transaction?.supplier_guess || undefined}
+          />
+        </FormField>
 
         {/* ⚠️ Avant de faire créer quoi que ce soit : ce qui existe déjà.
             Sans ce bloc, on ventile en créant une dépense alors qu'on l'avait

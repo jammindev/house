@@ -9,6 +9,7 @@ import { Select } from '@/design-system/select';
 import { todayISO } from '@/lib/format';
 import { useBudgets } from '@/features/budget/hooks';
 import { selectableBudgets } from '@/features/budget/tree';
+import SupplierCombobox from './SupplierCombobox';
 
 export interface PurchaseFormPayload {
   delta?: number;
@@ -242,11 +243,10 @@ export default function PurchaseForm({
 
       <div className="grid gap-4 md:grid-cols-2">
         <FormField label={t('purchase.fields.supplier')} htmlFor="purchase-supplier">
-          <Input
+          <SupplierCombobox
             id="purchase-supplier"
             value={form.supplier}
-            onChange={(e) => updateField('supplier', e.target.value)}
-            autoComplete="off"
+            onChange={(value) => updateField('supplier', value)}
           />
         </FormField>
         {withDelta ? (

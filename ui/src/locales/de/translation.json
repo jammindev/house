@@ -1512,6 +1512,10 @@
             "title": "Eine Ausgabe erfassen",
             "body": "Restaurant, Geschenk, Einkauf: fügen Sie eine einmalige Ausgabe mit Betrag und Anbieter hinzu."
           },
+          "supplier": {
+            "title": "Den Lieferanten wählen, nicht neu eintippen",
+            "body": "Das Lieferantenfeld ist eine durchsuchbare Liste aus deinen eigenen Eingaben, die häufigsten zuerst. Ein unbekanntes Geschäft tippst du einfach ein — es kommt für das nächste Mal in die Liste, ohne ein Formular auszufüllen.\n\nGroß- und Kleinschreibung oder Akzente erzeugen keine Duplikate mehr: „leroy merlin“ landet auf „Leroy Merlin“. Das sorgt für einen Filter und eine Summe pro Geschäft, wo drei Schreibweisen zuvor drei ergaben.\n\nBeim Aufteilen einer Kontozeile schlägt die App zusätzlich den Händler vor, den sie in der Bezeichnung des Vorgangs liest — der Normalfall kostet damit keinen Tastendruck."
+          },
           "sources": {
             "title": "Automatische Ausgaben verstehen",
             "body": "Käufe von Vorrat oder Geräten erstellen ihre Ausgabe selbst — nichts doppelt erfassen."
@@ -3640,6 +3644,7 @@
       "fields": {
         "subject": "Bezeichnung",
         "amount": "Betrag",
+        "supplier": "Lieferant",
         "budget": "Budget",
         "attachTo": "Zuordnen zu",
         "zones": "Bereiche"
@@ -4121,5 +4126,13 @@
       "home": "Das Haus",
       "memories": "Erinnerungen"
     }
+  },
+  "suppliers": {
+    "placeholder": "Lieferant suchen oder eingeben",
+    "toggle": "Bekannte Lieferanten anzeigen",
+    "listLabel": "Lieferanten des Haushalts",
+    "empty": "Noch kein Lieferant erfasst",
+    "willBeAdded": "Neuer Lieferant — wird hinzugefügt",
+    "fromLabel": "Aus der Bezeichnung des Vorgangs"
   }
 }

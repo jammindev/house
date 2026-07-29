@@ -87,7 +87,7 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
   // fenêtre qui exclut volontairement des données, un zéro qui peut vouloir dire
   // « non évaluable ») qu'aucun parcours procédural ne fait comprendre.
   { key: 'money', moduleKey: 'money', Icon: ShieldCheck, to: '/app/money?tab=control', stepIds: ['source', 'allocation', 'axes', 'window', 'arbitrate', 'notEvaluable', 'cash'] },
-  { key: 'expenses', moduleKey: 'money', Icon: Receipt, to: '/app/money?tab=pending', stepIds: ['record', 'sort', 'control', 'sources', 'sheet', 'trace', 'review'] },
+  { key: 'expenses', moduleKey: 'money', Icon: Receipt, to: '/app/money?tab=pending', stepIds: ['record', 'supplier', 'sort', 'control', 'sources', 'sheet', 'trace', 'review'] },
   { key: 'budget', moduleKey: 'money', Icon: PiggyBank, to: '/app/money?tab=budgets', stepIds: ['create', 'assign', 'track', 'sheet', 'analysis', 'recurring', 'report'] },
   { key: 'banking', moduleKey: 'money', Icon: Landmark, to: '/app/money?tab=accounts', stepIds: ['accounts', 'cash', 'openingBalance', 'import', 'journal', 'balance', 'sheet'] },
   { key: 'documents', moduleKey: 'documents', to: '/app/documents', stepIds: ['upload', 'link', 'find'] },
