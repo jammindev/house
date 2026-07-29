@@ -1081,7 +1081,6 @@
     "members": "membres",
     "leave": "Quitter",
     "invite": "Inviter",
-    "inviteDescription": "Saisissez l'adresse e-mail de la personne que vous souhaitez inviter dans ce foyer. L'utilisateur doit déjà être inscrit.",
     "inviteEmailPlaceholder": "E-mail du membre (ex. membre@exemple.com)",
     "memberInvited": "Membre invité",
     "inviteFailed": "Impossible d'inviter le membre",
@@ -1170,7 +1169,7 @@
         },
         "invite-member": {
           "title": "Inviter un membre du foyer",
-          "description": "Depuis les réglages, invitez votre famille à rejoindre le foyer."
+          "description": "Depuis les réglages, créez un lien d'invitation et transmettez-le vous-même à votre famille."
         },
         "declare-account": {
           "title": "Déclarer un compte et son point de départ",
@@ -1606,6 +1605,10 @@
           "household": {
             "title": "Gérer le foyer",
             "body": "Invitez des membres, gérez les rôles, changez de foyer actif."
+          },
+          "invite": {
+            "title": "Inviter le foyer",
+            "body": "Inviter crée un lien — House n'envoie aucun e-mail. Copiez-le et transmettez-le comme vous voulez : celui qui l'ouvre choisit un mot de passe et arrive directement dans le foyer, sans compte préalable. L'adresse e-mail est facultative et sert seulement à adresser l'invitation. Un lien vaut une semaine, et vous pouvez le révoquer à tout moment."
           },
           "modules": {
             "title": "Activer les bons modules",
@@ -2736,7 +2739,36 @@
     "invitedBy": "Invité par {{name}}",
     "decline": "Refuser",
     "accept": "Accepter",
-    "acceptAndSwitch": "Accepter & rejoindre"
+    "acceptAndSwitch": "Accepter & rejoindre",
+    "inviteDescription": "Créez un lien et transmettez-le vous-même — par message, comme vous voulez. Celui qui l'ouvre rejoint ce foyer.",
+    "emailOptional": "E-mail (facultatif)",
+    "emailOptionalHint": "Sert seulement à adresser l'invitation. Laissez vide pour un lien que vous pouvez donner à n'importe qui.",
+    "role": "Rôle",
+    "createLink": "Créer le lien",
+    "copyLink": "Copier",
+    "copied": "Copié",
+    "revoke": "Révoquer ce lien",
+    "linkRevoked": "Lien révoqué",
+    "openLink": "Lien sans adresse définie",
+    "expired": "Expiré",
+    "expiresOn": "Valable jusqu'au {{date}}",
+    "pendingLinks_one": "{{count}} lien en attente",
+    "pendingLinks_other": "{{count}} liens en attente",
+    "alsoNotifiedInApp": "Cette adresse a déjà un compte House — la personne a aussi été notifiée dans l'app.",
+    "linkInvalidTitle": "Lien invalide",
+    "linkInvalid": "Ce lien d'invitation n'est pas valable. Il a peut-être déjà été utilisé, ou révoqué.",
+    "expiredTitle": "Invitation expirée",
+    "expiredBody": "Ce lien n'est plus valable. Demandez-en un nouveau.",
+    "joinTitle": "Rejoindre {{name}}",
+    "joinSubtitle": "Vous êtes invité à rejoindre ce foyer.",
+    "joinSubtitleBy": "{{name}} vous invite à rejoindre son foyer.",
+    "joinAsCurrentUser": "Vous êtes connecté en tant que {{email}}.",
+    "joinSubmit": "Rejoindre le foyer",
+    "notNow": "Plus tard",
+    "displayName": "Votre nom",
+    "choosePassword": "Choisissez un mot de passe",
+    "alreadyHaveAccount": "Vous avez déjà un compte ?",
+    "joinFailed": "Impossible de rejoindre ce foyer."
   },
   "changelog": {
     "title": "Nouveautés",

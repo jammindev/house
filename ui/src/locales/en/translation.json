@@ -1081,7 +1081,6 @@
     "members": "members",
     "leave": "Leave",
     "invite": "Invite",
-    "inviteDescription": "Enter the email address of the person you want to invite to this household. The user must already be registered.",
     "inviteEmailPlaceholder": "Member email address (e.g. member@example.com)",
     "memberInvited": "Member invited",
     "inviteFailed": "Failed to invite member",
@@ -1170,7 +1169,7 @@
         },
         "invite-member": {
           "title": "Invite a household member",
-          "description": "From settings, invite your family to join the household."
+          "description": "From settings, create an invitation link and send it to your family yourself."
         },
         "declare-account": {
           "title": "Declare an account and its starting point",
@@ -1606,6 +1605,10 @@
           "household": {
             "title": "Manage the household",
             "body": "Invite members, manage roles, switch the active household."
+          },
+          "invite": {
+            "title": "Invite the household",
+            "body": "Invite creates a link — House sends no email. Copy it and pass it on however you like: whoever opens it chooses a password and lands straight in the household, with no account needed beforehand. An email address is optional and only addresses the invitation. A link lasts a week, and you can revoke it at any time."
           },
           "modules": {
             "title": "Enable the right modules",
@@ -2736,7 +2739,36 @@
     "invitedBy": "Invited by {{name}}",
     "decline": "Decline",
     "accept": "Accept",
-    "acceptAndSwitch": "Accept & join"
+    "acceptAndSwitch": "Accept & join",
+    "inviteDescription": "Create a link and send it yourself — by message, however you like. Whoever opens it joins this household.",
+    "emailOptional": "Email (optional)",
+    "emailOptionalHint": "Only used to address the invitation. Leave it blank for a link you can give to anyone.",
+    "role": "Role",
+    "createLink": "Create the link",
+    "copyLink": "Copy",
+    "copied": "Copied",
+    "revoke": "Revoke this link",
+    "linkRevoked": "Link revoked",
+    "openLink": "Link with no set address",
+    "expired": "Expired",
+    "expiresOn": "Valid until {{date}}",
+    "pendingLinks_one": "{{count}} pending link",
+    "pendingLinks_other": "{{count}} pending links",
+    "alsoNotifiedInApp": "This address already has a House account — they were notified in the app as well.",
+    "linkInvalidTitle": "Invalid link",
+    "linkInvalid": "This invitation link is not valid. It may have been used already, or revoked.",
+    "expiredTitle": "Invitation expired",
+    "expiredBody": "This link is no longer valid. Ask for a new one.",
+    "joinTitle": "Join {{name}}",
+    "joinSubtitle": "You have been invited to join this household.",
+    "joinSubtitleBy": "{{name}} invited you to join their household.",
+    "joinAsCurrentUser": "You are logged in as {{email}}.",
+    "joinSubmit": "Join the household",
+    "notNow": "Not now",
+    "displayName": "Your name",
+    "choosePassword": "Choose a password",
+    "alreadyHaveAccount": "Already have an account?",
+    "joinFailed": "Could not join this household."
   },
   "changelog": {
     "title": "What's new",

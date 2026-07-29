@@ -1081,7 +1081,6 @@
     "members": "miembros",
     "leave": "Salir",
     "invite": "Invitar",
-    "inviteDescription": "Introduce el correo electrónico de la persona que quieres invitar a este hogar. El usuario debe estar registrado previamente.",
     "inviteEmailPlaceholder": "Correo del miembro (ej.: miembro@ejemplo.com)",
     "memberInvited": "Miembro invitado",
     "inviteFailed": "No se pudo invitar al miembro",
@@ -1170,7 +1169,7 @@
         },
         "invite-member": {
           "title": "Invitar a un miembro del hogar",
-          "description": "Desde los ajustes, invita a tu familia a unirse al hogar."
+          "description": "Desde los ajustes, cree un enlace de invitación y envíelo usted mismo a su familia."
         },
         "declare-account": {
           "title": "Declarar una cuenta y su punto de partida",
@@ -1606,6 +1605,10 @@
           "household": {
             "title": "Gestionar el hogar",
             "body": "Invita a miembros, gestiona los roles, cambia de hogar activo."
+          },
+          "invite": {
+            "title": "Invitar al hogar",
+            "body": "Invitar crea un enlace — House no envía ningún correo. Cópielo y transmítalo como prefiera: quien lo abra elige una contraseña y entra directamente en el hogar, sin necesidad de tener cuenta antes. La dirección de correo es opcional y solo sirve para dirigir la invitación. Un enlace dura una semana y puede revocarlo en cualquier momento."
           },
           "modules": {
             "title": "Activar los módulos adecuados",
@@ -2736,7 +2739,36 @@
     "invitedBy": "Invitado por {{name}}",
     "decline": "Rechazar",
     "accept": "Aceptar",
-    "acceptAndSwitch": "Aceptar & unirse"
+    "acceptAndSwitch": "Aceptar & unirse",
+    "inviteDescription": "Cree un enlace y envíelo usted mismo — por mensaje, como prefiera. Quien lo abra se unirá a este hogar.",
+    "emailOptional": "Correo electrónico (opcional)",
+    "emailOptionalHint": "Solo sirve para dirigir la invitación. Déjelo vacío para un enlace que pueda dar a cualquiera.",
+    "role": "Rol",
+    "createLink": "Crear el enlace",
+    "copyLink": "Copiar",
+    "copied": "Copiado",
+    "revoke": "Revocar este enlace",
+    "linkRevoked": "Enlace revocado",
+    "openLink": "Enlace sin dirección definida",
+    "expired": "Caducado",
+    "expiresOn": "Válido hasta el {{date}}",
+    "pendingLinks_one": "{{count}} enlace pendiente",
+    "pendingLinks_other": "{{count}} enlaces pendientes",
+    "alsoNotifiedInApp": "Esta dirección ya tiene una cuenta de House — también se le notificó en la aplicación.",
+    "linkInvalidTitle": "Enlace no válido",
+    "linkInvalid": "Este enlace de invitación no es válido. Puede que ya se haya usado o que se haya revocado.",
+    "expiredTitle": "Invitación caducada",
+    "expiredBody": "Este enlace ya no es válido. Pida uno nuevo.",
+    "joinTitle": "Unirse a {{name}}",
+    "joinSubtitle": "Le han invitado a unirse a este hogar.",
+    "joinSubtitleBy": "{{name}} le invita a unirse a su hogar.",
+    "joinAsCurrentUser": "Ha iniciado sesión como {{email}}.",
+    "joinSubmit": "Unirse al hogar",
+    "notNow": "Más tarde",
+    "displayName": "Su nombre",
+    "choosePassword": "Elija una contraseña",
+    "alreadyHaveAccount": "¿Ya tiene una cuenta?",
+    "joinFailed": "No se ha podido unir a este hogar."
   },
   "changelog": {
     "title": "Novedades",

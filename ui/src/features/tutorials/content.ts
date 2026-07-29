@@ -91,7 +91,7 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
   { key: 'photos', moduleKey: 'photos', to: '/app/photos', stepIds: ['browse', 'add', 'file'] },
   { key: 'directory', moduleKey: 'directory', to: '/app/directory', stepIds: ['contacts', 'structures'] },
   { key: 'alerts', Icon: AlertCircle, to: '/app/alerts', stepIds: ['review', 'act'] },
-  { key: 'settings', Icon: User, to: '/app/settings', stepIds: ['profile', 'household', 'modules'] },
+  { key: 'settings', Icon: User, to: '/app/settings', stepIds: ['profile', 'household', 'invite', 'modules'] },
 ];
 
 /** Clé de progression d'un guide, telle que stockée sur l'utilisateur. */

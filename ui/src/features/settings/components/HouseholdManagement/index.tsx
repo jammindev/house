@@ -32,10 +32,13 @@ export function HouseholdManagement({
     editForm,
     editSaving,
     inviteEmail,
+    inviteRole,
+    lastCreatedInvitationId,
     inviting,
     startCreate,
     setCreateField,
     setInviteEmail,
+    setInviteRole,
     handleSwitch,
     handleCreate,
     handleArchive,
@@ -130,8 +133,11 @@ export function HouseholdManagement({
                 editForm={editForm}
                 editSaving={editSaving}
                 inviteEmail={inviteEmail}
+                inviteRole={inviteRole}
+                lastCreatedInvitationId={lastCreatedInvitationId}
                 inviting={inviting}
                 onSetInviteEmail={setInviteEmail}
+                onSetInviteRole={setInviteRole}
                 onSwitch={handleSwitch}
                 onLeave={handleLeave}
                 onArchive={handleArchive}
