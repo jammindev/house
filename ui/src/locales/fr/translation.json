@@ -3848,6 +3848,18 @@
       "transactionCount_one": "{{count}} opération",
       "transactionCount_other": "{{count}} opérations",
       "currencyLabel": "Devise"
+    },
+    "history": {
+      "title": "Évolution du solde",
+      "householdTitle": "Ce que le foyer détient",
+      "total": "Total",
+      "tooShort": "Pas encore assez d'historique pour tracer une courbe.",
+      "unreliable": "Une rupture dans la chaîne des soldes décale tout le début de cette courbe — la forme paraît normale, mais les montants d'avant la rupture sont faux.",
+      "window": {
+        "months_one": "{{count}} mois",
+        "months_other": "{{count}} mois",
+        "all": "Tout"
+      }
     }
   },
   "pwa": {

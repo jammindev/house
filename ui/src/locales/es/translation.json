@@ -3848,6 +3848,18 @@
       "transactionCount_one": "{{count}} operación",
       "transactionCount_other": "{{count}} operaciones",
       "currencyLabel": "Divisa"
+    },
+    "history": {
+      "title": "Evolución del saldo",
+      "householdTitle": "Lo que tiene el hogar",
+      "total": "Total",
+      "tooShort": "Aún no hay suficiente historial para trazar una curva.",
+      "unreliable": "Una ruptura en la cadena de saldos desplaza toda la parte anterior de esta curva: la forma parece normal, pero los importes previos a la ruptura son incorrectos.",
+      "window": {
+        "months_one": "{{count}} mes",
+        "months_other": "{{count}} meses",
+        "all": "Todo"
+      }
     }
   },
   "pwa": {

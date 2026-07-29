@@ -19,15 +19,19 @@ import BackLink from '@/components/BackLink';
 import InfoField from '@/components/InfoField';
 import LoadError from '@/components/LoadError';
 import ListSkeleton from '@/components/ListSkeleton';
+import BalanceLineChart from '@/components/charts/BalanceLineChart';
 import { Badge } from '@/design-system/badge';
 import { Button, buttonVariants } from '@/design-system/button';
 import { Card } from '@/design-system/card';
 import { pushBack, useNavigateBack } from '@/lib/backNavigation';
+import { chartColor } from '@/lib/chartColors';
 import { useDelayedLoading } from '@/lib/useDelayedLoading';
+import { useSessionState } from '@/lib/useSessionState';
 import { formatAmount, formatDate } from '@/lib/format';
 import type { AccountCoverage, BankAccount, BankTransaction } from '@/lib/api/banking';
 import {
   useAccountBalance,
+  useAccountBalanceHistory,
   useAccountCoverage,
   useAccountFlow,
   useArchiveBankAccount,
@@ -42,6 +46,11 @@ import ChainGapAlert from '@/features/banking/ChainGapAlert';
 import ImportHistoryCard from '@/features/banking/ImportHistoryCard';
 import StatementImportDialog from '@/features/banking/StatementImportDialog';
 import CashExpenseDialog from './CashExpenseDialog';
+import {
+  BalanceWindowPills,
+  DEFAULT_BALANCE_WINDOW,
+  type BalanceWindow,
+} from './balanceWindow';
 
 /** Combien d'opérations récentes montrer avant de renvoyer au journal. */
 const RECENT_LIMIT = 5;
@@ -260,6 +269,13 @@ export default function AccountDetailPage() {
               {t('banking.account.balanceUnavailable')}
             </p>
           )}
+
+          {/* La courbe vit dans la carte du solde, pas à côté : son dernier point
+              *est* le chiffre au-dessus (le serveur la déroule à l'envers depuis
+              lui). Les séparer inviterait à les lire comme deux mesures. */}
+          {!account.archived ? (
+            <BalanceHistorySection accountId={account.id} />
+          ) : null}
 
           {balance ? (
             <div className="mt-3">
@@ -570,6 +586,66 @@ function CoverageSection({
         ) : null}
       </Card>
     </section>
+  );
+}
+
+/**
+ * La forme du solde dans le temps.
+ *
+ * Le chiffre au-dessus répond « combien ». Il ne peut pas répondre « depuis
+ * quand », « est-ce que ça descend », « qu'est-ce qui a creusé mars » — et ces
+ * questions-là n'avaient nulle part où se poser.
+ *
+ * ⚠️ Le dernier point de la courbe **est** ce chiffre : le serveur ne recalcule
+ * pas la série, il la déroule à l'envers depuis `compute_balance()`. Ne jamais
+ * reconstruire une courbe côté client à partir des opérations — un solde a deux
+ * modes de calcul (ancré / dérivé) et la version client finirait par en afficher
+ * un troisième, dans le même écran que les deux autres.
+ */
+function BalanceHistorySection({ accountId }: { accountId: string }) {
+  const { t } = useTranslation();
+  const [months, setMonths] = useSessionState<BalanceWindow>(
+    'banking.history.window',
+    DEFAULT_BALANCE_WINDOW,
+  );
+  const historyQuery = useAccountBalanceHistory(accountId, { months });
+  const history = historyQuery.data;
+
+  const series = React.useMemo(
+    () =>
+      history
+        ? [
+            {
+              key: 'balance',
+              label: t('banking.account.balanceTitle'),
+              color: chartColor(0),
+              emphasis: true,
+              points: history.points,
+            },
+          ]
+        : [],
+    [history, t],
+  );
+
+  return (
+    <div className="mt-4 border-t border-border/60 pt-3">
+      <div className="flex flex-wrap items-center justify-between gap-2 pb-2">
+        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          {t('banking.history.title')}
+        </p>
+        <BalanceWindowPills value={months} onChange={setMonths} />
+      </div>
+
+      {historyQuery.isLoading ? (
+        <div className="h-64 w-full animate-pulse rounded-lg bg-muted sm:h-72" />
+      ) : series.length === 0 || (history?.points.length ?? 0) < 2 ? (
+        <p className="py-8 text-center text-sm italic text-muted-foreground">
+          {t('banking.history.tooShort')}
+        </p>
+      ) : (
+        <BalanceLineChart series={series} unreliable={!history?.is_reliable} />
+      )}
+    </div>
   );
 }
 
