@@ -70,4 +70,25 @@ describe('AgentLauncher', () => {
     await user.click(screen.getByTestId('agent-launcher-panel'));
     expect(screen.getByTestId('agent-launcher-panel')).toBeInTheDocument();
   });
+
+  // La bulle est `position: fixed` : elle n'occupe aucune hauteur, donc elle
+  // recouvre le bas du conteneur scrollable. La place se réserve dans le flux,
+  // et exactement là où la bulle existe — un padding global sur `<main>`
+  // creuserait 80 px de vide sous le chat pleine hauteur de `/app/agent`, la
+  // seule page sans bulle.
+  describe("l'espace réservé va toujours avec la bulle", () => {
+    it('réserve la place du FAB en bas du contenu', () => {
+      renderLauncher();
+
+      expect(screen.getByTestId('agent-launcher-fab')).toBeInTheDocument();
+      expect(screen.getByTestId('agent-launcher-spacer')).toBeInTheDocument();
+    });
+
+    it("ne réserve rien sur /app/agent, où il n'y a pas de bulle", () => {
+      renderLauncher('/app/agent');
+
+      expect(screen.queryByTestId('agent-launcher-fab')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('agent-launcher-spacer')).not.toBeInTheDocument();
+    });
+  });
 });

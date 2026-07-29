@@ -56,6 +56,16 @@ export default function AgentLauncher() {
 
   return (
     <>
+      {/* La bulle est hors flux (`position: fixed`) : elle n'occupe aucune
+          hauteur et recouvre donc le bas du conteneur scrollable — le montant
+          de la dernière dépense d'une liste passait sous elle. L'espace se
+          réserve ici, dans le flux, et non en `padding-bottom` sur le `<main>`
+          de l'AppShell : le padding creuserait 80 px de vide sous le chat
+          pleine hauteur de `/app/agent`, seule page où la bulle est absente.
+          Réservé exactement là où la bulle existe, l'espace ne peut pas dériver
+          d'elle. */}
+      <div className="h-20 shrink-0" aria-hidden="true" data-testid="agent-launcher-spacer" />
+
       <button
         type="button"
         onClick={handleOpen}
