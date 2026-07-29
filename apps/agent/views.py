@@ -377,6 +377,10 @@ class ConversationViewSet(viewsets.ModelViewSet):
         and the agent's ``search_household`` tool can never drift into three
         rankings or three payload shapes. Kept as a bare list (not
         ``{"results": …}``) because that is the shape its client already reads.
+
+        Conséquence du partage : le plancher de deux caractères s'applique ici aussi
+        (avant, une requête d'un caractère cherchait). Le picker le respectait déjà
+        côté client.
         """
         query = (request.query_params.get("q") or "").strip()
         household = self._resolve_household()

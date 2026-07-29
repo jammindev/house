@@ -198,23 +198,20 @@ class TestTheSemanticLegStaysOut:
         assert resp.status_code == status.HTTP_200_OK
         assert "Pompe à chaleur" in _labels(resp)
 
-    def test_the_agent_still_honours_the_setting(self, household, project, settings):
+    def test_the_agent_still_honours_the_setting(
+        self, household, project, settings, monkeypatch
+    ):
         """The opt-out is the palette's, not a global kill switch: `search()` with no
         `hybrid` argument keeps reading the flag."""
         settings.AGENT_HYBRID_RETRIEVAL_ENABLED = True
         calls = []
 
-        original = retrieval._vector_search
-
         def _spy(*args, **kwargs):
             calls.append(1)
             return []
 
-        retrieval._vector_search = _spy
-        try:
-            retrieval.search(household.id, "pompe")
-        finally:
-            retrieval._vector_search = original
+        monkeypatch.setattr("agent.retrieval._vector_search", _spy)
+        retrieval.search(household.id, "pompe")
         assert calls == [1]
 
 

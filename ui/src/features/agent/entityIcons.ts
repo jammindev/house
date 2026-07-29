@@ -13,7 +13,8 @@ import type { LucideIcon } from 'lucide-react';
  *
  * It must cover every `entity_type` registered in `agent.searchables` — a type
  * missing here falls back to a generic glyph, and in the search palette that means
- * several groups of results looking alike. Tenu par `entityIcons.test.ts`.
+ * several groups of results looking alike. Tenu depuis Python, seul côté qui connaît
+ * la liste : `agent/tests/test_global_search.py::TestThePaletteCoversTheRegistry`.
  */
 export const ENTITY_ICONS: Record<string, LucideIcon> = {
   document: FileText,

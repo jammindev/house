@@ -71,7 +71,12 @@ def _clamp_limit(raw: str | None) -> int:
 
 
 def search_household_entities(household_id, query: str, limit: int) -> list[dict]:
-    """Run the palette's search and serialize it. One entry point, two URLs."""
+    """Run the palette's search and serialize it. One entry point, two URLs.
+
+    Strips and gates the query here rather than trusting callers to: this is the
+    shared door, and a caller that forgot would send whitespace to the retrieval.
+    """
+    query = (query or "").strip()
     if len(query) < MIN_QUERY_LENGTH:
         return []
     hits = retrieval.search(household_id, query, limit=limit, hybrid=False)
