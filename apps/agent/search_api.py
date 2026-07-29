@@ -8,14 +8,24 @@ one query, one ranking, one set of module-disabled exclusions. Nothing here know
 about any particular entity — adding a ``SearchableSpec`` makes the new entity
 searchable from the palette with zero change to this file.
 
-Two deliberate choices, both about search-as-you-type rather than about search:
+**The search box answers in two stages, and the query string says which one.**
+``?q=…`` is the lexical stage: a few indexed SQL queries, back in milliseconds, shown
+the instant they land. ``?q=…&semantic=1`` is the second stage — what only the meaning
+finds (« chauffage » → « pompe à chaleur »), *minus* what the first stage already
+returned, so the client appends a group instead of re-ordering the list under the
+user's cursor.
 
-- **``hybrid=False``.** The semantic leg costs one embedding call per query. Fine for
-  a question asked to the agent, absurd for a debounced keystroke — see
-  ``retrieval.search``.
-- **Its own throttle scope.** Full-text is cheap, so the agent's 10/min burst cap
-  would be absurdly tight here; but a type-ahead endpoint is the easiest loop to
-  leave running, hence a bound of its own rather than none at all.
+Why two calls rather than one hybrid call: measured on production usage, embedding a
+query takes **211 ms on average and up to 1.6 s**. Waiting for it would make every
+keystroke feel that slow, and would put the search box behind the embedding
+provider's availability. Two stages keep the box instant, degrade to lexical-only on
+their own (an empty second response is a normal answer, not an error), and cost
+nothing extra when a deployment has no semantic index — ``retrieval.semantic_only``
+returns ``[]`` when the hybrid flag is off, without calling the provider.
+
+Its own throttle scope: full-text is cheap, so the agent's 10/min burst cap would be
+absurdly tight here; but a type-ahead endpoint is the easiest loop to leave running,
+hence a bound of its own rather than none at all.
 """
 from __future__ import annotations
 
@@ -71,7 +81,7 @@ def _clamp_limit(raw: str | None) -> int:
 
 
 def search_household_entities(household_id, query: str, limit: int) -> list[dict]:
-    """Run the palette's search and serialize it. One entry point, two URLs.
+    """Stage one — the lexical search, serialized. One entry point, two URLs.
 
     Strips and gates the query here rather than trusting callers to: this is the
     shared door, and a caller that forgot would send whitespace to the retrieval.
@@ -83,8 +93,27 @@ def search_household_entities(household_id, query: str, limit: int) -> list[dict
     return serialize_hits(hits)
 
 
+def semantic_household_entities(household_id, query: str, limit: int) -> list[dict]:
+    """Stage two — what only the meaning finds, minus stage one's results."""
+    query = (query or "").strip()
+    if len(query) < MIN_QUERY_LENGTH:
+        return []
+    return serialize_hits(retrieval.semantic_only(household_id, query, limit=limit))
+
+
+def _wants_semantic(request) -> bool:
+    """``?semantic=1`` (or ``true``/``yes``) asks for the second stage."""
+    raw = (request.query_params.get("semantic") or "").strip().lower()
+    return raw in {"1", "true", "yes"}
+
+
 class GlobalSearchView(APIView):
-    """``GET /api/search/?q=&limit=`` — search everything the household owns."""
+    """``GET /api/search/?q=&limit=&semantic=`` — search everything the household owns.
+
+    Same URL for both stages so the client has one contract and one payload shape;
+    ``semantic=1`` is what changes which leg runs. Both answer ``{"results": [...]}``,
+    and an empty list is always a valid answer — never an error.
+    """
 
     permission_classes = [IsAuthenticated, IsHouseholdMember]
     throttle_classes = [SearchRateThrottle]
@@ -99,7 +128,8 @@ class GlobalSearchView(APIView):
 
         query = (request.query_params.get("q") or "").strip()
         limit = _clamp_limit(request.query_params.get("limit"))
+        run = semantic_household_entities if _wants_semantic(request) else search_household_entities
         return Response(
-            {"results": search_household_entities(household.id, query, limit)},
+            {"results": run(household.id, query, limit)},
             status=status.HTTP_200_OK,
         )

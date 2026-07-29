@@ -29,6 +29,13 @@ lien retour de la page de détail ramène là où la recherche a été lancée).
   `GET /api/search/?q=`, qui exécute la retrieval de l'agent
   (`agent.retrieval.search`). Une entité devient donc trouvable en s'enregistrant
   dans `agent.searchables`, sans une ligne de front.
+- **Deux temps, une liste.** Le mot-clé s'affiche en quelques millisecondes ; ce que
+  seul le **sens** trouve (« chauffage » → « pompe à chaleur ») arrive ~200 ms plus
+  tard via `?semantic=1` et s'**ajoute** dans un groupe « Par le sens », sans jamais
+  réordonner la liste du dessus. Les deux appels partent en parallèle : `hooks.ts`
+  expose deux `useQuery` distincts, pas un `Promise.all` qui retiendrait la moitié
+  rapide. Un échec du second n'affiche aucune erreur — le premier est déjà une réponse
+  complète.
 - **La palette, le picker de contexte de l'agent et le tool `search_household`
   passent par le même point d'entrée** (`agent.search_api.search_household_entities`).
   Un utilisateur qui trouve un document dans la barre du haut et s'entend répondre

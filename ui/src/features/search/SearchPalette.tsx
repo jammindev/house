@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Search } from 'lucide-react';
+import { Search, Sparkles } from 'lucide-react';
 import { SheetDialog } from '@/design-system/sheet-dialog';
 import { Input } from '@/design-system/input';
 import { pushBack } from '@/lib/backNavigation';
@@ -36,6 +36,10 @@ function groupByType(results: SearchResult[]): Group[] {
   return groups;
 }
 
+function resultKey(result: SearchResult): string {
+  return `${result.entity_type}:${result.object_id}`;
+}
+
 /** Excerpt with the matched terms marked. Rendered as text — never as HTML. */
 function Snippet({ snippet }: { snippet: string }) {
   const segments = React.useMemo(() => parseSnippet(snippet), [snippet]);
@@ -55,6 +59,40 @@ function Snippet({ snippet }: { snippet: string }) {
   );
 }
 
+interface RowProps {
+  result: SearchResult;
+  isActive: boolean;
+  onSelect: () => void;
+  onHover: () => void;
+  activeRef: (node: HTMLButtonElement | null) => void;
+}
+
+/** One result row — shared by the keyword groups and the "by meaning" group. */
+function ResultRow({ result, isActive, onSelect, onHover, activeRef }: RowProps) {
+  const Icon = ENTITY_ICONS[result.entity_type] ?? ENTITY_ICON_FALLBACK;
+  return (
+    <li>
+      <button
+        type="button"
+        ref={isActive ? activeRef : undefined}
+        onClick={onSelect}
+        onMouseEnter={onHover}
+        data-testid="global-search-result"
+        aria-current={isActive || undefined}
+        className={`flex w-full items-center gap-2 rounded-lg border px-3 py-2 text-left text-sm transition-colors ${
+          isActive ? 'border-primary/40 bg-primary/10' : 'border-border bg-card hover:bg-primary/10'
+        }`}
+      >
+        <Icon className="h-4 w-4 shrink-0 text-muted-foreground" />
+        <span className="min-w-0 flex-1">
+          <span className="block truncate text-foreground">{result.label}</span>
+          <Snippet snippet={result.snippet} />
+        </span>
+      </button>
+    </li>
+  );
+}
+
 /**
  * App-wide search — every entity the household owns, from one box.
  *
@@ -62,6 +100,12 @@ function Snippet({ snippet }: { snippet: string }) {
  * finds and what the assistant can cite are the same index: a user who finds a
  * document here and hears "I don't know about it" in the chat would have no way to
  * tell which of the two is wrong.
+ *
+ * **Two stages, one list.** Keyword hits appear in milliseconds, grouped by type.
+ * What only the *meaning* finds arrives ~200 ms later and is **appended** in its own
+ * group — never merged into the list above. That is the whole reason the server
+ * returns the difference rather than a fused ranking: a list that reshuffles just
+ * after appearing makes people click the row they did not aim at.
  */
 export default function SearchPalette({ open, onOpenChange }: Props) {
   const { t } = useTranslation();
@@ -70,9 +114,14 @@ export default function SearchPalette({ open, onOpenChange }: Props) {
   const [query, setQuery] = React.useState('');
   const [activeIndex, setActiveIndex] = React.useState(0);
 
-  const { data, isLoading, isTyping, hasQuery } = useHouseholdSearch(open ? query : '');
-  const results = React.useMemo(() => data ?? [], [data]);
+  const { results, senseResults, isLoading, isTyping, isSearchingBySense, hasQuery } =
+    useHouseholdSearch(open ? query : '');
   const groups = React.useMemo(() => groupByType(results), [results]);
+
+  // Keyboard order = what is on screen, top to bottom: keyword hits then the
+  // by-meaning extras. Appending keeps every already-assigned position valid, so the
+  // selection does not move when the second stage lands.
+  const navigable = React.useMemo(() => [...results, ...senseResults], [results, senseResults]);
 
   // Reset on each open — a palette reopening on the previous search would answer a
   // question the user is no longer asking.
@@ -83,8 +132,9 @@ export default function SearchPalette({ open, onOpenChange }: Props) {
     }
   }, [open]);
 
-  // New results, new selection: keeping the old index would highlight (and, on
-  // Enter, open) whatever now happens to sit at that position.
+  // New keyword results, new selection: keeping the old index would highlight (and,
+  // on Enter, open) whatever now happens to sit at that position. Deliberately keyed
+  // on `results` alone — the by-meaning group only ever appends below.
   React.useEffect(() => setActiveIndex(0), [results]);
 
   const go = React.useCallback(
@@ -102,19 +152,29 @@ export default function SearchPalette({ open, onOpenChange }: Props) {
   }, []);
 
   const onKeyDown = (event: React.KeyboardEvent) => {
-    if (results.length === 0) return;
+    if (navigable.length === 0) return;
     if (event.key === 'ArrowDown') {
       event.preventDefault();
-      setActiveIndex((index) => (index + 1) % results.length);
+      setActiveIndex((index) => (index + 1) % navigable.length);
     } else if (event.key === 'ArrowUp') {
       event.preventDefault();
-      setActiveIndex((index) => (index - 1 + results.length) % results.length);
+      setActiveIndex((index) => (index - 1 + navigable.length) % navigable.length);
     } else if (event.key === 'Enter') {
       event.preventDefault();
-      const target = results[activeIndex];
+      const target = navigable[activeIndex];
       if (target) go(target);
     }
   };
+
+  const rowProps = (result: SearchResult, position: number) => ({
+    result,
+    isActive: position === activeIndex,
+    onSelect: () => go(result),
+    onHover: () => setActiveIndex(position),
+    activeRef: scrollActiveIntoView,
+  });
+
+  const nothingFound = results.length === 0 && senseResults.length === 0;
 
   return (
     <SheetDialog
@@ -150,55 +210,50 @@ export default function SearchPalette({ open, onOpenChange }: Props) {
                 <div key={i} className="h-12 animate-pulse rounded-lg bg-muted" />
               ))}
             </div>
-          ) : results.length === 0 ? (
+          ) : nothingFound && !isSearchingBySense ? (
             <p className="px-1 py-6 text-center text-sm text-muted-foreground">
               {t('search.noResults')}
             </p>
           ) : (
             <div className="space-y-3">
-              {groups.map((group) => {
-                const Icon = ENTITY_ICONS[group.entityType] ?? ENTITY_ICON_FALLBACK;
-                return (
-                  <div key={group.entityType}>
-                    <p className="px-1 pb-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                      {t(`search.entity.${group.entityType}`)}
-                    </p>
-                    <ul className="space-y-1">
-                      {group.results.map((result) => {
-                        // Position in the flat, rank-ordered list — ↑↓ walks the
-                        // whole list, group headings included.
-                        const position = results.indexOf(result);
-                        const isActive = position === activeIndex;
-                        return (
-                          <li key={`${result.entity_type}:${result.object_id}`}>
-                            <button
-                              type="button"
-                              ref={isActive ? scrollActiveIntoView : undefined}
-                              onClick={() => go(result)}
-                              onMouseEnter={() => setActiveIndex(position)}
-                              data-testid="global-search-result"
-                              aria-current={isActive || undefined}
-                              className={`flex w-full items-center gap-2 rounded-lg border px-3 py-2 text-left text-sm transition-colors ${
-                                isActive
-                                  ? 'border-primary/40 bg-primary/10'
-                                  : 'border-border bg-card hover:bg-primary/10'
-                              }`}
-                            >
-                              <Icon className="h-4 w-4 shrink-0 text-muted-foreground" />
-                              <span className="min-w-0 flex-1">
-                                <span className="block truncate text-foreground">
-                                  {result.label}
-                                </span>
-                                <Snippet snippet={result.snippet} />
-                              </span>
-                            </button>
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  </div>
-                );
-              })}
+              {groups.map((group) => (
+                <div key={group.entityType}>
+                  <p className="px-1 pb-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                    {t(`search.entity.${group.entityType}`)}
+                  </p>
+                  <ul className="space-y-1">
+                    {group.results.map((result) => (
+                      <ResultRow
+                        key={resultKey(result)}
+                        {...rowProps(result, results.indexOf(result))}
+                      />
+                    ))}
+                  </ul>
+                </div>
+              ))}
+
+              {/* Second stage. Announced as such: these rows may share no word with
+                  what was typed, and an unexplained result reads as a bug. */}
+              {senseResults.length > 0 ? (
+                <div data-testid="global-search-sense-group">
+                  <p className="flex items-center gap-1.5 px-1 pb-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                    <Sparkles className="h-3 w-3 shrink-0" />
+                    {t('search.senseGroup')}
+                  </p>
+                  <ul className="space-y-1">
+                    {senseResults.map((result) => (
+                      <ResultRow
+                        key={resultKey(result)}
+                        {...rowProps(result, results.length + senseResults.indexOf(result))}
+                      />
+                    ))}
+                  </ul>
+                </div>
+              ) : isSearchingBySense ? (
+                <p className="px-1 pt-1 text-xs text-muted-foreground">
+                  {t('search.senseSearching')}
+                </p>
+              ) : null}
             </div>
           )}
         </div>
