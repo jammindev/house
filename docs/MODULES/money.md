@@ -122,8 +122,9 @@ valeur initiale — l'initialiseur d'état du parent s'exécute avant le montage
 l'enfant, ce qui rend le mécanisme fiable plutôt que fragile.
 
 Sous-pages autonomes (avec `BackLink`) : `/app/money/transactions`,
-`/app/money/transactions/:id`, `/app/money/analysis`, `/app/money/budgets/:id`,
-`/app/money/expenses/:id`, `/app/money/recurring`, `/app/money/reports`.
+`/app/money/transactions/:id`, `/app/money/analysis`, `/app/money/accounts/:id`,
+`/app/money/budgets/:id`, `/app/money/expenses/:id`, `/app/money/recurring`,
+`/app/money/reports`.
 
 Les deux dernières ont rejoint la famille en juillet 2026 ; `/app/budget/recurring`
 et `/app/budget/reports` redirigent via `PreserveQueryRedirect`, qui conserve la
@@ -635,6 +636,52 @@ du liquide »).
 - La ligne d'écart affiche les trois chiffres (retiré / versé / manquant). « Le
   versement est partiel » n'apprend rien ; c'est le montant orphelin qui dit s'il
   faut corriger une faute de frappe ou arbitrer un choix.
+
+### Un compte a sa propre fiche
+
+`/app/money/accounts/:id` (`money/AccountDetailPage.tsx`), atteinte en touchant le
+nom d'un compte dans l'onglet Comptes. Même raison que pour la dépense : la carte
+d'un compte est le bon format pour **choisir**, et le mauvais pour **comprendre**.
+Les questions qui suivent se posent toutes *sur un compte*, et n'avaient nulle part
+où être répondues.
+
+- **Le solde, avec ce qu'il vaut** : le montant, sa provenance (`anchored` = lu sur
+  le relevé, `derived` = recalculé depuis le solde de départ) et `ChainGapAlert`
+  quand la chaîne est rompue. Rien de nouveau côté calcul — c'est le même
+  `GET /accounts/{id}/balance/` que la carte.
+- **La période contrôlée**, et ⚠️ **sa raison quand il n'y en a pas.** Nouveau
+  endpoint `GET /accounts/{id}/coverage/` → `banking.coverage.serialize_coverage`,
+  qui renvoie `status` (`""` / `no_opening_date` / `opening_date_after_data` /
+  `no_data`), les bornes, les périodes jamais importées et `first_line`/`last_line`.
+  Les trois `status` d'échec ne se rendent **pas** de la même façon : `no_data` est
+  normal (rien d'importé, rien à affirmer), les deux autres rendent le compte muet
+  pour *tous* les détecteurs et portent un bouton « Corriger ». C'est la règle
+  « un compteur à zéro a deux sens » appliquée à un compte : la fiche ne doit jamais
+  annoncer une période contrôlée qu'elle n'a pas. `first_line` est ce qui rend le
+  cas vicieux *lisible* — « ta date de solde de départ est postérieure à ta plus
+  ancienne opération » ne se dit pas sans nommer cette opération.
+- **Le reste à ranger sur ce compte** vient du serveur, par le filtre
+  `?account=…&allocation=todo` — donc de `detectors.pending_outflows`, le **même**
+  jugement que le badge Contrôle et que la file « À ranger ». Jamais un calcul local
+  sur les montants : deux voix sur le même chiffre, et plus personne n'en croit
+  aucune. Le compteur **mène** à la liste filtrée ; un compteur sans destination
+  n'est pas actionnable.
+- **L'historique complet des imports du compte** (`ImportHistoryCard`, `hideAccount`,
+  `limit=20`), enrichi de la **période couverte** — c'est elle qui borne la
+  conformité, pas la date du dépôt — et de `auto_matched_count`, le seul chiffre de
+  la trace qui parle de travail épargné plutôt que de volume.
+- Les cinq dernières opérations, la vue « banque » (sorties / entrées / taux de
+  couverture — **un ratio, jamais une somme**), et la fiche brute en dernier.
+- **Archiver ferme la fiche sans undo différé**, contrairement à la liste : archiver
+  n'est pas supprimer, la fiche reste accessible et son propre bouton « Rouvrir »
+  est le chemin de retour.
+- Le journal accepte désormais `?account=…&allocation=todo` : ses filtres vivent en
+  `sessionStorage`, donc le lien les **écrase** à l'arrivée puis **consomme** le
+  paramètre — sinon le bouton retour du navigateur réappliquerait un filtre que
+  l'utilisateur vient d'enlever.
+
+Régressions : `apps/banking/tests/test_api_account_coverage.py` et
+`ui/src/features/money/AccountDetailPage.test.tsx`.
 
 ### Reste ouvert
 

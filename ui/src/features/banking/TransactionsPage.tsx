@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { Sparkles } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import PageHeader from '@/components/PageHeader';
 import BackLink from '@/components/BackLink';
@@ -33,7 +34,26 @@ const NO_FILTERS: Filters = {};
 
 export default function TransactionsPage() {
   const { t } = useTranslation();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [filters, setFilters] = useSessionState<Filters>('banking.journal.filters', NO_FILTERS);
+
+  // Deep link `?account=…&allocation=todo` — ce qui permet à la fiche d'un compte
+  // d'écrire « voir les opérations de ce compte » et de tenir sa promesse. Les
+  // filtres vivent en `sessionStorage` (ils survivent au retour dans le journal),
+  // donc le lien ne peut pas être un simple état initial : il faut les écraser à
+  // l'arrivée, puis **consommer** le paramètre — sinon le bouton retour du
+  // navigateur réappliquerait un filtre que l'utilisateur vient d'enlever.
+  const requestedAccount = searchParams.get('account');
+  const requestedAllocation = searchParams.get('allocation');
+  React.useEffect(() => {
+    if (!requestedAccount && !requestedAllocation) return;
+    setFilters((previous) => ({
+      ...previous,
+      ...(requestedAccount ? { account: requestedAccount } : {}),
+      ...(requestedAllocation === 'todo' ? { allocation: 'todo' as const } : {}),
+    }));
+    setSearchParams(new URLSearchParams(), { replace: true });
+  }, [requestedAccount, requestedAllocation, setFilters, setSearchParams]);
 
   const accountsQuery = useBankAccounts();
   // Un registre se parcourt : 116 lignes par relevé mensuel, et un plafond muet

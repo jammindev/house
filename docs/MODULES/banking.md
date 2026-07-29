@@ -130,6 +130,29 @@ pas la base.
 | GET | `/api/banking/accounts/{id}/` | Détail |
 | PATCH | `/api/banking/accounts/{id}/` | Mise à jour (allowlist) |
 | DELETE | `/api/banking/accounts/{id}/` | **Archive** (204), ne supprime pas |
+| GET | `/api/banking/accounts/{id}/coverage/` | Fenêtre de conformité du compte — **avec sa raison** quand il n'y en a pas |
+
+### `coverage/` répond par une raison, jamais par un `None`
+
+`banking.coverage.serialize_coverage` sert la fiche d'un compte
+(`/app/money/accounts/:id`) et renvoie `status` — `""`, `no_opening_date`,
+`opening_date_after_data`, `no_data` — plus les bornes, les périodes jamais
+importées et `first_line`/`last_line`.
+
+C'est son propre endpoint et non des champs du serializer, pour deux raisons : la
+fenêtre se **dérive** des imports et des lignes (elle bouge sans que la ligne du
+compte soit jamais réécrite), et l'inliner ferait payer deux agrégats par ligne à
+chaque liste de comptes.
+
+Et il porte le `status` plutôt que les deux bornes seules parce qu'un compte sans
+fenêtre a trois causes qui ne se valent pas : `no_data` est normal, les deux autres
+rendent le compte invisible à **tous** les détecteurs — dont une qui ressemble à un
+compte correctement réglé. Les fondre en « pas couvert » reproduirait le bug que le
+découpage de `window_status` a été introduit pour tuer. `first_line` existe pour que
+le cas vicieux soit *dicible* : « ta date de solde d'ouverture est postérieure à ta
+plus ancienne opération » a besoin de nommer cette opération.
+
+Régression : `apps/banking/tests/test_api_account_coverage.py`.
 
 ## Import de relevés (lot 2)
 

@@ -1709,6 +1709,10 @@
           "balance": {
             "title": "Saldo prüfen",
             "body": "Jedes Konto zeigt seinen Saldo, berechnet beim Lesen — nie in der Datenbank eingefroren. Exportiert deine Bank eine Saldo-Spalte, verankert House sich daran und prüft nebenbei die Auszugskette: Fehlen Buchungen, siehst du „Kette unterbrochen“ mit Zeitraum und fehlendem Betrag statt einer plausiblen, aber falschen Zahl. Das ist der beste Test deiner Importe: Stimmt der angezeigte Saldo mit deinem Papierauszug überein, passt alles. Für Bargeld öffne das Journal und nutze „Ins Bargeld buchen“ bei einer Abhebung — sie verlässt die Ausgabensummen und speist den Saldo deines Bargeldkontos."
+          },
+          "sheet": {
+            "title": "Die Kontoseite öffnen",
+            "body": "Tippe auf den Namen eines Kontos, um seine Seite zu öffnen. Dort ist alles versammelt, was House darüber weiß: der Saldo und woher er kommt, der **geprüfte Zeitraum** (außerhalb verlangt House nichts — davor ist Geschichte, danach fehlt der Auszug noch), die Zeiträume, die kein Auszug je abgedeckt hat, die vollständige Import-Historie mit dem, was jeder Import angelegt, übersprungen und selbst zugeordnet hat, sowie die Zahl der Umsätze, die auf diesem Konto noch auf Zuordnung warten. Wenn die Seite meldet, dass für dieses Konto keine Prüfung gilt, korrigiere es genau dort: Es ist die eine Einstellung, die alle anderen Prüfungen erst messbar macht."
           }
         }
       },
@@ -3463,7 +3467,12 @@
         "skipped_one": "{{count}} bereits vorhanden, übersprungen",
         "skipped_other": "{{count}} bereits vorhanden, übersprungen",
         "nothingNew": "Nichts Neues in dieser Datei",
-        "failed": "Datei nicht lesbar — es wurde nichts importiert"
+        "failed": "Datei nicht lesbar — es wurde nichts importiert",
+        "autoMatched_one": "{{count}} automatisch zugeordnet",
+        "autoMatched_other": "{{count}} automatisch zugeordnet",
+        "period": "Zeitraum vom {{from}} bis {{to}}",
+        "more_one": "und {{count}} älterer Upload",
+        "more_other": "und {{count}} ältere Uploads"
       },
       "errors": {
         "previewFailed": "Diese Datei konnte nicht gelesen werden. Prüfe, ob es eine CSV- oder Excel-Datei ist.",
@@ -3704,6 +3713,44 @@
       "amount": "Erhaltener Betrag",
       "date": "Datum",
       "natureHint": "Eine interne Umbuchung wird hier nicht erfasst: Bargeld aus einer Abhebung wird auf der Abhebungszeile mit „Kasse auffüllen“ erklärt."
+    },
+    "account": {
+      "notFound": "Konto nicht gefunden.",
+      "archivedHint": "Dieses Konto ist archiviert: Es erscheint nicht mehr in der Liste und sein Saldo wird nicht mehr verfolgt. Nichts wurde gelöscht — du kannst es wieder öffnen.",
+      "balanceTitle": "Saldo",
+      "balanceSource": {
+        "anchored": "Vom Auszug abgelesen",
+        "derived": "Aus dem Anfangssaldo berechnet"
+      },
+      "balanceAsOf": "zum {{date}}",
+      "balanceUnavailable": "Für dieses Konto wurde kein Saldo berechnet.",
+      "coverageTitle": "Geprüfter Zeitraum",
+      "coverageWindow": "Vom {{from}} bis {{to}}",
+      "coverageHint": "Außerhalb verlangt House nichts: davor ist Geschichte, danach fehlt der Auszug noch.",
+      "coverageNone": {
+        "no_opening_date": "Kein Datum für den Anfangssaldo: Für dieses Konto gilt keine Prüfung.",
+        "opening_date_after_data": "Das Datum deines Anfangssaldos ({{openingDate}}) liegt nach deinem ältesten Umsatz ({{earliestLine}}): Der geprüfte Zeitraum ist leer, also gilt für dieses Konto keine Prüfung.",
+        "no_data": "Noch kein Umsatz auf diesem Konto, es gibt also nichts zu prüfen. Importiere einen Auszug, um den Zeitraum zu öffnen."
+      },
+      "gapsTitle": "Nie importierte Zeiträume",
+      "coverageGap_one": "Kein Auszug vom {{from}} bis {{to}} ({{count}} Tag)",
+      "coverageGap_other": "Kein Auszug vom {{from}} bis {{to}} ({{count}} Tage)",
+      "flowTitle": "Was ein- und ausgegangen ist",
+      "flowHint": "Die Bank-Sicht über die gesamte Kontohistorie. Diese Summen werden nie zu Budget-Summen addiert: Die Brücke ist die Abdeckungsquote.",
+      "pendingCount_one": "{{count}} Umsatz wartet auf diesem Konto auf Zuordnung",
+      "pendingCount_other": "{{count}} Umsätze warten auf diesem Konto auf Zuordnung",
+      "pendingNone": "Auf diesem Konto wartet nichts auf Zuordnung.",
+      "pendingAction": "Diese Umsätze zuordnen",
+      "recentTitle": "Letzte Umsätze",
+      "seeAll": "Alle Umsätze ansehen",
+      "noOperations": "Kein Umsatz auf diesem Konto.",
+      "noImports": "Noch kein Auszug importiert.",
+      "noImportsCash": "Ein Bargeldkonto hat keinen Auszug: Seine Umsätze werden von Hand erfasst.",
+      "detailsTitle": "Kontodaten",
+      "transactionsLabel": "Vorhandene Umsätze",
+      "transactionCount_one": "{{count}} Umsatz",
+      "transactionCount_other": "{{count}} Umsätze",
+      "currencyLabel": "Währung"
     }
   },
   "pwa": {

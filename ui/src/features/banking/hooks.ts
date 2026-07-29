@@ -4,6 +4,7 @@ import {
   archiveBankAccount,
   createBankAccount,
   fetchAccountBalance,
+  fetchAccountCoverage,
   fetchAllocations,
   fetchAccountFlow,
   fetchBalanceAnchor,
@@ -55,6 +56,7 @@ export const bankingKeys = {
   suggestions: (transactionId: string) =>
     [...bankingKeys.all, 'suggestions', transactionId] as const,
   anchor: (accountId: string) => [...bankingKeys.all, 'anchor', accountId] as const,
+  coverage: (accountId: string) => [...bankingKeys.all, 'coverage', accountId] as const,
 };
 
 export function useBankAccounts(includeArchived = false) {
@@ -110,6 +112,21 @@ export function useRestoreBankAccount() {
       toast({ description: t('banking.reopened'), variant: 'success' });
     },
     onError: () => toast({ description: t('common.saveFailed'), variant: 'destructive' }),
+  });
+}
+
+/**
+ * Sur quoi le contrôle porte pour ce compte — et sinon pourquoi il ne porte pas.
+ *
+ * Sous la racine `banking` du cache, donc invalidée par `useInvalidateMoney` :
+ * la fenêtre bouge à chaque import et à chaque correction du solde d'ouverture,
+ * sans que la ligne du compte soit jamais réécrite.
+ */
+export function useAccountCoverage(accountId: string | undefined) {
+  return useQuery({
+    queryKey: bankingKeys.coverage(accountId ?? ''),
+    queryFn: () => fetchAccountCoverage(accountId as string),
+    enabled: Boolean(accountId),
   });
 }
 
