@@ -220,11 +220,20 @@ def search(
     query: str,
     limit: int = 20,
     disabled: frozenset[str] | None = None,
+    *,
+    hybrid: bool | None = None,
 ) -> list[Hit]:
     """Return up to `limit` hits across all registered entities, ranked desc.
 
     Specs of household-disabled modules are skipped. ``disabled`` lets callers
     that loop over several queries (``search_multi``) fetch the set once.
+
+    ``hybrid`` overrides ``AGENT_HYBRID_RETRIEVAL_ENABLED`` for this call. The
+    global flag is the right default for a *question* asked to the agent, where one
+    embedding call per turn is negligible. It is the wrong default for
+    search-as-you-type: the global search box would pay an embedding call per
+    debounced keystroke, and the palette must stay instant and free. Hence
+    ``hybrid=False`` there — an explicit choice, not an inherited one.
     """
     if not query or not query.strip():
         return []
@@ -241,7 +250,7 @@ def search(
     all_hits.sort(key=lambda h: h.rank, reverse=True)
     fulltext_hits = all_hits[:limit]
 
-    if not _hybrid_enabled():
+    if not (_hybrid_enabled() if hybrid is None else hybrid):
         return fulltext_hits
 
     vector_hits = _vector_search(household_id, query, limit, disabled=disabled)

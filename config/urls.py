@@ -41,6 +41,7 @@ urlpatterns = [
     path("api/notifications/", include("notifications.urls")),
     path("api/alerts/", include("alerts.urls")),
     path("api/agent/", include("agent.urls")),
+    path("api/search/", include("agent.search_urls")),
     path("api/ai-usage/", include("ai_usage.urls")),
     path("api/telegram/", include("telegram.urls")),
     path("api/releases/", include("releases.urls")),

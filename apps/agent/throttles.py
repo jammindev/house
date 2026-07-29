@@ -22,6 +22,17 @@ class AgentBurstRateThrottle(UserRateThrottle):
     scope = "agent_burst"
 
 
+class SearchRateThrottle(UserRateThrottle):
+    """Global search (`/api/search/`) — 120 requests per minute per user.
+
+    Full-text search costs no provider call, so the agent's caps do not apply: at
+    10/min a user typing in the top-bar palette would be blocked mid-word. The bound
+    exists because a type-ahead endpoint is the easiest thing to leave looping, and
+    it is set well above human typing behind a 250 ms debounce.
+    """
+    scope = "search"
+
+
 class AgentSustainedRateThrottle(UserRateThrottle):
     """100 agent questions per hour per user."""
     scope = "agent_sustained"

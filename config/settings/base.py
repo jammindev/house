@@ -173,6 +173,7 @@ REST_FRAMEWORK = {
         "password_reset": "3/hour",
         "agent_burst": "10/min",
         "agent_sustained": "100/hour",
+        "search": "120/min",
     },
 }
 

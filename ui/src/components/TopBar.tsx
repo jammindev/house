@@ -4,6 +4,7 @@ import { useAuth } from '@/lib/auth/useAuth';
 import { useSidebarToggle } from './SidebarToggleContext';
 import HouseholdSwitcher from './HouseholdSwitcher';
 import NotificationsBell from '@/features/notifications/NotificationsBell';
+import GlobalSearch from '@/features/search/GlobalSearch';
 
 export default function TopBar() {
   const { t } = useTranslation();
@@ -38,6 +39,9 @@ export default function TopBar() {
       </div>
 
       <div className="flex-1" />
+
+      {/* App-wide search — box on desktop, magnifier on mobile */}
+      <GlobalSearch />
 
       {/* Notifications */}
       <NotificationsBell />

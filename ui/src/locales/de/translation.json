@@ -1194,6 +1194,10 @@
           "alerts": {
             "title": "Warnungen im Blick behalten",
             "body": "Das Badge in der Seitenleiste zeigt, was Ihre Aufmerksamkeit braucht; Details auf der Warnungen-Seite."
+          },
+          "search": {
+            "title": "Alles auf einmal durchsuchen",
+            "body": "Das Feld in der oberen Leiste (⌘K) durchsucht alle Dokumente, Aufgaben, Projekte und Ausgaben des Haushalts."
           }
         }
       },
@@ -2931,6 +2935,32 @@
         "weather": "Kürzlich extremes Wetter · {{recent}} statt {{baseline}} Eier/Tag",
         "unknown": "Unklare Ursache, beobachten · {{recent}} statt {{baseline}} Eier/Tag"
       }
+    }
+  },
+  "search": {
+    "title": "Suche",
+    "description": "Durchsuche alles, was zu deinem Haushalt gehört — Dokumente, Aufgaben, Projekte, Ausgaben…",
+    "placeholder": "Suchen…",
+    "hint": "Gib mindestens zwei Zeichen ein, um zu suchen.",
+    "noResults": "Nichts gefunden.",
+    "entity": {
+      "document": "Dokumente",
+      "interaction": "Aktivität",
+      "equipment": "Geräte",
+      "task": "Aufgaben",
+      "project": "Projekte",
+      "zone": "Zonen",
+      "stock_item": "Bestand",
+      "insurance_contract": "Versicherungen",
+      "contact": "Kontakte",
+      "structure": "Strukturen",
+      "budget": "Budgets",
+      "recurring_expense": "Wiederkehrende Ausgaben",
+      "chicken": "Hühner",
+      "chicken_event": "Hühnerstall-Journal",
+      "meter": "Zähler",
+      "tracker": "Tracker",
+      "shopping_item": "Einkaufsliste"
     }
   },
   "agent": {

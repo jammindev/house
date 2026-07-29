@@ -1005,6 +1005,40 @@ Doc complète : `docs/MODULES/agent.md` + `docs/parcours/PARCOURS_07_LOT8_ACTION
 
 ---
 
+## Recherche globale — la barre du haut cherche dans le RAG
+
+La boîte de recherche de la `TopBar` (⌘K, `ui/src/features/search/`) n'a **pas** de
+moteur : elle appelle `GET /api/search/?q=`, qui exécute `agent.retrieval.search`.
+Enregistrer un `SearchableSpec` rend donc une entité trouvable dans toute l'app sans
+une ligne de front. Doc : `docs/MODULES/shell-and-design-system.md` § « Recherche
+globale ».
+
+- **Une seule recherche, trois portes.** La palette, le picker « Ajouter du contexte »
+  de l'agent et le tool `search_household` passent par
+  `agent.search_api.search_household_entities` — même ranking, même payload, même
+  gating par modules. Ne jamais rouvrir un second chemin : trouver un document dans la
+  barre du haut et s'entendre répondre « je ne le connais pas » dans le chat ne dit
+  pas lequel des deux se trompe, ça décrédibilise les deux. C'est la règle « un écart
+  ne se dit jamais deux fois avec deux voix » appliquée à la connaissance du foyer.
+  Régression : `agent/tests/test_global_search.py::TestTheTwoSearchBoxesAgree`.
+- **⚠️ La recherche-à-la-frappe passe `hybrid=False`** et n'hérite **pas** de
+  `AGENT_HYBRID_RETRIEVAL_ENABLED`. Le flag est le bon défaut pour une question posée
+  à l'agent (un embedding par tour) ; sur une boîte de recherche il vaut **un
+  embedding facturé par frappe débouncée**. La sortie est un choix explicite, jamais
+  un oubli à « corriger » — et ce n'est pas un kill switch : `search()` sans argument
+  continue de lire le flag.
+- **Le surlignage se parse, il ne s'injecte pas.** `ts_headline` renvoie des `<<…>>` ;
+  `features/search/highlight.ts` les transforme en segments rendus en `<mark>`. Le
+  texte vient du foyer (OCR d'un PDF, note) : un `dangerouslySetInnerHTML` ferait de
+  chaque `<` saisi un point d'injection.
+- **Ajouter une entité searchable = ajouter son icône et son libellé de groupe**
+  (`features/agent/entityIcons.ts`, `search.entity.*` dans les 4 locales). Sans ça le
+  nouveau type arrive dans la palette avec un glyphe générique et une clé i18n brute.
+  Vérifié depuis Python, seul côté qui connaît la liste des `entity_type` :
+  `test_global_search.py::TestThePaletteCoversTheRegistry`.
+
+---
+
 ## Page Tutoriel (`ui/src/features/tutorials/`)
 
 Page `/app/tutorial` (sidebar, section Compte) : checklist « Bien démarrer » +
