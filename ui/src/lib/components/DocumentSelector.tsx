@@ -12,8 +12,8 @@ import {
   formatFileSize,
   type DocumentItem,
   type DocumentType,
-  uploadDocument,
 } from '@/lib/api/documents';
+import { useCreateDocument } from '@/features/documents/hooks';
 
 interface DocumentSelectorProps {
   selectedDocumentIds: string[];
@@ -59,6 +59,11 @@ export function DocumentSelector({
   const [uploadName, setUploadName] = React.useState('');
   const [uploadType, setUploadType] = React.useState<DocumentType | ''>('');
   const [uploadNotes, setUploadNotes] = React.useState('');
+
+  // Le document uploadé d'ici alimente aussi la page Documents et la galerie
+  // photos : il faut périmer leurs caches, pas seulement la liste locale de ce
+  // sélecteur — sinon le document existe et n'apparaît nulle part ailleurs.
+  const uploadMutation = useCreateDocument();
 
   const typeOptions = React.useMemo(
     () => DOCUMENT_TYPES.map((value) => ({ value, label: t(`documents.type.${value}`) })),
@@ -145,7 +150,7 @@ export function DocumentSelector({
     setUploadError(null);
 
     try {
-      const response = await uploadDocument({
+      const response = await uploadMutation.mutateAsync({
         file: selectedFile,
         name: uploadName || selectedFile.name,
         type: uploadType,

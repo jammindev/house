@@ -93,7 +93,7 @@ export function useUploadAvatar() {
     },
     onError: (err) => {
       toast({
-        description: err instanceof Error ? err.message : t('settings.requestFailed'),
+        description: err instanceof Error ? err.message : t('settings.avatarUploadFailed'),
         variant: 'destructive',
       });
     },
@@ -110,7 +110,7 @@ export function useDeleteAvatar() {
       void qc.invalidateQueries({ queryKey: settingsKeys.me() });
       toast({ description: t('settings.avatarRemoved'), variant: 'success' });
     },
-    onError: () => toast({ description: t('settings.requestFailed'), variant: 'destructive' }),
+    onError: () => toast({ description: t('settings.avatarDeleteFailed'), variant: 'destructive' }),
   });
 }
 

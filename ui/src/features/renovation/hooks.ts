@@ -1,7 +1,8 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { toast } from '@/lib/toast';
-import { fetchInteractions } from '@/lib/api/interactions';
+import { useInvalidate } from '@/lib/invalidate';
+import { deleteInteraction, fetchInteractions } from '@/lib/api/interactions';
 import {
   createRenovation,
   updateRenovation,
@@ -23,20 +24,23 @@ export function useRenovationEntries(zoneId: string) {
   });
 }
 
-function invalidateRenovation(qc: ReturnType<typeof useQueryClient>) {
-  void qc.invalidateQueries({ queryKey: renovationKeys.all });
-  // An entry is an Interaction attached to zones — refresh zone activity + lists.
-  void qc.invalidateQueries({ queryKey: ['zones'] });
-  void qc.invalidateQueries({ queryKey: ['interactions'] });
+/**
+ * Une entrée du carnet **est** une `Interaction` attachée à des zones : c'est
+ * cette racine qu'on déclare, et le graphe (`lib/invalidate`) en déduit le reste
+ * — activité de la zone, journal, dashboard.
+ */
+function useInvalidateRenovation() {
+  const invalidate = useInvalidate();
+  return () => invalidate('renovation', 'interactions');
 }
 
 export function useCreateRenovation() {
-  const qc = useQueryClient();
+  const invalidateRenovation = useInvalidateRenovation();
   const { t } = useTranslation();
   return useMutation({
     mutationFn: (payload: RenovationCreateInput) => createRenovation(payload),
     onSuccess: () => {
-      invalidateRenovation(qc);
+      invalidateRenovation();
       toast({ description: t('renovation.created'), variant: 'success' });
     },
     onError: () => toast({ description: t('common.saveFailed'), variant: 'destructive' }),
@@ -44,15 +48,24 @@ export function useCreateRenovation() {
 }
 
 export function useUpdateRenovation() {
-  const qc = useQueryClient();
+  const invalidateRenovation = useInvalidateRenovation();
   const { t } = useTranslation();
   return useMutation({
     mutationFn: ({ id, payload }: { id: string; payload: RenovationUpdateInput }) =>
       updateRenovation(id, payload),
     onSuccess: () => {
-      invalidateRenovation(qc);
+      invalidateRenovation();
       toast({ description: t('renovation.updated'), variant: 'success' });
     },
     onError: () => toast({ description: t('common.saveFailed'), variant: 'destructive' }),
+  });
+}
+
+/** Mutation nue — l'onglet l'emballe dans `useDeleteWithUndo`. */
+export function useDeleteRenovation() {
+  const invalidateRenovation = useInvalidateRenovation();
+  return useMutation({
+    mutationFn: (id: string) => deleteInteraction(id),
+    onSuccess: invalidateRenovation,
   });
 }

@@ -2,6 +2,7 @@ import * as React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/lib/auth/useAuth';
+import { useInvalidate } from '@/lib/invalidate';
 import {
   fetchTasks, fetchTask, fetchHouseholdMembers, fetchProjectTasks,
   updateTaskStatus, updateTask, createTask, deleteTask,
@@ -74,6 +75,7 @@ export { useZones } from '@/features/zones/hooks';
 
 export function useUpdateTaskStatus() {
   const qc = useQueryClient();
+  const invalidate = useInvalidate();
   return useMutation({
     mutationFn: ({ id, status }: { id: string; status: TaskStatus }) =>
       updateTaskStatus(id, status),
@@ -88,29 +90,30 @@ export function useUpdateTaskStatus() {
     onError: (_err, _vars, ctx) => {
       if (ctx?.previous) qc.setQueryData(taskKeys.list(), ctx.previous);
     },
-    onSettled: () => qc.invalidateQueries({ queryKey: taskKeys.all }),
+    onSettled: () => invalidate('tasks'),
   });
 }
 
 export function useCreateTask() {
-  const qc = useQueryClient();
+  const invalidate = useInvalidate();
   return useMutation({
     mutationFn: createTask,
-    onSuccess: () => qc.invalidateQueries({ queryKey: taskKeys.all }),
+    onSuccess: () => invalidate('tasks'),
   });
 }
 
 export function useUpdateTask() {
-  const qc = useQueryClient();
+  const invalidate = useInvalidate();
   return useMutation({
     mutationFn: ({ id, payload }: { id: string; payload: Parameters<typeof updateTask>[1] }) =>
       updateTask(id, payload),
-    onSuccess: () => qc.invalidateQueries({ queryKey: taskKeys.all }),
+    onSuccess: () => invalidate('tasks'),
   });
 }
 
 export function useUpdateTaskAssignee() {
   const qc = useQueryClient();
+  const invalidate = useInvalidate();
   return useMutation({
     mutationFn: ({ id, assignedToId }: { id: string; assignedToId: string | null }) =>
       updateTask(id, { assigned_to_id: assignedToId }),
@@ -125,15 +128,15 @@ export function useUpdateTaskAssignee() {
     onError: (_err, _vars, ctx) => {
       if (ctx?.previous) qc.setQueryData(taskKeys.list(), ctx.previous);
     },
-    onSettled: () => qc.invalidateQueries({ queryKey: taskKeys.all }),
+    onSettled: () => invalidate('tasks'),
   });
 }
 
 export function useDeleteTask() {
-  const qc = useQueryClient();
+  const invalidate = useInvalidate();
   return useMutation({
     mutationFn: deleteTask,
-    onSuccess: () => qc.invalidateQueries({ queryKey: taskKeys.all }),
+    onSuccess: () => invalidate('tasks'),
   });
 }
 
@@ -157,26 +160,20 @@ export function useTaskDocuments(taskId: string) {
 }
 
 export function useLinkDocument() {
-  const qc = useQueryClient();
+  const invalidate = useInvalidate();
   return useMutation({
     mutationFn: ({ taskId, documentId }: { taskId: string; documentId: string | number }) =>
       linkDocumentToTask(taskId, documentId),
-    onSuccess: (_data, { taskId }) => {
-      qc.invalidateQueries({ queryKey: [...taskKeys.all, taskId, 'documents'] });
-      qc.invalidateQueries({ queryKey: taskKeys.all });
-    },
+    onSuccess: () => invalidate('tasks'),
   });
 }
 
 export function useUnlinkDocument() {
-  const qc = useQueryClient();
+  const invalidate = useInvalidate();
   return useMutation({
     mutationFn: ({ linkId }: { linkId: number; taskId: string }) =>
       unlinkDocumentFromTask(linkId),
-    onSuccess: (_data, { taskId }) => {
-      qc.invalidateQueries({ queryKey: [...taskKeys.all, taskId, 'documents'] });
-      qc.invalidateQueries({ queryKey: taskKeys.all });
-    },
+    onSuccess: () => invalidate('tasks'),
   });
 }
 
@@ -189,25 +186,19 @@ export function useTaskInteractions(taskId: string) {
 }
 
 export function useLinkInteraction() {
-  const qc = useQueryClient();
+  const invalidate = useInvalidate();
   return useMutation({
     mutationFn: ({ taskId, interactionId }: { taskId: string; interactionId: string }) =>
       linkInteractionToTask(taskId, interactionId),
-    onSuccess: (_data, { taskId }) => {
-      qc.invalidateQueries({ queryKey: [...taskKeys.all, taskId, 'interactions'] });
-      qc.invalidateQueries({ queryKey: taskKeys.all });
-    },
+    onSuccess: () => invalidate('tasks'),
   });
 }
 
 export function useUnlinkInteraction() {
-  const qc = useQueryClient();
+  const invalidate = useInvalidate();
   return useMutation({
     mutationFn: ({ linkId }: { linkId: number; taskId: string }) =>
       unlinkInteractionFromTask(linkId),
-    onSuccess: (_data, { taskId }) => {
-      qc.invalidateQueries({ queryKey: [...taskKeys.all, taskId, 'interactions'] });
-      qc.invalidateQueries({ queryKey: taskKeys.all });
-    },
+    onSuccess: () => invalidate('tasks'),
   });
 }

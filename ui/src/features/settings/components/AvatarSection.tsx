@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@/design-system/button';
 import { SettingsSection } from './SettingsSection';
 import type { UserProfile } from '@/lib/api/users';
-import { uploadAvatar, deleteAvatar } from '@/lib/api/users';
+import { useDeleteAvatar, useUploadAvatar } from '../hooks';
 import { useToast } from '@/lib/toast';
 
 interface AvatarSectionProps {
@@ -17,44 +17,42 @@ export function AvatarSection({ user, onUserUpdate }: AvatarSectionProps) {
   const { toast } = useToast();
 
   const fileInputRef = React.useRef<HTMLInputElement>(null);
-  const [saving, setSaving] = React.useState(false);
+
+  // Par les hooks : eux invalident le cache `settings.me`, que l'ancien appel
+  // direct laissait sur l'avatar d'avant. Le `profile-updated` reste — il
+  // prévient le contexte d'auth, qui n'est pas un cache react-query.
+  const uploadMutation = useUploadAvatar();
+  const deleteMutation = useDeleteAvatar();
+  const saving = uploadMutation.isPending || deleteMutation.isPending;
 
   const currentAvatarUrl = user.avatar;
   const initials = (user.display_name || user.email).slice(0, 2).toUpperCase();
 
-  async function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
+  function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
     if (!file.type.startsWith('image/')) {
       toast({ description: t('settings.avatarUnsupportedType'), variant: 'destructive' });
       return;
     }
-    setSaving(true);
-    try {
-      const result = await uploadAvatar(file);
-      onUserUpdate({ ...user, avatar: result.avatar_url });
-      document.body.dispatchEvent(new CustomEvent('profile-updated'));
-      toast({ description: t('settings.avatarUpdated'), variant: 'success' });
-    } catch (err) {
-      toast({ description: err instanceof Error ? err.message : t('settings.avatarUploadFailed'), variant: 'destructive' });
-    } finally {
-      setSaving(false);
-      if (fileInputRef.current) fileInputRef.current.value = '';
-    }
+    uploadMutation.mutate(file, {
+      onSuccess: (result) => {
+        onUserUpdate({ ...user, avatar: result.avatar_url });
+        document.body.dispatchEvent(new CustomEvent('profile-updated'));
+      },
+      onSettled: () => {
+        if (fileInputRef.current) fileInputRef.current.value = '';
+      },
+    });
   }
 
-  async function handleAvatarDelete() {
-    setSaving(true);
-    try {
-      await deleteAvatar();
-      onUserUpdate({ ...user, avatar: null });
-      document.body.dispatchEvent(new CustomEvent('profile-updated'));
-      toast({ description: t('settings.avatarRemoved'), variant: 'success' });
-    } catch (err) {
-      toast({ description: err instanceof Error ? err.message : t('settings.avatarDeleteFailed'), variant: 'destructive' });
-    } finally {
-      setSaving(false);
-    }
+  function handleAvatarDelete() {
+    deleteMutation.mutate(undefined, {
+      onSuccess: () => {
+        onUserUpdate({ ...user, avatar: null });
+        document.body.dispatchEvent(new CustomEvent('profile-updated'));
+      },
+    });
   }
 
   return (

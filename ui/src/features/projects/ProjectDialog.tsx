@@ -9,13 +9,11 @@ import { Select } from '@/design-system/select';
 import { FormField } from '@/design-system/form-field';
 import ZonePicker from '@/features/zones/ZonePicker';
 import {
-  createProject,
-  updateProject,
   type ProjectListItem,
   type ProjectStatus,
   type ProjectType,
 } from '@/lib/api/projects';
-import { useProjectGroups } from './hooks';
+import { useCreateProject, useProjectGroups, useUpdateProject } from './hooks';
 
 const STATUS_OPTIONS: ProjectStatus[] = ['draft', 'active', 'on_hold', 'completed', 'cancelled'];
 const TYPE_OPTIONS: ProjectType[] = [
@@ -40,6 +38,8 @@ export default function ProjectDialog({
   const isEditing = Boolean(existingProject);
 
   const { data: groups = [] } = useProjectGroups();
+  const createMutation = useCreateProject();
+  const updateMutation = useUpdateProject();
 
   const [title, setTitle] = React.useState('');
   const [description, setDescription] = React.useState('');
@@ -92,8 +92,8 @@ export default function ProjectDialog({
 
     const action =
       isEditing && existingProject
-        ? updateProject(existingProject.id, payload)
-        : createProject(payload);
+        ? updateMutation.mutateAsync({ id: existingProject.id, payload })
+        : createMutation.mutateAsync(payload);
 
     action
       .then(() => {

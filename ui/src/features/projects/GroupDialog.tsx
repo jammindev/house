@@ -5,7 +5,8 @@ import { Input } from '@/design-system/input';
 import { Textarea } from '@/design-system/textarea';
 import { Button } from '@/design-system/button';
 import { FormField } from '@/design-system/form-field';
-import { createProjectGroup, updateProjectGroup, type ProjectGroupItem } from '@/lib/api/projects';
+import { type ProjectGroupItem } from '@/lib/api/projects';
+import { useCreateGroup, useUpdateGroup } from './hooks';
 
 interface GroupDialogProps {
   open: boolean;
@@ -28,6 +29,9 @@ export default function GroupDialog({
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
+  const createMutation = useCreateGroup();
+  const updateMutation = useUpdateGroup();
+
   React.useEffect(() => {
     if (!open) return;
     setName(existingGroup?.name ?? '');
@@ -46,8 +50,11 @@ export default function GroupDialog({
 
     const action =
       isEditing && existingGroup
-        ? updateProjectGroup(existingGroup.id, { name: name.trim(), description })
-        : createProjectGroup({ name: name.trim(), description });
+        ? updateMutation.mutateAsync({
+            id: existingGroup.id,
+            payload: { name: name.trim(), description },
+          })
+        : createMutation.mutateAsync({ name: name.trim(), description });
 
     action
       .then(() => {

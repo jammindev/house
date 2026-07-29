@@ -66,7 +66,7 @@ export default function EntityDocumentsTab({ entityType, objectId }: Props) {
   const handleUploaded = React.useCallback(
     async (created?: DocumentDetail) => {
       if (created) {
-        await attachMutation.mutateAsync(created.id);
+        await attachMutation.mutateAsync({ documentId: created.id });
       }
       void qc.invalidateQueries({ queryKey: documentKeys.all });
     },

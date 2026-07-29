@@ -9,14 +9,15 @@ import { Card } from '@/design-system/card';
 import { useDelayedLoading } from '@/lib/useDelayedLoading';
 import { useDeleteWithUndo } from '@/lib/useDeleteWithUndo';
 import { useToast } from '@/lib/toast';
-import { deleteInteraction } from '@/lib/api/interactions';
-import { updateRecurringExpense, type RecurringExpense } from '@/lib/api/budget';
+import { useDeleteInteraction } from '@/features/interactions/hooks';
+import { type RecurringExpense } from '@/lib/api/budget';
 import {
   useCashflowProjection,
   useConfirmRecurringOccurrence,
   useDeleteRecurringExpense,
   useRecurringDue,
   useRecurringExpenses,
+  useRestoreRecurringSchedule,
 } from './hooks';
 import RecurringCard from './RecurringCard';
 import RecurringExpenseDialog from './RecurringExpenseDialog';
@@ -32,6 +33,12 @@ export default function RecurringPage() {
   const projectionQuery = useCashflowProjection();
   const deleteMutation = useDeleteRecurringExpense();
   const confirmMutation = useConfirmRecurringOccurrence();
+  // L'annulation d'une confirmation touche l'argent (elle supprime une dépense)
+  // *et* l'échéancier : par les hooks, pour que les compteurs de budget et la
+  // conformité se rafraîchissent avec la liste — un `refetch()` des trois
+  // requêtes de cette page ne voyait qu'elle-même.
+  const deleteExpenseMutation = useDeleteInteraction();
+  const restoreScheduleMutation = useRestoreRecurringSchedule();
 
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [editing, setEditing] = React.useState<RecurringExpense | undefined>(undefined);
@@ -85,13 +92,12 @@ export default function RecurringPage() {
           label: t('common.undo'),
           onClick: () => {
             void Promise.all([
-              deleteInteraction(result.interaction_id),
-              updateRecurringExpense(rec.id, { next_due_date: previousDueDate }),
-            ]).finally(() => {
-              void listQuery.refetch();
-              void dueQuery.refetch();
-              void projectionQuery.refetch();
-            });
+              deleteExpenseMutation.mutateAsync(result.interaction_id),
+              restoreScheduleMutation.mutateAsync({
+                id: rec.id,
+                nextDueDate: previousDueDate,
+              }),
+            ]);
           },
         },
       });

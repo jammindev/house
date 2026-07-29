@@ -1,4 +1,5 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
+import { useInvalidate } from '@/lib/invalidate';
 import { useTranslation } from 'react-i18next';
 import {
   fetchStockItems,
@@ -84,53 +85,52 @@ export function useStockCategories() {
 export { useZones } from '@/features/zones/hooks';
 
 export function useCreateStockItem() {
-  const qc = useQueryClient();
+  const invalidate = useInvalidate();
   return useMutation({
     mutationFn: createStockItem,
-    onSuccess: () => qc.invalidateQueries({ queryKey: stockKeys.all }),
+    onSuccess: () => invalidate('stock'),
   });
 }
 
 export function useUpdateStockItem() {
-  const qc = useQueryClient();
+  const invalidate = useInvalidate();
   return useMutation({
     mutationFn: ({ id, payload }: { id: string; payload: Parameters<typeof updateStockItem>[1] }) =>
       updateStockItem(id, payload),
-    onSuccess: () => qc.invalidateQueries({ queryKey: stockKeys.all }),
+    onSuccess: () => invalidate('stock'),
   });
 }
 
 export function useDeleteStockItem() {
-  const qc = useQueryClient();
+  const invalidate = useInvalidate();
   return useMutation({
     mutationFn: (id: string) => deleteStockItem(id),
-    onSuccess: () => qc.invalidateQueries({ queryKey: stockKeys.all }),
+    onSuccess: () => invalidate('stock'),
   });
 }
 
 export function usePurchaseStockItem() {
-  const qc = useQueryClient();
+  const invalidate = useInvalidate();
   const { t } = useTranslation();
   return useMutation({
     mutationFn: ({ id, payload }: { id: string; payload: StockPurchasePayload }) =>
       purchaseStockItem(id, payload),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: stockKeys.all });
-      qc.invalidateQueries({ queryKey: ['interactions'] });
-      toast({ description: t('stock.purchase.created'), variant: 'success' });
+      invalidate('stock', 'interactions');
+            toast({ description: t('stock.purchase.created'), variant: 'success' });
     },
     onError: () => toast({ description: t('common.saveFailed'), variant: 'destructive' }),
   });
 }
 
 export function useRecordInventory() {
-  const qc = useQueryClient();
+  const invalidate = useInvalidate();
   const { t } = useTranslation();
   return useMutation({
     mutationFn: ({ id, payload }: { id: string; payload: StockInventoryPayload }) =>
       recordStockInventory(id, payload),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: stockKeys.all });
+      invalidate('stock');
       toast({ description: t('stock.inventory.recorded'), variant: 'success' });
     },
     onError: () => toast({ description: t('common.saveFailed'), variant: 'destructive' }),
@@ -138,15 +138,15 @@ export function useRecordInventory() {
 }
 
 export function useCreateCategory() {
-  const qc = useQueryClient();
+  const invalidate = useInvalidate();
   return useMutation({
     mutationFn: createStockCategory,
-    onSuccess: () => qc.invalidateQueries({ queryKey: stockKeys.all }),
+    onSuccess: () => invalidate('stock'),
   });
 }
 
 export function useUpdateCategory() {
-  const qc = useQueryClient();
+  const invalidate = useInvalidate();
   return useMutation({
     mutationFn: ({
       id,
@@ -155,15 +155,15 @@ export function useUpdateCategory() {
       id: string;
       payload: Parameters<typeof updateStockCategory>[1];
     }) => updateStockCategory(id, payload),
-    onSuccess: () => qc.invalidateQueries({ queryKey: stockKeys.all }),
+    onSuccess: () => invalidate('stock'),
   });
 }
 
 export function useDeleteCategory() {
-  const qc = useQueryClient();
+  const invalidate = useInvalidate();
   return useMutation({
     mutationFn: (id: string) => deleteStockCategory(id),
-    onSuccess: () => qc.invalidateQueries({ queryKey: stockKeys.all }),
+    onSuccess: () => invalidate('stock'),
   });
 }
 

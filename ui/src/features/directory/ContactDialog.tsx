@@ -6,8 +6,8 @@ import { Textarea } from '@/design-system/textarea';
 import { Select } from '@/design-system/select';
 import { Button } from '@/design-system/button';
 import { FormField } from '@/design-system/form-field';
-import { createContact, updateContact, type Contact } from '@/lib/api/contacts';
-import { useStructures } from './hooks';
+import { type Contact } from '@/lib/api/contacts';
+import { useCreateContact, useStructures, useUpdateContact } from './hooks';
 
 interface ContactDialogProps {
   open: boolean;
@@ -35,6 +35,8 @@ export default function ContactDialog({
   const [error, setError] = React.useState<string | null>(null);
 
   const { data: structures = [] } = useStructures();
+  const createMutation = useCreateContact();
+  const updateMutation = useUpdateContact();
 
   React.useEffect(() => {
     if (!open) return;
@@ -73,12 +75,12 @@ export default function ContactDialog({
     };
 
     const action = isEditing && existingContact
-      ? updateContact(existingContact.id, input)
-      : createContact(
+      ? updateMutation.mutateAsync({ id: existingContact.id, input })
+      : createMutation.mutateAsync({
           input,
-          email.trim() ? { email: email.trim(), label: 'main' } : null,
-          phone.trim() ? { phone: phone.trim(), label: 'mobile' } : null,
-        );
+          email: email.trim() ? { email: email.trim(), label: 'main' } : null,
+          phone: phone.trim() ? { phone: phone.trim(), label: 'mobile' } : null,
+        });
 
     action
       .then(() => {
