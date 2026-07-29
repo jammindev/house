@@ -63,8 +63,30 @@
   - **Le join renvoie une paire JWT** et ouvre une session, comme
     `TokenObtainPairWithSessionView` : sans ça la personne atterrit sur `/login`
     pour retaper le mot de passe qu'elle vient de choisir.
+  - **⚠️ L'usage unique est une revendication, pas un `save()`.**
+    `consume_invitation` prend le lien par un `UPDATE … WHERE status='pending'`
+    et refuse si zéro ligne. Deux requêtes simultanées résolvaient sinon le token
+    avant que l'une l'ait consommé, chacune voyait `pending`, et **un seul lien
+    enrôlait deux personnes**. Ne jamais revenir à une écriture inconditionnelle :
+    la garantie ne se lit pas dans le code appelant.
+  - **⚠️ L'épinglage de l'adresse vaut des deux côtés.** Le join anonyme l'a par
+    construction (il *crée* le compte) ; le chemin authentifié passe par
+    `services.assert_addressed_to`. Sans lui, un lien adressé à Claire et
+    transféré à quelqu'un qui a déjà un compte enrôlait ce compte-là — la règle
+    était énoncée entière et tenue à moitié. Le refus **ne consomme pas** le lien.
+  - **Un lien ne survit pas au foyer qu'il ouvre** : `get_pending_invitation`
+    exclut les foyers archivés. `destroy` étant un soft-delete, un vieux lien
+    faisait sinon rejoindre un foyer que `get_queryset` masque — la personne
+    entrait dans un foyer qu'elle ne pourrait jamais voir.
   - Les refus passent par `services.InvitationError` (`APIException`), **jamais**
     par `serializers.ValidationError` : celle-ci emballe les valeurs dans une
     liste, et tout le front lit `data.detail` comme une string.
 - `FRONTEND_URL` fabrique le `join_url` (`serializers.invitation_join_url`) : un
   `FRONTEND_URL` faux produit des liens qui ne mènent nulle part.
+- **Les messages de refus sont traduits côté backend** (`locale/*/django.po`),
+  pas côté front : c'est pourquoi le 404 d'origine s'affichait en français en
+  prod. Ajouter un `_()` dans ce parcours impose donc le passage
+  `makemessages` → édition des trois `.po` → `compilemessages`. Attention,
+  `makemessages` **enveloppe** un msgid de plus de ~77 caractères sur plusieurs
+  lignes citées : un remplacement mono-ligne rate en silence et laisse le
+  message en anglais.
