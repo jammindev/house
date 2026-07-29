@@ -21,6 +21,7 @@ _DEEP_LINKS = {
     Notification.Type.STOCK_LOW: "/app/stock",
     Notification.Type.STOCK_OUT: "/app/stock",
     Notification.Type.HOUSEHOLD_INVITATION: "/app/dashboard",
+    Notification.Type.HOUSEHOLD_MEMBER_JOINED: "/app/settings",
 }
 
 

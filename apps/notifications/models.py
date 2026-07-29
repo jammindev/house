@@ -18,6 +18,7 @@ class Notification(models.Model):
 
     class Type(models.TextChoices):
         HOUSEHOLD_INVITATION = "household_invitation", _("Household invitation")
+        HOUSEHOLD_MEMBER_JOINED = "household_member_joined", _("New household member")
         STOCK_LOW = "stock_low", _("Low stock")
         STOCK_OUT = "stock_out", _("Out of stock")
 

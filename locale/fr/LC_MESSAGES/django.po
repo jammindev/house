@@ -1462,6 +1462,15 @@ msgstr "Vous avez été invité(e) à rejoindre %(name)s"
 msgid "%(inviter)s invited you to join their household."
 msgstr "%(inviter)s vous a invité(e) à rejoindre son foyer."
 
+#: apps/households/notifications.py:50
+#, python-format
+msgid "%(member)s joined %(household)s"
+msgstr "%(member)s a rejoint %(household)s"
+
+#: apps/households/notifications.py:54
+msgid "They now have access to the household."
+msgstr "Cette personne a désormais accès au foyer."
+
 #: apps/households/services.py:163
 #, python-format
 msgid ""

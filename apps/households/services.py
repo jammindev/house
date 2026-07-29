@@ -202,6 +202,16 @@ def consume_invitation(invitation, user, *, switch=True):
     from notifications.service import mark_read_by_payload
     mark_read_by_payload(user, "household_invitation", invitation_id=str(invitation.id))
 
+    # Announce the arrival from here, and only here: this is the single door all
+    # three join paths go through (in-app accept, shared link opened logged in,
+    # link that creates the account). Emitting it from the views would be three
+    # call sites, and a fourth one silently missing the day a path is added.
+    # Only on a real arrival — re-opening a link is idempotent, and idempotent
+    # means no second announcement of something that already happened.
+    if created:
+        from .notifications import notify_member_joined
+        notify_member_joined(invitation.household, user)
+
     return membership, not created
 
 

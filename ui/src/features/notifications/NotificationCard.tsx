@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { Bell, Mail } from 'lucide-react';
+import { Bell, Mail, UserPlus } from 'lucide-react';
 
 import { Button } from '@/design-system/button';
 import { Card } from '@/design-system/card';
@@ -35,7 +35,10 @@ export default function NotificationCard({ notification }: NotificationCardProps
   const markRead = useMarkRead();
 
   const isInvitation = notification.type === 'household_invitation';
-  const Icon = isInvitation ? Mail : Bell;
+  // A join is informational — an icon and nothing to click, unlike an invitation
+  // which carries its accept/decline buttons.
+  const isMemberJoined = notification.type === 'household_member_joined';
+  const Icon = isInvitation ? Mail : isMemberJoined ? UserPlus : Bell;
 
   const relative = formatRelativeFromNow(notification.created_at);
 

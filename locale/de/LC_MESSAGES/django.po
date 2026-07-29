@@ -1472,6 +1472,15 @@ msgstr "Sie wurden eingeladen, %(name)s beizutreten"
 msgid "%(inviter)s invited you to join their household."
 msgstr "%(inviter)s hat Sie eingeladen, seinem Haushalt beizutreten."
 
+#: apps/households/notifications.py:50
+#, python-format
+msgid "%(member)s joined %(household)s"
+msgstr "%(member)s ist %(household)s beigetreten"
+
+#: apps/households/notifications.py:54
+msgid "They now have access to the household."
+msgstr "Diese Person hat jetzt Zugriff auf den Haushalt."
+
 #: apps/households/services.py:163
 #, python-format
 msgid ""
