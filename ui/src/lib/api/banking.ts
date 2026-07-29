@@ -435,6 +435,66 @@ export async function fetchAccountBalance(
   return data;
 }
 
+// --- Évolution du solde ------------------------------------------------------
+
+/** Le solde à la **fin** du jour `on` — une marche, pas un point interpolé. */
+export interface BalancePoint {
+  on: string;
+  amount: string;
+}
+
+/**
+ * La courbe d'un compte.
+ *
+ * ⚠️ Le dernier point **est** le solde que renvoie `/balance/` : le serveur ne
+ * recalcule pas la courbe, il la déroule à l'envers depuis ce chiffre. Ne jamais
+ * recomposer une série côté client à partir des opérations — ce serait une
+ * seconde définition du solde, et les deux s'afficheraient dans le même écran.
+ */
+export interface AccountBalanceHistory {
+  account_id: string;
+  name: string;
+  kind: BankAccountKind;
+  source: 'anchored' | 'derived';
+  is_reliable: boolean;
+  points: BalancePoint[];
+}
+
+/** Tous les comptes vivants sur le même axe, plus ce que le foyer détient. */
+export interface HouseholdBalanceHistory {
+  is_reliable: boolean;
+  accounts: AccountBalanceHistory[];
+  total: BalancePoint[];
+}
+
+/** Fenêtre de la courbe. `months: 0` = toute la vie du compte. */
+export interface BalanceHistoryParams {
+  months?: number;
+  from?: string;
+  to?: string;
+}
+
+export async function fetchAccountBalanceHistory(
+  accountId: string,
+  params: BalanceHistoryParams = {},
+): Promise<AccountBalanceHistory> {
+  const { data } = await api.get<AccountBalanceHistory>(
+    `/banking/accounts/${accountId}/balance-history/`,
+    { params },
+  );
+  return data;
+}
+
+export async function fetchHouseholdBalanceHistory(
+  params: BalanceHistoryParams = {},
+): Promise<HouseholdBalanceHistory> {
+  const { data } = await api.get<HouseholdBalanceHistory>(
+    '/banking/accounts/balance-history/',
+    { params },
+  );
+  return data;
+}
+
 /** Miroir d'un retrait sur le compte espèces. Les deux jambes deviennent internes. */
 export async function withdrawToCash(
   transactionId: string,

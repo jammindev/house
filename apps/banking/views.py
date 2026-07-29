@@ -1,5 +1,6 @@
 """Banking REST API views."""
 import json
+from calendar import monthrange
 from datetime import date
 from decimal import Decimal, InvalidOperation
 
@@ -25,6 +26,12 @@ from .anchoring import (
 )
 from .balances import compute_balance, serialize_balance
 from .coverage import serialize_coverage
+from .history import (
+    balance_series,
+    household_series,
+    serialize_history,
+    serialize_household_history,
+)
 from .compliance import (
     get_detector,
     group_result,
@@ -100,6 +107,53 @@ def _parse_date_param(value: str | None, field: str) -> date | None:
         raise ValidationError({field: "Expected a date in YYYY-MM-DD format."})
 
 
+#: A balance curve defaults to the last rolling year — long enough to show a
+#: season, short enough to stay one screen. ``months=0`` means "everything".
+DEFAULT_HISTORY_MONTHS = 12
+MAX_HISTORY_MONTHS = 120
+
+
+def _window_start(request, *, end: date | None, household) -> date | None:
+    """Start of the curve window, from ``?from=`` or a rolling ``?months=``.
+
+    An explicit ``from`` wins. Otherwise the window is counted back in calendar
+    months from ``end`` — never in 30-day chunks, which would make « les 12
+    derniers mois » drift by five days a year.
+
+    "Today" is the household's today (``core.timezones``), never the server's:
+    the bound of a period decides which month an operation falls in.
+    """
+    explicit = _parse_date_param(request.query_params.get("from"), "from")
+    if explicit is not None:
+        return explicit
+
+    raw = request.query_params.get("months")
+    if raw is None:
+        months = DEFAULT_HISTORY_MONTHS
+    else:
+        try:
+            months = int(raw)
+        except ValueError:
+            raise ValidationError({"months": "Expected a whole number of months."})
+        if months < 0 or months > MAX_HISTORY_MONTHS:
+            raise ValidationError(
+                {"months": f"Expected between 0 and {MAX_HISTORY_MONTHS} months."}
+            )
+
+    # 0 = the account's whole life: let ``banking.history`` pick its own start,
+    # which is the opening balance date — the earliest point that means anything.
+    if months == 0:
+        return None
+    return _months_back(end or household_today(household), months)
+
+
+def _months_back(day: date, months: int) -> date:
+    total = day.year * 12 + (day.month - 1) - months
+    year, month = divmod(total, 12)
+    month += 1
+    return date(year, month, min(day.day, monthrange(year, month)[1]))
+
+
 class BankAccountViewSet(viewsets.ModelViewSet):
     """CRUD for the household's accounts.
 
@@ -161,6 +215,38 @@ class BankAccountViewSet(viewsets.ModelViewSet):
         account = self.get_object()
         as_of = _parse_date_param(request.query_params.get("as_of"), "as_of")
         return Response(serialize_balance(compute_balance(account=account, as_of=as_of)))
+
+    @action(detail=True, methods=["get"], url_path="balance-history")
+    def balance_history(self, request, pk=None):
+        """The same balance, day by day, so its shape can be read.
+
+        Unwound backwards from :func:`compute_balance` rather than recomputed —
+        see :mod:`banking.history` for why the curve must end on the figure the
+        card already shows.
+        """
+        account = self.get_object()
+        end = _parse_date_param(request.query_params.get("to"), "to")
+        start = _window_start(request, end=end, household=account.household)
+        return Response(
+            serialize_history(balance_series(account=account, start=start, end=end))
+        )
+
+    @action(detail=False, methods=["get"], url_path="balance-history")
+    def household_balance_history(self, request):
+        """Every live account on one shared axis, plus the household total.
+
+        A list route because the shared axis is the product: curves sampled
+        account by account would land on different days and could not be read
+        against each other, let alone summed.
+        """
+        household = self._require_household()
+        end = _parse_date_param(request.query_params.get("to"), "to")
+        start = _window_start(request, end=end, household=household)
+        return Response(
+            serialize_household_history(
+                household_series(household=household, start=start, end=end)
+            )
+        )
 
     @action(detail=True, methods=["get"], url_path="coverage")
     def coverage(self, request, pk=None):

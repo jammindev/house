@@ -4,10 +4,12 @@ import {
   archiveBankAccount,
   createBankAccount,
   fetchAccountBalance,
+  fetchAccountBalanceHistory,
   fetchAccountCoverage,
   fetchAllocations,
   fetchAccountFlow,
   fetchBalanceAnchor,
+  fetchHouseholdBalanceHistory,
   adjustCashMirror,
   fetchBankAccounts,
   fetchStatementImports,
@@ -30,6 +32,7 @@ import {
   updateBankAccount,
   withdrawToCash,
   type AllocationLine,
+  type BalanceHistoryParams,
   type BankAccountPayload,
   type CashDepositPayload,
   type CashExpensePayload,
@@ -57,6 +60,10 @@ export const bankingKeys = {
     [...bankingKeys.all, 'suggestions', transactionId] as const,
   anchor: (accountId: string) => [...bankingKeys.all, 'anchor', accountId] as const,
   coverage: (accountId: string) => [...bankingKeys.all, 'coverage', accountId] as const,
+  balanceHistory: (accountId: string, params: BalanceHistoryParams) =>
+    [...bankingKeys.all, 'balance-history', accountId, params] as const,
+  householdBalanceHistory: (params: BalanceHistoryParams) =>
+    [...bankingKeys.all, 'balance-history', 'household', params] as const,
 };
 
 export function useBankAccounts(includeArchived = false) {
@@ -127,6 +134,29 @@ export function useAccountCoverage(accountId: string | undefined) {
     queryKey: bankingKeys.coverage(accountId ?? ''),
     queryFn: () => fetchAccountCoverage(accountId as string),
     enabled: Boolean(accountId),
+  });
+}
+
+/**
+ * La courbe d'un compte. Même racine de cache que le solde, donc invalidée par
+ * le même import : les deux chiffres doivent bouger ensemble ou pas du tout.
+ */
+export function useAccountBalanceHistory(
+  accountId: string | undefined,
+  params: BalanceHistoryParams = {},
+) {
+  return useQuery({
+    queryKey: bankingKeys.balanceHistory(accountId ?? '', params),
+    queryFn: () => fetchAccountBalanceHistory(accountId as string, params),
+    enabled: Boolean(accountId),
+  });
+}
+
+/** Tous les comptes vivants sur un axe commun, plus le total du foyer. */
+export function useHouseholdBalanceHistory(params: BalanceHistoryParams = {}) {
+  return useQuery({
+    queryKey: bankingKeys.householdBalanceHistory(params),
+    queryFn: () => fetchHouseholdBalanceHistory(params),
   });
 }
 

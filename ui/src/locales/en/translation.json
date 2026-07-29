@@ -3842,6 +3842,18 @@
       "transactionCount_one": "{{count}} operation",
       "transactionCount_other": "{{count}} operations",
       "currencyLabel": "Currency"
+    },
+    "history": {
+      "title": "Balance over time",
+      "householdTitle": "What the household holds",
+      "total": "Total",
+      "tooShort": "Not enough history yet to draw a curve.",
+      "unreliable": "A gap in the statement chain shifts the whole earlier part of this curve — the shape looks normal but the figures before the gap are off.",
+      "window": {
+        "months_one": "{{count}} month",
+        "months_other": "{{count}} months",
+        "all": "All"
+      }
     }
   },
   "pwa": {

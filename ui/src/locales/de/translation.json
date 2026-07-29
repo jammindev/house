@@ -3842,6 +3842,18 @@
       "transactionCount_one": "{{count}} Umsatz",
       "transactionCount_other": "{{count}} Umsätze",
       "currencyLabel": "Währung"
+    },
+    "history": {
+      "title": "Kontostand im Zeitverlauf",
+      "householdTitle": "Was der Haushalt besitzt",
+      "total": "Gesamt",
+      "tooShort": "Noch nicht genug Verlauf für eine Kurve.",
+      "unreliable": "Eine Lücke in der Saldenkette verschiebt den gesamten früheren Teil dieser Kurve — die Form wirkt normal, aber die Beträge vor der Lücke stimmen nicht.",
+      "window": {
+        "months_one": "{{count}} Monat",
+        "months_other": "{{count}} Monate",
+        "all": "Alle"
+      }
     }
   },
   "pwa": {
