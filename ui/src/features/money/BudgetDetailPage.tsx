@@ -127,15 +127,23 @@ export default function BudgetDetailPage() {
    * cinquième sur une enveloppe chargée. Et elles ne se réduisent pas quand un
    * filtre est actif : on peut passer d'un fournisseur à l'autre sans repasser
    * par « Tous ».
+   *
+   * ⚠️ **La valeur active est épinglée dans les options**, même absente de la
+   * fenêtre. Elle peut l'être de deux façons : les filtres sont gardés d'une
+   * enveloppe à l'autre (une seule clé de session, comme la période), et un
+   * fournisseur du mois en cours peut n'avoir rien dépensé le mois d'avant. Sans
+   * cet épinglage la pastille disparaît des options alors que le filtre reste
+   * actif : liste vide, « Tous » non surligné, et rien à l'écran ne nomme le
+   * coupable — un filtre qu'on subit sans le voir.
    */
-  const supplierOptions = React.useMemo(
-    () => (insights?.suppliers ?? []).map((s) => s.supplier).filter(Boolean).slice(0, 8),
-    [insights],
-  );
-  const kindOptions = React.useMemo(
-    () => (insights?.kinds ?? []).map((k) => k.kind),
-    [insights],
-  );
+  const supplierOptions = React.useMemo(() => {
+    const top = (insights?.suppliers ?? []).map((s) => s.supplier).filter(Boolean).slice(0, 8);
+    return supplier && !top.includes(supplier) ? [supplier, ...top] : top;
+  }, [insights, supplier]);
+  const kindOptions = React.useMemo(() => {
+    const all = (insights?.kinds ?? []).map((k) => k.kind);
+    return kind && !all.includes(kind) ? [kind, ...all] : all;
+  }, [insights, kind]);
 
   /**
    * La liste se **parcourt**, elle ne se plafonne pas.

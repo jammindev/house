@@ -124,7 +124,8 @@ const fetchInteractions = vi.fn(
   ): Promise<FetchInteractionsResult> => {
     // Aucune dépense de « Castorama » sur cette enveloppe : c'est le filtre qui
     // vide la liste, et il faut pouvoir le relâcher après ça.
-    if (options.supplier === 'Castorama') return { items: [], count: 0, next: null, previous: null };
+    if (options.supplier === 'Castorama' || options.supplier === 'Brico Dépôt')
+      return { items: [], count: 0, next: null, previous: null };
     const offset = options.offset ?? 0;
     const prefix = options.budget === 'b-2' ? 'c' : 'e';
     const items = Array.from({ length: Math.min(50, TOTAL - offset) }, (_, i) =>
@@ -252,6 +253,19 @@ describe('BudgetDetailPage — la liste des dépenses', () => {
     // Et le message ne dit pas « aucune dépense sur cette période », qui
     // enverrait changer de période au lieu de relâcher la pastille.
     expect(screen.queryByText('budgetDetail.empty')).not.toBeInTheDocument();
+  });
+
+  it('⚠️ un filtre actif garde sa pastille, même absent de la fenêtre', async () => {
+    // Le filtre survit à la fenêtre (même clé de session d'une enveloppe à
+    // l'autre, et un fournisseur peut n'avoir rien dépensé le mois d'avant). Sans
+    // épinglage, sa pastille disparaît des options mais le filtre reste actif :
+    // liste vide, « Tous » non surligné, et rien à l'écran ne nomme le coupable.
+    sessionStorage.setItem('budget.detail.supplier', JSON.stringify('Brico Dépôt'));
+    renderPage();
+
+    await screen.findByText('budgetDetail.emptyFiltered');
+
+    expect(screen.getByText('Brico Dépôt')).toBeInTheDocument();
   });
 
   it('⚠️ vide la sélection quand un filtre change, retour compris', async () => {
