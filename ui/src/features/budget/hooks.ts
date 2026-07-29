@@ -10,6 +10,7 @@ import {
   deleteRecurringExpense,
   fetchBudgetAnalysis,
   fetchBudgetCategories,
+  fetchBudgetInsights,
   fetchBudgetOverview,
   fetchBudgetReports,
   fetchBudgets,
@@ -40,6 +41,8 @@ export const budgetKeys = {
   latestReport: () => [...budgetKeys.all, 'reports', 'latest'] as const,
   analysis: (months: number, budget: string | null) =>
     [...budgetKeys.all, 'analysis', months, budget] as const,
+  insights: (budget: string, from?: string, to?: string) =>
+    [...budgetKeys.all, 'insights', budget, from ?? '', to ?? ''] as const,
 };
 
 export function useBudgets() {
@@ -213,6 +216,23 @@ export function useBudgetAnalysis(months: number, budget: string | null) {
   return useQuery({
     queryKey: budgetKeys.analysis(months, budget),
     queryFn: () => fetchBudgetAnalysis({ months, budget }),
+    staleTime: 60_000,
+  });
+}
+
+/**
+ * La fiche d'une enveloppe : son total, sa période précédente, sa forme, ses
+ * fournisseurs. Un seul appel, `budget` valant un id ou `none`.
+ *
+ * Tout arrive du serveur pour une raison de fond : le total affiché ici est
+ * celui du panneau Budgets, et le graphique juste en dessous doit le recomposer.
+ * Recalculer l'un des deux dans le navigateur donnerait au même compteur une
+ * seconde définition — la faute que ce module passe son temps à réparer.
+ */
+export function useBudgetInsights(budget: string, from?: string, to?: string) {
+  return useQuery({
+    queryKey: budgetKeys.insights(budget, from, to),
+    queryFn: () => fetchBudgetInsights({ budget, from, to }),
     staleTime: 60_000,
   });
 }

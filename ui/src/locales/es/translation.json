@@ -1672,6 +1672,10 @@
             "title": "Seguir el mes",
             "body": "Cada presupuesto con tope muestra lo gastado frente al tope con una barra de progreso — naranja cerca del límite, rojo al superarlo. Una categoría sin tope muestra solo su total. Los contadores se reinician cada mes. Toca un presupuesto para ver los gastos que componen su contador: «Sin presupuesto» se abre igual. La barra tiene dos matices: la parte sólida es lo que una línea del extracto acredita, la parte pálida lo que aún espera conciliación. El contador cuenta todo — un gasto de ayer es real incluso antes de importar el extracto. Un reembolso (artículo devuelto, cuota reembolsada) se deduce: el contador muestra el neto, y la línea del reembolso aparece bajo los gastos."
           },
+          "sheet": {
+            "title": "Abrir la ficha de un presupuesto",
+            "body": "Toca un presupuesto para abrir su ficha. Elige el periodo — los cuatro accesos rápidos o dos fechas libres — y todo se recalcula. Bajo el importe está la comparación con el periodo anterior equivalente: un mes se compara con el mes anterior, un año con el año anterior, una ventana libre con la misma duración justo antes. Debajo, el ritmo de gastos día a día (mes a mes en una ventana larga) y la parte de cada proveedor en porcentaje. Si antes no se gastó nada, House dice que no hay comparación en lugar de inventar un porcentaje. « Sin presupuesto » se abre exactamente igual."
+          },
           "analysis": {
             "title": "Ver adónde va de verdad",
             "body": "Abre «Análisis de gastos» desde la página de presupuestos: cada categoría mes a mes, el reparto en 6, 12 o 24 meses, los proveedores que más pesan y tus mayores gastos. Ahí se ve una categoría que se desvía — el panel Presupuestos solo mira el mes en curso."
@@ -3383,7 +3387,24 @@
     "empty": "Ningún gasto en este periodo",
     "emptyDescription": "Cambia de periodo o clasifica gastos en este presupuesto.",
     "truncated": "Mostrando {{shown}} de {{total}} gastos.",
-    "refundsTitle": "Reembolsos del periodo"
+    "refundsTitle": "Reembolsos del periodo",
+    "trend": {
+      "title": "Ritmo de gastos",
+      "hint": {
+        "day": "Un día sin gasto cuenta como cero: el espacio entre dos barras es tiempo, no un hueco.",
+        "month": "Un mes vacío cuenta como cero: es una información, no un hueco."
+      }
+    },
+    "share": {
+      "title": "A dónde fue el dinero",
+      "hint": "Parte de cada proveedor en el total bruto del periodo.",
+      "totalLabel": "Total del periodo",
+      "noSupplier": "Sin proveedor"
+    },
+    "compare": {
+      "versus": "respecto a {{period}} ({{amount}})",
+      "noBaseline": "Nada gastado en {{period}}: no hay comparación posible."
+    }
   },
   "analysis": {
     "title": "Análisis de gastos",

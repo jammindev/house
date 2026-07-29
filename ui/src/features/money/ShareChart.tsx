@@ -2,15 +2,26 @@ import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts';
 import { formatAmount } from '@/lib/format';
-import { chartColor, UNBUDGETED_COLOR } from '@/lib/chartColors';
-import type { AnalysisBreakdownRow } from '@/lib/api/budget';
+import { chartColor } from '@/lib/chartColors';
 
 /** Au-delà, les parts deviennent des filets illisibles — on les regroupe. */
 const VISIBLE_SLICES = 6;
 
-interface BudgetShareChartProps {
-  rows: AnalysisBreakdownRow[];
+export interface ShareRow {
+  key: string;
+  label: string;
   total: string;
+  /** Part du total, entre 0 et 1. */
+  share: number;
+  /** Couleur imposée — sinon la position dans la liste décide. */
+  color?: string;
+}
+
+interface ShareChartProps {
+  rows: ShareRow[];
+  total: string;
+  /** Étiquette du trou central. Défaut : « Total de la période ». */
+  totalLabel?: string;
 }
 
 /**
@@ -22,8 +33,14 @@ interface BudgetShareChartProps {
  *
  * Le trou du milieu affiche le total, parce que la première question devant une
  * répartition est toujours « de combien parle-t-on ».
+ *
+ * Générique par nécessité, pas par goût : il sert la répartition **par budget**
+ * (page Analyse) et la répartition **par fournisseur** (fiche d'un budget). Les
+ * deux n'ont en commun que la forme — une part, un libellé, un montant — et
+ * c'est exactement ce que la liste de `ShareRow` exprime. Un second anneau,
+ * copié pour une clé de plus, aurait dérivé sur le regroupement de la traîne.
  */
-export default function BudgetShareChart({ rows, total }: BudgetShareChartProps) {
+export default function ShareChart({ rows, total, totalLabel }: ShareChartProps) {
   const { t } = useTranslation();
 
   // Regroupement au-delà de six : « Autres » agrège la traîne plutôt que de
@@ -32,11 +49,11 @@ export default function BudgetShareChart({ rows, total }: BudgetShareChartProps)
     const head = rows.slice(0, VISIBLE_SLICES);
     const tail = rows.slice(VISIBLE_SLICES);
     const out = head.map((row, index) => ({
-      key: row.budget_id ?? 'unbudgeted',
-      label: row.name ?? t('budget.unbudgeted.label'),
+      key: row.key,
+      label: row.label,
       value: Number(row.total),
       share: row.share,
-      color: row.budget_id === null ? UNBUDGETED_COLOR : chartColor(index),
+      color: row.color ?? chartColor(index),
     }));
     if (tail.length > 0) {
       out.push({
@@ -85,7 +102,9 @@ export default function BudgetShareChart({ rows, total }: BudgetShareChartProps)
 
         {/* Centré sur l'anneau, non cliquable : c'est une étiquette, pas un contrôle. */}
         <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-          <span className="text-xs text-muted-foreground">{t('analysis.periodTotal')}</span>
+          <span className="text-xs text-muted-foreground">
+            {totalLabel ?? t('analysis.periodTotal')}
+          </span>
           <span className="text-sm font-semibold tabular-nums text-foreground">
             {formatAmount(total, { fractionDigits: 0 })}
           </span>

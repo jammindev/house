@@ -1,4 +1,8 @@
 """Budget REST API views."""
+import calendar
+import uuid
+from datetime import date
+
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db.models import Count
 from rest_framework import viewsets
@@ -8,9 +12,11 @@ from rest_framework.response import Response
 
 from core.permissions import IsHouseholdMember
 from core.timezones import household_today
+from interactions.aggregations import UNBUDGETED
 
 from .aggregations import compute_budget_overview, compute_cashflow_projection
 from .analysis import DEFAULT_MONTHS, compute_budget_analysis
+from .insights import compute_budget_insights
 from .models import Budget, BudgetCategory, BudgetReport, RecurringExpense
 from .report.service import get_or_generate_report, last_closed_month
 from .serializers import (
@@ -165,6 +171,88 @@ class BudgetViewSet(viewsets.ModelViewSet):
                 household=household, months=months, budget_id=budget_id
             )
         )
+
+    @action(detail=False, methods=["get"])
+    def insights(self, request):
+        """GET /api/budget/budgets/insights/?budget=<id|none>&from=&to=
+
+        De quoi la fiche d'une enveloppe est faite : le total de la période, le
+        même total sur la période **précédente équivalente** avec l'écart, la
+        série jour par jour (ou mois par mois sur une longue fenêtre) et la
+        répartition par fournisseur.
+
+        Tout part d'un seul appel : refaire ces quatre lectures dans le
+        navigateur imposerait d'y charger toutes les dépenses de la fenêtre, et
+        donnerait au compteur déjà affiché une seconde définition.
+
+        ``budget=none`` ouvre le seau « hors budget » — même page, même geste.
+        Sans période, on répond sur le mois en cours **chez le foyer** : ouvrir
+        une enveloppe doit afficher le total sur lequel on vient de cliquer.
+        """
+        household = request.household
+        if household is None:
+            return Response(_EMPTY_INSIGHTS)
+
+        budget = request.query_params.get("budget") or None
+        if budget and budget != UNBUDGETED:
+            try:
+                uuid.UUID(budget)
+            except ValueError:
+                # Un id malformé atteint le driver comme un crash, pas comme un
+                # filtre : un mauvais paramètre est un 400, jamais un 500.
+                raise ValidationError({"budget": 'Expected a budget id or "none".'})
+            if not Budget.objects.filter(household_id=household.id, pk=budget).exists():
+                raise ValidationError({"budget": "Unknown budget for this household."})
+
+        start, end = _parse_window(
+            request.query_params.get("from"), request.query_params.get("to"), household
+        )
+        return Response(
+            compute_budget_insights(household=household, budget=budget, start=start, end=end)
+        )
+
+
+#: Réponse hors foyer — la **forme** complète, jamais un objet vide. Un front qui
+#: reçoit `{}` doit deviner ce qui manque ; il finit par afficher « 0 € » là où la
+#: bonne réponse est « pas de foyer sélectionné ».
+_EMPTY_INSIGHTS = {
+    "period": {"from": None, "to": None},
+    "previous_period": {"from": None, "to": None},
+    "current": {"total": "0.00", "refunded": "0.00", "net_total": "0.00", "count": 0},
+    "previous": {"total": "0.00", "refunded": "0.00", "net_total": "0.00", "count": 0},
+    "delta": {"amount": "0.00", "ratio": None},
+    "granularity": "day",
+    "buckets": [],
+    "suppliers": [],
+}
+
+
+def _parse_window(from_param, to_param, household) -> tuple[date, date]:
+    """Les deux dates de calendrier de la fenêtre, mois en cours par défaut.
+
+    Le défaut passe par ``core.timezones``, la **même** source que le panneau
+    Budgets : c'est ce qui garantit qu'ouvrir une enveloppe affiche le total sur
+    lequel on vient de cliquer, et non celui d'un mois décalé par le fuseau du
+    serveur.
+    """
+    today = household_today(household)
+    default_start = today.replace(day=1)
+    default_end = today.replace(day=calendar.monthrange(today.year, today.month)[1])
+
+    start = _parse_date(from_param, "from") or default_start
+    end = _parse_date(to_param, "to") or default_end
+    if end < start:
+        raise ValidationError({"to": "The end of the window precedes its start."})
+    return start, end
+
+
+def _parse_date(value, field: str) -> date | None:
+    if not value:
+        return None
+    try:
+        return date.fromisoformat(value)
+    except ValueError:
+        raise ValidationError({field: "Expected a YYYY-MM-DD date."})
 
 
 class BudgetCategoryViewSet(viewsets.ModelViewSet):

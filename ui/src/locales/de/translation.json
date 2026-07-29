@@ -1672,6 +1672,10 @@
             "title": "Den Monat verfolgen",
             "body": "Jedes begrenzte Budget zeigt Ausgaben vs. Obergrenze mit einem Fortschrittsbalken — orange nahe der Grenze, rot bei Überschreitung. Eine Kategorie ohne Obergrenze zeigt nur ihre Summe. Die Zähler starten jeden Monat neu. Tippe auf ein Budget, um die Ausgaben zu sehen, aus denen sein Zähler besteht — „Ohne Budget“ öffnet sich genauso. Der Balken hat zwei Abstufungen: der kräftige Teil ist, was eine Kontozeile belegt, der blasse Teil das, was noch abzugleichen ist. Der Zähler selbst zählt alles — eine Ausgabe von gestern ist echt, auch bevor der Auszug importiert ist. Eine Erstattung (zurückgegebener Artikel, erstattete Gebühr) wird abgezogen: der Zähler zeigt den Nettobetrag, und die Erstattungszeile erscheint unter den Ausgaben."
           },
+          "sheet": {
+            "title": "Das Blatt eines Budgets öffnen",
+            "body": "Tippe auf ein Budget, um sein Blatt zu öffnen. Wähle den Zeitraum — die vier Kürzel oder zwei freie Daten — und alles wird neu berechnet. Unter dem Betrag steht der Vergleich mit dem entsprechenden Vorzeitraum: ein Monat mit dem Vormonat, ein Jahr mit dem Vorjahr, ein freies Fenster mit derselben Dauer unmittelbar davor. Darunter der Ausgabenrhythmus Tag für Tag (bei langen Fenstern Monat für Monat) und der Anteil jedes Lieferanten in Prozent. Wurde zuvor nichts ausgegeben, schreibt House, dass es keinen Vergleich gibt, statt einen Prozentsatz zu erfinden. « Ohne Budget » öffnet sich genauso."
+          },
           "analysis": {
             "title": "Sehen, wohin es wirklich geht",
             "body": "Öffne „Ausgabenanalyse“ auf der Budgetseite: jede Kategorie Monat für Monat, die Verteilung über 6, 12 oder 24 Monate, die gewichtigsten Anbieter und deine größten Ausgaben. Hier zeigt sich eine abdriftende Kategorie — das Budget-Panel schaut immer nur auf den laufenden Monat."
@@ -3383,7 +3387,24 @@
     "empty": "Keine Ausgabe in diesem Zeitraum",
     "emptyDescription": "Ändere den Zeitraum oder ordne Ausgaben diesem Budget zu.",
     "truncated": "{{shown}} von {{total}} Ausgaben angezeigt.",
-    "refundsTitle": "Erstattungen im Zeitraum"
+    "refundsTitle": "Erstattungen im Zeitraum",
+    "trend": {
+      "title": "Ausgabenrhythmus",
+      "hint": {
+        "day": "Ein Tag ohne Ausgabe zählt als null: der Abstand zwischen zwei Balken ist Zeit, keine Lücke.",
+        "month": "Ein leerer Monat zählt als null: das ist eine Information, keine Lücke."
+      }
+    },
+    "share": {
+      "title": "Wohin das Geld geflossen ist",
+      "hint": "Anteil jedes Lieferanten am Bruttogesamtbetrag des Zeitraums.",
+      "totalLabel": "Gesamt Zeitraum",
+      "noSupplier": "Ohne Lieferant"
+    },
+    "compare": {
+      "versus": "im Vergleich zu {{period}} ({{amount}})",
+      "noBaseline": "Nichts ausgegeben in {{period}} — kein Vergleich möglich."
+    }
   },
   "analysis": {
     "title": "Ausgabenanalyse",

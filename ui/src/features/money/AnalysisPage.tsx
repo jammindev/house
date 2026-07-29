@@ -16,7 +16,7 @@ import { chartColor, UNBUDGETED_COLOR } from '@/lib/chartColors';
 import { useDelayedLoading } from '@/lib/useDelayedLoading';
 import { useSessionState } from '@/lib/useSessionState';
 import { useBudgetAnalysis, useBudgets } from '@/features/budget/hooks';
-import BudgetShareChart from './BudgetShareChart';
+import ShareChart, { type ShareRow } from './ShareChart';
 import { selectableBudgets } from '@/features/budget/tree';
 
 /** Trois fenêtres, pas un curseur : on compare des saisons, pas des jours. */
@@ -79,6 +79,21 @@ export default function AnalysisPage() {
       ),
     }));
   }, [data]);
+
+  // « Hors budget » garde sa couleur réservée : c'est un reste, pas une
+  // catégorie, et lui laisser prendre une couleur de la palette au gré de son
+  // rang le ferait passer pour une enveloppe comme les autres.
+  const shareRows: ShareRow[] = React.useMemo(
+    () =>
+      (data?.breakdown ?? []).map((row) => ({
+        key: row.budget_id ?? 'unbudgeted',
+        label: row.name ?? t('budget.unbudgeted.label'),
+        total: row.total,
+        share: row.share,
+        ...(row.budget_id === null ? { color: UNBUDGETED_COLOR } : {}),
+      })),
+    [data, t],
+  );
 
   const hasSpending = Boolean(data && Number(data.total) > 0);
   const biggestSupplier = data?.suppliers[0];
@@ -161,7 +176,7 @@ export default function AnalysisPage() {
                 <p className="mb-3 mt-1 text-xs text-muted-foreground">
                   {t('analysis.share.hint')}
                 </p>
-                <BudgetShareChart rows={data.breakdown} total={data.total} />
+                <ShareChart rows={shareRows} total={data.total} />
               </Card>
             )}
 

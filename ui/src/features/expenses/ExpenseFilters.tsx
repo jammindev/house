@@ -1,15 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { FilterPill } from '@/design-system/filter-pill';
-import { Input } from '@/design-system/input';
-import { FormField } from '@/design-system/form-field';
-import type { PeriodPreset, PeriodRange } from './period';
-import { todayISO } from '@/lib/format';
-
-const PRESETS: PeriodPreset[] = ['currentMonth', 'previousMonth', 'last30Days', 'currentYear', 'custom'];
-
-function todayIsoDate(): string {
-  return todayISO();
-}
+import PeriodPicker from './PeriodPicker';
+import type { PeriodRange } from './period';
 
 interface ExpenseFiltersProps {
   period: PeriodRange;
@@ -36,53 +28,9 @@ export default function ExpenseFilters({
 }: ExpenseFiltersProps) {
   const { t } = useTranslation();
 
-  const handleCustomFrom = (value: string) => {
-    onPeriodChange({ preset: 'custom', from: value || undefined, to: period.to });
-  };
-  const handleCustomTo = (value: string) => {
-    onPeriodChange({ preset: 'custom', from: period.from, to: value || undefined });
-  };
-
   return (
     <div className="space-y-3">
-      <div className="flex flex-wrap gap-1.5">
-        {PRESETS.map((preset) => (
-          <FilterPill
-            key={preset}
-            active={period.preset === preset}
-            onClick={() => {
-              if (preset === 'custom') {
-                onPeriodChange({ preset: 'custom', from: period.from ?? todayIsoDate(), to: period.to ?? todayIsoDate() });
-              } else {
-                onPeriodChange({ preset });
-              }
-            }}
-          >
-            {t(`expenses.filters.period.${preset}`)}
-          </FilterPill>
-        ))}
-      </div>
-
-      {period.preset === 'custom' ? (
-        <div className="grid gap-3 sm:grid-cols-2">
-          <FormField label={t('expenses.filters.from')} htmlFor="expenses-from">
-            <Input
-              id="expenses-from"
-              type="date"
-              value={period.from ?? ''}
-              onChange={(e) => handleCustomFrom(e.target.value)}
-            />
-          </FormField>
-          <FormField label={t('expenses.filters.to')} htmlFor="expenses-to">
-            <Input
-              id="expenses-to"
-              type="date"
-              value={period.to ?? ''}
-              onChange={(e) => handleCustomTo(e.target.value)}
-            />
-          </FormField>
-        </div>
-      ) : null}
+      <PeriodPicker period={period} onChange={onPeriodChange} idPrefix="expenses" />
 
       {kindOptions.length > 0 ? (
         <div className="flex flex-wrap gap-1.5">

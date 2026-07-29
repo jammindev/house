@@ -1672,6 +1672,10 @@
             "title": "Suivre le mois",
             "body": "Chaque budget plafonné affiche le dépensé vs le plafond avec une barre de progression — orange près de la limite, rouge en cas de dépassement. Une catégorie sans plafond affiche seulement son total. Les compteurs repartent à zéro chaque mois. Touche un budget pour voir les dépenses qui composent son compteur — « Hors budget » s'ouvre pareil. La barre a deux nuances : la partie franche est ce qu'une ligne de relevé atteste, la partie pâle ce qui attend encore d'être rapproché. Le compteur, lui, compte tout — une dépense d'hier est réelle même si le relevé n'est pas encore importé. Un remboursement (article retourné, cotisation remboursée) vient en déduction : le compteur affiche alors le net, et la ligne du remboursement apparaît sous les dépenses."
           },
+          "sheet": {
+            "title": "Ouvrir la fiche d'un budget",
+            "body": "Touche un budget pour ouvrir sa fiche. Choisis la période — les quatre raccourcis, ou deux dates libres — et tout se recalcule. Sous le montant, la comparaison avec la période précédente équivalente : un mois se compare au mois d'avant, une année à l'année d'avant, une fenêtre libre à la même durée juste avant. En dessous, le rythme des dépenses jour par jour (mois par mois sur une longue fenêtre) et la part de chaque fournisseur en pourcentage. Sans dépense avant, House écrit qu'il n'y a pas de comparaison plutôt que d'inventer un pourcentage. « Hors budget » s'ouvre exactement pareil."
+          },
           "analysis": {
             "title": "Comprendre où ça part",
             "body": "Ouvre « Analyse des dépenses » depuis la page budget : l'évolution mois par mois de chaque catégorie, la répartition sur 6, 12 ou 24 mois, les fournisseurs qui pèsent le plus et tes plus grosses dépenses. C'est là qu'une catégorie qui dérive se voit — le panneau Budgets, lui, ne regarde que le mois en cours."
@@ -3383,7 +3387,24 @@
     "empty": "Aucune dépense sur cette période",
     "emptyDescription": "Change de période, ou range des dépenses dans ce budget.",
     "truncated": "{{shown}} dépenses affichées sur {{total}}.",
-    "refundsTitle": "Remboursements de la période"
+    "refundsTitle": "Remboursements de la période",
+    "trend": {
+      "title": "Rythme des dépenses",
+      "hint": {
+        "day": "Un jour sans dépense compte comme zéro : l'écart entre deux barres est du temps, pas un trou.",
+        "month": "Un mois vide compte comme zéro : c'est une information, pas un trou."
+      }
+    },
+    "share": {
+      "title": "Chez qui l'argent est parti",
+      "hint": "Part de chaque fournisseur dans le total brut de la période.",
+      "totalLabel": "Total période",
+      "noSupplier": "Sans fournisseur"
+    },
+    "compare": {
+      "versus": "par rapport à {{period}} ({{amount}})",
+      "noBaseline": "Rien de dépensé sur {{period}} — pas de comparaison possible."
+    }
   },
   "analysis": {
     "title": "Analyse des dépenses",

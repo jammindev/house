@@ -23,9 +23,17 @@ from .queries import expenses
 UNBUDGETED = 'none'
 
 
-def _expense_qs(household_id, from_dt: datetime | None, to_dt: datetime | None,
-                supplier: str | None = None, kind: str | None = None,
-                budget: str | None = None):
+def expense_qs(household_id, from_dt: datetime | None, to_dt: datetime | None,
+               supplier: str | None = None, kind: str | None = None,
+               budget: str | None = None):
+    """Les dépenses d'une période, filtrées comme le résumé les filtre.
+
+    Public — et pas seulement parce qu'un second module s'en sert. La fiche d'un
+    budget affiche le total du résumé **et** sa décomposition par jour et par
+    fournisseur : si les deux ne partaient pas du même queryset, le graphique
+    finirait par ne plus recomposer le chiffre écrit juste au-dessus de lui, et
+    aucun des deux ne dirait lequel se trompe.
+    """
     qs = expenses(household_id=household_id)
     if from_dt is not None:
         qs = qs.filter(occurred_at__gte=from_dt)
@@ -74,7 +82,7 @@ def compute_expense_summary(
           "by_month": [{"month": "2026-05", "total": "1247.83", "count": 18}, ...],
         }
     """
-    qs = _expense_qs(household_id, from_dt, to_dt, supplier=supplier, kind=kind, budget=budget)
+    qs = expense_qs(household_id, from_dt, to_dt, supplier=supplier, kind=kind, budget=budget)
 
     overall = qs.aggregate(
         total=Coalesce(Sum('amount'), _zero()),

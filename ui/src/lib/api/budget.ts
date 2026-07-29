@@ -183,6 +183,69 @@ export async function fetchBudgetAnalysis(params: {
   return data;
 }
 
+/** Les quatre chiffres d'une période, tels que la carte de tête les affiche. */
+export interface InsightTotals {
+  /** Le brut — c'est lui que les barres et les parts recomposent. */
+  total: string;
+  refunded: string;
+  /** Le chiffre de tête : brut moins ce qui est revenu. */
+  net_total: string;
+  count: number;
+}
+
+export interface InsightDelta {
+  /** Écart en euros sur le net. Négatif quand la période a moins dépensé. */
+  amount: string;
+  /**
+   * Part de l'écart, entre -1 et +∞. **`null` quand la période précédente n'a
+   * rien dépensé** — passer de 0 € à 150 € n'est pas « +∞ % », c'est un premier
+   * mois, et c'est au front de le dire avec des mots.
+   */
+  ratio: number | null;
+}
+
+export interface InsightBucket {
+  /** `YYYY-MM-DD` en granularité `day`, `YYYY-MM` en `month`. */
+  label: string;
+  total: string;
+}
+
+export interface InsightSupplier {
+  /** Chaîne vide = dépenses sans fournisseur ; elles restent dans la part. */
+  supplier: string;
+  total: string;
+  count: number;
+  /** Part du brut de la période, entre 0 et 1. */
+  share: number;
+}
+
+export interface BudgetInsights {
+  period: { from: string | null; to: string | null };
+  previous_period: { from: string | null; to: string | null };
+  current: InsightTotals;
+  previous: InsightTotals;
+  delta: InsightDelta;
+  granularity: 'day' | 'month';
+  /** La fenêtre entière, **trous compris** : un jour vide vaut `"0.00"`. */
+  buckets: InsightBucket[];
+  suppliers: InsightSupplier[];
+}
+
+export async function fetchBudgetInsights(params: {
+  budget: string;
+  from?: string;
+  to?: string;
+}): Promise<BudgetInsights> {
+  const { data } = await api.get<BudgetInsights>('/budget/budgets/insights/', {
+    params: {
+      budget: params.budget,
+      ...(params.from ? { from: params.from } : {}),
+      ...(params.to ? { to: params.to } : {}),
+    },
+  });
+  return data;
+}
+
 export async function fetchBudgets(): Promise<Budget[]> {
   const { data } = await api.get<Budget[] | { results: Budget[] }>('/budget/budgets/');
   return Array.isArray(data) ? data : data.results;

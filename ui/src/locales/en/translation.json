@@ -1672,6 +1672,10 @@
             "title": "Track the month",
             "body": "Each capped budget shows spent vs ceiling with a progress bar — amber near the limit, red once over. A category with no ceiling shows its total only. Counters reset every month. Tap a budget to see the expenses its counter is made of — “Unbudgeted” opens the same way. The bar comes in two shades: the solid part is what a statement line attests to, the pale part what is still awaiting reconciliation. The counter itself counts everything — yesterday's expense is real even before the statement is imported. A refund (returned item, reimbursed fee) is deducted: the counter shows the net, and the refund line appears under the expenses."
           },
+          "sheet": {
+            "title": "Open a budget's sheet",
+            "body": "Tap a budget to open its sheet. Pick the period — the four shortcuts, or two free dates — and everything recomputes. Under the amount sits the comparison with the equivalent previous period: a month compares with the month before, a year with the year before, a free window with the same duration just before it. Below that, the spending rhythm day by day (month by month over a long window) and each supplier's share as a percentage. With nothing spent before, House says there is no comparison rather than inventing a percentage. « Unbudgeted » opens exactly the same way."
+          },
           "analysis": {
             "title": "See where it actually goes",
             "body": "Open “Spending analysis” from the budget page: each category month by month, the breakdown over 6, 12 or 24 months, the suppliers that weigh most and your biggest expenses. This is where a drifting category shows up — the Budgets panel only ever looks at the current month."
@@ -3383,7 +3387,24 @@
     "empty": "No expense in this period",
     "emptyDescription": "Change the period, or sort some expenses into this budget.",
     "truncated": "Showing {{shown}} of {{total}} expenses.",
-    "refundsTitle": "Refunds over the period"
+    "refundsTitle": "Refunds over the period",
+    "trend": {
+      "title": "Spending rhythm",
+      "hint": {
+        "day": "A day with no expense counts as zero: the gap between two bars is time, not a hole.",
+        "month": "An empty month counts as zero: that is information, not a gap."
+      }
+    },
+    "share": {
+      "title": "Where the money went",
+      "hint": "Each supplier's share of the period's gross total.",
+      "totalLabel": "Period total",
+      "noSupplier": "No supplier"
+    },
+    "compare": {
+      "versus": "compared with {{period}} ({{amount}})",
+      "noBaseline": "Nothing spent in {{period}} — no comparison possible."
+    }
   },
   "analysis": {
     "title": "Spending analysis",
