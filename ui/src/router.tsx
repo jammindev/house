@@ -6,6 +6,7 @@ import PreserveQueryRedirect from './components/PreserveQueryRedirect';
 import LoginPage from './features/auth/LoginPage';
 import ForgotPasswordPage from './features/auth/ForgotPasswordPage';
 import ResetPasswordPage from './features/auth/ResetPasswordPage';
+import JoinHouseholdPage from './features/auth/JoinHouseholdPage';
 import NotFoundPage from './features/general/NotFoundPage';
 import { lazyWithReload } from './lib/lazyWithReload';
 
@@ -77,6 +78,12 @@ export const router = createBrowserRouter([
   {
     path: '/reset-password',
     element: <ResetPasswordPage />,
+  },
+  {
+    // Public on purpose: the invitation token is the credential, and this is the
+    // only way into House for somebody who has no account yet.
+    path: '/join/:token',
+    element: <JoinHouseholdPage />,
   },
   {
     path: '/app',

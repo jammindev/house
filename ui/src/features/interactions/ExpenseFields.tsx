@@ -2,6 +2,7 @@ import * as React from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Input } from '@/design-system/input';
+import { DecimalInput } from '@/design-system/decimal-input';
 import { Badge } from '@/design-system/badge';
 import { Select } from '@/design-system/select';
 import { FormField } from '@/design-system/form-field';
@@ -127,13 +128,10 @@ export default function ExpenseFields({
           <label htmlFor="expense-amount" className="text-sm font-medium">
             {t('interactions.expense.amount_label')}
           </label>
-          <Input
+          <DecimalInput
             id="expense-amount"
-            type="number"
-            step="0.01"
-            min="0"
             value={amount}
-            onChange={(e) => onAmountChange(e.target.value)}
+            onChange={onAmountChange}
             placeholder="0.00"
           />
         </div>

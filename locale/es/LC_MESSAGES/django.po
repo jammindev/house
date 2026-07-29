@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: House Backend 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-28 10:03+0000\n"
+"POT-Creation-Date: 2026-07-29 03:56+0000\n"
 "PO-Revision-Date: 2026-03-08 00:00+0000\n"
 "Last-Translator: House Team\n"
 "Language-Team: Spanish\n"
@@ -21,7 +21,7 @@ msgstr ""
 msgid "Display name shown in the UI"
 msgstr "Nombre mostrado en la interfaz"
 
-#: apps/accounts/models.py:48 apps/households/models.py:48
+#: apps/accounts/models.py:48 apps/households/models.py:64
 msgid "English"
 msgstr "Inglés"
 
@@ -83,7 +83,8 @@ msgstr ""
 
 #: apps/accounts/models.py:160
 msgid "Monthly-recap chapter keys the user turned off."
-msgstr "Claves de los capítulos del resumen mensual desactivados por el usuario."
+msgstr ""
+"Claves de los capítulos del resumen mensual desactivados por el usuario."
 
 #: apps/accounts/models.py:173
 msgid "user"
@@ -93,7 +94,7 @@ msgstr "usuario"
 msgid "users"
 msgstr "usuarios"
 
-#: apps/accounts/serializers.py:58 apps/households/serializers.py:49
+#: apps/accounts/serializers.py:58 apps/households/serializers.py:50
 msgid "Expected a list of module keys."
 msgstr ""
 
@@ -188,7 +189,7 @@ msgstr "Inicio de sesión exitoso."
 msgid "Logout successful."
 msgstr "Cierre de sesión exitoso."
 
-#: apps/accounts/views/api.py:101 apps/households/views.py:164
+#: apps/accounts/views/api.py:101 apps/households/services.py:217
 msgid "Email is required."
 msgstr "El correo electrónico es obligatorio."
 
@@ -835,23 +836,23 @@ msgstr "Importe no válido."
 msgid "Document is not linked to this entity."
 msgstr "Archivos recientes vinculados a este hogar"
 
-#: apps/documents/models.py:82
+#: apps/documents/models.py:99
 msgid "document"
 msgstr "documento"
 
-#: apps/documents/models.py:83
+#: apps/documents/models.py:100
 msgid "documents"
 msgstr "documentos"
 
-#: apps/documents/models.py:129
+#: apps/documents/models.py:146
 msgid "Before"
 msgstr ""
 
-#: apps/documents/models.py:130
+#: apps/documents/models.py:147
 msgid "During"
 msgstr ""
 
-#: apps/documents/models.py:131
+#: apps/documents/models.py:148
 msgid "After"
 msgstr ""
 
@@ -1349,164 +1350,228 @@ msgstr "El hogar de la interacción debe coincidir con el hogar del equipo."
 msgid "Invalid interaction or access denied."
 msgstr "Interacción no válida o acceso denegado."
 
-#: apps/households/models.py:26
+#: apps/households/models.py:42
 msgid "ISO 3166-1 alpha-2 country code (e.g. FR, DE, US)"
 msgstr ""
 
-#: apps/households/models.py:28
+#: apps/households/models.py:44
 msgid "IANA timezone (e.g. Europe/Paris). Leave blank for UTC."
 msgstr ""
 
-#: apps/households/models.py:34
+#: apps/households/models.py:50
 msgid "Latitude for the weather module (decimal degrees)."
 msgstr ""
 
-#: apps/households/models.py:36
+#: apps/households/models.py:52
 msgid "Longitude for the weather module (decimal degrees)."
 msgstr ""
 
-#: apps/households/models.py:38
+#: apps/households/models.py:54
 msgid "Human-readable place name shown in the weather module."
 msgstr ""
 
-#: apps/households/models.py:47
+#: apps/households/models.py:63
 msgid "French"
 msgstr ""
 
-#: apps/households/models.py:49
+#: apps/households/models.py:65
 msgid "German"
 msgstr ""
 
-#: apps/households/models.py:50
+#: apps/households/models.py:66
 msgid "Spanish"
 msgstr ""
 
-#: apps/households/models.py:64
+#: apps/households/models.py:80
 #, fuzzy
 #| msgid "You are not a member of this household."
 msgid "Optional module keys hidden for this household."
 msgstr "No es miembro de este hogar."
 
-#: apps/households/models.py:75
+#: apps/households/models.py:91
 msgid "household"
 msgstr "hogar"
 
-#: apps/households/models.py:76
+#: apps/households/models.py:92
 msgid "households"
 msgstr "hogares"
 
-#: apps/households/models.py:136
+#: apps/households/models.py:158
 #, fuzzy
 #| msgid "Pending tasks"
 msgid "Pending"
 msgstr "Tareas pendientes"
 
-#: apps/households/models.py:137
+#: apps/households/models.py:159
 msgid "Accepted"
-msgstr ""
+msgstr "Aceptada"
 
-#: apps/households/models.py:138
+#: apps/households/models.py:160
 msgid "Declined"
-msgstr ""
+msgstr "Rechazada"
 
-#: apps/households/serializers.py:39
+#: apps/households/models.py:161
+msgid "Revoked"
+msgstr "Revocada"
+
+#: apps/households/models.py:181
+msgid ""
+"Invited email, lowercased. Blank for a link addressed to nobody in "
+"particular."
+msgstr "Dirección invitada, en minúsculas. Vacío para un enlace sin destinatario concreto."
+
+#: apps/households/models.py:187
+msgid "Secret carried by the shared link."
+msgstr "Secreto que lleva el enlace compartido."
+
+#: apps/households/models.py:236
+msgid "shared link"
+msgstr "enlace compartido"
+
+#: apps/households/serializers.py:40
 msgid "Latitude must be between -90 and 90."
 msgstr ""
 
-#: apps/households/serializers.py:44
+#: apps/households/serializers.py:45
 msgid "Longitude must be between -180 and 180."
 msgstr ""
 
-#: apps/households/serializers.py:53
+#: apps/households/serializers.py:54
 #, python-format
 msgid "Unknown or non-optional module(s): %(keys)s"
 msgstr ""
 
-#: apps/households/views.py:99
+#: apps/households/services.py:63 apps/households/views.py:283
+msgid "Invalid role. Must be owner or member."
+msgstr "Rol inválido. Debe ser owner o member."
+
+#: apps/households/services.py:68
+msgid "User is already a member of this household."
+msgstr "El usuario ya es miembro de este hogar."
+
+#: apps/households/services.py:78
+msgid ""
+"An invitation is already pending for this address. Share its link, or revoke "
+"it first."
+msgstr "Ya hay una invitación pendiente para esta dirección. Comparta su enlace o revóquela primero."
+
+#: apps/households/services.py:104
+#, python-format
+msgid "You've been invited to join %(name)s"
+msgstr "Has sido invitado/a a unirte a %(name)s"
+
+#: apps/households/services.py:105
+#, python-format
+msgid "%(inviter)s invited you to join their household."
+msgstr "%(inviter)s te ha invitado a unirte a su hogar."
+
+#: apps/households/services.py:163
+#, python-format
+msgid ""
+"This invitation is addressed to %(email)s. Log in with that account to "
+"accept it."
+msgstr "Esta invitación está dirigida a %(email)s. Inicie sesión con esa cuenta para aceptarla."
+
+#: apps/households/services.py:187
+msgid "This invitation link has already been used."
+msgstr "Este enlace de invitación ya se ha utilizado."
+
+#: apps/households/services.py:221
+msgid ""
+"An account already exists for this address. Log in, then open the link again."
+msgstr "Ya existe una cuenta para esta dirección. Inicie sesión y vuelva a abrir el enlace."
+
+#: apps/households/services.py:225
+#, fuzzy
+#| msgid "user_id is required."
+msgid "Password is required."
+msgstr "user_id es obligatorio."
+
+#: apps/households/views.py:117
 #, fuzzy
 #| msgid "household_id required"
 msgid "household_id is required."
 msgstr "household_id es obligatorio"
 
-#: apps/households/views.py:104
+#: apps/households/views.py:122
 #, fuzzy
 #| msgid "You are not a member of this household."
 msgid "Not a member of this household."
 msgstr "No es miembro de este hogar."
 
-#: apps/households/views.py:134
+#: apps/households/views.py:152
 msgid "You are not a member of this household."
 msgstr "No es miembro de este hogar."
 
-#: apps/households/views.py:147
+#: apps/households/views.py:165
 msgid "Cannot leave household as the last owner."
 msgstr "No puede abandonar el hogar siendo el último propietario."
 
-#: apps/households/views.py:173
-msgid "No user found with that email address."
-msgstr "No se encontró ningún usuario con esa dirección de correo electrónico."
+#: apps/households/views.py:212
+#, fuzzy
+#| msgid "user_id is required."
+msgid "invitation_id is required."
+msgstr "user_id es obligatorio."
 
-#: apps/households/views.py:179
-msgid "User is already a member of this household."
-msgstr "El usuario ya es miembro de este hogar."
-
-#: apps/households/views.py:189
-msgid "An invitation is already pending for this user."
-msgstr ""
-
-#: apps/households/views.py:206
-#, python-format
-msgid "You've been invited to join %(name)s"
-msgstr "Has sido invitado/a a unirte a %(name)s"
-
-#: apps/households/views.py:207
-#, python-format
-msgid "%(inviter)s invited you to join their household."
-msgstr "%(inviter)s te ha invitado a unirte a su hogar."
-
-#: apps/households/views.py:221
+#: apps/households/views.py:222
 #, fuzzy
 #| msgid "Interactions"
-msgid "Invitation sent."
+msgid "Invitation not found."
 msgstr "Interacciones"
 
-#: apps/households/views.py:232
+#: apps/households/views.py:228 apps/households/views.py:335
+#: apps/households/views.py:360
+msgid "This invitation is no longer pending."
+msgstr "Esta invitación ya no está pendiente."
+
+#: apps/households/views.py:243
 msgid "user_id is required."
 msgstr "user_id es obligatorio."
 
-#: apps/households/views.py:239 apps/households/views.py:279
+#: apps/households/views.py:250 apps/households/views.py:290
 msgid "User is not a member of this household."
 msgstr "El usuario no es miembro de este hogar."
 
-#: apps/households/views.py:250
+#: apps/households/views.py:261
 msgid "Cannot remove the last owner of the household."
 msgstr "No se puede eliminar al último propietario del hogar."
 
-#: apps/households/views.py:266
+#: apps/households/views.py:277
 msgid "user_id and role are required."
 msgstr "user_id y role son obligatorios."
 
-#: apps/households/views.py:272
-msgid "Invalid role. Must be owner or member."
-msgstr "Rol inválido. Debe ser owner o member."
-
-#: apps/households/views.py:290
+#: apps/households/views.py:301
 msgid "Cannot demote the last owner of the household."
 msgstr "No se puede degradar al último propietario del hogar."
 
-#: apps/households/views.py:324 apps/households/views.py:368
-msgid "This invitation is no longer pending."
-msgstr ""
+#: apps/households/views.py:334
+msgid "This invitation has expired."
+msgstr "Esta invitación ha caducado."
 
-#: apps/households/views.py:353
+#: apps/households/views.py:345 apps/households/views.py:423
+#: apps/households/views.py:450
 #, fuzzy, python-format
 #| msgid "You've been invited to join %(name)s"
 msgid "You have joined %(name)s."
 msgstr "Has sido invitado/a a unirte a %(name)s"
 
-#: apps/households/views.py:380
+#: apps/households/views.py:372
 msgid "Invitation declined."
-msgstr ""
+msgstr "Invitación rechazada."
+
+#: apps/households/views.py:394 apps/households/views.py:403
+msgid "This invitation link is not valid."
+msgstr "Este enlace de invitación no es válido."
+
+#: apps/households/views.py:409
+msgid "This invitation has expired. Ask for a new link."
+msgstr "Esta invitación ha caducado. Pida un enlace nuevo."
+
+#: apps/households/views.py:421
+#, fuzzy, python-format
+#| msgid "You've been invited to join %(name)s"
+msgid "You are already a member of %(name)s."
+msgstr "Has sido invitado/a a unirte a %(name)s"
 
 #: apps/insurance/models.py:12
 msgid "Health"
@@ -1716,7 +1781,7 @@ msgid "%(count)d task"
 msgid_plural "%(count)d tasks"
 msgstr[0] "%(count)d tarea"
 msgstr[1] "%(count)d tareas"
-msgstr[2] "%(count)s tarea(s) por hacer"
+msgstr[2] "%(count)d tareas"
 
 #: apps/recap/render.py:145
 msgid "The project that moved most this month."
@@ -2151,436 +2216,3 @@ msgstr "Contraseña"
 #: templates/login.html:88
 msgid "Back to home"
 msgstr "Volver al inicio"
-
-#~ msgid "Forbidden"
-#~ msgstr "Prohibido"
-
-#~ msgid "User's preferred language"
-#~ msgstr "Idioma preferido del usuario"
-
-#~ msgid "File size exceeds 2 MB limit."
-#~ msgstr "El tamaño del archivo supera el límite de 2 MB."
-
-#~ msgid "When"
-#~ msgstr "Cuándo"
-
-#~ msgid "Project"
-#~ msgstr "Proyecto"
-
-#~ msgid "Type"
-#~ msgstr "Tipo"
-
-#~ msgid "Open tasks"
-#~ msgstr "Tareas abiertas"
-
-#~ msgid "Due date"
-#~ msgstr "Fecha límite"
-
-#~ msgid "Actual cost"
-#~ msgstr "Coste real"
-
-#~ msgid "Dashboard"
-#~ msgstr "Panel de control"
-
-#~ msgid "Household dashboard"
-#~ msgstr "Panel del hogar"
-
-#~ msgid ""
-#~ "Select or create a household to start organizing your home operations."
-#~ msgstr ""
-#~ "Seleccione o cree un hogar para empezar a organizar la gestión de su casa."
-
-#~ msgid "Open settings"
-#~ msgstr "Abrir configuración"
-
-#~ msgid "No household available"
-#~ msgstr "No hay ningún hogar disponible"
-
-#~ msgid "Create a household from settings to unlock the dashboard."
-#~ msgstr "Cree un hogar desde la configuración para desbloquear el panel."
-
-#~ msgid "Go to settings"
-#~ msgstr "Ir a configuración"
-
-#~ msgid "Track what is next, what is blocked, and what changed recently."
-#~ msgstr ""
-#~ "Siga lo que viene después, lo que está bloqueado y lo que cambió "
-#~ "recientemente."
-
-#~ msgid "Active projects"
-#~ msgstr "Proyectos activos"
-
-#~ msgid "Todos with backlog, pending, or in progress status"
-#~ msgstr "Tareas con estado de backlog, pendiente o en curso"
-
-#~ msgid "Visible documents"
-#~ msgstr "Documentos visibles"
-
-#~ msgid "Recent interactions"
-#~ msgstr "Interacciones recientes"
-
-#~ msgid "All visible interactions in this household"
-#~ msgstr "Todas las interacciones visibles en este hogar"
-
-#~ msgid "Add"
-#~ msgstr "Añadir"
-
-#~ msgid "New project"
-#~ msgstr "Nuevo proyecto"
-
-#~ msgid "Open documents"
-#~ msgstr "Abrir documentos"
-
-#~ msgid "Upcoming interactions"
-#~ msgstr "Próximas interacciones"
-
-#~ msgid "The next dated interactions planned for this household."
-#~ msgstr "Las próximas interacciones programadas con fecha para este hogar."
-
-#~ msgid "See all interactions"
-#~ msgstr "Ver todas las interacciones"
-
-#~ msgid "No upcoming interactions yet."
-#~ msgstr "Todavía no hay próximas interacciones."
-
-#~ msgid "Pinned projects"
-#~ msgstr "Proyectos fijados"
-
-#~ msgid "Projects you marked as important stay visible here."
-#~ msgstr "Los proyectos que marcó como importantes permanecen visibles aquí."
-
-#~ msgid "See all projects"
-#~ msgstr "Ver todos los proyectos"
-
-#~ msgid "No pinned projects yet."
-#~ msgstr "Todavía no hay proyectos fijados."
-
-#~ msgid "Task focus"
-#~ msgstr "Enfoque de tareas"
-
-#~ msgid "Open todos sorted by their scheduled date."
-#~ msgstr "Tareas abiertas ordenadas por su fecha programada."
-
-#~ msgid "Open task board"
-#~ msgstr "Abrir tablero de tareas"
-
-#~ msgid "No open tasks right now."
-#~ msgstr "No hay tareas abiertas en este momento."
-
-#~ msgid "Recent activity"
-#~ msgstr "Actividad reciente"
-
-#~ msgid "Latest visible interactions across the household."
-#~ msgstr "Últimas interacciones visibles en todo el hogar."
-
-#~ msgid "Open activity stream"
-#~ msgstr "Abrir flujo de actividad"
-
-#~ msgid "No recent activity to display."
-#~ msgstr "No hay actividad reciente para mostrar."
-
-#~ msgid "Recent documents"
-#~ msgstr "Documentos recientes"
-
-#~ msgid "Latest files visible from this household context."
-#~ msgstr "Últimos archivos visibles en el contexto de este hogar."
-
-#~ msgid "Open document library"
-#~ msgstr "Abrir biblioteca de documentos"
-
-#~ msgid "No documents uploaded yet."
-#~ msgstr "Todavía no se ha subido ningún documento."
-
-#~ msgid "Manage your profile, households, and preferences."
-#~ msgstr "Gestione su perfil, hogares y preferencias."
-
-#~ msgid "Directory"
-#~ msgstr "Directorio"
-
-#~ msgid ""
-#~ "Review recent files and identify which documents still need an activity "
-#~ "context."
-#~ msgstr ""
-#~ "Revise los archivos recientes e identifique qué documentos todavía "
-#~ "necesitan un contexto de actividad."
-
-#~ msgid "Add document"
-#~ msgstr "Añadir documento"
-
-#~ msgid ""
-#~ "Upload a document now and qualify it later by linking it to the right "
-#~ "activity."
-#~ msgstr ""
-#~ "Suba un documento ahora y califíquelo más tarde vinculándolo con la "
-#~ "actividad correcta."
-
-#~ msgid "Document details"
-#~ msgstr "Detalle del documento"
-
-#~ msgid ""
-#~ "Check the current context of this document, then attach it to the right "
-#~ "activity."
-#~ msgstr ""
-#~ "Revise el contexto actual de este documento y luego vincúlelo con la "
-#~ "actividad correcta."
-
-#~ msgid "RCD"
-#~ msgstr "interruptor diferencial"
-
-#~ msgid "RCDs"
-#~ msgstr "interruptores diferenciales"
-
-#~ msgid "breaker"
-#~ msgstr "disyuntor"
-
-#~ msgid "breakers"
-#~ msgstr "disyuntores"
-
-#~ msgid "RCD must belong to the same household."
-#~ msgstr "El interruptor diferencial debe pertenecer al mismo hogar."
-
-#~ msgid ""
-#~ "Mini-app electricity initialized by Django SSR, then managed via API in-"
-#~ "app."
-#~ msgstr ""
-#~ "Mini-app de electricidad inicializada por Django SSR, luego gestionada "
-#~ "vía API en la aplicación."
-
-#~ msgid "Circuits"
-#~ msgstr "Circuitos"
-
-#~ msgid "No circuits yet."
-#~ msgstr "Todavía no hay circuitos."
-
-#~ msgid "Breakers"
-#~ msgstr "Disyuntores"
-
-#~ msgid "No breakers yet."
-#~ msgstr "Todavía no hay disyuntores."
-
-#~ msgid "No RCDs yet."
-#~ msgstr "Todavía no hay interruptores diferenciales."
-
-#~ msgid "Usage points"
-#~ msgstr "Puntos de uso"
-
-#~ msgid "No usage points yet."
-#~ msgstr "Todavía no hay puntos de uso."
-
-#~ msgid "Active links"
-#~ msgstr "Vínculos activos"
-
-#~ msgid "No active links."
-#~ msgstr "No hay vínculos activos."
-
-#~ msgid "Inactive links"
-#~ msgstr "Vínculos inactivos"
-
-#~ msgid "No inactive links."
-#~ msgstr "No hay vínculos inactivos."
-
-#~ msgid "Recent changes"
-#~ msgstr "Cambios recientes"
-
-#~ msgid "No recent changes."
-#~ msgstr "No hay cambios recientes."
-
-#~ msgid "electricity api ready"
-#~ msgstr "API de electricidad lista"
-
-#, fuzzy
-#~| msgid "equipment"
-#~ msgid "New equipment"
-#~ msgstr "equipo"
-
-#~ msgid "Insurance"
-#~ msgstr "Seguros"
-
-#~ msgid "Manage household insurance contracts, providers and renewals."
-#~ msgstr ""
-#~ "Gestiona los contratos de seguro del hogar, los proveedores y las "
-#~ "renovaciones."
-
-#~ msgid "Create contract"
-#~ msgstr "Crear contrato"
-
-#, fuzzy
-#~| msgid "Renewal date"
-#~ msgid "Renewal"
-#~ msgstr "Fecha de renovación"
-
-#, fuzzy
-#~| msgid "Open menu"
-#~ msgid "Open"
-#~ msgstr "Abrir menú"
-
-#~ msgid "No insurance contracts yet."
-#~ msgstr "Aún no hay contratos de seguro."
-
-#~ msgid "Insurance contract details"
-#~ msgstr "Detalles del contrato de seguro"
-
-#~ msgid "No provider specified"
-#~ msgstr "No se ha indicado proveedor"
-
-#~ msgid "Back to insurance"
-#~ msgstr "Volver a seguros"
-
-#~ msgid "Contract number"
-#~ msgstr "Número de contrato"
-
-#~ msgid "Insured item"
-#~ msgstr "Bien asegurado"
-
-#~ msgid "Start date"
-#~ msgstr "Fecha de inicio"
-
-#~ msgid "End date"
-#~ msgstr "Fecha de finalización"
-
-#~ msgid "Renewal date"
-#~ msgstr "Fecha de renovación"
-
-#~ msgid "Payment frequency"
-#~ msgstr "Frecuencia de pago"
-
-#~ msgid "Monthly cost"
-#~ msgstr "Coste mensual"
-
-#~ msgid "Yearly cost"
-#~ msgstr "Coste anual"
-
-#~ msgid "Coverage summary"
-#~ msgstr "Resumen de coberturas"
-
-#~ msgid "Delete contract"
-#~ msgstr "Eliminar contrato"
-
-#~ msgid "Edit insurance contract"
-#~ msgstr "Editar contrato de seguro"
-
-#~ msgid "Update policy information and coverage details."
-#~ msgstr "Actualizar la información de la póliza y los detalles de cobertura."
-
-#~ msgid "Back to detail"
-#~ msgstr "Volver al detalle"
-
-#~ msgid "Save changes"
-#~ msgstr "Guardar cambios"
-
-#~ msgid "Create insurance contract"
-#~ msgstr "Crear contrato de seguro"
-
-#~ msgid "Add a new household insurance contract."
-#~ msgstr "Añadir un nuevo contrato de seguro del hogar."
-
-#~ msgid "Contract name"
-#~ msgstr "Nombre del contrato"
-
-#~ msgid "Insurance type"
-#~ msgstr "Tipo de seguro"
-
-#~ msgid "Amount must be non-negative."
-#~ msgstr "El importe debe ser mayor o igual que cero."
-
-#~ msgid "No household selected."
-#~ msgstr "No hay ningún hogar seleccionado."
-
-#~ msgid "Insurance contract created."
-#~ msgstr "Contrato de seguro creado."
-
-#~ msgid "Insurance contract updated."
-#~ msgstr "Contrato de seguro actualizado."
-
-#~ msgid "Insurance contract deleted."
-#~ msgstr "Contrato de seguro eliminado."
-
-#~ msgid "Activity"
-#~ msgstr "Actividad"
-
-#~ msgid "No activity available yet."
-#~ msgstr "Todavía no hay actividad disponible."
-
-#~ msgid "Add event"
-#~ msgstr "Añadir evento"
-
-#~ msgid "Event added successfully."
-#~ msgstr "Evento añadido con éxito."
-
-#~ msgid "Notifications"
-#~ msgstr "Notificaciones"
-
-#~ msgid "Mark all as read"
-#~ msgstr "Marcar todo como leído"
-
-#~ msgid "No notifications."
-#~ msgstr "Sin notificaciones."
-
-#, fuzzy
-#~| msgid "Open settings"
-#~ msgid "View in settings →"
-#~ msgstr "Abrir configuración"
-
-#, python-format
-#~ msgid "%(time)s ago"
-#~ msgstr "hace %(time)s"
-
-#~ msgid "Photos"
-#~ msgstr "Fotos"
-
-#~ msgid "Projects"
-#~ msgstr "Proyectos"
-
-#, fuzzy
-#~| msgid "Projects"
-#~ msgid "Project groups"
-#~ msgstr "Proyectos"
-
-#, fuzzy
-#~| msgid "New interaction"
-#~ msgid "New item"
-#~ msgstr "Nueva interacción"
-
-#~ msgid "New task"
-#~ msgstr "Nueva tarea"
-
-#~ msgid "Tasks"
-#~ msgstr "Tareas"
-
-#, fuzzy
-#~| msgid "Back to home"
-#~ msgid "Back to zones"
-#~ msgstr "Volver al inicio"
-
-#, fuzzy
-#~| msgid "No zones yet."
-#~ msgid "No note yet."
-#~ msgstr "Todavía no hay zonas."
-
-#, fuzzy
-#~| msgid "zone"
-#~ msgid "Add zone"
-#~ msgstr "zona"
-
-#~ msgid "In progress"
-#~ msgstr "En progreso"
-
-#, python-format
-#~ msgid ""
-#~ "The <strong>%(section)s</strong> section is being migrated from the "
-#~ "legacy app."
-#~ msgstr ""
-#~ "La sección <strong>%(section)s</strong> está siendo migrada desde la "
-#~ "aplicación heredada."
-
-#~ msgid "Open menu"
-#~ msgstr "Abrir menú"
-
-#~ msgid "Close menu"
-#~ msgstr "Cerrar menú"
-
-#~ msgid "Interactions"
-#~ msgstr "Interacciones"
-
-#~ msgid "Sign out"
-#~ msgstr "Cerrar sesión"

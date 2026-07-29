@@ -6,7 +6,7 @@ import { Check, FolderKanban, Pencil, Plus, Trash2 } from 'lucide-react';
 import CardActions, { type CardAction } from '@/components/CardActions';
 import Sparkline from '@/components/Sparkline';
 import { Card, CardTitle } from '@/design-system/card';
-import { Input } from '@/design-system/input';
+import { DecimalInput } from '@/design-system/decimal-input';
 import { formatTrackerValue, type Tracker } from '@/lib/api/trackers';
 import { pushBack } from '@/lib/backNavigation';
 
@@ -65,7 +65,7 @@ export default function TrackerCard({
   };
 
   const submitQuickAdd = async () => {
-    const value = quickValue.trim().replace(',', '.');
+    const value = quickValue.trim();
     if (!value || Number.isNaN(Number(value))) return;
     setSaving(true);
     try {
@@ -144,12 +144,12 @@ export default function TrackerCard({
               void submitQuickAdd();
             }}
           >
-            <Input
+            <DecimalInput
               ref={inputRef}
-              type="text"
-              inputMode="decimal"
+              decimals={3}
+              allowNegative
               value={quickValue}
-              onChange={(e) => setQuickValue(e.target.value)}
+              onChange={setQuickValue}
               onKeyDown={(e) => {
                 if (e.key === 'Escape') setQuickAddOpen(false);
               }}

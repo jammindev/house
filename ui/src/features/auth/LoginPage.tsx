@@ -1,15 +1,30 @@
 import React, { useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/lib/auth/useAuth';
 import { Button } from '../../design-system/button';
 import { Input } from '../../design-system/input';
+
+/**
+ * Where to land after login. Only same-site absolute paths are honoured — a
+ * `next` pointing at another host would turn the login page into an open
+ * redirect.
+ */
+function safeNext(raw: string | null): string {
+  if (!raw) return '/app/dashboard';
+  // Must be a single-slash absolute path. `//host` is protocol-relative, and
+  // browsers normalise `\` to `/`, so `/\host` is the same trick spelled twice.
+  if (!raw.startsWith('/') || raw.startsWith('//') || /[\\]/.test(raw)) return '/app/dashboard';
+  return raw;
+}
 
 export default function LoginPage() {
   const { t } = useTranslation();
   const { login, user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const [params] = useSearchParams();
+  const next = safeNext(params.get('next'));
   const resetSuccess = (location.state as { resetSuccess?: boolean } | null)?.resetSuccess;
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -17,7 +32,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
 
   if (user) {
-    navigate('/app/dashboard');
+    navigate(next);
     return null;
   }
 
@@ -27,7 +42,7 @@ export default function LoginPage() {
     setLoading(true);
     try {
       await login(email, password);
-      navigate('/app/dashboard');
+      navigate(next);
     } catch {
       setError(t('auth.invalidCredentials'));
     } finally {

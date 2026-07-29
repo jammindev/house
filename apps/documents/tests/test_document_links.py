@@ -99,3 +99,46 @@ def test_document_detail_api_exposes_entity_links(client, household, user, doc, 
     entity_links = response.json()["entity_links"]
     assert {"entity_type": "equipment", "id": str(equipment.id),
             "label": "Ballon d'eau", "url_path": f"/app/equipment/{equipment.id}"} in entity_links
+
+
+@pytest.mark.django_db
+def test_document_list_api_exposes_entity_links(client, household, user, doc, membership):
+    """La liste dit *où vit* un document, pas seulement son nom de fichier.
+
+    Sans ce champ dès la liste, la page Documents ne peut afficher que des noms de
+    fichiers ; il faut ouvrir chaque document pour savoir à quoi il se rattache.
+    """
+    equipment = Equipment.objects.create(household=household, name="Chaudière", created_by=user)
+    services.link_document(entity=equipment, document=doc, user=user)
+    client.force_login(user)
+
+    response = client.get("/api/documents/documents/")
+    assert response.status_code == 200, response.content
+    payload = response.json()
+    items = payload if isinstance(payload, list) else payload["results"]
+    assert {"entity_type": "equipment", "id": str(equipment.id),
+            "label": "Chaudière", "url_path": f"/app/equipment/{equipment.id}"} in items[0]["entity_links"]
+
+
+@pytest.mark.django_db
+def test_entity_links_cost_a_bounded_number_of_queries(
+    client, household, user, membership, django_assert_max_num_queries
+):
+    """La liste n'est pas paginée : le coût ne peut pas suivre le nombre de documents.
+
+    `entity_links_for_document` résout une `GenericForeignKey` par lien. Sans le
+    prefetch de la vue (`prefetched_links` + `entity`), vingt documents rattachés
+    coûteraient vingt requêtes de plus — et deux cents pour un vrai foyer.
+    """
+    equipment = Equipment.objects.create(household=household, name="Chaudière", created_by=user)
+    for index in range(20):
+        document = Document.objects.create(
+            household=household, created_by=user, file_path=f"documents/f{index}.pdf",
+            name=f"Facture {index}", mime_type="application/pdf", type="invoice",
+        )
+        services.link_document(entity=equipment, document=document, user=user)
+    client.force_login(user)
+
+    with django_assert_max_num_queries(15):
+        response = client.get("/api/documents/documents/")
+        assert response.status_code == 200

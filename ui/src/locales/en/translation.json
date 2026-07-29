@@ -1081,7 +1081,6 @@
     "members": "members",
     "leave": "Leave",
     "invite": "Invite",
-    "inviteDescription": "Enter the email address of the person you want to invite to this household. The user must already be registered.",
     "inviteEmailPlaceholder": "Member email address (e.g. member@example.com)",
     "memberInvited": "Member invited",
     "inviteFailed": "Failed to invite member",
@@ -1170,7 +1169,7 @@
         },
         "invite-member": {
           "title": "Invite a household member",
-          "description": "From settings, invite your family to join the household."
+          "description": "From settings, create an invitation link and send it to your family yourself."
         },
         "declare-account": {
           "title": "Declare an account and its starting point",
@@ -1545,7 +1544,7 @@
           },
           "find": {
             "title": "Find a document again",
-            "body": "Search and filter by type; the AI assistant can find them too."
+            "body": "Filter by type in one click, group by type or date, search inside file text — the AI assistant can find them too."
           }
         }
       },
@@ -1606,6 +1605,10 @@
           "household": {
             "title": "Manage the household",
             "body": "Invite members, manage roles, switch the active household."
+          },
+          "invite": {
+            "title": "Invite the household",
+            "body": "Invite creates a link — House sends no email. Copy it and pass it on however you like: whoever opens it chooses a password and lands straight in the household, with no account needed beforehand. An email address is optional and only addresses the invitation. A link lasts a week, and you can revoke it at any time."
           },
           "modules": {
             "title": "Enable the right modules",
@@ -1689,7 +1692,7 @@
           },
           "cash": {
             "title": "Track cash too",
-            "body": "Create a “Cash” account for the household's physical money. It behaves like a bank account: withdrawals feed it, and a cash spend becomes an operation on it — so an expense the control can account for, like any other."
+            "body": "Create a “Cash” account for the household's physical money. It works like a bank account, and cash enters it two ways: “Feed cash” on a withdrawal line, and “Cash in” on the Accounts tab for money from elsewhere (a gift, a sale, a friend's share). A cash spend becomes an operation on that account — an expense the control can reconcile, like any other. If you pour only part of a withdrawal into the pot, the Control tells you: the rest would belong nowhere."
           },
           "openingBalance": {
             "title": "Set the starting balance",
@@ -1918,7 +1921,11 @@
     "filter": {
       "unlinked": "Show without activity only",
       "unlinkedActive": "Showing without activity",
-      "allTypes": "All types"
+      "allTypes": "All types",
+      "reset": "Reset",
+      "groupBy": "Group by:",
+      "groupBy_type": "Type",
+      "groupBy_date": "Date"
     },
     "upload": {
       "title": "Upload document",
@@ -2026,7 +2033,8 @@
         "task": "Task",
         "interaction": "Activity"
       }
-    }
+    },
+    "noResults_description": "No document matches your search."
   },
   "equipment": {
     "app_title": "Equipment mini-app",
@@ -2731,7 +2739,36 @@
     "invitedBy": "Invited by {{name}}",
     "decline": "Decline",
     "accept": "Accept",
-    "acceptAndSwitch": "Accept & join"
+    "acceptAndSwitch": "Accept & join",
+    "inviteDescription": "Create a link and send it yourself — by message, however you like. Whoever opens it joins this household.",
+    "emailOptional": "Email (optional)",
+    "emailOptionalHint": "Only used to address the invitation. Leave it blank for a link you can give to anyone.",
+    "role": "Role",
+    "createLink": "Create the link",
+    "copyLink": "Copy",
+    "copied": "Copied",
+    "revoke": "Revoke this link",
+    "linkRevoked": "Link revoked",
+    "openLink": "Link with no set address",
+    "expired": "Expired",
+    "expiresOn": "Valid until {{date}}",
+    "pendingLinks_one": "{{count}} pending link",
+    "pendingLinks_other": "{{count}} pending links",
+    "alsoNotifiedInApp": "This address already has a House account — they were notified in the app as well.",
+    "linkInvalidTitle": "Invalid link",
+    "linkInvalid": "This invitation link is not valid. It may have been used already, or revoked.",
+    "expiredTitle": "Invitation expired",
+    "expiredBody": "This link is no longer valid. Ask for a new one.",
+    "joinTitle": "Join {{name}}",
+    "joinSubtitle": "You have been invited to join this household.",
+    "joinSubtitleBy": "{{name}} invited you to join their household.",
+    "joinAsCurrentUser": "You are logged in as {{email}}.",
+    "joinSubmit": "Join the household",
+    "notNow": "Not now",
+    "displayName": "Your name",
+    "choosePassword": "Choose a password",
+    "alreadyHaveAccount": "Already have an account?",
+    "joinFailed": "Could not join this household."
   },
   "changelog": {
     "title": "What's new",
@@ -3494,7 +3531,8 @@
       "noAccount": "No cash account",
       "noAccountHint": "Declare a “Cash” account in the Accounts tab: a cash spend then becomes an account operation, like every other.",
       "createAccount": "Create my cash account",
-      "defaultAccountName": "Cash"
+      "defaultAccountName": "Cash",
+      "deposited": "Cash deposit recorded."
     },
     "withdraw": {
       "title": "Move to cash",
@@ -3513,7 +3551,10 @@
       "linked": "Withdrawal mirrored onto cash.",
       "unlinked": "Cash counterpart removed.",
       "linkedBadge": "Cash",
-      "unlink": "Remove the counterpart"
+      "unlink": "Remove the counterpart",
+      "completeTitle": "Complete the cash pour",
+      "completeHint": "{{outflow}} withdrawn, of which {{mirrored}} declared as entering the cash pot. The rest belongs nowhere: neither a spend nor cash.",
+      "adjusted": "Share poured into cash corrected."
     },
     "allocation": {
       "title": "Split this operation",
@@ -3655,6 +3696,14 @@
       "removeSplit": "Remove the allocation",
       "removeSplitHint": "Deletes this expense; the bank operation is untouched and goes back to the queue.",
       "splitRemoved": "Allocation removed"
+    },
+    "deposit": {
+      "title": "Cash coming in",
+      "action": "Cash in",
+      "labelPlaceholder": "E.g. gift, bike sold, Marie's share",
+      "amount": "Amount received",
+      "date": "Date",
+      "natureHint": "An internal transfer is not recorded here: cash from a withdrawal is declared on the withdrawal line, with “Feed cash”."
     }
   },
   "pwa": {
@@ -3857,6 +3906,11 @@
           "title": "Partially credited refunds",
           "hint": "Part of what came back credits no envelope: those budgets' counters stay inflated by that much.",
           "resolution": "Complete the split from the queue, or arbitrate if the remainder concerns no envelope."
+        },
+        "cash_mirror_partial": {
+          "title": "Withdrawals only partly poured into cash",
+          "hint": "Part of the withdrawal is neither a spend nor declared cash: that money belongs nowhere.",
+          "resolution": "Correct the share that entered the cash pot, or arbitrate if the rest went elsewhere (own pocket, another household)."
         }
       },
       "blocked": "Control cannot be evaluated",
@@ -3869,7 +3923,9 @@
       "fix": "Fix",
       "findBalance": "Find the balance",
       "anchorDrift": "Balance you read: {{attested}} · computed today: {{computed}}",
-      "allocate": "Sort it"
+      "allocate": "Sort it",
+      "pour": "Correct the pour",
+      "cashMissing": "{{outflow}} withdrawn, {{mirrored}} poured into cash — {{missing}} belongs nowhere."
     },
     "pending": {
       "count": "{{count}} operation to sort",

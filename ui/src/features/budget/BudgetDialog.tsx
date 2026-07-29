@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { SheetDialog } from '@/design-system/sheet-dialog';
 import { FormField } from '@/design-system/form-field';
 import { Input } from '@/design-system/input';
+import { DecimalInput } from '@/design-system/decimal-input';
 import { Button } from '@/design-system/button';
 import { CheckboxField } from '@/design-system/checkbox-field';
 import { Select } from '@/design-system/select';
@@ -66,7 +67,7 @@ export default function BudgetDialog({ open, onOpenChange, existing, allowGlobal
     e.preventDefault();
     setError(null);
 
-    const raw = amount.trim().replace(',', '.');
+    const raw = amount.trim();
     const parsed = Number(raw);
     const hasAmount = raw !== '';
 
@@ -149,13 +150,10 @@ export default function BudgetDialog({ open, onOpenChange, existing, allowGlobal
             : t('budget.fields.monthlyAmountOptional')}
           htmlFor="budget-amount"
         >
-          <Input
+          <DecimalInput
             id="budget-amount"
-            type="number"
-            step="0.01"
-            min="0"
             value={amount}
-            onChange={(e) => setAmount(e.target.value)}
+            onChange={setAmount}
             placeholder="0.00"
             autoFocus={isGlobal}
           />

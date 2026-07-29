@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Plus } from 'lucide-react';
 import { SheetDialog } from '@/design-system/sheet-dialog';
 import { Input } from '@/design-system/input';
+import { DecimalInput } from '@/design-system/decimal-input';
 import { Select } from '@/design-system/select';
 import { Textarea } from '@/design-system/textarea';
 import { Button } from '@/design-system/button';
@@ -195,12 +196,11 @@ export default function StockItemDialog({
           {/* Quantity + Unit + Min + Max */}
           <div className="grid gap-4 md:grid-cols-4">
             <FormField label={t('stock.fields.quantity')} htmlFor="stock-item-qty">
-              <Input
+              <DecimalInput
                 id="stock-item-qty"
-                type="number"
-                step="0.001"
+                decimals={3}
                 value={form.quantity}
-                onChange={(e) => updateField('quantity', e.target.value)}
+                onChange={(value) => updateField('quantity', value)}
               />
             </FormField>
             <FormField label={t('stock.fields.unit')} htmlFor="stock-item-unit">
@@ -211,21 +211,19 @@ export default function StockItemDialog({
               />
             </FormField>
             <FormField label={t('stock.fields.min_quantity')} htmlFor="stock-item-min">
-              <Input
+              <DecimalInput
                 id="stock-item-min"
-                type="number"
-                step="0.001"
+                decimals={3}
                 value={form.min_quantity}
-                onChange={(e) => updateField('min_quantity', e.target.value)}
+                onChange={(value) => updateField('min_quantity', value)}
               />
             </FormField>
             <FormField label={t('stock.fields.max_quantity')} htmlFor="stock-item-max">
-              <Input
+              <DecimalInput
                 id="stock-item-max"
-                type="number"
-                step="0.001"
+                decimals={3}
                 value={form.max_quantity}
-                onChange={(e) => updateField('max_quantity', e.target.value)}
+                onChange={(value) => updateField('max_quantity', value)}
               />
             </FormField>
           </div>

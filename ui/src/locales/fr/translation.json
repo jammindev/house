@@ -1081,7 +1081,6 @@
     "members": "membres",
     "leave": "Quitter",
     "invite": "Inviter",
-    "inviteDescription": "Saisissez l'adresse e-mail de la personne que vous souhaitez inviter dans ce foyer. L'utilisateur doit déjà être inscrit.",
     "inviteEmailPlaceholder": "E-mail du membre (ex. membre@exemple.com)",
     "memberInvited": "Membre invité",
     "inviteFailed": "Impossible d'inviter le membre",
@@ -1170,7 +1169,7 @@
         },
         "invite-member": {
           "title": "Inviter un membre du foyer",
-          "description": "Depuis les réglages, invitez votre famille à rejoindre le foyer."
+          "description": "Depuis les réglages, créez un lien d'invitation et transmettez-le vous-même à votre famille."
         },
         "declare-account": {
           "title": "Déclarer un compte et son point de départ",
@@ -1545,7 +1544,7 @@
           },
           "find": {
             "title": "Retrouver un document",
-            "body": "Recherche et filtres par type ; l'assistant IA sait aussi les retrouver."
+            "body": "Filtrez par type d'un clic, groupez par type ou par date, cherchez dans le texte des fichiers — l'assistant IA sait aussi les retrouver."
           }
         }
       },
@@ -1606,6 +1605,10 @@
           "household": {
             "title": "Gérer le foyer",
             "body": "Invitez des membres, gérez les rôles, changez de foyer actif."
+          },
+          "invite": {
+            "title": "Inviter le foyer",
+            "body": "Inviter crée un lien — House n'envoie aucun e-mail. Copiez-le et transmettez-le comme vous voulez : celui qui l'ouvre choisit un mot de passe et arrive directement dans le foyer, sans compte préalable. L'adresse e-mail est facultative et sert seulement à adresser l'invitation. Un lien vaut une semaine, et vous pouvez le révoquer à tout moment."
           },
           "modules": {
             "title": "Activer les bons modules",
@@ -1689,7 +1692,7 @@
           },
           "cash": {
             "title": "Suivre aussi les espèces",
-            "body": "Crée un compte de type « Espèces » pour l'argent liquide du foyer. Il fonctionne comme un compte bancaire : tes retraits l'alimentent, et une dépense en liquide devient une opération de ce compte — donc une dépense que le contrôle sait rattacher, comme les autres."
+            "body": "Crée un compte de type « Espèces » pour l'argent liquide du foyer. Il fonctionne comme un compte bancaire, et le liquide y entre par deux chemins : « Alimenter les espèces » sur une ligne de retrait, et « Rentrée d'espèces » dans l'onglet Comptes pour ce qui vient d'ailleurs (un cadeau, une vente, la part d'un ami). Une dépense en liquide devient une opération de ce compte — donc une dépense que le contrôle sait rattacher, comme les autres. Si tu ne verses qu'une partie d'un retrait dans la caisse, le Contrôle te le signale : le reste n'appartiendrait à rien."
           },
           "openingBalance": {
             "title": "Renseigner le solde de départ",
@@ -1918,7 +1921,11 @@
     "filter": {
       "unlinked": "Afficher seulement sans activité",
       "unlinkedActive": "Affichage sans activité",
-      "allTypes": "Tous les types"
+      "allTypes": "Tous les types",
+      "reset": "Réinitialiser",
+      "groupBy": "Grouper par :",
+      "groupBy_type": "Type",
+      "groupBy_date": "Date"
     },
     "upload": {
       "title": "Téléverser un document",
@@ -2026,7 +2033,8 @@
         "task": "Tâche",
         "interaction": "Activité"
       }
-    }
+    },
+    "noResults_description": "Aucun document ne correspond à votre recherche."
   },
   "equipment": {
     "app_title": "Mini-app Équipements",
@@ -2731,7 +2739,36 @@
     "invitedBy": "Invité par {{name}}",
     "decline": "Refuser",
     "accept": "Accepter",
-    "acceptAndSwitch": "Accepter & rejoindre"
+    "acceptAndSwitch": "Accepter & rejoindre",
+    "inviteDescription": "Créez un lien et transmettez-le vous-même — par message, comme vous voulez. Celui qui l'ouvre rejoint ce foyer.",
+    "emailOptional": "E-mail (facultatif)",
+    "emailOptionalHint": "Sert seulement à adresser l'invitation. Laissez vide pour un lien que vous pouvez donner à n'importe qui.",
+    "role": "Rôle",
+    "createLink": "Créer le lien",
+    "copyLink": "Copier",
+    "copied": "Copié",
+    "revoke": "Révoquer ce lien",
+    "linkRevoked": "Lien révoqué",
+    "openLink": "Lien sans adresse définie",
+    "expired": "Expiré",
+    "expiresOn": "Valable jusqu'au {{date}}",
+    "pendingLinks_one": "{{count}} lien en attente",
+    "pendingLinks_other": "{{count}} liens en attente",
+    "alsoNotifiedInApp": "Cette adresse a déjà un compte House — la personne a aussi été notifiée dans l'app.",
+    "linkInvalidTitle": "Lien invalide",
+    "linkInvalid": "Ce lien d'invitation n'est pas valable. Il a peut-être déjà été utilisé, ou révoqué.",
+    "expiredTitle": "Invitation expirée",
+    "expiredBody": "Ce lien n'est plus valable. Demandez-en un nouveau.",
+    "joinTitle": "Rejoindre {{name}}",
+    "joinSubtitle": "Vous êtes invité à rejoindre ce foyer.",
+    "joinSubtitleBy": "{{name}} vous invite à rejoindre son foyer.",
+    "joinAsCurrentUser": "Vous êtes connecté en tant que {{email}}.",
+    "joinSubmit": "Rejoindre le foyer",
+    "notNow": "Plus tard",
+    "displayName": "Votre nom",
+    "choosePassword": "Choisissez un mot de passe",
+    "alreadyHaveAccount": "Vous avez déjà un compte ?",
+    "joinFailed": "Impossible de rejoindre ce foyer."
   },
   "changelog": {
     "title": "Nouveautés",
@@ -3494,7 +3531,8 @@
       "noAccount": "Aucun compte espèces",
       "noAccountHint": "Déclarez un compte « Espèces » dans l'onglet Comptes : une dépense en liquide devient alors une opération de compte, comme les autres.",
       "createAccount": "Créer mon compte espèces",
-      "defaultAccountName": "Espèces"
+      "defaultAccountName": "Espèces",
+      "deposited": "Rentrée d'espèces enregistrée."
     },
     "withdraw": {
       "title": "Retirer vers les espèces",
@@ -3513,7 +3551,10 @@
       "linked": "Retrait reflété sur les espèces.",
       "unlinked": "Contrepartie espèces supprimée.",
       "linkedBadge": "Espèces",
-      "unlink": "Supprimer la contrepartie"
+      "unlink": "Supprimer la contrepartie",
+      "completeTitle": "Compléter le versement en caisse",
+      "completeHint": "Retrait de {{outflow}}, dont {{mirrored}} déclarés entrés dans la caisse. Le reste n'appartient à rien : ni dépense, ni espèces.",
+      "adjusted": "Part versée en caisse corrigée."
     },
     "allocation": {
       "title": "Ventiler cette opération",
@@ -3655,6 +3696,14 @@
       "removeSplit": "Supprimer la ventilation",
       "removeSplitHint": "Supprime cette dépense ; l'opération bancaire n'est pas touchée et redevient à ranger.",
       "splitRemoved": "Ventilation supprimée"
+    },
+    "deposit": {
+      "title": "Rentrée d'espèces",
+      "action": "Rentrée d'espèces",
+      "labelPlaceholder": "Ex. : cadeau, vélo vendu, part de Marie",
+      "amount": "Montant reçu",
+      "date": "Date",
+      "natureHint": "Un transfert interne ne se saisit pas ici : des espèces venues d'un retrait se déclarent depuis la ligne de retrait, avec « Alimenter les espèces »."
     }
   },
   "pwa": {
@@ -3857,6 +3906,11 @@
           "title": "Remboursements partiellement attribués",
           "hint": "Une part de ce qui est revenu ne recrédite aucune enveloppe : les compteurs de ces budgets restent gonflés d'autant.",
           "resolution": "Complétez la répartition depuis « À ranger », ou arbitrez si le reste ne concerne aucune enveloppe."
+        },
+        "cash_mirror_partial": {
+          "title": "Retraits partiellement versés en caisse",
+          "hint": "Une partie du retrait n'est ni une dépense, ni des espèces déclarées : cet argent n'appartient à rien.",
+          "resolution": "Corrigez la part entrée dans la caisse, ou arbitrez si le reste est parti ailleurs (poche personnelle, autre foyer)."
         }
       },
       "blocked": "Contrôle non évaluable",
@@ -3869,7 +3923,9 @@
       "fix": "Corriger",
       "findBalance": "Retrouver le solde",
       "anchorDrift": "Solde constaté : {{attested}} · calculé aujourd'hui : {{computed}}",
-      "allocate": "Ranger"
+      "allocate": "Ranger",
+      "pour": "Corriger le versement",
+      "cashMissing": "Retrait de {{outflow}}, {{mirrored}} versés en caisse — {{missing}} n'appartiennent à rien."
     },
     "pending": {
       "count": "{{count}} opération à ranger",

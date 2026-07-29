@@ -2,6 +2,7 @@ import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 import { SheetDialog } from '@/design-system/sheet-dialog';
 import { Input } from '@/design-system/input';
+import { DecimalInput } from '@/design-system/decimal-input';
 import { Textarea } from '@/design-system/textarea';
 import { Button } from '@/design-system/button';
 import { FormField } from '@/design-system/form-field';
@@ -83,7 +84,7 @@ export default function ZoneDialog({ open, onOpenChange, existing }: ZoneDialogP
     const trimmedSurface = surface.trim();
     let parsedSurface: number | null = null;
     if (trimmedSurface !== '') {
-      parsedSurface = Number(trimmedSurface.replace(',', '.'));
+      parsedSurface = Number(trimmedSurface);
       if (!Number.isFinite(parsedSurface) || parsedSurface < 0) {
         setError(t('zones.invalidSurface'));
         return;
@@ -178,14 +179,10 @@ export default function ZoneDialog({ open, onOpenChange, existing }: ZoneDialogP
           {/* Surface — affichée dans la liste des zones et sommée en tête de
               page : sans ce champ, la colonne resterait vide pour tout le monde. */}
           <FormField label={t('zones.surfaceLabel')} htmlFor="zone-surface">
-            <Input
+            <DecimalInput
               id="zone-surface"
-              type="number"
-              inputMode="decimal"
-              min="0"
-              step="0.01"
               value={surface}
-              onChange={(e) => setSurface(e.target.value)}
+              onChange={setSurface}
               placeholder={t('zones.surfacePlaceholder')}
             />
           </FormField>

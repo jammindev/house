@@ -60,10 +60,12 @@ from .serializers import (
     StatementImportSerializer,
 )
 from .services import (
+    adjust_cash_mirror,
     apply_statement_opening_balance,
     archive_account,
     create_account,
     import_statement_file,
+    record_cash_deposit,
     record_cash_expense,
     link_interaction,
     preview_statement_file,
@@ -550,6 +552,52 @@ class BankTransactionViewSet(viewsets.ReadOnlyModelViewSet):
             status=status.HTTP_201_CREATED,
         )
 
+    @action(detail=False, methods=["post"], url_path="cash-deposit")
+    def cash_deposit(self, request):
+        """Cash that came in from outside: a gift, a sale, a share paid in coins.
+
+        The missing half of the cash story — until now the only way cash could
+        enter was mirroring a bank withdrawal, so money handed over in notes had no
+        representation at all. The advice one could give was to inflate the opening
+        balance, which rewrites history to record a dated fact.
+
+        Born classified (``inflow_nature`` required), for the same reason a cash
+        spend is born allocated: the app must not create its own écart.
+        """
+        household = request.household
+        if household is None:
+            raise ValidationError({"household_id": "A valid household context is required."})
+
+        account_id = request.data.get("account")
+        if not account_id:
+            raise ValidationError({"account": "This field is required."})
+        account = BankAccount.objects.filter(household=household, pk=account_id).first()
+        if account is None:
+            raise ValidationError({"account": "Unknown account for this household."})
+
+        booked_on = _parse_date_param(
+            request.data.get("booked_on"), "booked_on"
+        ) or household_today(household)
+
+        try:
+            transaction_row = record_cash_deposit(
+                household=household,
+                user=request.user,
+                account=account,
+                booked_on=booked_on,
+                label=str(request.data.get("label") or ""),
+                amount=request.data.get("amount") or 0,
+                inflow_nature=str(request.data.get("inflow_nature") or ""),
+                refund_lines=request.data.get("refund_lines") or None,
+                notes=str(request.data.get("notes") or ""),
+            )
+        except (TypeError, ValueError, InvalidOperation):
+            raise ValidationError({"amount": "Expected a decimal amount."})
+
+        return Response(
+            self.get_serializer(transaction_row).data, status=status.HTTP_201_CREATED
+        )
+
     @action(detail=False, methods=["get"], url_path="flow")
     def flow(self, request):
         """Money in / out over a period, internal movements excluded.
@@ -603,6 +651,22 @@ class BankTransactionViewSet(viewsets.ReadOnlyModelViewSet):
             amount=request.data.get("amount"),
         )
         return Response(self.get_serializer(mirror).data, status=status.HTTP_201_CREATED)
+
+    @action(detail=True, methods=["patch"], url_path="cash-mirror")
+    def cash_mirror(self, request, pk=None):
+        """Corriger **quelle part** de ce retrait est entrée dans la caisse.
+
+        La résolution de l'écart `cash_mirror_partial`. Déclarer 60 € d'un retrait
+        de 100 € était possible dès le départ ; le corriger à 100 € ne l'était pas —
+        il fallait délier puis refaire, ce qui détruit et recrée la ligne espèces.
+        """
+        instance = self.get_object()
+        mirror = adjust_cash_mirror(
+            user=request.user,
+            transaction=instance,
+            amount=request.data.get("amount"),
+        )
+        return Response(self.get_serializer(mirror).data)
 
     @action(detail=True, methods=["delete"], url_path="unlink-cash")
     def unlink_cash(self, request, pk=None):

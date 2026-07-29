@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next';
 import { MoreHorizontal } from 'lucide-react';
 
 import { Button } from '@/design-system/button';
-import { Input } from '@/design-system/input';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,6 +15,7 @@ import type { Household } from '@/lib/api/households';
 import type { ActivePanel, HouseholdEditFormValues } from '../types';
 import { HouseholdActionDialog } from './HouseholdActionDialog';
 import { HouseholdEditSheet } from './HouseholdEditSheet';
+import { InvitePanel } from './InvitePanel';
 
 interface HouseholdCardProps {
   household: Household;
@@ -30,8 +30,11 @@ interface HouseholdCardProps {
   editForm: HouseholdEditFormValues;
   editSaving: boolean;
   inviteEmail: string;
+  inviteRole: 'owner' | 'member';
+  lastCreatedInvitationId: string | null;
   inviting: boolean;
   onSetInviteEmail: (value: string) => void;
+  onSetInviteRole: (value: 'owner' | 'member') => void;
   onSwitch: (householdId: string) => Promise<void>;
   onLeave: (householdId: string) => Promise<void>;
   onArchive: (householdId: string) => Promise<void>;
@@ -85,8 +88,11 @@ export function HouseholdCard({
   editForm,
   editSaving,
   inviteEmail,
+  inviteRole,
+  lastCreatedInvitationId,
   inviting,
   onSetInviteEmail,
+  onSetInviteRole,
   onSwitch,
   onLeave,
   onArchive,
@@ -222,26 +228,19 @@ export function HouseholdCard({
           if (!open) onClosePanel();
         }}
         title={t('settings.invite')}
-        description={t('settings.inviteDescription')}
+        description={t('invitations.inviteDescription')}
       >
-        <form onSubmit={(event) => void onInvite(event, household.id)} className="space-y-3 pt-1">
-          <Input
-            type="email"
-            placeholder={t('settings.inviteEmailPlaceholder')}
-            value={inviteEmail}
-            onChange={(event) => onSetInviteEmail(event.target.value)}
-            className="w-full"
-            autoFocus
-          />
-          <div className="flex justify-end gap-2">
-            <Button size="sm" variant="ghost" onClick={onClosePanel} type="button">
-              {t('common.cancel')}
-            </Button>
-            <Button type="submit" size="sm" disabled={inviting}>
-              {inviting ? t('settings.sending') : t('settings.send')}
-            </Button>
-          </div>
-        </form>
+        <InvitePanel
+          householdId={household.id}
+          email={inviteEmail}
+          role={inviteRole}
+          inviting={inviting}
+          onSetEmail={onSetInviteEmail}
+          onSetRole={onSetInviteRole}
+          onSubmit={onInvite}
+          onClose={onClosePanel}
+          lastCreatedId={lastCreatedInvitationId}
+        />
       </HouseholdActionDialog>
 
       <HouseholdActionDialog

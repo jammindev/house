@@ -409,6 +409,24 @@ export async function unlinkCashCounterpart(transactionId: string): Promise<void
   await api.delete(`/banking/transactions/${transactionId}/unlink-cash/`);
 }
 
+/**
+ * Corriger **quelle part** d'un retrait est entrée dans la caisse.
+ *
+ * La résolution de l'écart `cash_mirror_partial`. Déclarer 60 € d'un retrait de
+ * 100 € était possible dès le départ ; le corriger ne l'était pas — il fallait
+ * délier puis refaire, ce qui détruit et recrée la ligne espèces.
+ */
+export async function adjustCashMirror(
+  transactionId: string,
+  payload: { amount: string },
+): Promise<BankTransaction> {
+  const { data } = await api.patch<BankTransaction>(
+    `/banking/transactions/${transactionId}/cash-mirror/`,
+    payload,
+  );
+  return data;
+}
+
 // --- Ventilation (parcours 25, lot 5) ---------------------------------------
 
 /**
@@ -687,6 +705,42 @@ export async function recordCashExpense(
 ): Promise<CashExpenseResult> {
   const { data } = await api.post<CashExpenseResult>(
     '/banking/transactions/cash-expense/',
+    payload,
+  );
+  return data;
+}
+
+export interface CashDepositPayload {
+  account: string;
+  label: string;
+  /** Positif — ce qui est entré dans la caisse. */
+  amount: string;
+  /**
+   * Requis. `transfer` est refusé côté serveur : les espèces issues d'un retrait
+   * ont leur propre chemin (`withdrawToCash`), et déclarer un mouvement interne à
+   * la main laisserait une jambe dont rien ne fournira jamais l'autre moitié.
+   */
+  inflow_nature: Exclude<InflowNature, 'transfer'>;
+  booked_on?: string;
+  /** Les parts rendues aux enveloppes, quand la nature est `refund`. */
+  refund_lines?: RefundAllocationLine[];
+  notes?: string;
+}
+
+/**
+ * Des espèces venues d'ailleurs que d'un retrait : un cadeau, une vente, une
+ * part payée en pièces.
+ *
+ * La moitié manquante de l'histoire des espèces. Sans cet endpoint, le seul
+ * conseil possible était de gonfler le solde d'ouverture — réécrire l'histoire
+ * pour enregistrer un fait daté. Née classée, comme la dépense en espèces naît
+ * ventilée : l'app ne doit pas fabriquer son propre travail.
+ */
+export async function recordCashDeposit(
+  payload: CashDepositPayload,
+): Promise<BankTransaction> {
+  const { data } = await api.post<BankTransaction>(
+    '/banking/transactions/cash-deposit/',
     payload,
   );
   return data;

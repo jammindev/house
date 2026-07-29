@@ -70,6 +70,8 @@ export function useHouseholdManagement({ activeHouseholdId, switchHouseholdUrl }
   const [activePanel, setActivePanel] = React.useState<ActivePanel | null>(null);
   const [editForm, setEditForm] = React.useState<HouseholdEditFormValues>(emptyHouseholdForm());
   const [inviteEmail, setInviteEmail] = React.useState('');
+  const [inviteRole, setInviteRole] = React.useState<'owner' | 'member'>('member');
+  const [lastCreatedInvitationId, setLastCreatedInvitationId] = React.useState<string | null>(null);
 
   async function handleSwitch(id: string) {
     if (id === activeId || !switchHouseholdUrl) return;
@@ -129,6 +131,8 @@ export function useHouseholdManagement({ activeHouseholdId, switchHouseholdUrl }
 
   function startInvite(id: string) {
     setInviteEmail('');
+    setInviteRole('member');
+    setLastCreatedInvitationId(null);
     setActivePanel({ id, mode: 'invite' });
   }
 
@@ -176,10 +180,20 @@ export function useHouseholdManagement({ activeHouseholdId, switchHouseholdUrl }
 
   async function handleInvite(e: React.FormEvent, id: string) {
     e.preventDefault();
-    if (!inviteEmail.trim()) return;
-    await inviteMutation.mutateAsync({ householdId: id, email: inviteEmail.trim() });
-    setInviteEmail('');
-    setActivePanel(null);
+    try {
+      // No email is legitimate — the link is shared by hand, so it needs no addressee.
+      const link = await inviteMutation.mutateAsync({
+        householdId: id,
+        email: inviteEmail.trim(),
+        role: inviteRole,
+      });
+      setInviteEmail('');
+      setLastCreatedInvitationId(link.id);
+      // The panel stays open: it now holds the link the owner has to copy.
+      // Closing it here is what would make the whole gesture pointless.
+    } catch {
+      // The mutation's onError toast already carries the server's reason.
+    }
   }
 
   return {
@@ -196,10 +210,13 @@ export function useHouseholdManagement({ activeHouseholdId, switchHouseholdUrl }
     editForm,
     editSaving: updateMutation.isPending,
     inviteEmail,
+    inviteRole,
+    lastCreatedInvitationId,
     inviting: inviteMutation.isPending,
     startCreate,
     setCreateField,
     setInviteEmail,
+    setInviteRole,
     handleSwitch,
     handleCreate,
     handleArchive,

@@ -23,12 +23,14 @@ import { blockingPrerequisite } from './prerequisites';
 import {
   ACCOUNT_ANCHOR_STALE,
   ACCOUNT_WITHOUT_WINDOW,
+  CASH_MIRROR_PARTIAL,
   PENDING_OUTFLOW_KINDS,
 } from './keys';
 import { useBankAccounts } from '@/features/banking/hooks';
 import AccountDialog from '@/features/banking/AccountDialog';
 import BalanceAnchorDialog from '@/features/banking/BalanceAnchorDialog';
 import AllocationDialog from '@/features/banking/AllocationDialog';
+import CashMirrorDialog from '@/features/banking/CashMirrorDialog';
 import WaiverDialog, { type WaiverTarget } from './WaiverDialog';
 
 const SEVERITY_ORDER: Record<ComplianceSeverity, number> = { blocker: 0, error: 1, warning: 2 };
@@ -70,6 +72,12 @@ export default function CompliancePanel() {
   // la sortie de secours, et renvoyait le vrai travail vers un autre onglet — le
   // contraire de ce que le parcours 26 cherche à obtenir.
   const [allocatingId, setAllocatingId] = React.useState<string | null>(null);
+  // Même raison pour le retrait partiellement versé : ce qui le résout n'est ni
+  // une ventilation ni une nature, mais la correction du montant entré en caisse.
+  // Le détail de l'écart porte déjà les deux chiffres, donc rien à re-requêter.
+  const [pouring, setPouring] = React.useState<
+    { transactionId: string; outflow: string; mirrored: string } | null
+  >(null);
   const accountsQuery = useBankAccounts(true);
   const findAccount = React.useCallback(
     (id: string | null) => (accountsQuery.data ?? []).find((account) => account.id === id),
@@ -128,6 +136,7 @@ export default function CompliancePanel() {
               onFixAccount={setFixingAccountId}
               onAnchorAccount={setAnchoringAccountId}
               onAllocate={setAllocatingId}
+              onPour={setPouring}
             />
           ))}
         </div>
@@ -156,6 +165,16 @@ export default function CompliancePanel() {
           open
           onOpenChange={(next) => !next && setAllocatingId(null)}
           transactionId={allocatingId}
+        />
+      ) : null}
+
+      {pouring ? (
+        <CashMirrorDialog
+          open
+          onOpenChange={(next) => !next && setPouring(null)}
+          transactionId={pouring.transactionId}
+          outflow={pouring.outflow}
+          mirrored={pouring.mirrored}
         />
       ) : null}
     </div>
@@ -223,6 +242,7 @@ function GroupRow({
   onFixAccount,
   onAnchorAccount,
   onAllocate,
+  onPour,
 }: {
   group: ComplianceGroup;
   /** Prérequis encore ouvert : ce groupe n'est pas conforme, il est non évaluable. */
@@ -233,6 +253,7 @@ function GroupRow({
   onFixAccount: (accountId: string) => void;
   onAnchorAccount: (accountId: string) => void;
   onAllocate: (transactionId: string) => void;
+  onPour: (target: { transactionId: string; outflow: string; mirrored: string }) => void;
 }) {
   const { t } = useTranslation();
   const Icon = SEVERITY_ICON[group.severity];
@@ -307,6 +328,7 @@ function GroupRow({
           onFixAccount={onFixAccount}
           onAnchorAccount={onAnchorAccount}
           onAllocate={onAllocate}
+          onPour={onPour}
         />
       ) : null}
     </Card>
@@ -319,12 +341,14 @@ function GroupDetail({
   onFixAccount,
   onAnchorAccount,
   onAllocate,
+  onPour,
 }: {
   group: ComplianceGroup;
   onWaive: (target: WaiverTarget) => void;
   onFixAccount: (accountId: string) => void;
   onAnchorAccount: (accountId: string) => void;
   onAllocate: (transactionId: string) => void;
+  onPour: (target: { transactionId: string; outflow: string; mirrored: string }) => void;
 }) {
   const { t } = useTranslation();
   const [showWaived, setShowWaived] = React.useState(false);
@@ -389,6 +413,18 @@ function GroupDetail({
               onAllocate={
                 (PENDING_OUTFLOW_KINDS as readonly string[]).includes(group.kind)
                   ? () => onAllocate(finding.object_id)
+                  : undefined
+              }
+              // Le détail du finding porte `outflow` et `mirrored` : la
+              // correction se propose sans une requête de plus.
+              onPour={
+                group.kind === CASH_MIRROR_PARTIAL
+                  ? () =>
+                      onPour({
+                        transactionId: finding.object_id,
+                        outflow: String(finding.detail.outflow ?? '0'),
+                        mirrored: String(finding.detail.mirrored ?? '0'),
+                      })
                   : undefined
               }
               onWaive={() =>
@@ -477,6 +513,7 @@ function FindingRow({
   onFix,
   onAnchor,
   onAllocate,
+  onPour,
 }: {
   finding: ComplianceFinding;
   waivable: boolean;
@@ -487,6 +524,8 @@ function FindingRow({
   onAnchor?: () => void;
   /** Ventiler la ligne — la **résolution** de l'écart, pas son contournement. */
   onAllocate?: () => void;
+  /** Corriger la part d'un retrait entrée en caisse. */
+  onPour?: () => void;
 }) {
   const { t } = useTranslation();
   const reason = typeof finding.detail.reason === 'string' ? finding.detail.reason : null;
@@ -524,6 +563,15 @@ function FindingRow({
         {/* Les deux chiffres qui ne concordent plus. Sans eux « l'ancrage a dérivé »
             n'apprend rien : c'est l'écart chiffré qui dit s'il manque un relevé ou
             si la lecture était fausse. */}
+        {typeof finding.detail.missing === 'string' ? (
+          <p className="text-xs text-muted-foreground">
+            {t('money.compliance.cashMissing', {
+              outflow: finding.detail.outflow,
+              mirrored: finding.detail.mirrored,
+              missing: finding.detail.missing,
+            })}
+          </p>
+        ) : null}
         {typeof finding.detail.drift === 'string' ? (
           <p className="text-xs text-muted-foreground">
             {t('money.compliance.anchorDrift', {
@@ -540,6 +588,12 @@ function FindingRow({
       {onAllocate ? (
         <Button type="button" size="sm" onClick={onAllocate}>
           {t('money.compliance.allocate')}
+        </Button>
+      ) : null}
+
+      {onPour ? (
+        <Button type="button" size="sm" onClick={onPour}>
+          {t('money.compliance.pour')}
         </Button>
       ) : null}
 

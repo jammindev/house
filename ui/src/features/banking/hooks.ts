@@ -7,6 +7,7 @@ import {
   fetchAllocations,
   fetchAccountFlow,
   fetchBalanceAnchor,
+  adjustCashMirror,
   fetchBankAccounts,
   fetchStatementImports,
   fetchSuggestions,
@@ -16,6 +17,7 @@ import {
   previewStatementFile,
   qualifyTransaction,
   reconcileTransactions,
+  recordCashDeposit,
   recordCashExpense,
   restoreBankAccount,
   setAllocations,
@@ -28,6 +30,7 @@ import {
   withdrawToCash,
   type AllocationLine,
   type BankAccountPayload,
+  type CashDepositPayload,
   type CashExpensePayload,
   type InflowNature,
   type StatementMapping,
@@ -409,6 +412,34 @@ export function useRecordCashExpense() {
       // doivent se rafraîchir, sinon la dépense qu'on vient de saisir n'apparaît
       // nulle part avant un reload.
       toast({ description: t('banking.cash.recorded'), variant: 'success' });
+    },
+    onError: () => toast({ description: t('common.saveFailed'), variant: 'destructive' }),
+  });
+}
+
+export function useRecordCashDeposit() {
+  const invalidate = useInvalidateMoney();
+  const { t } = useTranslation();
+  return useMutation({
+    mutationFn: (payload: CashDepositPayload) => recordCashDeposit(payload),
+    onSuccess: () => {
+      invalidate();
+      toast({ description: t('banking.cash.deposited'), variant: 'success' });
+    },
+    onError: () => toast({ description: t('common.saveFailed'), variant: 'destructive' }),
+  });
+}
+
+/** Corriger la part d'un retrait versée en caisse — résout `cash_mirror_partial`. */
+export function useAdjustCashMirror() {
+  const invalidate = useInvalidateMoney();
+  const { t } = useTranslation();
+  return useMutation({
+    mutationFn: ({ transactionId, amount }: { transactionId: string; amount: string }) =>
+      adjustCashMirror(transactionId, { amount }),
+    onSuccess: () => {
+      invalidate();
+      toast({ description: t('banking.withdraw.adjusted'), variant: 'success' });
     },
     onError: () => toast({ description: t('common.saveFailed'), variant: 'destructive' }),
   });

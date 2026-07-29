@@ -12,6 +12,7 @@ would therefore never ask:
 - a cash account in the red, which is physically impossible (``account_cash_negative``);
 - a receipt nobody classified (``inflow_unclassified``);
 - an internal movement whose other leg is missing (``internal_without_counterpart``);
+- a withdrawal only partly poured into the cash pot (``cash_mirror_partial``);
 - a recurrence past due with nothing recorded (``recurring_overdue``);
 - a recurrence confirmed twice for the same day (``recurring_double_confirmed``);
 - a period nobody ever imported (``statement_period_gap``);
@@ -66,6 +67,7 @@ INFLOW_UNCLASSIFIED = "inflow_unclassified"
 REFUND_WITHOUT_BUDGET = "refund_without_budget"
 REFUND_PARTIALLY_ALLOCATED = "refund_partially_allocated"
 INTERNAL_WITHOUT_COUNTERPART = "internal_without_counterpart"
+CASH_MIRROR_PARTIAL = "cash_mirror_partial"
 RECURRING_OVERDUE = "recurring_overdue"
 RECURRING_DOUBLE_CONFIRMED = "recurring_double_confirmed"
 STATEMENT_PERIOD_GAP = "statement_period_gap"
@@ -532,6 +534,63 @@ def _find_internal_without_counterpart(household, **window) -> list[Finding]:
         )
         for txn in apply_window(_internal_without_counterpart_qs(household), **window)
     ]
+
+
+def _cash_mirror_partial_qs(household):
+    """Withdrawals only **partly** poured into the cash account.
+
+    The last silent orphan of the money model, and the subtlest: 100 € withdrawn,
+    60 € declared as entering the cash pot. The withdrawal line is flagged
+    ``is_internal`` **as a whole**, so its 40 € remainder is excluded from spending
+    by the internal rule — and no cash line ever claims it either. Nothing is
+    arithmetically wrong: the bank balance is right, the cash balance is right, and
+    40 € belong nowhere. Precisely the state the whole module exists to abolish.
+
+    Its sibling ``internal_without_counterpart`` cannot see it: there *is* a
+    counterpart, it is simply too small. And ``account_cash_negative`` cannot
+    either — under-declaring cash makes the pot look *richer*, never negative.
+
+    Waivable, unlike the negative cash balance: keeping part of a withdrawal out
+    of the household's common pot is a legitimate choice ("40 € stayed in my
+    pocket"), not an impossibility. The fingerprint carries the **missing amount**,
+    so declaring more of it later makes the arbitration stale.
+    """
+    return (
+        _scoped_lines(household)
+        .filter(amount__lt=0, transfer_counterpart__isnull=False)
+        .annotate(mirrored=F("transfer_counterpart__amount"))
+        # `amount` is negative, `mirrored` positive: their sum is what is missing,
+        # expressed as a negative. One comparison, no Python, no CASE.
+        .annotate(gap=F("amount") + F("transfer_counterpart__amount"))
+        .filter(gap__lt=0)
+    )
+
+
+def _count_cash_mirror_partial(household) -> int:
+    return _cash_mirror_partial_qs(household).count()
+
+
+def _find_cash_mirror_partial(household, **window) -> list[Finding]:
+    findings = []
+    for txn in apply_window(_cash_mirror_partial_qs(household), **window):
+        missing = -txn.gap
+        findings.append(
+            Finding(
+                kind=CASH_MIRROR_PARTIAL,
+                object_id=str(txn.pk),
+                label=f"{txn.booked_on.isoformat()} · {txn.label_raw[:80]}",
+                fingerprint=fingerprint_of(CASH_MIRROR_PARTIAL, missing),
+                detail={
+                    "account_name": txn.account.name,
+                    "booked_on": txn.booked_on.isoformat(),
+                    "label": txn.label_raw,
+                    "outflow": str(txn.outflow),
+                    "mirrored": str(txn.mirrored),
+                    "missing": str(missing),
+                },
+            )
+        )
+    return findings
 
 
 # --- Statement continuity and provenance (lot 7) ------------------------------
@@ -1059,6 +1118,16 @@ def _specs() -> list[DetectorSpec]:
             model=BankTransaction,
             count=_count_internal_without_counterpart,
             findings=_find_internal_without_counterpart,
+            blocked_by=ACCOUNT_WITHOUT_WINDOW,
+        ),
+        DetectorSpec(
+            kind=CASH_MIRROR_PARTIAL,
+            severity=ERROR,
+            label="Withdrawal only partly declared as entering the cash pot",
+            target="transaction",
+            model=BankTransaction,
+            count=_count_cash_mirror_partial,
+            findings=_find_cash_mirror_partial,
             blocked_by=ACCOUNT_WITHOUT_WINDOW,
         ),
         DetectorSpec(

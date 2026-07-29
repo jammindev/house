@@ -171,6 +171,7 @@ REST_FRAMEWORK = {
         "login_email": "5/min",
         "change_password": "5/hour",
         "password_reset": "3/hour",
+        "invitation_join": "20/hour",
         "agent_burst": "10/min",
         "agent_sustained": "100/hour",
     },

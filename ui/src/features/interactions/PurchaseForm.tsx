@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Input } from '@/design-system/input';
+import { DecimalInput } from '@/design-system/decimal-input';
 import { Textarea } from '@/design-system/textarea';
 import { Button } from '@/design-system/button';
 import { FormField } from '@/design-system/form-field';
@@ -72,7 +73,7 @@ function emptyState(currentQuantity?: number, budgetId = ''): FormState {
 }
 
 function parseDecimal(value: string): number | null {
-  const trimmed = value.trim().replace(',', '.');
+  const trimmed = value.trim();
   if (!trimmed) return null;
   const parsed = Number(trimmed);
   return Number.isFinite(parsed) ? parsed : null;
@@ -172,13 +173,11 @@ export default function PurchaseForm({
           label={`${t('purchase.fields.delta', { unit: deltaUnit ?? '' })} *`}
           htmlFor="purchase-delta"
         >
-          <Input
+          <DecimalInput
             id="purchase-delta"
-            type="number"
-            step="0.001"
-            min="0"
+            decimals={3}
             value={form.delta}
-            onChange={(e) => updateField('delta', e.target.value)}
+            onChange={(value) => updateField('delta', value)}
             required
             autoFocus
           />
@@ -190,13 +189,11 @@ export default function PurchaseForm({
           label={t('purchase.fields.remaining_before', { unit: deltaUnit ?? '' })}
           htmlFor="purchase-remaining"
         >
-          <Input
+          <DecimalInput
             id="purchase-remaining"
-            type="number"
-            step="0.001"
-            min="0"
+            decimals={3}
             value={form.remaining}
-            onChange={(e) => updateField('remaining', e.target.value)}
+            onChange={(value) => updateField('remaining', value)}
           />
           <p className="mt-1 text-xs text-muted-foreground">
             {isRecalibrating
@@ -234,13 +231,10 @@ export default function PurchaseForm({
             </div>
           ) : null}
         </div>
-        <Input
+        <DecimalInput
           id="purchase-price"
-          type="number"
-          step="0.01"
-          min="0"
           value={form.price}
-          onChange={(e) => updateField('price', e.target.value)}
+          onChange={(value) => updateField('price', value)}
           placeholder={t('purchase.fields.price_placeholder')}
           autoFocus={!withDelta}
         />

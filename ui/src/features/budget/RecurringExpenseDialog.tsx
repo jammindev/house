@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { SheetDialog } from '@/design-system/sheet-dialog';
 import { FormField } from '@/design-system/form-field';
 import { Input } from '@/design-system/input';
+import { DecimalInput } from '@/design-system/decimal-input';
 import { Textarea } from '@/design-system/textarea';
 import { Select } from '@/design-system/select';
 import { Button } from '@/design-system/button';
@@ -70,7 +71,7 @@ export default function RecurringExpenseDialog({ open, onOpenChange, existing }:
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    const parsed = Number(amount.trim().replace(',', '.'));
+    const parsed = Number(amount.trim());
     if (!label.trim()) {
       setError(t('recurring.errors.labelRequired'));
       return;
@@ -123,13 +124,10 @@ export default function RecurringExpenseDialog({ open, onOpenChange, existing }:
 
         <div className="grid gap-4 sm:grid-cols-2">
           <FormField label={`${t('recurring.fields.amount')} *`} htmlFor="rec-amount">
-            <Input
+            <DecimalInput
               id="rec-amount"
-              type="number"
-              step="0.01"
-              min="0"
               value={amount}
-              onChange={(e) => setAmount(e.target.value)}
+              onChange={setAmount}
               placeholder="0.00"
             />
           </FormField>

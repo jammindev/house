@@ -4,7 +4,7 @@ import { Plus, Trash2 } from 'lucide-react';
 import { SheetDialog } from '@/design-system/sheet-dialog';
 import { FormField } from '@/design-system/form-field';
 import { Select } from '@/design-system/select';
-import { Input } from '@/design-system/input';
+import { DecimalInput } from '@/design-system/decimal-input';
 import { Button } from '@/design-system/button';
 import { formatAmount } from '@/lib/format';
 import type { BankTransaction, InflowNature } from '@/lib/api/banking';
@@ -86,7 +86,7 @@ export default function ClassifyInflowDialog({
 
   const isRefund = nature === 'refund';
   const credited = lines.reduce((sum, line) => {
-    const value = Number(line.amount.replace(',', '.'));
+    const value = Number(line.amount);
     return sum + (Number.isFinite(value) ? value : 0);
   }, 0);
   const remaining = total - credited;
@@ -117,7 +117,7 @@ export default function ClassifyInflowDialog({
 
     const payload: { budget_id: string; amount: string }[] = [];
     for (const line of lines) {
-      const value = Number(line.amount.replace(',', '.'));
+      const value = Number(line.amount);
       if (!line.budgetId && !line.amount.trim()) continue; // ligne laissée vide
       if (!line.budgetId) {
         setError(t('banking.inflow.errors.budgetRequired'));
@@ -205,14 +205,11 @@ export default function ClassifyInflowDialog({
                     ]}
                   />
                 </div>
-                <Input
+                <DecimalInput
                   className="w-28"
-                  type="number"
-                  step="0.01"
-                  min="0"
                   aria-label={t('banking.inflow.refundAmount')}
                   value={line.amount}
-                  onChange={(e) => update(line.key, { amount: e.target.value })}
+                  onChange={(value) => update(line.key, { amount: value })}
                 />
                 {lines.length > 1 ? (
                   <button

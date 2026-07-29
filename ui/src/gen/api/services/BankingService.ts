@@ -468,6 +468,31 @@ export class BankingService {
         });
     }
     /**
+     * Corriger **quelle part** de ce retrait est entrée dans la caisse.
+     *
+     * La résolution de l'écart `cash_mirror_partial`. Déclarer 60 € d'un retrait
+     * de 100 € était possible dès le départ ; le corriger à 100 € ne l'était pas —
+     * il fallait délier puis refaire, ce qui détruit et recrée la ligne espèces.
+     * @param id
+     * @param requestBody
+     * @returns BankTransaction
+     * @throws ApiError
+     */
+    public static bankingTransactionsCashMirrorPartialUpdate(
+        id: string,
+        requestBody?: PatchedBankTransaction,
+    ): CancelablePromise<BankTransaction> {
+        return __request(OpenAPI, {
+            method: 'PATCH',
+            url: '/api/banking/transactions/{id}/cash-mirror/',
+            path: {
+                'id': id,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
      * Attach an existing expense to this operation (manual reconciliation).
      * @param id
      * @param requestBody
@@ -611,6 +636,30 @@ export class BankingService {
             path: {
                 'id': id,
             },
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
+     * Cash that came in from outside: a gift, a sale, a share paid in coins.
+     *
+     * The missing half of the cash story — until now the only way cash could
+     * enter was mirroring a bank withdrawal, so money handed over in notes had no
+     * representation at all. The advice one could give was to inflate the opening
+     * balance, which rewrites history to record a dated fact.
+     *
+     * Born classified (``inflow_nature`` required), for the same reason a cash
+     * spend is born allocated: the app must not create its own écart.
+     * @param requestBody
+     * @returns BankTransaction
+     * @throws ApiError
+     */
+    public static bankingTransactionsCashDepositCreate(
+        requestBody?: BankTransaction,
+    ): CancelablePromise<BankTransaction> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/banking/transactions/cash-deposit/',
             body: requestBody,
             mediaType: 'application/json',
         });

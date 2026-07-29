@@ -4,6 +4,7 @@ import { AlertTriangle, Check } from 'lucide-react';
 import { SheetDialog } from '@/design-system/sheet-dialog';
 import { FormField } from '@/design-system/form-field';
 import { Input } from '@/design-system/input';
+import { DecimalInput } from '@/design-system/decimal-input';
 import { Button } from '@/design-system/button';
 import { Card } from '@/design-system/card';
 import { formatAmount, todayISO } from '@/lib/format';
@@ -66,7 +67,7 @@ export default function BalanceAnchorDialog({
   // Le solde du jour moins tout ce qui a bougé depuis la première ligne. Calculé
   // ici uniquement pour l'aperçu — le serveur refait la soustraction, parce qu'un
   // montant calculé par le client n'a rien à faire en base.
-  const parsed = Number(balance.trim().replace(',', '.'));
+  const parsed = Number(balance.trim());
   const preview =
     context && balance.trim() && Number.isFinite(parsed)
       ? parsed - Number(context.movements)
@@ -134,12 +135,11 @@ export default function BalanceAnchorDialog({
           ) : null}
 
           <FormField label={t('banking.anchor.balanceLabel')} htmlFor="anchor-balance">
-            <Input
+            <DecimalInput
               id="anchor-balance"
-              type="number"
-              step="0.01"
+              allowNegative
               value={balance}
-              onChange={(e) => setBalance(e.target.value)}
+              onChange={setBalance}
               placeholder="0.00"
               disabled={blocked}
               autoFocus
@@ -204,7 +204,7 @@ export default function BalanceAnchorDialog({
 
           <Footer
             onCancel={() => onOpenChange(false)}
-            onSubmit={() => void apply({ balance: balance.trim().replace(',', '.'), as_of: asOf })}
+            onSubmit={() => void apply({ balance: balance.trim(), as_of: asOf })}
             disabled={
               anchor.isPending ||
               blocked ||

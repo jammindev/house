@@ -1081,7 +1081,6 @@
     "members": "miembros",
     "leave": "Salir",
     "invite": "Invitar",
-    "inviteDescription": "Introduce el correo electrónico de la persona que quieres invitar a este hogar. El usuario debe estar registrado previamente.",
     "inviteEmailPlaceholder": "Correo del miembro (ej.: miembro@ejemplo.com)",
     "memberInvited": "Miembro invitado",
     "inviteFailed": "No se pudo invitar al miembro",
@@ -1170,7 +1169,7 @@
         },
         "invite-member": {
           "title": "Invitar a un miembro del hogar",
-          "description": "Desde los ajustes, invita a tu familia a unirse al hogar."
+          "description": "Desde los ajustes, cree un enlace de invitación y envíelo usted mismo a su familia."
         },
         "declare-account": {
           "title": "Declarar una cuenta y su punto de partida",
@@ -1545,7 +1544,7 @@
           },
           "find": {
             "title": "Reencontrar un documento",
-            "body": "Búsqueda y filtros por tipo; el asistente de IA también sabe encontrarlos."
+            "body": "Filtra por tipo con un clic, agrupa por tipo o fecha, busca en el texto de los archivos — el asistente de IA también sabe encontrarlos."
           }
         }
       },
@@ -1606,6 +1605,10 @@
           "household": {
             "title": "Gestionar el hogar",
             "body": "Invita a miembros, gestiona los roles, cambia de hogar activo."
+          },
+          "invite": {
+            "title": "Invitar al hogar",
+            "body": "Invitar crea un enlace — House no envía ningún correo. Cópielo y transmítalo como prefiera: quien lo abra elige una contraseña y entra directamente en el hogar, sin necesidad de tener cuenta antes. La dirección de correo es opcional y solo sirve para dirigir la invitación. Un enlace dura una semana y puede revocarlo en cualquier momento."
           },
           "modules": {
             "title": "Activar los módulos adecuados",
@@ -1689,7 +1692,7 @@
           },
           "cash": {
             "title": "Seguir también el efectivo",
-            "body": "Cree una cuenta de tipo «Efectivo» para el dinero en metálico del hogar. Funciona como una cuenta bancaria: sus retiradas la alimentan, y un gasto en metálico pasa a ser una operación de esa cuenta — por tanto un gasto que el control sabe vincular, como los demás."
+            "body": "Crea una cuenta de tipo «Efectivo» para el dinero en metálico del hogar. Funciona como una cuenta bancaria, y el efectivo entra por dos caminos: «Alimentar el efectivo» en una línea de retirada, y «Entrada de efectivo» en la pestaña Cuentas para lo que viene de otro sitio (un regalo, una venta, la parte de un amigo). Un gasto en efectivo se convierte en una operación de esa cuenta — un gasto que el control sabe conciliar, como los demás. Si solo ingresas una parte de una retirada en la caja, el Control te lo avisa: el resto no pertenecería a nada."
           },
           "openingBalance": {
             "title": "Indicar el saldo inicial",
@@ -1918,7 +1921,11 @@
     "filter": {
       "unlinked": "Mostrar solo sin actividad",
       "unlinkedActive": "Mostrando sin actividad",
-      "allTypes": "Todos los tipos"
+      "allTypes": "Todos los tipos",
+      "reset": "Restablecer",
+      "groupBy": "Agrupar por:",
+      "groupBy_type": "Tipo",
+      "groupBy_date": "Fecha"
     },
     "upload": {
       "title": "Subir documento",
@@ -2026,7 +2033,8 @@
         "task": "Tarea",
         "interaction": "Actividad"
       }
-    }
+    },
+    "noResults_description": "Ningún documento coincide con tu búsqueda."
   },
   "equipment": {
     "app_title": "Mini-app Equipos",
@@ -2731,7 +2739,36 @@
     "invitedBy": "Invitado por {{name}}",
     "decline": "Rechazar",
     "accept": "Aceptar",
-    "acceptAndSwitch": "Aceptar & unirse"
+    "acceptAndSwitch": "Aceptar & unirse",
+    "inviteDescription": "Cree un enlace y envíelo usted mismo — por mensaje, como prefiera. Quien lo abra se unirá a este hogar.",
+    "emailOptional": "Correo electrónico (opcional)",
+    "emailOptionalHint": "Solo sirve para dirigir la invitación. Déjelo vacío para un enlace que pueda dar a cualquiera.",
+    "role": "Rol",
+    "createLink": "Crear el enlace",
+    "copyLink": "Copiar",
+    "copied": "Copiado",
+    "revoke": "Revocar este enlace",
+    "linkRevoked": "Enlace revocado",
+    "openLink": "Enlace sin dirección definida",
+    "expired": "Caducado",
+    "expiresOn": "Válido hasta el {{date}}",
+    "pendingLinks_one": "{{count}} enlace pendiente",
+    "pendingLinks_other": "{{count}} enlaces pendientes",
+    "alsoNotifiedInApp": "Esta dirección ya tiene una cuenta de House — también se le notificó en la aplicación.",
+    "linkInvalidTitle": "Enlace no válido",
+    "linkInvalid": "Este enlace de invitación no es válido. Puede que ya se haya usado o que se haya revocado.",
+    "expiredTitle": "Invitación caducada",
+    "expiredBody": "Este enlace ya no es válido. Pida uno nuevo.",
+    "joinTitle": "Unirse a {{name}}",
+    "joinSubtitle": "Le han invitado a unirse a este hogar.",
+    "joinSubtitleBy": "{{name}} le invita a unirse a su hogar.",
+    "joinAsCurrentUser": "Ha iniciado sesión como {{email}}.",
+    "joinSubmit": "Unirse al hogar",
+    "notNow": "Más tarde",
+    "displayName": "Su nombre",
+    "choosePassword": "Elija una contraseña",
+    "alreadyHaveAccount": "¿Ya tiene una cuenta?",
+    "joinFailed": "No se ha podido unir a este hogar."
   },
   "changelog": {
     "title": "Novedades",
@@ -3494,7 +3531,8 @@
       "noAccount": "Sin cuenta de efectivo",
       "noAccountHint": "Declare una cuenta «Efectivo» en la pestaña Cuentas: un gasto en metálico pasa entonces a ser una operación de cuenta, como las demás.",
       "createAccount": "Crear mi cuenta de efectivo",
-      "defaultAccountName": "Efectivo"
+      "defaultAccountName": "Efectivo",
+      "deposited": "Entrada de efectivo registrada."
     },
     "withdraw": {
       "title": "Pasar a efectivo",
@@ -3513,7 +3551,10 @@
       "linked": "Retirada reflejada en el efectivo.",
       "unlinked": "Contrapartida en efectivo eliminada.",
       "linkedBadge": "Efectivo",
-      "unlink": "Eliminar la contrapartida"
+      "unlink": "Eliminar la contrapartida",
+      "completeTitle": "Completar el ingreso en caja",
+      "completeHint": "Retirada de {{outflow}}, de la cual {{mirrored}} declarados como entrados en la caja. El resto no pertenece a nada: ni gasto, ni efectivo.",
+      "adjusted": "Parte ingresada en caja corregida."
     },
     "allocation": {
       "title": "Desglosar esta operación",
@@ -3655,6 +3696,14 @@
       "removeSplit": "Eliminar la asignación",
       "removeSplitHint": "Elimina este gasto; la operación bancaria no se toca y vuelve a la cola.",
       "splitRemoved": "Asignación eliminada"
+    },
+    "deposit": {
+      "title": "Entrada de efectivo",
+      "action": "Entrada de efectivo",
+      "labelPlaceholder": "Ej.: regalo, bici vendida, parte de Marie",
+      "amount": "Importe recibido",
+      "date": "Fecha",
+      "natureHint": "Una transferencia interna no se registra aquí: el efectivo procedente de una retirada se declara desde la línea de retirada, con «Alimentar el efectivo»."
     }
   },
   "pwa": {
@@ -3857,6 +3906,11 @@
           "title": "Reembolsos parcialmente asignados",
           "hint": "Una parte de lo devuelto no acredita ningún presupuesto: sus contadores siguen inflados en ese importe.",
           "resolution": "Completa el reparto desde la cola, o justifica el resto si no corresponde a ningún presupuesto."
+        },
+        "cash_mirror_partial": {
+          "title": "Retiradas solo parcialmente ingresadas en caja",
+          "hint": "Parte de la retirada no es ni un gasto ni efectivo declarado: ese dinero no pertenece a nada.",
+          "resolution": "Corrija la parte que entró en la caja, o arbitre si el resto fue a otro sitio (bolsillo propio, otro hogar)."
         }
       },
       "blocked": "Control no evaluable",
@@ -3869,7 +3923,9 @@
       "fix": "Corregir",
       "findBalance": "Encontrar el saldo",
       "anchorDrift": "Saldo leído: {{attested}} · calculado hoy: {{computed}}",
-      "allocate": "Ordenar"
+      "allocate": "Ordenar",
+      "pour": "Corregir el ingreso",
+      "cashMissing": "Retirada de {{outflow}}, {{mirrored}} ingresados en caja — {{missing}} no pertenecen a nada."
     },
     "pending": {
       "count": "{{count}} operación por ordenar",

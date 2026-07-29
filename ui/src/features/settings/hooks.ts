@@ -24,11 +24,20 @@ import {
   inviteMember,
   acceptInvitation,
   declineInvitation,
+  fetchHouseholdInvitations,
+  revokeInvitation,
   type Household,
   type CreateHouseholdInput,
   type UpdateHouseholdInput,
   type HouseholdInvitation,
+  type InvitationLink,
 } from '@/lib/api/households';
+
+/** The `detail` a DRF refusal carries, when it carries one. */
+function apiDetail(error: unknown): string | null {
+  const detail = (error as { response?: { data?: { detail?: unknown } } })?.response?.data?.detail;
+  return typeof detail === 'string' ? detail : null;
+}
 
 function normalizeList<T>(data: unknown): T[] {
   if (Array.isArray(data)) return data as T[];
@@ -46,6 +55,8 @@ export const settingsKeys = {
   me: () => [...settingsKeys.all, 'me'] as const,
   households: () => [...settingsKeys.all, 'households'] as const,
   pendingInvitations: () => [...settingsKeys.all, 'pending-invitations'] as const,
+  householdInvitations: (householdId: string) =>
+    [...settingsKeys.all, 'household-invitations', householdId] as const,
   telegram: () => [...settingsKeys.all, 'telegram'] as const,
   pings: () => [...settingsKeys.all, 'pings'] as const,
 };
@@ -252,13 +263,41 @@ export function useInviteMember() {
   const { t } = useTranslation();
   const { toast } = useToast();
   return useMutation({
-    mutationFn: ({ householdId, email }: { householdId: string; email: string }) =>
-      inviteMember(householdId, email),
-    onSuccess: () => {
+    mutationFn: ({ householdId, email, role }: { householdId: string; email: string; role?: 'owner' | 'member' }) =>
+      inviteMember(householdId, email, role ?? 'member'),
+    onSuccess: (_link, { householdId }) => {
       void qc.invalidateQueries({ queryKey: settingsKeys.households() });
-      toast({ description: t('settings.memberInvited'), variant: 'success' });
+      void qc.invalidateQueries({ queryKey: settingsKeys.householdInvitations(householdId) });
     },
-    onError: () => toast({ description: t('settings.inviteFailed'), variant: 'destructive' }),
+    // The server explains *why* (already a member, invitation already pending);
+    // a generic "failed" toast is what hid the real reason for this whole feature.
+    onError: (error: unknown) =>
+      toast({ description: apiDetail(error) ?? t('settings.inviteFailed'), variant: 'destructive' }),
+  });
+}
+
+/** Pending invitation links of a household — owner only, for copying or revoking. */
+export function useHouseholdInvitations(householdId: string | null, enabled = true) {
+  return useQuery<InvitationLink[]>({
+    queryKey: settingsKeys.householdInvitations(householdId ?? ''),
+    queryFn: () => fetchHouseholdInvitations(householdId as string),
+    enabled: Boolean(householdId) && enabled,
+  });
+}
+
+export function useRevokeInvitation() {
+  const qc = useQueryClient();
+  const { t } = useTranslation();
+  const { toast } = useToast();
+  return useMutation({
+    mutationFn: ({ householdId, invitationId }: { householdId: string; invitationId: string }) =>
+      revokeInvitation(householdId, invitationId),
+    onSuccess: (_v, { householdId }) => {
+      void qc.invalidateQueries({ queryKey: settingsKeys.householdInvitations(householdId) });
+      toast({ description: t('invitations.linkRevoked'), variant: 'success' });
+    },
+    onError: (error: unknown) =>
+      toast({ description: apiDetail(error) ?? t('settings.requestFailed'), variant: 'destructive' }),
   });
 }
 

@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@/design-system/button';
 import { FormField } from '@/design-system/form-field';
 import { Input } from '@/design-system/input';
+import { DecimalInput } from '@/design-system/decimal-input';
 import { SheetDialog } from '@/design-system/sheet-dialog';
 import { formatTrackerValue, type Tracker, type TrackerEntry } from '@/lib/api/trackers';
 import { useCreateEntry, useUpdateEntry } from './hooks';
@@ -51,7 +52,7 @@ export default function EntryDialog({ open, onOpenChange, tracker, existing }: E
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    const normalized = value.trim().replace(',', '.');
+    const normalized = value.trim();
     if (!normalized || Number.isNaN(Number(normalized)) || !occurredAt) {
       setError(t('trackers.valueRequired'));
       return;
@@ -94,12 +95,12 @@ export default function EntryDialog({ open, onOpenChange, tracker, existing }: E
             }
             htmlFor="entry-value"
           >
-            <Input
+            <DecimalInput
               id="entry-value"
-              type="text"
-              inputMode="decimal"
+              decimals={3}
+              allowNegative
               value={value}
-              onChange={(e) => setValue(e.target.value)}
+              onChange={setValue}
               required
               autoFocus
             />

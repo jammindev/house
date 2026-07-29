@@ -1081,7 +1081,6 @@
     "members": "Mitglieder",
     "leave": "Verlassen",
     "invite": "Einladen",
-    "inviteDescription": "Geben Sie die E-Mail-Adresse der Person ein, die Sie zu diesem Haushalt einladen möchten. Der Benutzer muss bereits registriert sein.",
     "inviteEmailPlaceholder": "E-Mail des Mitglieds (z. B. mitglied@beispiel.de)",
     "memberInvited": "Mitglied eingeladen",
     "inviteFailed": "Einladung fehlgeschlagen",
@@ -1170,7 +1169,7 @@
         },
         "invite-member": {
           "title": "Ein Haushaltsmitglied einladen",
-          "description": "Laden Sie Ihre Familie über die Einstellungen in den Haushalt ein."
+          "description": "Erstellen Sie in den Einstellungen einen Einladungslink und senden Sie ihn selbst an Ihre Familie."
         },
         "declare-account": {
           "title": "Ein Konto und seinen Startpunkt anlegen",
@@ -1545,7 +1544,7 @@
           },
           "find": {
             "title": "Ein Dokument wiederfinden",
-            "body": "Suche und Filter nach Typ; auch der KI-Assistent findet sie."
+            "body": "Mit einem Klick nach Typ filtern, nach Typ oder Datum gruppieren, im Dateitext suchen — der KI-Assistent findet sie ebenfalls."
           }
         }
       },
@@ -1606,6 +1605,10 @@
           "household": {
             "title": "Den Haushalt verwalten",
             "body": "Laden Sie Mitglieder ein, verwalten Sie Rollen, wechseln Sie den aktiven Haushalt."
+          },
+          "invite": {
+            "title": "Den Haushalt einladen",
+            "body": "Einladen erzeugt einen Link — House versendet keine E-Mail. Kopieren Sie ihn und geben Sie ihn weiter, wie Sie möchten: wer ihn öffnet, wählt ein Passwort und landet direkt im Haushalt, ohne vorher ein Konto zu brauchen. Die E-Mail-Adresse ist optional und adressiert lediglich die Einladung. Ein Link gilt eine Woche und kann jederzeit widerrufen werden."
           },
           "modules": {
             "title": "Die richtigen Module aktivieren",
@@ -1689,7 +1692,7 @@
           },
           "cash": {
             "title": "Auch Bargeld erfassen",
-            "body": "Legen Sie ein Konto vom Typ „Bargeld“ an. Es verhält sich wie ein Bankkonto: Abhebungen füllen es, und eine Barausgabe wird eine Buchung darauf — also eine Ausgabe, die die Kontrolle zuordnen kann, wie jede andere."
+            "body": "Erstelle ein Konto vom Typ „Bargeld“ für das Bargeld des Haushalts. Es funktioniert wie ein Bankkonto, und Bargeld kommt auf zwei Wegen hinein: „Kasse auffüllen“ auf einer Abhebungszeile, und „Bareingang“ im Tab Konten für Geld von außen (ein Geschenk, ein Verkauf, der Anteil einer Freundin). Eine Barausgabe wird zu einer Buchung dieses Kontos — also zu einer Ausgabe, die die Kontrolle zuordnen kann. Zahlst du nur einen Teil einer Abhebung in die Kasse ein, meldet es die Kontrolle: der Rest würde nirgendwohin gehören."
           },
           "openingBalance": {
             "title": "Anfangssaldo eintragen",
@@ -1918,7 +1921,11 @@
     "filter": {
       "unlinked": "Nur ohne Aktivität anzeigen",
       "unlinkedActive": "Zeige ohne Aktivität",
-      "allTypes": "Alle Typen"
+      "allTypes": "Alle Typen",
+      "reset": "Zurücksetzen",
+      "groupBy": "Gruppieren nach:",
+      "groupBy_type": "Typ",
+      "groupBy_date": "Datum"
     },
     "upload": {
       "title": "Dokument hochladen",
@@ -2026,7 +2033,8 @@
         "task": "Aufgabe",
         "interaction": "Aktivität"
       }
-    }
+    },
+    "noResults_description": "Kein Dokument entspricht Ihrer Suche."
   },
   "equipment": {
     "app_title": "Geräte-Mini-App",
@@ -2731,7 +2739,36 @@
     "invitedBy": "Eingeladen von {{name}}",
     "decline": "Ablehnen",
     "accept": "Annehmen",
-    "acceptAndSwitch": "Annehmen & wechseln"
+    "acceptAndSwitch": "Annehmen & wechseln",
+    "inviteDescription": "Erstellen Sie einen Link und versenden Sie ihn selbst — per Nachricht, wie Sie möchten. Wer ihn öffnet, tritt diesem Haushalt bei.",
+    "emailOptional": "E-Mail (optional)",
+    "emailOptionalHint": "Dient nur dazu, die Einladung zu adressieren. Leer lassen für einen Link, den Sie jedem geben können.",
+    "role": "Rolle",
+    "createLink": "Link erstellen",
+    "copyLink": "Kopieren",
+    "copied": "Kopiert",
+    "revoke": "Diesen Link widerrufen",
+    "linkRevoked": "Link widerrufen",
+    "openLink": "Link ohne festgelegte Adresse",
+    "expired": "Abgelaufen",
+    "expiresOn": "Gültig bis {{date}}",
+    "pendingLinks_one": "{{count}} offener Link",
+    "pendingLinks_other": "{{count}} offene Links",
+    "alsoNotifiedInApp": "Diese Adresse hat bereits ein House-Konto — die Person wurde auch in der App benachrichtigt.",
+    "linkInvalidTitle": "Ungültiger Link",
+    "linkInvalid": "Dieser Einladungslink ist nicht gültig. Möglicherweise wurde er bereits verwendet oder widerrufen.",
+    "expiredTitle": "Einladung abgelaufen",
+    "expiredBody": "Dieser Link ist nicht mehr gültig. Bitten Sie um einen neuen.",
+    "joinTitle": "{{name}} beitreten",
+    "joinSubtitle": "Sie wurden eingeladen, diesem Haushalt beizutreten.",
+    "joinSubtitleBy": "{{name}} lädt Sie ein, dem Haushalt beizutreten.",
+    "joinAsCurrentUser": "Sie sind angemeldet als {{email}}.",
+    "joinSubmit": "Haushalt beitreten",
+    "notNow": "Später",
+    "displayName": "Ihr Name",
+    "choosePassword": "Passwort wählen",
+    "alreadyHaveAccount": "Sie haben schon ein Konto?",
+    "joinFailed": "Beitritt zu diesem Haushalt nicht möglich."
   },
   "changelog": {
     "title": "Neuigkeiten",
@@ -3494,7 +3531,8 @@
       "noAccount": "Kein Barkonto",
       "noAccountHint": "Legen Sie im Reiter Konten ein Konto „Bargeld“ an: eine Barausgabe wird dann eine Kontobuchung wie jede andere.",
       "createAccount": "Barkonto anlegen",
-      "defaultAccountName": "Bargeld"
+      "defaultAccountName": "Bargeld",
+      "deposited": "Bareingang erfasst."
     },
     "withdraw": {
       "title": "Auf Bargeld übertragen",
@@ -3513,7 +3551,10 @@
       "linked": "Abhebung auf Bargeld gespiegelt.",
       "unlinked": "Bargeld-Gegenbuchung entfernt.",
       "linkedBadge": "Bargeld",
-      "unlink": "Gegenbuchung entfernen"
+      "unlink": "Gegenbuchung entfernen",
+      "completeTitle": "Bareinlage vervollständigen",
+      "completeHint": "Abhebung von {{outflow}}, davon {{mirrored}} als in die Kasse eingegangen erklärt. Der Rest gehört nirgendwohin: weder Ausgabe noch Bargeld.",
+      "adjusted": "In die Kasse eingezahlter Anteil korrigiert."
     },
     "allocation": {
       "title": "Diese Buchung aufteilen",
@@ -3655,6 +3696,14 @@
       "removeSplit": "Aufteilung entfernen",
       "removeSplitHint": "Löscht diese Ausgabe; die Bankbuchung bleibt unberührt und kehrt in die Warteschlange zurück.",
       "splitRemoved": "Aufteilung entfernt"
+    },
+    "deposit": {
+      "title": "Bareingang",
+      "action": "Bareingang",
+      "labelPlaceholder": "z. B. Geschenk, Fahrrad verkauft, Maries Anteil",
+      "amount": "Erhaltener Betrag",
+      "date": "Datum",
+      "natureHint": "Eine interne Umbuchung wird hier nicht erfasst: Bargeld aus einer Abhebung wird auf der Abhebungszeile mit „Kasse auffüllen“ erklärt."
     }
   },
   "pwa": {
@@ -3857,6 +3906,11 @@
           "title": "Teilweise zugeordnete Rückzahlungen",
           "hint": "Ein Teil des zurückgekommenen Geldes erstattet kein Budget: deren Zähler bleiben um diesen Betrag zu hoch.",
           "resolution": "Vervollständigen Sie die Aufteilung in der Warteschlange, oder begründen Sie den Rest."
+        },
+        "cash_mirror_partial": {
+          "title": "Abhebungen nur teilweise in die Kasse eingezahlt",
+          "hint": "Ein Teil der Abhebung ist weder Ausgabe noch erklärtes Bargeld: dieses Geld gehört nirgendwohin.",
+          "resolution": "Korrigieren Sie den in die Kasse eingegangenen Anteil, oder entscheiden Sie begründet, wenn der Rest woanders hingegangen ist (eigene Tasche, anderer Haushalt)."
         }
       },
       "blocked": "Kontrolle nicht bewertbar",
@@ -3869,7 +3923,9 @@
       "fix": "Beheben",
       "findBalance": "Saldo ermitteln",
       "anchorDrift": "Abgelesener Saldo: {{attested}} · heute berechnet: {{computed}}",
-      "allocate": "Zuordnen"
+      "allocate": "Zuordnen",
+      "pour": "Einzahlung korrigieren",
+      "cashMissing": "Abhebung von {{outflow}}, {{mirrored}} in die Kasse — {{missing}} gehören nirgendwohin."
     },
     "pending": {
       "count": "{{count}} Buchung zuzuordnen",

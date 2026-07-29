@@ -306,7 +306,7 @@ def test_invite_via_api_sets_active_for_new_member():
     invite_url = drf_reverse("household-invite", kwargs={"pk": h_id})
     resp2 = api_owner.post(invite_url, {"email": invited.email, "role": "member"}, format="json")
     assert resp2.status_code == 201
-    invitation_id = resp2.data["invitation_id"]
+    invitation_id = resp2.data["id"]
 
     # Invite does NOT set active_household
     invited.refresh_from_db()
