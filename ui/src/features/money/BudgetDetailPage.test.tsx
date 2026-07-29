@@ -102,7 +102,7 @@ function expense(id: string, subject: string): InteractionListItem {
 const TOTAL = 120;
 
 const fetchInteractions = vi.fn(
-  async (options: { budget?: string; offset?: number }): Promise<FetchInteractionsResult> => {
+  async (options: { budget?: string; offset?: number } = {}): Promise<FetchInteractionsResult> => {
     const offset = options.offset ?? 0;
     const prefix = options.budget === 'b-2' ? 'c' : 'e';
     const items = Array.from({ length: Math.min(50, TOTAL - offset) }, (_, i) =>
@@ -116,12 +116,21 @@ vi.mock('@/lib/api/interactions', async () => {
   const actual = await vi.importActual<typeof import('@/lib/api/interactions')>(
     '@/lib/api/interactions',
   );
-  return { ...actual, fetchInteractions: (o: never) => fetchInteractions(o) };
+  return {
+    ...actual,
+    fetchInteractions: ((options) =>
+      fetchInteractions(options)) as typeof actual.fetchInteractions,
+  };
 });
 
 function renderPage(at = '/app/money/budgets/b-1') {
   const router = createMemoryRouter(
-    [{ path: '/app/money/budgets/:id', element: <BudgetDetailPage /> }, { path: '*', element: null }],
+    [
+      { path: '/app/money/budgets/:id', element: <BudgetDetailPage /> },
+      // La fiche d'une dépense, en cul-de-sac : le test « cocher n'ouvre pas »
+      // doit échouer sur son assertion de chemin, pas sur une erreur de routeur.
+      { path: '*', element: null },
+    ],
     { initialEntries: [at] },
   );
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
@@ -135,6 +144,9 @@ function renderPage(at = '/app/money/budgets/b-1') {
 
 beforeEach(() => {
   fetchInteractions.mockClear();
+  // La période vit dans `sessionStorage` (`useSessionState`) et survit au démontage :
+  // un test qui en changerait la fixerait pour tous les suivants.
+  sessionStorage.clear();
 });
 
 describe('BudgetDetailPage — la liste des dépenses', () => {
