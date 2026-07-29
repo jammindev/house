@@ -130,6 +130,12 @@ interface FetchInteractionsOptions {
   end_date?: string;
   kind?: string;
   supplier?: string;
+  /**
+   * `'1'` ne garde que les dépenses auxquelles il manque un fournisseur — un
+   * paramètre à part et non une valeur de `supplier`, un fournisseur pouvant
+   * légitimement s'appeler « none ». Exclusif de `supplier` côté appelant.
+   */
+  without_supplier?: string;
   /** Id d'un budget, ou `'none'` pour le seau « hors budget ». */
   budget?: string;
   limit?: number;
@@ -198,6 +204,7 @@ export async function fetchInteractions(
     end_date,
     kind,
     supplier,
+    without_supplier,
     budget,
     limit = 8,
     offset = 0,
@@ -217,6 +224,7 @@ export async function fetchInteractions(
   if (end_date) params.end_date = end_date;
   if (kind) params.kind = kind;
   if (supplier !== undefined) params.supplier = supplier;
+  if (without_supplier) params.without_supplier = without_supplier;
   // `'none'` est une valeur (« hors budget »), pas l'absence de filtre.
   if (budget) params.budget = budget;
   if (limit > 0) params.limit = limit;

@@ -10,6 +10,10 @@ export const FilterPill = React.forwardRef<HTMLButtonElement, FilterPillProps>(
     <button
       ref={ref}
       type="button"
+      /* Un filtre est un interrupteur, et son état n'était porté que par la
+         couleur : au lecteur d'écran, douze pastilles se lisaient identiques et
+         rien ne disait laquelle filtrait la liste. */
+      aria-pressed={active}
       className={cn(
         'inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-medium transition-colors',
         active

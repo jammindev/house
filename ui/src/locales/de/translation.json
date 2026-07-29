@@ -3183,7 +3183,8 @@
         "last30Days": "Letzte 30 Tage",
         "currentYear": "Dieses Jahr",
         "custom": "Benutzerdefiniert"
-      }
+      },
+      "withoutSupplier": "Ohne Lieferant"
     },
     "list": {
       "noAmount": "Ohne Betrag"
@@ -3211,7 +3212,8 @@
       "nothingToChange": "Fülle mindestens ein Feld aus.",
       "done_one": "1 Ausgabe aktualisiert",
       "done_other": "{{count}} Ausgaben aktualisiert"
-    }
+    },
+    "withoutSupplier": "Ohne Lieferant"
   },
   "aiUsage": {
     "title": "KI-Nutzung",

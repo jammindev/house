@@ -77,6 +77,20 @@ def _parse_bound(value: str, household, *, closing: bool) -> datetime:
     return end_of_day(day, household) if closing else start_of_day(day, household)
 
 
+#: Ce qu'un drapeau de query string veut dire « oui ». Mêmes valeurs que
+#: ``documents.views`` pour ``without_zone``, dont ce filtre est le pendant : deux
+#: vocabulaires pour le même drapeau se répondraient différemment sur `?flag=true`.
+_TRUTHY_PARAMS = {'1', 'true', 'yes'}
+
+
+def _is_truthy(value: str | None) -> bool:
+    """Vrai si le paramètre dit oui. ``?flag=0`` dit **non**, pas « présent ».
+
+    Un front qui envoie toujours la clé ne doit pas filtrer à son insu.
+    """
+    return (value or '').lower() in _TRUTHY_PARAMS
+
+
 def _parse_period(from_param: str | None, to_param: str | None, household):
     """Resolve from/to query params, defaulting to the household's current month.
 
@@ -224,6 +238,15 @@ class InteractionViewSet(viewsets.ModelViewSet):
         supplier = self.request.query_params.get('supplier')
         if supplier is not None:
             queryset = queryset.filter(supplier=supplier)
+
+        # « Celles auxquelles il manque un fournisseur » — le pendant en liste de la
+        # pastille, et ce qui permet de composer une sélection à corriger en masse.
+        #
+        # Un paramètre à part et non une valeur de ``supplier`` : un fournisseur
+        # pourrait s'appeler « none », et la chaîne vide est déjà lue juste au-dessus
+        # comme un filtre — donc indistinguable, côté client, de l'absence de filtre.
+        if _is_truthy(self.request.query_params.get('without_supplier')):
+            queryset = queryset.filter(supplier__regex=r'^\s*$')
 
         # Filter by budget — « de quoi ce compteur est-il fait ? ».
         #
@@ -582,6 +605,11 @@ class InteractionViewSet(viewsets.ModelViewSet):
             supplier=supplier if supplier else None,
             kind=kind if kind else None,
             budget=budget,
+            # Le même filtre que la liste, et pas par confort : les cartes de total
+            # sont affichées **au-dessus** d'elle. Un compteur qui compte des lignes
+            # que la liste ne montre pas fait perdre leur crédit aux deux, et aucun
+            # ne dit lequel se trompe.
+            without_supplier=_is_truthy(request.query_params.get('without_supplier')),
         ))
 
 

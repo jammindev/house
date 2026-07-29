@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Link2 } from 'lucide-react';
+import { Link2, Store } from 'lucide-react';
 import { Card, CardTitle } from '@/design-system/card';
 import { Badge } from '@/design-system/badge';
 import { CheckboxField } from '@/design-system/checkbox-field';
@@ -22,12 +22,20 @@ interface ExpenseListProps {
    */
   onToggleSelected?: (item: InteractionListItem) => void;
   isSelected?: (item: InteractionListItem) => boolean;
+  /**
+   * Signale les dépenses auxquelles il manque un fournisseur — onglet Dépenses
+   * seulement. La fiche d'un budget réutilise cette liste et n'y pose pas la même
+   * question : une pastille de plus sur chaque ligne n'y avertirait de rien.
+   * Même règle que le `flagWithoutZone` de la galerie photos.
+   */
+  flagWithoutSupplier?: boolean;
 }
 
 export default function ExpenseList({
   items,
   onToggleSelected,
   isSelected,
+  flagWithoutSupplier,
 }: ExpenseListProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -49,6 +57,11 @@ export default function ExpenseList({
           // fait douter de ce sur quoi le prochain clic va porter.
           const canAttach = !selecting && !item.bank_line && Boolean(item.amount);
           const picked = isSelected?.(item) ?? false;
+          // `supplier` vient de la liste, jamais déduit autrement : c'est la même
+          // source que le filtre « Sans fournisseur », sinon la pastille et le
+          // filtre pourraient se contredire sur la même dépense. Le `trim` couvre
+          // les valeurs d'espaces d'un import historique, comme le filtre serveur.
+          const withoutSupplier = flagWithoutSupplier && !(item.supplier ?? '').trim();
 
           return (
             <li key={item.id}>
@@ -89,6 +102,12 @@ export default function ExpenseList({
                         state={item.reconciliation_state}
                         line={item.bank_line}
                       />
+                      {withoutSupplier ? (
+                        <span className="flex items-center gap-1 rounded-full bg-warning/90 px-2 py-0.5 text-[10px] font-medium text-warning-foreground">
+                          <Store className="h-3 w-3" aria-hidden />
+                          {t('expenses.withoutSupplier')}
+                        </span>
+                      ) : null}
                     </div>
                     <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
                       <span>{formatDate(item.occurred_at)}</span>

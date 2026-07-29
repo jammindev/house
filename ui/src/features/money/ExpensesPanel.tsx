@@ -30,7 +30,31 @@ export default function ExpensesPanel() {
 
   const [period, setPeriod] = useSessionState<PeriodRange>('expenses.period', { preset: 'currentMonth' });
   const [supplier, setSupplier] = useSessionState<string>('expenses.supplier', '');
+  const [withoutSupplier, setWithoutSupplier] = useSessionState<boolean>(
+    'expenses.withoutSupplier',
+    false,
+  );
   const [kind, setKind] = useSessionState<string>('expenses.kind', '');
+
+  // « Chez Leclerc » et « sans fournisseur » ne peuvent pas être vrais ensemble :
+  // les cumuler ne rendrait jamais qu'une liste vide, sans dire pourquoi. Chacun
+  // éteint donc l'autre — même règle que le couple zone / sans-zone des photos.
+  const toggleWithoutSupplier = React.useCallback(() => {
+    const next = !withoutSupplier;
+    setWithoutSupplier(next);
+    if (next) setSupplier('');
+  }, [withoutSupplier, setWithoutSupplier, setSupplier]);
+
+  // Choisir un fournisseur **ou** « Tous » éteint le filtre dans les deux cas :
+  // « Tous » est la pastille du « pas de filtre », donc elle doit aussi relâcher
+  // celui-ci, sans quoi elle mentirait sur ce qu'elle montre.
+  const chooseSupplier = React.useCallback(
+    (value: string) => {
+      setSupplier(value);
+      setWithoutSupplier(false);
+    },
+    [setSupplier, setWithoutSupplier],
+  );
 
   const range = React.useMemo(() => resolvePeriod(period), [period]);
   const filters = React.useMemo(
@@ -38,9 +62,13 @@ export default function ExpensesPanel() {
       from: range.from,
       to: range.to,
       ...(supplier ? { supplier } : {}),
+      // Le résumé porte le **même** filtre que la liste : ses cartes s'affichent
+      // au-dessus d'elle, et un total qui compte des lignes qu'elle ne montre pas
+      // ferait perdre leur crédit aux deux.
+      ...(withoutSupplier ? { without_supplier: '1' } : {}),
       ...(kind ? { kind } : {}),
     }),
-    [range.from, range.to, supplier, kind],
+    [range.from, range.to, supplier, withoutSupplier, kind],
   );
 
   const summaryQuery = useExpenseSummary(filters);
@@ -59,13 +87,17 @@ export default function ExpensesPanel() {
   // Même mécanique que le journal, et pour la même raison : c'est un registre,
   // il grandit sans fin. Le serveur plafonne d'ailleurs cette liste à 100 par
   // requête — une fenêtre qu'on agrandit s'y serait arrêtée sans le dire.
-  const pager = usePager(50, `${kind}|${supplier}|${range.from}|${range.to}`);
+  const pager = usePager(
+    50,
+    `${kind}|${supplier}|${withoutSupplier}|${range.from}|${range.to}`,
+  );
 
   const listFilters = React.useMemo(
     () => ({
       type: 'expense' as const,
       ...(kind ? { kind } : {}),
       ...(supplier ? { supplier } : {}),
+      ...(withoutSupplier ? { without_supplier: '1' } : {}),
       // Period filter on list reuses occurred_at, but the summary endpoint uses
       // strict from/to — for the list we keep the same range for visual coherence.
       // The list endpoint filter param is `start_date`/`end_date` per views.py:71.
@@ -74,7 +106,7 @@ export default function ExpensesPanel() {
       limit: pager.limit,
       offset: pager.offset,
     }),
-    [kind, supplier, range.from, range.to, pager.limit, pager.offset],
+    [kind, supplier, withoutSupplier, range.from, range.to, pager.limit, pager.offset],
   );
 
   const listQuery = useQuery({
@@ -149,7 +181,9 @@ export default function ExpensesPanel() {
           period={period}
           onPeriodChange={setPeriod}
           supplier={supplier}
-          onSupplierChange={setSupplier}
+          onSupplierChange={chooseSupplier}
+          withoutSupplier={withoutSupplier}
+          onWithoutSupplierToggle={toggleWithoutSupplier}
           kind={kind}
           onKindChange={setKind}
           supplierOptions={supplierOptions}
@@ -185,6 +219,7 @@ export default function ExpensesPanel() {
               <>
                 <ExpenseList
                   items={items}
+                  flagWithoutSupplier
                   onToggleSelected={
                     selection.active ? (item) => selection.toggle(item.id) : undefined
                   }

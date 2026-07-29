@@ -3183,7 +3183,8 @@
         "last30Days": "Last 30 days",
         "currentYear": "This year",
         "custom": "Custom"
-      }
+      },
+      "withoutSupplier": "No supplier"
     },
     "list": {
       "noAmount": "No amount"
@@ -3211,7 +3212,8 @@
       "nothingToChange": "Fill in at least one field to change.",
       "done_one": "1 expense updated",
       "done_other": "{{count}} expenses updated"
-    }
+    },
+    "withoutSupplier": "No supplier"
   },
   "aiUsage": {
     "title": "AI usage",

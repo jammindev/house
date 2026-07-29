@@ -3183,7 +3183,8 @@
         "last30Days": "Últimos 30 días",
         "currentYear": "Este año",
         "custom": "Personalizado"
-      }
+      },
+      "withoutSupplier": "Sin proveedor"
     },
     "list": {
       "noAmount": "Sin importe"
@@ -3211,7 +3212,8 @@
       "nothingToChange": "Rellena al menos un campo a corregir.",
       "done_one": "1 gasto corregido",
       "done_other": "{{count}} gastos corregidos"
-    }
+    },
+    "withoutSupplier": "Sin proveedor"
   },
   "aiUsage": {
     "title": "Uso de IA",

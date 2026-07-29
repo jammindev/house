@@ -3183,7 +3183,8 @@
         "last30Days": "30 derniers jours",
         "currentYear": "Cette année",
         "custom": "Personnalisé"
-      }
+      },
+      "withoutSupplier": "Sans fournisseur"
     },
     "list": {
       "noAmount": "Sans montant"
@@ -3211,7 +3212,8 @@
       "nothingToChange": "Renseigne au moins un champ à corriger.",
       "done_one": "1 dépense corrigée",
       "done_other": "{{count}} dépenses corrigées"
-    }
+    },
+    "withoutSupplier": "Sans fournisseur"
   },
   "aiUsage": {
     "title": "Usage IA",

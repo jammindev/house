@@ -25,7 +25,8 @@ UNBUDGETED = 'none'
 
 def expense_qs(household_id, from_dt: datetime | None, to_dt: datetime | None,
                supplier: str | None = None, kind: str | None = None,
-               budget: str | None = None, category: str | None = None):
+               budget: str | None = None, category: str | None = None,
+               without_supplier: bool = False):
     """Les dépenses d'une période, filtrées comme le résumé les filtre.
 
     Public — et pas seulement parce qu'un second module s'en sert. La fiche d'un
@@ -39,6 +40,14 @@ def expense_qs(household_id, from_dt: datetime | None, to_dt: datetime | None,
     permet à « dépensé » de garder une seule définition — donc la seule façon de
     lire son total est de lire les dépenses de ses budgets. Un filtre de scope,
     jamais un compteur de plus.
+
+    ``without_supplier`` est un paramètre **à part** et non une valeur de
+    ``supplier`` : un fournisseur pourrait légitimement s'appeler « none », et la
+    chaîne vide est déjà lue par le endpoint générique comme un filtre sur la
+    chaîne vide — donc indistinguable, côté client, de l'absence de filtre. Il
+    couvre aussi les valeurs d'espaces, qu'aucune écriture ne produit plus mais
+    qu'un import historique a pu laisser : une dépense « nommée » d'un espace
+    serait invisible au filtre comme au rangement.
     """
     qs = expenses(household_id=household_id)
     if from_dt is not None:
@@ -47,6 +56,8 @@ def expense_qs(household_id, from_dt: datetime | None, to_dt: datetime | None,
         qs = qs.filter(occurred_at__lte=to_dt)
     if supplier is not None:
         qs = qs.filter(supplier=supplier)
+    if without_supplier:
+        qs = qs.filter(supplier__regex=r'^\s*$')
     if kind is not None:
         qs = qs.filter(kind=kind)
     if budget is not None:
@@ -73,6 +84,7 @@ def compute_expense_summary(
     kind: str | None = None,
     budget: str | None = None,
     category: str | None = None,
+    without_supplier: bool = False,
 ) -> dict[str, Any]:
     """Return totals + breakdowns for expense interactions in the period.
 
@@ -94,7 +106,7 @@ def compute_expense_summary(
     """
     qs = expense_qs(
         household_id, from_dt, to_dt, supplier=supplier, kind=kind, budget=budget,
-        category=category,
+        category=category, without_supplier=without_supplier,
     )
 
     overall = qs.aggregate(
