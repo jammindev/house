@@ -21,6 +21,18 @@ interface ExpenseFiltersProps {
   supplierOptions: string[];
   /** Distinct kind values from the current summary (for chips). */
   kindOptions: string[];
+  /**
+   * La période fait-elle partie de ce bloc ? Oui dans l'onglet Dépenses, où elle
+   * borne exactement la même chose que les pastilles.
+   *
+   * **Non sur la fiche d'un budget**, et pas par mise en page : là-bas la
+   * période pilote *toute* la page (le total, sa comparaison au plafond, la
+   * courbe, l'anneau) tandis que ces pastilles ne réduisent que la liste.
+   * Réunir les deux dans un même bloc promettrait que tout obéit à tout — or un
+   * sous-total filtré comparé à un plafond entier dit toujours « tu es large ».
+   * Elle reste donc en tête de page, où l'on voit ce qu'elle recalcule.
+   */
+  showPeriod?: boolean;
 }
 
 export default function ExpenseFilters({
@@ -34,12 +46,15 @@ export default function ExpenseFilters({
   onKindChange,
   supplierOptions,
   kindOptions,
+  showPeriod = true,
 }: ExpenseFiltersProps) {
   const { t } = useTranslation();
 
   return (
     <div className="space-y-3">
-      <PeriodPicker period={period} onChange={onPeriodChange} idPrefix="expenses" />
+      {showPeriod ? (
+        <PeriodPicker period={period} onChange={onPeriodChange} idPrefix="expenses" />
+      ) : null}
 
       {kindOptions.length > 0 ? (
         <div className="flex flex-wrap gap-1.5">

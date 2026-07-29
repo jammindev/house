@@ -139,6 +139,38 @@ par budget, répartition, fournisseurs, plus grosses dépenses) — le panneau
 Budgets ne regarde que le mois en cours. Détail du calcul et de ce qu'il refuse
 d'inventer : `docs/MODULES/budget.md`, section « Analyse fine ».
 
+### La fiche d'une enveloppe est le même écran que l'onglet Dépenses, moins le total
+
+`/app/money/budgets/:id` liste les dépenses avec **le composant de l'onglet
+Dépenses** (`ExpenseList`), le même endpoint, les mêmes filtres
+(`ExpenseFilters`), le même pager, la même sélection multiple et le même dialogue
+de correction en lot. Ajouter un geste à l'un doit le donner à l'autre, sinon les
+deux écrans divergent sur ce qu'on peut faire de la même ligne.
+
+Une seule chose ne se partage pas, et c'est la règle à ne pas casser :
+
+- ⚠️ **Les filtres réduisent la liste, jamais le bloc du haut.** Ce bloc compare
+  le dépensé à un **plafond** (« 340 € / 400 € ») : un sous-total filtré sous un
+  plafond entier dirait « tu es large » à quelqu'un qui vient de dépasser — même
+  famille de mensonge que le plafond qui recule. Le total, sa comparaison, la
+  courbe et l'anneau restent définis par la **seule période**, qui vit en tête de
+  page pour cette raison — et non dans le bloc de filtres, qui promettrait que
+  tout obéit à tout. Conséquence assumée : l'anneau des fournisseurs répond
+  « combien chez qui » sur toute la fenêtre. C'est la carte depuis laquelle on
+  filtre, pas une vue de ce qui est filtré.
+- **Les options de pastille viennent du serveur** (`insights.suppliers`,
+  `insights.kinds`), donc de la fenêtre entière — jamais des lignes de la page
+  affichée, qui n'en connaît que cinquante sur trois cents : une pastille qui
+  apparaît en tournant les pages fait douter de ce qu'on filtre. Elles ne se
+  réduisent pas non plus quand un filtre est actif, pour qu'on passe d'un
+  fournisseur à l'autre sans repasser par « Tous ».
+- **Filtrés jusqu'au vide, les filtres restent affichés** — sinon ils
+  disparaîtraient avec la liste et rien ne permettrait de les relâcher. Et le
+  message distingue les deux vides : une période sans dépense se règle en
+  changeant de période, une liste trop étroite en relâchant une pastille.
+
+Régressions : `ui/src/features/money/BudgetDetailPage.test.tsx`.
+
 `/app/money/categories/:id` est la fiche d'une **catégorie** de budget : l'anneau
 de répartition du dépensé **entre ses enveloppes**, la comparaison à la période
 précédente, la courbe, puis les enveloppes elles-mêmes (chacune ouvrant sa propre

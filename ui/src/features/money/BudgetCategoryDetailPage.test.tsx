@@ -64,6 +64,7 @@ const insights: BudgetInsights = {
   granularity: 'day',
   buckets: [{ label: '2026-06-01', total: '150.00' }],
   suppliers: [],
+  kinds: [],
   budgets: [
     {
       budget_id: 'b-1',

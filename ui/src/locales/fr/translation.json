@@ -1682,7 +1682,7 @@
           },
           "sheet": {
             "title": "Ouvrir la fiche d'un budget",
-            "body": "Touche un budget pour ouvrir sa fiche. Choisis la période — les quatre raccourcis, ou deux dates libres — et tout se recalcule. Sous le montant, la comparaison avec la période précédente équivalente : un mois se compare au mois d'avant, une année à l'année d'avant, une fenêtre libre à la même durée juste avant. En dessous, le rythme des dépenses jour par jour (mois par mois sur une longue fenêtre) et la part de chaque fournisseur en pourcentage. Sans dépense avant, House écrit qu'il n'y a pas de comparaison plutôt que d'inventer un pourcentage. « Hors budget » s'ouvre exactement pareil.\n\nEn bas, la liste des dépenses de la période se parcourt page par page. « Sélectionner » y coche plusieurs lignes, puis « Corriger… » change leur fournisseur ou leur budget d'un coup — c'est le geste pour déplacer ce qui est rangé dans la mauvaise enveloppe. Les lignes déplacées quittent la fiche aussitôt : elles comptent désormais ailleurs."
+            "body": "Touche un budget pour ouvrir sa fiche. Choisis la période — les quatre raccourcis, ou deux dates libres — et tout se recalcule. Sous le montant, la comparaison avec la période précédente équivalente : un mois se compare au mois d'avant, une année à l'année d'avant, une fenêtre libre à la même durée juste avant. En dessous, le rythme des dépenses jour par jour (mois par mois sur une longue fenêtre) et la part de chaque fournisseur en pourcentage. Sans dépense avant, House écrit qu'il n'y a pas de comparaison plutôt que d'inventer un pourcentage. « Hors budget » s'ouvre exactement pareil.\n\nEn bas, la liste des dépenses de la période se parcourt page par page. « Sélectionner » y coche plusieurs lignes, puis « Corriger… » change leur fournisseur ou leur budget d'un coup — c'est le geste pour déplacer ce qui est rangé dans la mauvaise enveloppe. Les lignes déplacées quittent la fiche aussitôt : elles comptent désormais ailleurs. Les pastilles au-dessus de la liste la réduisent — une nature, un fournisseur, ou « sans fournisseur » pour repérer ce qui reste à renseigner. Elles ne touchent pas au total du haut, qui reste celui de la période entière : c'est lui qu'on compare au plafond."
           },
           "analysis": {
             "title": "Comprendre où ça part",
@@ -3431,6 +3431,8 @@
     "count_other": "{{count}} dépenses",
     "empty": "Aucune dépense sur cette période",
     "emptyDescription": "Change de période, ou range des dépenses dans ce budget.",
+    "emptyFiltered": "Aucune dépense avec ces filtres",
+    "emptyFilteredDescription": "Relâche une pastille pour élargir la liste — le total du haut, lui, reste celui de la période entière.",
     "refundsTitle": "Remboursements de la période",
     "trend": {
       "title": "Rythme des dépenses",
