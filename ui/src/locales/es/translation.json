@@ -1682,7 +1682,7 @@
           },
           "sheet": {
             "title": "Abrir la ficha de un presupuesto",
-            "body": "Toca un presupuesto para abrir su ficha. Elige el periodo — los cuatro accesos rápidos o dos fechas libres — y todo se recalcula. Bajo el importe está la comparación con el periodo anterior equivalente: un mes se compara con el mes anterior, un año con el año anterior, una ventana libre con la misma duración justo antes. Debajo, el ritmo de gastos día a día (mes a mes en una ventana larga) y la parte de cada proveedor en porcentaje. Si antes no se gastó nada, House dice que no hay comparación en lugar de inventar un porcentaje. « Sin presupuesto » se abre exactamente igual."
+            "body": "Toca un presupuesto para abrir su ficha. Elige el periodo — los cuatro accesos rápidos o dos fechas libres — y todo se recalcula. Bajo el importe está la comparación con el periodo anterior equivalente: un mes se compara con el mes anterior, un año con el año anterior, una ventana libre con la misma duración justo antes. Debajo, el ritmo de gastos día a día (mes a mes en una ventana larga) y la parte de cada proveedor en porcentaje. Si antes no se gastó nada, House dice que no hay comparación en lugar de inventar un porcentaje. « Sin presupuesto » se abre exactamente igual.\n\nAbajo, la lista de gastos del periodo se recorre página a página. « Seleccionar » marca varias líneas y « Corregir… » cambia su proveedor o su presupuesto de una vez — es el gesto para mover lo que está en el sobre equivocado. Las líneas movidas salen de la ficha al instante: ahora cuentan en otro sitio."
           },
           "analysis": {
             "title": "Ver adónde va de verdad",
@@ -3431,7 +3431,6 @@
     "count_other": "{{count}} gastos",
     "empty": "Ningún gasto en este periodo",
     "emptyDescription": "Cambia de periodo o clasifica gastos en este presupuesto.",
-    "truncated": "Mostrando {{shown}} de {{total}} gastos.",
     "refundsTitle": "Reembolsos del periodo",
     "trend": {
       "title": "Ritmo de gastos",
