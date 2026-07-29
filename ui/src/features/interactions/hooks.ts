@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
+  bulkUpdateExpenses,
   fetchInteractions,
   createInteraction,
   deleteInteraction,
@@ -104,5 +105,21 @@ export function useSuppliers() {
     queryKey: interactionKeys.suppliers(),
     queryFn: fetchSuppliers,
     staleTime: 60_000,
+  });
+}
+
+/**
+ * Corriger le fournisseur ou le budget d'un lot de dépenses.
+ *
+ * Invalidation par `useInvalidateMoney` : un lot de douze dépenses réaffectées
+ * change les compteurs de budget, le résumé des dépenses **et** la conformité
+ * (`expense_without_budget`). Lister ici les seules racines « évidentes » est
+ * exactement la dérive que ce helper unique a supprimée.
+ */
+export function useBulkUpdateExpenses() {
+  const invalidate = useInvalidateMoney();
+  return useMutation({
+    mutationFn: bulkUpdateExpenses,
+    onSuccess: invalidate,
   });
 }

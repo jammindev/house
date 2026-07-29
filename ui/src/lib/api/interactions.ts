@@ -305,3 +305,27 @@ export async function fetchSuppliers(): Promise<SupplierSuggestion[]> {
   );
   return data.results ?? [];
 }
+
+/**
+ * Corriger un lot de dépenses en un appel.
+ *
+ * `supplier` et `budgetId` sont optionnels **mais pas simultanément**. Et pour le
+ * budget, `null` est un choix (« retirer l'enveloppe ») là où l'absence de clé veut
+ * dire « ne touche pas au budget » — d'où le `undefined` distinct du `null`, que le
+ * sérialiseur JSON traduit en clé absente.
+ *
+ * Le serveur refuse le lot **en entier** si un id n'est pas une dépense du foyer :
+ * une écriture partielle ne se rattrape par aucun écran.
+ */
+export async function bulkUpdateExpenses(input: {
+  ids: string[];
+  supplier?: string;
+  budgetId?: string | null;
+}): Promise<{ updated: number; supplier: string | null }> {
+  const { data } = await api.post('/interactions/interactions/bulk-update/', {
+    ids: input.ids,
+    ...(input.supplier !== undefined ? { supplier: input.supplier } : {}),
+    ...(input.budgetId !== undefined ? { budget_id: input.budgetId } : {}),
+  });
+  return data as { updated: number; supplier: string | null };
+}

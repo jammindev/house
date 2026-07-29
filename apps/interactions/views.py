@@ -411,6 +411,94 @@ class InteractionViewSet(viewsets.ModelViewSet):
         payload = InteractionSerializer(interaction, context={"request": request}).data
         return Response(payload, status=status.HTTP_200_OK)
 
+    @action(detail=False, methods=['post'], url_path='bulk-update')
+    def bulk_update(self, request):
+        """POST /api/interactions/interactions/bulk-update/ — corriger un lot de dépenses.
+
+        Body : ``{"ids": [...], "supplier": "…", "budget_id": "…"|null}``. Les deux
+        champs sont optionnels **mais pas simultanément** : une requête qui
+        n'exprime aucune intention ne peut pas répondre « 12 mises à jour ».
+
+        Le lot est **atomique**. Un id inconnu, hors du foyer, ou qui n'est pas une
+        dépense fait échouer l'ensemble : écrire les huit ids valides en taisant
+        les quatre autres laisserait celui qui a lancé le lot sans moyen de savoir
+        ce qui a été fait, et aucun écran ne rattrape une écriture partielle.
+
+        Et il applique **les mêmes règles que l'écriture unitaire** — catalogue de
+        fournisseurs, refus du budget global ou d'un autre foyer. Un chemin de
+        masse qui contournerait les validations du chemin unitaire serait une porte
+        ouverte sur des données que rien n'a vérifiées.
+        """
+        from .services import _resolve_expense_budget, register_supplier
+
+        household = request.household
+        if household is None:
+            raise ValidationError({'detail': 'No household selected.'})
+
+        raw_ids = request.data.get('ids')
+        if not isinstance(raw_ids, list) or not raw_ids:
+            raise ValidationError({'ids': 'Expected a non-empty list of interaction ids.'})
+
+        try:
+            ids = [uuid.UUID(str(value)) for value in raw_ids]
+        except (ValueError, AttributeError, TypeError):
+            # Un id malformé atteindrait le driver comme un crash : un mauvais
+            # paramètre est un 400, jamais un 500.
+            raise ValidationError({'ids': 'One or more ids are not valid uuids.'})
+
+        has_supplier = 'supplier' in request.data
+        has_budget = 'budget_id' in request.data
+        if not has_supplier and not has_budget:
+            raise ValidationError(
+                {'detail': 'Nothing to change: provide "supplier" and/or "budget_id".'}
+            )
+
+        # Le comptage se fait sur un `set` : une sélection qui répète un id ne doit
+        # pas gonfler le total annoncé.
+        unique_ids = set(ids)
+        rows = list(
+            Interaction.objects.filter(
+                id__in=unique_ids, household_id=household.id, type='expense'
+            ).values_list('id', flat=True)
+        )
+        if len(rows) != len(unique_ids):
+            missing = len(unique_ids) - len(rows)
+            raise ValidationError({
+                'ids': (
+                    f'{missing} of {len(unique_ids)} entries are not expenses of this '
+                    f'household; nothing was changed.'
+                )
+            })
+
+        changes = {'updated_by': request.user, 'updated_at': timezone.now()}
+        canonical_supplier = None
+        if has_supplier:
+            canonical_supplier = register_supplier(
+                household_id=household.id, user=request.user, name=request.data['supplier']
+            )
+            changes['supplier'] = canonical_supplier
+        if has_budget:
+            # `null` est un choix (« retirer l'enveloppe ») ; l'absence de clé est
+            # « ne touche pas au budget ». Les confondre rendrait l'un des deux
+            # gestes impossible.
+            try:
+                changes['budget'] = _resolve_expense_budget(
+                    household.id, request.data['budget_id']
+                )
+            except ValueError as exc:
+                raise ValidationError({'budget_id': str(exc)})
+
+        # `.update()` et non une boucle de `save()` : c'est une seule requête, et
+        # elle est indivisible. Le revers est qu'elle contourne `save()`, d'où
+        # `updated_by`/`updated_at` posés à la main — une écriture de masse sans
+        # trace est précisément celle qu'on voudra relire.
+        Interaction.objects.filter(id__in=rows).update(**changes)
+
+        return Response({
+            'updated': len(rows),
+            'supplier': canonical_supplier,
+        })
+
     @action(detail=False, methods=['get'], url_path='suppliers')
     def suppliers(self, request):
         """GET /api/interactions/suppliers/ — le catalogue des fournisseurs du foyer.

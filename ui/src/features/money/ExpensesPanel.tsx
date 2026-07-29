@@ -1,9 +1,11 @@
 import * as React from 'react';
-import { Plus, Receipt } from 'lucide-react';
+import { CheckSquare, Pencil, Plus, Receipt } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import EmptyState from '@/components/EmptyState';
 import Pager from '@/components/Pager';
+import SelectionBar from '@/components/SelectionBar';
+import { useMultiSelect } from '@/lib/useMultiSelect';
 import { Button } from '@/design-system/button';
 import { useDelayedLoading } from '@/lib/useDelayedLoading';
 import { useSessionState } from '@/lib/useSessionState';
@@ -16,6 +18,7 @@ import ExpenseSummaryCards from '@/features/expenses/ExpenseSummaryCards';
 import ExpenseFilters from '@/features/expenses/ExpenseFilters';
 import { resolvePeriod, type PeriodRange } from '@/features/expenses/period';
 import ExpenseList from '@/features/expenses/ExpenseList';
+import BulkEditDialog from '@/features/expenses/BulkEditDialog';
 import CashExpenseDialog from './CashExpenseDialog';
 
 /**
@@ -79,7 +82,13 @@ export default function ExpensesPanel() {
     queryFn: () => fetchInteractions(listFilters as Parameters<typeof fetchInteractions>[0]),
   });
 
-  const items: InteractionListItem[] = listQuery.data?.items ?? [];
+  // Mémoïsé, et pas seulement pour faire taire le linter : le `?? []` fabriquait un
+  // tableau neuf à chaque rendu, donc la liste d'ids que lit `useMultiSelect`
+  // changeait d'identité en permanence et recalculait la sélection pour rien.
+  const items: InteractionListItem[] = React.useMemo(
+    () => listQuery.data?.items ?? [],
+    [listQuery.data],
+  );
 
   // Une page qui s'est vidée sous les doigts (dépenses supprimées pendant la
   // lecture) ramène à la première : rester sur une page vide afficherait « aucune
@@ -102,10 +111,33 @@ export default function ExpensesPanel() {
   }, [summary]);
 
   const [adhocOpen, setAdhocOpen] = React.useState(false);
+  const [bulkOpen, setBulkOpen] = React.useState(false);
+
+  /**
+   * La `scopeKey` porte les filtres **et** la pagination : cocher douze dépenses
+   * de juillet puis basculer sur juin ou tourner la page laisserait sinon une
+   * sélection invisible, et le lot suivant porterait sur autre chose que ce que
+   * l'écran montre.
+   */
+  const selection = useMultiSelect(
+    React.useMemo(() => items.map((item) => item.id), [items]),
+    { scopeKey: `${kind}|${supplier}|${range.from}|${range.to}|${pager.offset}` },
+  );
 
   return (
     <>
-      <div className="flex justify-end pb-4">
+      <div className="flex flex-wrap justify-end gap-2 pb-4">
+        {items.length > 0 ? (
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => (selection.active ? selection.exit() : selection.enter())}
+            className="gap-1.5"
+          >
+            <CheckSquare className="h-4 w-4" />
+            {selection.active ? t('common.cancel') : t('common.select')}
+          </Button>
+        ) : null}
         <Button type="button" onClick={() => setAdhocOpen(true)} className="gap-1.5">
           <Plus className="h-4 w-4" />
           {t('expenses.adhoc.actions.add')}
@@ -151,7 +183,32 @@ export default function ExpensesPanel() {
               />
             ) : (
               <>
-                <ExpenseList items={items} />
+                <ExpenseList
+                  items={items}
+                  onToggleSelected={
+                    selection.active ? (item) => selection.toggle(item.id) : undefined
+                  }
+                  isSelected={(item) => selection.isSelected(item.id)}
+                />
+                {selection.active ? (
+                  <SelectionBar
+                    label={t('expenses.bulk.selected', { count: selection.count })}
+                    allSelected={selection.allSelected}
+                    onToggleAll={selection.allSelected ? selection.clear : selection.selectAll}
+                    onExit={selection.exit}
+                  >
+                    <Button
+                      type="button"
+                      size="sm"
+                      disabled={selection.count === 0}
+                      onClick={() => setBulkOpen(true)}
+                      className="gap-1.5"
+                    >
+                      <Pencil className="h-4 w-4" />
+                      {t('expenses.bulk.action')}
+                    </Button>
+                  </SelectionBar>
+                ) : null}
                 <Pager
                   offset={pager.offset}
                   limit={pager.limit}
@@ -168,6 +225,12 @@ export default function ExpensesPanel() {
       </div>
 
       <CashExpenseDialog open={adhocOpen} onOpenChange={setAdhocOpen} />
+      <BulkEditDialog
+        open={bulkOpen}
+        onOpenChange={setBulkOpen}
+        ids={selection.selectedIds}
+        onDone={selection.exit}
+      />
     </>
   );
 }

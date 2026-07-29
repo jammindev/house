@@ -1514,7 +1514,7 @@
           },
           "supplier": {
             "title": "El proveedor se elige, no se vuelve a escribir",
-            "body": "El campo proveedor es una lista buscable, formada por tus propias entradas: los más frecuentes aparecen primero. Una tienda desconocida simplemente se escribe — pasa a la lista para la próxima vez, sin ninguna pantalla que rellenar.\n\nY las mayúsculas o los acentos ya no crean duplicados: «leroy merlin» cae sobre «Leroy Merlin». Eso mantiene un solo filtro y un solo total por tienda, donde tres ortografías daban tres.\n\nAl desglosar una línea del extracto, la app te propone además el comercio leído en el concepto de la operación — así el caso corriente no cuesta ni una pulsación."
+            "body": "El campo proveedor es una lista buscable, formada por tus propias entradas: los más frecuentes aparecen primero. Una tienda desconocida simplemente se escribe — pasa a la lista para la próxima vez, sin ninguna pantalla que rellenar.\n\nY las mayúsculas o los acentos ya no crean duplicados: «leroy merlin» cae sobre «Leroy Merlin». Eso mantiene un solo filtro y un solo total por tienda, donde tres ortografías daban tres.\n\nAl desglosar una línea del extracto, la app te propone además el comercio leído en el concepto de la operación — así el caso corriente no cuesta ni una pulsación.\n\nY puedes corregir varios gastos a la vez: «Seleccionar» encima de la lista, marca los que quieras y luego «Corregir…». El mismo gesto cambia también el presupuesto — la forma más rápida de vaciar la lista de gastos sin sobre que te señala el Control. El lote se envía de una vez: si algo falla, no se escribe nada."
           },
           "sources": {
             "title": "Entender los gastos automáticos",
@@ -3197,6 +3197,20 @@
       "actions": {
         "add": "Nuevo gasto"
       }
+    },
+    "bulk": {
+      "title_one": "Corregir 1 gasto",
+      "title_other": "Corregir {{count}} gastos",
+      "intro": "Solo se modifican los campos que rellenas. Deja un campo vacío para no tocarlo.",
+      "action": "Corregir…",
+      "selected_one": "1 gasto seleccionado",
+      "selected_other": "{{count}} gastos seleccionados",
+      "keepSupplier": "No cambiar el proveedor",
+      "keepBudget": "No cambiar el presupuesto",
+      "noBudget": "Quitar el presupuesto",
+      "nothingToChange": "Rellena al menos un campo a corregir.",
+      "done_one": "1 gasto corregido",
+      "done_other": "{{count}} gastos corregidos"
     }
   },
   "aiUsage": {

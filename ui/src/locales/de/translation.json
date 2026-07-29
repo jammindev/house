@@ -1514,7 +1514,7 @@
           },
           "supplier": {
             "title": "Den Lieferanten wählen, nicht neu eintippen",
-            "body": "Das Lieferantenfeld ist eine durchsuchbare Liste aus deinen eigenen Eingaben, die häufigsten zuerst. Ein unbekanntes Geschäft tippst du einfach ein — es kommt für das nächste Mal in die Liste, ohne ein Formular auszufüllen.\n\nGroß- und Kleinschreibung oder Akzente erzeugen keine Duplikate mehr: „leroy merlin“ landet auf „Leroy Merlin“. Das sorgt für einen Filter und eine Summe pro Geschäft, wo drei Schreibweisen zuvor drei ergaben.\n\nBeim Aufteilen einer Kontozeile schlägt die App zusätzlich den Händler vor, den sie in der Bezeichnung des Vorgangs liest — der Normalfall kostet damit keinen Tastendruck."
+            "body": "Das Lieferantenfeld ist eine durchsuchbare Liste aus deinen eigenen Eingaben, die häufigsten zuerst. Ein unbekanntes Geschäft tippst du einfach ein — es kommt für das nächste Mal in die Liste, ohne ein Formular auszufüllen.\n\nGroß- und Kleinschreibung oder Akzente erzeugen keine Duplikate mehr: „leroy merlin“ landet auf „Leroy Merlin“. Das sorgt für einen Filter und eine Summe pro Geschäft, wo drei Schreibweisen zuvor drei ergaben.\n\nBeim Aufteilen einer Kontozeile schlägt die App zusätzlich den Händler vor, den sie in der Bezeichnung des Vorgangs liest — der Normalfall kostet damit keinen Tastendruck.\n\nDu kannst auch mehrere Ausgaben auf einmal korrigieren: „Auswählen“ über der Liste, die passenden anhaken, dann „Bearbeiten…“. Dieselbe Aktion ändert auch das Budget — der schnellste Weg, die Liste der Ausgaben ohne Umschlag zu leeren, die die Kontrolle meldet. Der Stapel geht in einem Zug: Stimmt etwas nicht, wird nichts geschrieben."
           },
           "sources": {
             "title": "Automatische Ausgaben verstehen",
@@ -3197,6 +3197,20 @@
       "actions": {
         "add": "Neue Ausgabe"
       }
+    },
+    "bulk": {
+      "title_one": "1 Ausgabe bearbeiten",
+      "title_other": "{{count}} Ausgaben bearbeiten",
+      "intro": "Nur die Felder, die du ausfüllst, werden geändert. Lass ein Feld leer, um es unverändert zu lassen.",
+      "action": "Bearbeiten…",
+      "selected_one": "1 Ausgabe ausgewählt",
+      "selected_other": "{{count}} Ausgaben ausgewählt",
+      "keepSupplier": "Lieferanten nicht ändern",
+      "keepBudget": "Budget nicht ändern",
+      "noBudget": "Budget entfernen",
+      "nothingToChange": "Fülle mindestens ein Feld aus.",
+      "done_one": "1 Ausgabe aktualisiert",
+      "done_other": "{{count}} Ausgaben aktualisiert"
     }
   },
   "aiUsage": {

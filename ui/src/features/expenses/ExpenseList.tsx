@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Link2 } from 'lucide-react';
 import { Card, CardTitle } from '@/design-system/card';
 import { Badge } from '@/design-system/badge';
+import { CheckboxField } from '@/design-system/checkbox-field';
 import { Button } from '@/design-system/button';
 import { formatAmount, formatDate } from '@/lib/format';
 import { pushBack } from '@/lib/backNavigation';
@@ -14,13 +15,25 @@ import type { InteractionListItem } from '@/lib/api/interactions';
 
 interface ExpenseListProps {
   items: InteractionListItem[];
+  /**
+   * Fourni = mode sélection : cliquer une ligne coche au lieu d'ouvrir sa fiche.
+   * Un `undefined` porte le mode normal, donc la liste n'a pas de booléen de plus
+   * à tenir — même contrat que la grille photos.
+   */
+  onToggleSelected?: (item: InteractionListItem) => void;
+  isSelected?: (item: InteractionListItem) => boolean;
 }
 
-export default function ExpenseList({ items }: ExpenseListProps) {
+export default function ExpenseList({
+  items,
+  onToggleSelected,
+  isSelected,
+}: ExpenseListProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
   const [attachTarget, setAttachTarget] = React.useState<InteractionListItem | null>(null);
+  const selecting = Boolean(onToggleSelected);
 
   return (
     <>
@@ -31,19 +44,39 @@ export default function ExpenseList({ items }: ExpenseListProps) {
           // dépense — devenue inatteignable depuis que les dépenses ont quitté la
           // page Activité, qui était le seul chemin vers elle. Une action qu'on ne
           // peut pas atteindre n'existe pas.
-          const canAttach = !item.bank_line && Boolean(item.amount);
+          // Masquées pendant la sélection, comme les actions d'une vignette photo :
+          // un geste sur une seule ligne au milieu d'un lot en cours de composition
+          // fait douter de ce sur quoi le prochain clic va porter.
+          const canAttach = !selecting && !item.bank_line && Boolean(item.amount);
+          const picked = isSelected?.(item) ?? false;
 
           return (
             <li key={item.id}>
               <Card
-                className="cursor-pointer p-3 transition-shadow hover:shadow-md"
+                className={`cursor-pointer p-3 transition-shadow hover:shadow-md ${
+                  picked ? 'border-primary/50 bg-primary/5' : ''
+                }`}
                 /* Cliquer une dépense ouvre sa **fiche**, plus un formulaire :
-                   on clique pour lire, et un champ de saisie ne se lit pas. */
+                   on clique pour lire, et un champ de saisie ne se lit pas. En
+                   mode sélection, le même clic coche — viser une case de 16 px
+                   sur mobile pour cocher douze lignes est un supplice. */
                 onClick={() =>
-                  navigate(`/app/money/expenses/${item.id}`, { state: pushBack(location) })
+                  selecting
+                    ? onToggleSelected?.(item)
+                    : navigate(`/app/money/expenses/${item.id}`, { state: pushBack(location) })
                 }
               >
                 <div className="flex items-start justify-between gap-3">
+                  {selecting ? (
+                    <div className="pt-0.5">
+                      <CheckboxField
+                        id={`pick-${item.id}`}
+                        label=""
+                        checked={picked}
+                        onChange={() => onToggleSelected?.(item)}
+                      />
+                    </div>
+                  ) : null}
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
                       <CardTitle>{item.subject}</CardTitle>
@@ -77,7 +110,7 @@ export default function ExpenseList({ items }: ExpenseListProps) {
                       {/* Et son inverse, à la même place : rattacher la mauvaise
                           ligne est une erreur d'un clic, s'en dédire ne doit pas
                           demander d'aller la chercher dans l'autre module. */}
-                      {item.bank_line ? (
+                      {item.bank_line && !selecting ? (
                         <LinkedLineActions
                           expenseId={item.id}
                           kind={item.kind}

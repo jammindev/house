@@ -1514,7 +1514,7 @@
           },
           "supplier": {
             "title": "Pick a supplier, never retype one",
-            "body": "The supplier field is a searchable list built from your own entries, most-used first. An unknown shop is simply typed in — it joins the list for next time, with no form to fill in.\n\nCase and accents no longer create duplicates: \"leroy merlin\" lands on \"Leroy Merlin\". That is what keeps one filter and one total per shop, where three spellings used to give three.\n\nWhen you split a statement line, the app also offers the merchant read from the operation label — so the common case takes no typing at all."
+            "body": "The supplier field is a searchable list built from your own entries, most-used first. An unknown shop is simply typed in — it joins the list for next time, with no form to fill in.\n\nCase and accents no longer create duplicates: \"leroy merlin\" lands on \"Leroy Merlin\". That is what keeps one filter and one total per shop, where three spellings used to give three.\n\nWhen you split a statement line, the app also offers the merchant read from the operation label — so the common case takes no typing at all.\n\nYou can also fix several expenses at once: \"Select\" above the list, tick the ones you want, then \"Edit…\". The same gesture changes the budget too — the quickest way to empty the list of expenses without an envelope that the Control tab reports. The batch goes in one go: if anything is wrong, nothing is written."
           },
           "sources": {
             "title": "Understand automatic expenses",
@@ -3197,6 +3197,20 @@
       "actions": {
         "add": "New expense"
       }
+    },
+    "bulk": {
+      "title_one": "Edit 1 expense",
+      "title_other": "Edit {{count}} expenses",
+      "intro": "Only the fields you fill in are changed. Leave a field empty to keep it as it is.",
+      "action": "Edit…",
+      "selected_one": "1 expense selected",
+      "selected_other": "{{count}} expenses selected",
+      "keepSupplier": "Keep the current supplier",
+      "keepBudget": "Keep the current budget",
+      "noBudget": "Remove the budget",
+      "nothingToChange": "Fill in at least one field to change.",
+      "done_one": "1 expense updated",
+      "done_other": "{{count}} expenses updated"
     }
   },
   "aiUsage": {

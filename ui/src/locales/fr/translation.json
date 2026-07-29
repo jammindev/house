@@ -1514,7 +1514,7 @@
           },
           "supplier": {
             "title": "Le fournisseur se choisit, il ne se retape pas",
-            "body": "Le champ fournisseur est une liste cherchable, remplie par tes propres saisies : les plus fréquents arrivent en tête. Un magasin inconnu se tape simplement dans le champ — il rejoint la liste pour la fois suivante, sans écran à remplir.\n\nEt la casse ou les accents ne créent plus de doublon : « leroy merlin » retombe sur « Leroy Merlin ». C'est ce qui garde un seul filtre et un seul total par magasin, là où trois orthographes en donnaient trois.\n\nQuand tu ventiles une ligne de relevé, l'app te propose en plus le marchand lu dans le libellé de l'opération — le cas courant se règle donc sans une frappe."
+            "body": "Le champ fournisseur est une liste cherchable, remplie par tes propres saisies : les plus fréquents arrivent en tête. Un magasin inconnu se tape simplement dans le champ — il rejoint la liste pour la fois suivante, sans écran à remplir.\n\nEt la casse ou les accents ne créent plus de doublon : « leroy merlin » retombe sur « Leroy Merlin ». C'est ce qui garde un seul filtre et un seul total par magasin, là où trois orthographes en donnaient trois.\n\nQuand tu ventiles une ligne de relevé, l'app te propose en plus le marchand lu dans le libellé de l'opération — le cas courant se règle donc sans une frappe.\n\nEt tu peux corriger plusieurs dépenses d'un coup : « Sélectionner » en haut de la liste, coche celles qui te vont, puis « Corriger… ». Le même geste change aussi le budget — ce qui est la façon la plus rapide de vider la liste des dépenses sans enveloppe que le Contrôle te signale. Le lot part en une fois : si quelque chose cloche, rien n'est écrit."
           },
           "sources": {
             "title": "Comprendre les dépenses automatiques",
@@ -3197,6 +3197,20 @@
       "actions": {
         "add": "Nouvelle dépense"
       }
+    },
+    "bulk": {
+      "title_one": "Corriger 1 dépense",
+      "title_other": "Corriger {{count}} dépenses",
+      "intro": "Seuls les champs que tu renseignes sont modifiés. Laisse un champ vide pour ne pas y toucher.",
+      "action": "Corriger…",
+      "selected_one": "1 dépense sélectionnée",
+      "selected_other": "{{count}} dépenses sélectionnées",
+      "keepSupplier": "Ne pas changer le fournisseur",
+      "keepBudget": "Ne pas changer le budget",
+      "noBudget": "Retirer le budget",
+      "nothingToChange": "Renseigne au moins un champ à corriger.",
+      "done_one": "1 dépense corrigée",
+      "done_other": "{{count}} dépenses corrigées"
     }
   },
   "aiUsage": {
