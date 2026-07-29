@@ -151,6 +151,140 @@ class TestTheShareByEnvelope:
         assert result["budgets"][0]["share"] == pytest.approx(0.75)
         assert sum(b["share"] for b in result["budgets"]) == pytest.approx(1.0)
 
+
+@pytest.mark.django_db
+class TestAPartIsWhatTheEnvelopeReallyCost:
+    """⚠️ Une part se mesure sur le **net**, jamais sur le brut.
+
+    Une enveloppe remboursée de 488 € sur 762 € dépensés a coûté 275 € au foyer.
+    La dessiner à 762 € la fait paraître trois fois plus lourde qu'elle n'est, et
+    l'anneau annonce alors un « total période » que la carte juste au-dessus — le
+    net — contredit. Deux totaux sous les mêmes mots.
+
+    Rien à voir avec la courbe, qui reste sur le brut : là, déduire un
+    remboursement le daterait au jour de l'achat alors que la banque l'a passé un
+    autre jour. Une **part** n'a pas de date — le problème ne se pose pas.
+    """
+
+    def test_a_slice_is_net_of_what_came_back(self, ctx):
+        household, owner, home, diy, energy, _loose = ctx
+        account = BankAccount.objects.create(
+            household=household, name="Courant", kind=BankAccount.Kind.BANK
+        )
+        _spend(household, owner, "300.00", on=date(2026, 7, 3), budget=diy)
+        _refund(account, amount="200.00", budget=diy, on=date(2026, 7, 20))
+        _spend(household, owner, "100.00", on=date(2026, 7, 4), budget=energy)
+
+        result = _category_insights(household, home, date(2026, 7, 1), date(2026, 7, 31))
+
+        rows = {b["name"]: b for b in result["budgets"]}
+        assert rows["Bricolage"]["total"] == "300.00"
+        assert rows["Bricolage"]["refunded"] == "200.00"
+        assert rows["Bricolage"]["net_total"] == "100.00"
+        # Deux enveloppes à 100 € net : moitié-moitié, alors que le brut aurait
+        # donné 75 % / 25 %.
+        assert rows["Bricolage"]["share"] == pytest.approx(0.5)
+        assert rows["Énergie"]["share"] == pytest.approx(0.5)
+
+    def test_the_ring_total_is_the_headline_total(self, ctx):
+        """Ce que l'anneau décompose est le chiffre écrit juste au-dessus de lui."""
+        household, owner, home, diy, energy, _loose = ctx
+        account = BankAccount.objects.create(
+            household=household, name="Courant", kind=BankAccount.Kind.BANK
+        )
+        _spend(household, owner, "300.00", on=date(2026, 7, 3), budget=diy)
+        _refund(account, amount="200.00", budget=diy, on=date(2026, 7, 20))
+        _spend(household, owner, "100.00", on=date(2026, 7, 4), budget=energy)
+
+        result = _category_insights(household, home, date(2026, 7, 1), date(2026, 7, 31))
+
+        assert result["budgets_net_total"] == result["current"]["net_total"] == "200.00"
+
+    def test_a_refund_on_the_last_day_of_the_window_still_counts(self, ctx):
+        """⚠️ La borne de fin est **inclusive**.
+
+        L'aperçu du panneau passe le 1er du mois suivant à son propre calcul de
+        remboursements ; la fiche passe une fin inclusive. Emprunter la borne de
+        l'un à l'autre perdrait sans un mot tout remboursement daté du dernier
+        jour — le 31, jour où tombent les régularisations.
+        """
+        household, owner, home, diy, _energy, _loose = ctx
+        account = BankAccount.objects.create(
+            household=household, name="Courant", kind=BankAccount.Kind.BANK
+        )
+        _spend(household, owner, "300.00", on=date(2026, 7, 3), budget=diy)
+        _refund(account, amount="50.00", budget=diy, on=date(2026, 7, 31))
+
+        result = _category_insights(household, home, date(2026, 7, 1), date(2026, 7, 31))
+
+        assert result["budgets"][0]["refunded"] == "50.00"
+        assert result["budgets"][0]["net_total"] == "250.00"
+
+
+@pytest.mark.django_db
+class TestAnEnvelopeGivenBackMoreThanItSpent:
+    """Un mois peut rendre plus qu'il n'a dépensé — et ça ne se dessine pas.
+
+    Un remboursement compte dans **son** mois, jamais dans celui de l'achat :
+    dépenser en juin et se faire rembourser en juillet est le cas normal, pas une
+    anomalie. Sur juillet, l'enveloppe est donc net négative — et un camembert ne
+    sait pas dessiner une part négative.
+
+    Elle sort de l'anneau, mais **elle ne disparaît pas** : l'omettre en silence
+    ferait croire qu'aucun argent n'est revenu. Elle est nommée à part, avec son
+    montant, et c'est ce qui explique l'écart entre ce que l'anneau décompose et
+    le total de la carte du haut.
+    """
+
+    def test_it_leaves_the_ring_but_is_named_apart(self, ctx):
+        household, owner, home, diy, energy, _loose = ctx
+        account = BankAccount.objects.create(
+            household=household, name="Courant", kind=BankAccount.Kind.BANK
+        )
+        _spend(household, owner, "100.00", on=date(2026, 7, 3), budget=diy)
+        # Énergie : rien dépensé en juillet, 40 € rendus sur un achat de juin.
+        _refund(account, amount="40.00", budget=energy, on=date(2026, 7, 20))
+
+        result = _category_insights(household, home, date(2026, 7, 1), date(2026, 7, 31))
+
+        assert [b["name"] for b in result["budgets"]] == ["Bricolage"]
+        assert [b["name"] for b in result["budgets_returned"]] == ["Énergie"]
+        returned = result["budgets_returned"][0]
+        assert returned["total"] == "0.00"
+        assert returned["refunded"] == "40.00"
+        assert returned["net_total"] == "-40.00"
+
+    def test_the_gap_with_the_headline_is_exactly_what_came_back(self, ctx):
+        """L'écart se recompose : sans ça il ressemblerait à une erreur de calcul."""
+        household, owner, home, diy, energy, _loose = ctx
+        account = BankAccount.objects.create(
+            household=household, name="Courant", kind=BankAccount.Kind.BANK
+        )
+        _spend(household, owner, "100.00", on=date(2026, 7, 3), budget=diy)
+        _refund(account, amount="40.00", budget=energy, on=date(2026, 7, 20))
+
+        result = _category_insights(household, home, date(2026, 7, 1), date(2026, 7, 31))
+
+        ring = Decimal(result["budgets_net_total"])
+        apart = sum(Decimal(b["net_total"]) for b in result["budgets_returned"])
+        assert ring == Decimal("100.00")
+        assert ring + apart == Decimal(result["current"]["net_total"]) == Decimal("60.00")
+
+    def test_an_envelope_at_exactly_zero_net_is_not_a_slice(self, ctx):
+        """Tout rendu : rien à dessiner, mais le rendu se dit quand même."""
+        household, owner, home, diy, _energy, _loose = ctx
+        account = BankAccount.objects.create(
+            household=household, name="Courant", kind=BankAccount.Kind.BANK
+        )
+        _spend(household, owner, "80.00", on=date(2026, 7, 3), budget=diy)
+        _refund(account, amount="80.00", budget=diy, on=date(2026, 7, 20))
+
+        result = _category_insights(household, home, date(2026, 7, 1), date(2026, 7, 31))
+
+        assert result["budgets"] == []
+        assert [b["name"] for b in result["budgets_returned"]] == ["Bricolage"]
+        assert result["budgets_net_total"] == "0.00"
+
     def test_an_envelope_of_another_category_never_enters_the_ring(self, ctx):
         """Sinon l'anneau ferait plus que cent, et le total au-dessus mentirait."""
         household, owner, home, diy, _energy, loose = ctx

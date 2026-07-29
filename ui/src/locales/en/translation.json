@@ -3366,10 +3366,16 @@
         "description": "How this category's total splits across its envelopes.",
         "share": {
           "title": "Which envelope eats the total",
-          "hint": "Each envelope's share of the period's gross total. An envelope with no spending is left out."
+          "hint": "What each envelope actually cost: spending minus refunds. An envelope with no movement is left out."
         },
         "envelopes": "Its envelopes",
-        "emptyDescription": "File a budget under this category from the Budgets tab."
+        "emptyDescription": "File a budget under this category from the Budgets tab.",
+        "noMovement": "Nothing over the period",
+        "returned": {
+          "title": "Gave back more than it spent",
+          "hint": "A refund counts in the month the bank posted it, not the month of the purchase. These envelopes leave the ring: a negative share cannot be drawn.",
+          "line": "{{refunded}} back on {{spent}}"
+        }
       },
       "namePlaceholder": "e.g. Home",
       "amountHint": "Leave empty: the category will be worth the sum of the ceilings it holds.",

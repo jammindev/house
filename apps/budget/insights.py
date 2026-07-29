@@ -96,6 +96,11 @@ def compute_budget_insights(
     )
     granularity = "day" if (end - start).days < DAILY_MAX_DAYS else "month"
     total = Decimal(current["total"])
+    spent_rows, returned_rows, ring_total = (
+        _budgets(qs, _refunded_by_budget(household, start, end, category))
+        if category is not None
+        else ([], [], ZERO)
+    )
 
     return {
         "period": {"from": start.isoformat(), "to": end.isoformat()},
@@ -106,7 +111,12 @@ def compute_budget_insights(
         "granularity": granularity,
         "buckets": _buckets(qs, household, start, end, granularity),
         "suppliers": _suppliers(qs, total),
-        "budgets": _budgets(qs, total) if category is not None else [],
+        "budgets": spent_rows,
+        "budgets_returned": returned_rows,
+        # Ce que l'anneau décompose. Égal au net de la carte du haut, **sauf**
+        # quand une enveloppe a rendu plus qu'elle n'a dépensé : l'écart vaut
+        # alors exactement la somme des ``budgets_returned``, que le front nomme.
+        "budgets_net_total": str(ring_total),
     }
 
 
@@ -270,34 +280,121 @@ def _suppliers(qs, total: Decimal) -> list[dict[str, Any]]:
     ]
 
 
-def _budgets(qs, total: Decimal) -> list[dict[str, Any]]:
-    """Laquelle des enveloppes de la catégorie mange le total, et pour quelle part.
+def _refunded_by_budget(
+    household, start: date, end: date, category: str
+) -> dict[Any, tuple[str, Decimal]]:
+    """Ce que la fenêtre a rendu à chaque enveloppe de la catégorie.
+
+    Renvoie le **nom** avec le montant : une enveloppe peut n'avoir aucune
+    dépense sur la fenêtre et n'exister ici que par son remboursement, et il faut
+    pouvoir la nommer sans une requête de plus.
+
+    ⚠️ **La borne de fin est inclusive**, contrairement à
+    ``budget.aggregations._refunded_by_budget`` à qui l'aperçu passe le 1er du
+    mois suivant. Emprunter la borne de l'un à l'autre perdrait sans un mot tout
+    remboursement daté du **dernier jour** de la fenêtre — le 31, jour où tombent
+    les régularisations.
+    """
+    from banking.models import InflowNature, RefundAllocation, TransactionDirection
+
+    # On somme le montant **attribué** à l'enveloppe, pas celui de la ligne : un
+    # virement de 70 € dont 40 € couvrent une enveloppe ne lui rend que 40 €.
+    rows = (
+        RefundAllocation.objects.filter(
+            household_id=household.id,
+            transaction__direction=TransactionDirection.IN,
+            transaction__inflow_nature=InflowNature.REFUND,
+            transaction__booked_on__gte=start,
+            transaction__booked_on__lte=end,
+            budget__category_id=category,
+        )
+        .values("budget_id", "budget__name")
+        .annotate(total=Coalesce(Sum("amount"), ZERO))
+    )
+    return {
+        row["budget_id"]: (row["budget__name"] or "", row["total"] or ZERO) for row in rows
+    }
+
+
+def _budgets(
+    qs, refunds: dict[Any, tuple[str, Decimal]]
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]], Decimal]:
+    """Laquelle des enveloppes de la catégorie a coûté quoi — et pour quelle part.
 
     C'est la question propre à une catégorie : sur une enveloppe on demande *chez
     qui* l'argent est parti, sur une catégorie *laquelle de mes enveloppes*.
 
-    Une enveloppe **sans dépense sur la fenêtre est absente**, et ce n'est pas
-    une omission : une part à 0 % est un filet illisible qui prend une couleur
-    pour rien. La liste des enveloppes de la catégorie, elle, s'affiche à côté de
-    l'anneau — c'est là qu'on voit celles qui n'ont rien consommé.
+    **Une part se mesure sur le net.** Une enveloppe remboursée de 488 € sur 762 €
+    a coûté 275 € au foyer ; la dessiner à 762 € la fait paraître trois fois plus
+    lourde, et l'anneau annonce alors un total que la carte du dessus — le net —
+    contredit. Rien à voir avec la courbe, qui reste sur le brut : là, déduire un
+    remboursement le daterait au jour de l'achat. **Une part n'a pas de date.**
 
-    Un seul ``GROUP BY``, sur le même queryset que le total et les barres : la
-    part et le chiffre qu'elle décompose ne peuvent pas dériver l'un de l'autre.
+    Renvoie ``(parts, rendues, total_de_l_anneau)`` :
+
+    - ``parts`` — les enveloppes net **positives**, la plus grosse d'abord ;
+    - ``rendues`` — celles qui ont rendu au moins autant qu'elles ont dépensé. Un
+      remboursement compte dans **son** mois, jamais dans celui de l'achat :
+      dépenser en juin et se faire rembourser en juillet est le cas normal, et un
+      camembert ne sait pas dessiner une part négative. Elles sortent de l'anneau
+      mais **ne disparaissent pas** — les omettre en silence ferait croire
+      qu'aucun argent n'est revenu ;
+    - le total que l'anneau décompose, qui vaut le net de la carte du haut **sauf**
+      quand la troisième liste n'est pas vide, l'écart valant alors exactement sa
+      somme.
+
+    Une enveloppe sans **aucun** mouvement sur la fenêtre n'apparaît nulle part :
+    une part à 0 % est un filet illisible qui prend une couleur pour rien. C'est
+    la liste des enveloppes, sous l'anneau, qui montre celles qui dorment.
     """
-    if total <= 0:
-        return []
-    rows = (
+    gross = (
         qs.values("budget_id", "budget__name")
         .annotate(total=Coalesce(Sum("amount"), ZERO), count=Count("id"))
-        .order_by("-total")
     )
-    return [
-        {
+    seen: dict[Any, dict[str, Any]] = {}
+    for row in gross:
+        seen[row["budget_id"]] = {
             "budget_id": str(row["budget_id"]),
             "name": row["budget__name"] or "",
-            "total": str(row["total"] or ZERO),
+            "total": row["total"] or ZERO,
             "count": row["count"],
-            "share": round(float((row["total"] or ZERO) / total), 4),
+            "refunded": ZERO,
         }
-        for row in rows
-    ]
+    for budget_id, (name, refunded) in refunds.items():
+        entry = seen.setdefault(
+            budget_id,
+            {"budget_id": str(budget_id), "name": name, "total": ZERO, "count": 0},
+        )
+        entry["refunded"] = refunded
+
+    for entry in seen.values():
+        entry["net"] = entry["total"] - entry["refunded"]
+
+    spent = sorted(
+        (e for e in seen.values() if e["net"] > 0), key=lambda e: e["net"], reverse=True
+    )
+    returned = sorted(
+        (e for e in seen.values() if e["net"] <= 0 and e["refunded"] > 0),
+        key=lambda e: e["net"],
+    )
+    ring_total = sum((e["net"] for e in spent), ZERO)
+
+    return (
+        [_budget_share(e, ring_total) for e in spent],
+        [_budget_share(e, ZERO) for e in returned],
+        ring_total,
+    )
+
+
+def _budget_share(entry: dict[str, Any], ring_total: Decimal) -> dict[str, Any]:
+    return {
+        "budget_id": entry["budget_id"],
+        "name": entry["name"],
+        "total": str(entry["total"]),
+        "refunded": str(entry["refunded"]),
+        "net_total": str(entry["net"]),
+        "count": entry["count"],
+        # Une part sur un total nul serait le même mensonge qu'un « +∞ % » : il
+        # n'y a pas de répartition de rien.
+        "share": round(float(entry["net"] / ring_total), 4) if ring_total > 0 else 0.0,
+    }

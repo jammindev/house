@@ -253,6 +253,8 @@ _EMPTY_INSIGHTS = {
     "buckets": [],
     "suppliers": [],
     "budgets": [],
+    "budgets_returned": [],
+    "budgets_net_total": "0.00",
 }
 
 

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useLocation, useParams } from 'react-router-dom';
+import { Link, useLocation, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { PieChart } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
@@ -15,7 +15,6 @@ import { pushBack } from '@/lib/backNavigation';
 import { useDelayedLoading } from '@/lib/useDelayedLoading';
 import { useSessionState } from '@/lib/useSessionState';
 import { useBudgetCategoryInsights, useBudgetOverview } from '@/features/budget/hooks';
-import BudgetCard from '@/features/budget/BudgetCard';
 import { resolvePeriod, type PeriodRange } from '@/features/expenses/period';
 import PeriodPicker from '@/features/expenses/PeriodPicker';
 import ShareChart, { type ShareRow } from './ShareChart';
@@ -42,6 +41,12 @@ import InsightComparison from './InsightComparison';
  * - **La période par défaut est le mois en cours**, celle du panneau, pour que le
  *   total affiché soit exactement celui sur lequel on vient de cliquer. En
  *   changer est ensuite un choix explicite.
+ * - **⚠️ Et tout ce qui porte un montant obéit à cette période.** L'aperçu du
+ *   panneau (`useBudgetOverview`) est figé sur le mois en cours : il ne donne ici
+ *   que le nom, le plafond et l'**appartenance** des enveloppes. Lire ses
+ *   montants pour la liste du bas — la faute livrée le 29/07 — affichait juillet
+ *   sous un en-tête qui annonçait juin, et faisait passer un remboursement de
+ *   juillet pour une incohérence du total de juin.
  */
 export default function BudgetCategoryDetailPage() {
   const { t, i18n } = useTranslation();
@@ -88,18 +93,47 @@ export default function BudgetCategoryDetailPage() {
     }));
   }, [insights]);
 
-  // Les parts arrivent calculées du serveur, sur le **brut** — c'est lui que
-  // l'anneau recompose, et le libellé du trou central le dit.
+  // Les parts arrivent calculées du serveur, sur le **net** : une enveloppe
+  // remboursée de 488 € sur 762 € a coûté 275 €, et la dessiner à 762 € la ferait
+  // paraître trois fois plus lourde qu'elle n'est.
   const shareRows: ShareRow[] = React.useMemo(
     () =>
       (insights?.budgets ?? []).map((budget) => ({
         key: budget.budget_id,
         label: budget.name,
-        total: budget.total,
+        total: budget.net_total,
         share: budget.share,
       })),
     [insights],
   );
+
+  /**
+   * Les enveloppes de la catégorie **sur la fenêtre choisie**.
+   *
+   * ⚠️ Les montants viennent d'`insights`, jamais de l'aperçu : celui-ci est
+   * figé sur le mois en cours, et les lire ici affichait juillet sous un titre
+   * qui annonçait juin — deux mois dans le même écran, sans le dire. C'est
+   * l'aperçu qui donne l'**appartenance** (quelles enveloppes sont rangées là,
+   * ce qui ne dépend pas de la période), lui seul.
+   */
+  const envelopeRows = React.useMemo(() => {
+    const byId = new Map(
+      [...(insights?.budgets ?? []), ...(insights?.budgets_returned ?? [])].map((b) => [
+        b.budget_id,
+        b,
+      ]),
+    );
+    const active = [...(insights?.budgets ?? []), ...(insights?.budgets_returned ?? [])].map(
+      (b) => ({ id: b.budget_id, name: b.name, movement: b }),
+    );
+    // Celles qui n'ont pas bougé ferment la liste : elles sont absentes de
+    // l'anneau par construction, et les omettre ici ferait croire qu'elles
+    // n'existent pas.
+    const idle = envelopes
+      .filter((e) => !byId.has(e.id))
+      .map((e) => ({ id: e.id, name: e.name, movement: null }));
+    return [...active, ...idle];
+  }, [insights, envelopes]);
 
   const hasSpending = Boolean(insights && Number(insights.current.total) > 0);
 
@@ -165,9 +199,39 @@ export default function BudgetCategoryDetailPage() {
                 </p>
                 <ShareChart
                   rows={shareRows}
-                  total={insights.current.total}
+                  total={insights.budgets_net_total}
                   totalLabel={t('budgetDetail.share.totalLabel')}
                 />
+                {/* Ce que l'anneau ne peut pas dessiner. Sans ce bloc, l'écart
+                    entre le total du trou central et celui de la carte du haut
+                    ressemblerait à une erreur de calcul — alors qu'il vaut
+                    exactement la somme de ces lignes. */}
+                {insights.budgets_returned.length > 0 ? (
+                  <div className="mt-4 border-t border-border pt-3">
+                    <p className="text-xs font-medium text-foreground">
+                      {t('budget.category.detail.returned.title')}
+                    </p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      {t('budget.category.detail.returned.hint')}
+                    </p>
+                    <ul className="mt-2 space-y-1">
+                      {insights.budgets_returned.map((budget) => (
+                        <li
+                          key={budget.budget_id}
+                          className="flex items-baseline justify-between gap-2 text-sm"
+                        >
+                          <span className="min-w-0 truncate text-foreground">{budget.name}</span>
+                          <span className="shrink-0 tabular-nums text-primary">
+                            {t('budget.category.detail.returned.line', {
+                              refunded: formatAmount(budget.refunded),
+                              spent: formatAmount(budget.total),
+                            })}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
               </Card>
 
               <Card className="p-4">
@@ -186,24 +250,53 @@ export default function BudgetCategoryDetailPage() {
             </>
           ) : null}
 
-          {/* Les enveloppes de la catégorie, **toutes** — y compris celles qui
-              n'ont rien dépensé, absentes de l'anneau par construction. C'est ici
-              qu'on descend d'un cran, chaque carte ouvrant sa propre fiche.
-              Pas d'éditer/supprimer : gérer ses enveloppes est le métier du
-              panneau Budgets, et un second endroit pour le faire multiplierait
-              les gestes destructeurs sans rien ajouter. */}
-          {envelopes.length > 0 ? (
+          {/* Les enveloppes de la catégorie, **toutes**, avec leurs chiffres de la
+              fenêtre choisie. C'est ici qu'on descend d'un cran, chaque ligne
+              ouvrant sa propre fiche.
+
+              Ni barre ni plafond : un plafond est **mensuel**, et l'afficher sous
+              un total annuel comparerait deux fenêtres différentes. Il vit sur le
+              panneau Budgets et sur la fiche de l'enveloppe, où il mesure bien ce
+              qu'il prétend. Pas d'éditer/supprimer non plus : gérer ses
+              enveloppes est le métier du panneau, et un second endroit pour le
+              faire multiplierait les gestes destructeurs sans rien ajouter. */}
+          {envelopeRows.length > 0 ? (
             <section className="space-y-2">
               <h2 className="text-sm font-semibold text-foreground">
                 {t('budget.category.detail.envelopes')}
               </h2>
-              {envelopes.map((envelope) => (
-                <BudgetCard
-                  key={envelope.id}
-                  row={envelope}
-                  to={`/app/money/budgets/${envelope.id}`}
-                  backState={pushBack(location)}
-                />
+              {envelopeRows.map((envelope) => (
+                <Card key={envelope.id} className="p-3">
+                  <Link
+                    to={`/app/money/budgets/${envelope.id}`}
+                    state={pushBack(location)}
+                    className="group block"
+                  >
+                    <div className="flex items-baseline justify-between gap-2">
+                      <span className="truncate font-medium text-foreground group-hover:underline">
+                        {envelope.name}
+                      </span>
+                      <span className="shrink-0 text-sm font-semibold tabular-nums text-foreground">
+                        {envelope.movement
+                          ? formatAmount(envelope.movement.net_total)
+                          : formatAmount('0')}
+                      </span>
+                    </div>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      {envelope.movement
+                        ? t('budgetDetail.count', { count: envelope.movement.count })
+                        : t('budget.category.detail.noMovement')}
+                    </p>
+                    {envelope.movement && Number(envelope.movement.refunded) > 0 ? (
+                      <p className="mt-0.5 text-xs text-muted-foreground">
+                        {t('budget.refunded', {
+                          spent: formatAmount(envelope.movement.total),
+                          refunded: formatAmount(envelope.movement.refunded),
+                        })}
+                      </p>
+                    ) : null}
+                  </Link>
+                </Card>
               ))}
             </section>
           ) : (

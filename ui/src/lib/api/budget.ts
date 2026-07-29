@@ -220,18 +220,23 @@ export interface InsightSupplier {
 }
 
 /**
- * Une part de l'anneau d'une **catégorie** : quelle enveloppe mange son total.
+ * Une part de l'anneau d'une **catégorie** : ce qu'une enveloppe a réellement
+ * coûté sur la fenêtre.
  *
- * Une enveloppe sans dépense sur la fenêtre est absente de la liste — une part
- * à 0 % est un filet illisible. C'est la liste des enveloppes, à côté de
- * l'anneau, qui montre celles qui n'ont rien consommé.
+ * Une enveloppe sans aucun mouvement est absente — une part à 0 % est un filet
+ * illisible. C'est la liste sous l'anneau qui montre celles qui dorment.
  */
 export interface InsightBudget {
   budget_id: string;
   name: string;
+  /** Le brut : ce qui est sorti, remboursements non déduits. */
   total: string;
+  /** Ce qui est revenu sur la fenêtre, attribué à cette enveloppe. */
+  refunded: string;
+  /** `total - refunded` — **c'est lui que la part mesure**. */
+  net_total: string;
   count: number;
-  /** Part du brut de la période, entre 0 et 1. */
+  /** Part du net de la période, entre 0 et 1. */
   share: number;
 }
 
@@ -246,8 +251,22 @@ export interface BudgetInsights {
   buckets: InsightBucket[];
   suppliers: InsightSupplier[];
   /** Rempli sur un scope de catégorie seulement : une enveloppe ne se répartit
-   *  pas entre elle-même. */
+   *  pas entre elle-même. Net **positif**, la plus grosse part d'abord. */
   budgets: InsightBudget[];
+  /**
+   * Les enveloppes qui ont rendu au moins autant qu'elles ont dépensé sur la
+   * fenêtre — un remboursement compte dans le mois où la banque le passe, jamais
+   * dans celui de l'achat. Elles sortent de l'anneau (une part négative ne se
+   * dessine pas) mais doivent être **nommées** : les taire ferait croire que rien
+   * n'est revenu.
+   */
+  budgets_returned: InsightBudget[];
+  /**
+   * Ce que l'anneau décompose. Égal à `current.net_total`, **sauf** quand
+   * `budgets_returned` n'est pas vide — l'écart vaut alors exactement la somme
+   * de ses `net_total`.
+   */
+  budgets_net_total: string;
 }
 
 /**

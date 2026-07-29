@@ -155,9 +155,43 @@ même chose que le panneau, et **cliquer sur un chiffre ouvrirait son démenti**
 Régression : `budget/tests/test_category_insights.py::TestTheCategoryTotalAgreesWithThePanel`.
 Corollaires tenus par les tests : les deux scopes sont exclusifs (un budget *et*
 sa catégorie est une ambiguïté, donc un 400), le remboursement est cadré par le
-même scope que les dépenses, et une enveloppe sans dépense sur la fenêtre est
-absente de l'anneau — une part à 0 % est un filet illisible — mais **présente
+même scope que les dépenses, et une enveloppe sans aucun mouvement sur la fenêtre
+est absente de l'anneau — une part à 0 % est un filet illisible — mais **présente
 dans la liste en dessous**.
+
+**Une part se mesure sur le net**, contrairement à la répartition par fournisseur
+de la fiche d'une enveloppe. Une enveloppe remboursée de 488 € sur 762 € a coûté
+275 € au foyer ; la dessiner à 762 € la fait paraître trois fois plus lourde, et
+le trou central de l'anneau annonce alors un « total période » que la carte juste
+au-dessus — le net — contredit. La règle « ce qui se décompose, c'est le brut »
+n'est pas enfreinte : elle protège la **courbe**, où déduire un remboursement le
+daterait au jour de l'achat alors que la banque l'a passé un autre jour. Une part
+n'a pas de date. (Sur la fiche d'une enveloppe, l'anneau par fournisseur reste sur
+le brut pour une autre raison, définitive : un remboursement bancaire n'a pas de
+fournisseur, donc il n'est attribuable à aucune part.)
+
+Conséquence à tenir : un mois peut **rendre plus qu'il n'a dépensé** sur une
+enveloppe (dépense en juin, remboursement en juillet — le cas normal). Un
+camembert ne sait pas dessiner une part négative, donc ces enveloppes sortent de
+l'anneau et sont **nommées à part** (`budgets_returned`), avec leur montant : les
+taire ferait croire qu'aucun argent n'est revenu. `budgets_net_total` est ce que
+l'anneau décompose, et l'écart avec `current.net_total` vaut **exactement** la
+somme des enveloppes mises à part — un écart qui se recompose se lit, un écart
+muet passe pour une erreur de calcul.
+
+⚠️ **Deux pièges livrés en prod le 29/07, tenus par des tests depuis.**
+1. La liste des enveloppes lisait les montants de l'**aperçu**, figé sur le mois
+   en cours, pendant que l'en-tête et l'anneau parlaient de la période choisie :
+   deux mois dans le même écran, sans le dire. L'aperçu ne donne ici que le nom,
+   le plafond et l'appartenance ; tout montant vient de la fenêtre demandée. Et
+   la liste ne porte **ni barre ni plafond** — un plafond est mensuel, l'afficher
+   sous un total annuel comparerait deux fenêtres différentes ; il vit sur le
+   panneau et sur la fiche de l'enveloppe.
+2. `budget.aggregations._refunded_by_budget` borne avec `booked_on__lt` (l'aperçu
+   lui passe le 1er du mois suivant) ; la fiche passe une fin **inclusive**.
+   Emprunter la borne de l'un à l'autre perd sans un mot tout remboursement daté
+   du dernier jour de la fenêtre — le 31, jour des régularisations. D'où un
+   second helper, dans `budget/insights.py`, et le test qui l'atteste.
 
 ## i18n
 
