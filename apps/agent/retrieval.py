@@ -266,6 +266,48 @@ def _hybrid_enabled() -> bool:
     return bool(getattr(settings, "AGENT_HYBRID_RETRIEVAL_ENABLED", False))
 
 
+def semantic_only(
+    household_id: UUID,
+    query: str,
+    limit: int = 20,
+    disabled: frozenset[str] | None = None,
+) -> list[Hit]:
+    """The semantic leg alone, minus everything the lexical leg already finds.
+
+    This is the *second* half of a two-stage search box: the palette shows the
+    lexical hits the instant they come back (a few indexed SQL queries), then folds
+    in what only the meaning could surface — « chauffage » → « pompe à chaleur ».
+    Returning the difference rather than the fused set is what lets the client append
+    a group **without re-ordering what the user is already reading**: a list that
+    reshuffles 200 ms after appearing makes people click the wrong row.
+
+    Unlike ``search(hybrid=…)``, this reads ``AGENT_HYBRID_RETRIEVAL_ENABLED`` and
+    returns ``[]`` when it is off — no embedding call, no cost, and a deployment
+    without a semantic index simply has no second stage.
+
+    The lexical leg is re-run here (cheap, no provider call) rather than trusted from
+    the client: the exclusion must match exactly what the first stage returned, and a
+    client-supplied list of keys would drift the moment ranking or gating changes.
+    """
+    if not _hybrid_enabled():
+        return []
+    if not query or not query.strip():
+        return []
+
+    if disabled is None:
+        disabled = disabled_modules_for(household_id)
+
+    vector_hits = _vector_search(household_id, query, limit, disabled=disabled)
+    if not vector_hits:
+        return []
+
+    already_shown = {
+        (hit.entity_type, hit.id)
+        for hit in search(household_id, query, limit=limit, disabled=disabled, hybrid=False)
+    }
+    return [hit for hit in vector_hits if (hit.entity_type, hit.id) not in already_shown]
+
+
 def _vector_search(
     household_id: UUID,
     query: str,

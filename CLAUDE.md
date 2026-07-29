@@ -1021,12 +1021,28 @@ globale ».
   pas lequel des deux se trompe, ça décrédibilise les deux. C'est la règle « un écart
   ne se dit jamais deux fois avec deux voix » appliquée à la connaissance du foyer.
   Régression : `agent/tests/test_global_search.py::TestTheTwoSearchBoxesAgree`.
-- **⚠️ La recherche-à-la-frappe passe `hybrid=False`** et n'hérite **pas** de
-  `AGENT_HYBRID_RETRIEVAL_ENABLED`. Le flag est le bon défaut pour une question posée
-  à l'agent (un embedding par tour) ; sur une boîte de recherche il vaut **un
-  embedding facturé par frappe débouncée**. La sortie est un choix explicite, jamais
-  un oubli à « corriger » — et ce n'est pas un kill switch : `search()` sans argument
-  continue de lire le flag.
+- **⚠️ La recherche répond en deux temps, et jamais en un seul appel hybride.**
+  `?q=` est l'étape lexicale (quelques requêtes SQL indexées, millisecondes) ;
+  `?q=&semantic=1` est l'étape sémantique, qui renvoie **ce que la première n'a pas
+  trouvé** (`retrieval.semantic_only`, différence des deux jambes). Raison mesurée sur
+  la prod : embedder une requête coûte **211 ms en moyenne, jusqu'à 1,6 s** — attendre
+  ça mettrait toute la boîte à cette vitesse et la placerait derrière la disponibilité
+  du fournisseur. Conséquences à préserver :
+  - l'étape lexicale passe `hybrid=False` **explicitement** et n'hérite pas de
+    `AGENT_HYBRID_RETRIEVAL_ENABLED` ; l'étape sémantique, elle, lit le flag et
+    renvoie `[]` sans appeler le fournisseur quand il est off ;
+  - le serveur renvoie la **différence**, pas la fusion, précisément pour que le front
+    **ajoute un groupe sans réordonner ce que l'utilisateur lit déjà** — une liste qui
+    se réorganise 200 ms après son apparition fait cliquer à côté ;
+  - l'exclusion se calcule **côté serveur** (la jambe lexicale est rejouée, c'est du
+    SQL) et jamais depuis une liste de clés envoyée par le client, qui dériverait au
+    premier changement de ranking ou de gating ;
+  - un échec de l'étape deux n'est **pas** une erreur affichée : les résultats
+    mot-clé sont déjà à l'écran et forment une réponse complète.
+  Régressions : `test_global_search.py::TestTheSemanticLegIsASecondStage` et
+  `::TestTheSecondStageAddsWhatTheFirstCannotFind` côté serveur ;
+  `e2e/global-search.spec.ts` pour le non-blocage, qui ne se prouve que dans un vrai
+  navigateur.
 - **Le surlignage se parse, il ne s'injecte pas.** `ts_headline` renvoie des `<<…>>` ;
   `features/search/highlight.ts` les transforme en segments rendus en `<mark>`. Le
   texte vient du foyer (OCR d'un PDF, note) : un `dangerouslySetInnerHTML` ferait de

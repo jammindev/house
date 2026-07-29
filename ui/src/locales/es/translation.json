@@ -2943,6 +2943,8 @@
     "placeholder": "Buscar…",
     "hint": "Escribe al menos dos caracteres para buscar.",
     "noResults": "Sin resultados.",
+    "senseGroup": "Por significado",
+    "senseSearching": "Buscando también por significado…",
     "entity": {
       "document": "Documentos",
       "interaction": "Actividad",

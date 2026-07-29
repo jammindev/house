@@ -244,13 +244,20 @@ Sous `/api/agent/` :
 
 Hors de `/api/agent/`, parce que ce n'est pas une conversation :
 
-- `GET /api/search/?q=&limit=` — **recherche globale de l'app** (palette de la barre
-  du haut), `apps/agent/search_api.py`. Même retrieval, même ranking, même gating par
-  modules que le tool `search_household` ; renvoie `{results: [{entity_type,
-  object_id, label, url, snippet}]}`. Throttle propre (`search`, 120/min) : le
-  plein-texte ne coûte aucun appel provider, mais un endpoint de type-ahead reste
-  ce qu'on laisse tourner en boucle le plus facilement. Doc :
-  `docs/MODULES/shell-and-design-system.md` § « Recherche globale ».
+- `GET /api/search/?q=&limit=&semantic=` — **recherche globale de l'app** (palette de
+  la barre du haut), `apps/agent/search_api.py`. Même retrieval, même ranking, même
+  gating par modules que le tool `search_household` ; renvoie `{results:
+  [{entity_type, object_id, label, url, snippet}]}` dans les deux cas.
+  - sans `semantic` : **étape lexicale** (`hybrid=False`), quelques requêtes SQL
+    indexées — c'est ce qui part à chaque frappe débouncée ;
+  - `semantic=1` : **étape sémantique** (`retrieval.semantic_only`), qui renvoie ce
+    que la jambe vectorielle trouve **moins** ce que l'étape lexicale a déjà renvoyé,
+    et `[]` quand `AGENT_HYBRID_RETRIEVAL_ENABLED` est off (sans appeler le
+    fournisseur).
+  - Throttle propre (`search`, 120/min) : le plein-texte ne coûte aucun appel
+    provider, mais un endpoint de type-ahead reste ce qu'on laisse tourner en boucle
+    le plus facilement. Doc :
+    `docs/MODULES/shell-and-design-system.md` § « Recherche globale ».
 - `memories/` (CRUD, privé par user × foyer) + `DELETE memories/clear/` (efface
   tout, renvoie `{deleted: n}`) — mémoire utilisateur.
 - Permissions : `IsAuthenticated, IsHouseholdMember` ; `ask`, `messages` et
@@ -295,14 +302,18 @@ et les fonctions `_vector_search` / `_fuse_rrf` de `retrieval.py`.
   full-text à l'octet près). À activer une fois `VOYAGE_API_KEY` posé et le corpus
   indexé (`manage.py backfill_embeddings`).
 
-**⚠️ La recherche-à-la-frappe sort explicitement de l'hybride** (`hybrid=False`, param
-de `search()`). Le flag global est le bon défaut pour une *question* posée à l'agent —
-un embedding par tour. Ce serait le mauvais défaut pour la palette de recherche
-globale et le picker de contexte : **un embedding par frappe débouncée**, facturé, sur
-un geste qui doit rester instantané. Ne pas remplacer par un héritage du flag ; la
-sortie est un choix, pas un oubli. Régression :
-`agent/tests/test_global_search.py::TestTheSemanticLegStaysOut` (qui vérifie aussi que
-l'agent, lui, continue d'honorer le flag — ce n'est pas un kill switch).
+**⚠️ La recherche-à-la-frappe ne fusionne pas, elle sert en deux temps.** Une
+*question* posée à l'agent paie un embedding par tour : négligeable, donc `search()`
+lit le flag. Une boîte de recherche envoie une requête tous les 250 ms de frappe, et
+l'embedding coûte **211 ms en moyenne, 1,6 s au pire** (mesuré sur 808 appels de prod).
+D'où le découpage : l'étape lexicale passe `hybrid=False`, l'étape sémantique
+(`retrieval.semantic_only`) lit le flag et renvoie la **différence** des deux jambes.
+Ne pas remplacer par un héritage du flag dans `search()` — ce serait remettre les deux
+legs en série derrière le fournisseur. Régressions :
+`agent/tests/test_global_search.py::TestTheSemanticLegIsASecondStage` (dont : l'agent
+continue d'honorer le flag, ce n'est pas un kill switch) et
+`::TestTheSecondStageAddsWhatTheFirstCannotFind` (le gain de rappel, et l'absence de
+doublon avec l'étape une).
 
 Fiche concept (le cours) : [docs/fiches/EMBEDDINGS.md](../fiches/EMBEDDINGS.md).
 Backlog : [PARCOURS_21_BACKLOG_TECHNIQUE.md](../parcours/PARCOURS_21_BACKLOG_TECHNIQUE.md).

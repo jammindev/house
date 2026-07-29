@@ -2943,6 +2943,8 @@
     "placeholder": "Search…",
     "hint": "Type at least two characters to search.",
     "noResults": "Nothing found.",
+    "senseGroup": "By meaning",
+    "senseSearching": "Also searching by meaning…",
     "entity": {
       "document": "Documents",
       "interaction": "Activity",
