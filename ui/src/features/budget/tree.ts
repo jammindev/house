@@ -1,4 +1,4 @@
-import type { Budget } from '@/lib/api/budget';
+import type { Budget, BudgetCategory } from '@/lib/api/budget';
 
 export interface BudgetOption {
   value: string;
@@ -9,45 +9,31 @@ export interface BudgetOption {
 /**
  * Les budgets sur lesquels un euro peut se ranger, avec leur chemin.
  *
- * **Un groupe est un sous-total, jamais une case** : « Maison » totalise
- * « Bricolage » et « Énergie », donc y ranger une dépense donnerait à `spent`
- * deux sens — le propre et le consolidé — que tous les compteurs devraient
- * distinguer pour toujours, y compris les bilans mensuels déjà figés. Le serveur
- * le refuse ; cette fonction fait en sorte que l'interface ne le propose même
- * pas, parce qu'offrir une option qui produit un 400 est pire que ne pas
- * l'offrir.
+ * **Tous les budgets nommés en sont**, y compris ceux rangés dans une catégorie :
+ * une catégorie est un intitulé, pas une case, donc y classer une enveloppe ne
+ * lui retire rien. C'est la simplification que le modèle précédent ne permettait
+ * pas — un budget qui recevait des « enfants » cessait, en silence, de pouvoir
+ * recevoir des dépenses, et il fallait le retirer de six sélecteurs.
  *
- * Elle existe en un exemplaire parce que **sept sélecteurs** filtraient les
- * budgets à la main (`.filter(b => !b.is_global)`) : sept endroits à corriger à
- * chaque règle nouvelle, donc sept occasions d'en oublier un.
+ * Seul le budget global est écarté : il plafonne tout, il n'est la case de rien.
+ *
+ * Cette fonction existe en un exemplaire parce que **sept sélecteurs** filtraient
+ * les budgets à la main (`.filter(b => !b.is_global)`) : sept endroits à corriger
+ * à chaque règle nouvelle, donc sept occasions d'en oublier un.
  */
 export function selectableBudgets(budgets: Budget[] | undefined): BudgetOption[] {
-  const rows = budgets ?? [];
-  const nameById = new Map(rows.map((b) => [b.id, b.name]));
-
-  return rows
-    .filter((b) => !b.is_global && !b.is_group)
+  return (budgets ?? [])
+    .filter((b) => !b.is_global)
     .map((b) => ({
       value: b.id,
-      label: b.parent ? `${nameById.get(b.parent.id) ?? b.parent.name} › ${b.name}` : b.name,
+      label: b.category ? `${b.category.name} › ${b.name}` : b.name,
     }))
     .sort((a, b) => a.label.localeCompare(b.label));
 }
 
-/**
- * Les budgets qui peuvent servir de groupe à `selfId`.
- *
- * Mêmes règles que le serveur, dans le même ordre : pas le budget global, pas
- * soi-même, pas un budget déjà rangé dans un groupe (deux niveaux), et pas un
- * groupe si l'on en est déjà un.
- */
-export function groupCandidates(budgets: Budget[] | undefined, selfId?: string): BudgetOption[] {
-  const rows = budgets ?? [];
-  const self = selfId ? rows.find((b) => b.id === selfId) : undefined;
-  if (self?.is_group) return [];
-
-  return rows
-    .filter((b) => !b.is_global && b.id !== selfId && !b.parent)
-    .map((b) => ({ value: b.id, label: b.name }))
+/** Les catégories proposables au rangement d'un budget, par ordre alphabétique. */
+export function categoryOptions(categories: BudgetCategory[] | undefined): BudgetOption[] {
+  return (categories ?? [])
+    .map((c) => ({ value: c.id, label: c.name }))
     .sort((a, b) => a.label.localeCompare(b.label));
 }

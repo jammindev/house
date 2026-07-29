@@ -6,12 +6,32 @@ export interface Budget {
   /** Plafond mensuel. `null` = catégorie suivie, non plafonnée. */
   monthly_amount: string | null;
   is_global: boolean;
-  /** Le groupe qui totalise ce budget, s'il y en a un. */
-  parent: { id: string; name: string } | null;
-  /** Vrai quand ce budget porte des enfants : c'est un sous-total, pas une case. */
-  is_group: boolean;
+  /** La catégorie sous laquelle ce budget est rangé, s'il y en a une. */
+  category: { id: string; name: string } | null;
   created_at: string;
   updated_at: string;
+}
+
+/**
+ * Une **catégorie** de budgets — « Maison » au-dessus de « Bricolage ».
+ *
+ * C'est un type à part, jamais un budget : aucune dépense ne peut s'y ranger,
+ * donc elle n'apparaît dans aucun sélecteur de dépense et il n'y a rien à en
+ * filtrer nulle part.
+ */
+export interface BudgetCategory {
+  id: string;
+  name: string;
+  /** Plafond mensuel optionnel. `null` = simple sous-total. */
+  monthly_amount: string | null;
+  budget_count: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface BudgetCategoryPayload {
+  name: string;
+  monthly_amount?: number | null;
 }
 
 /**
@@ -45,19 +65,43 @@ export interface BudgetOverviewRow {
   committed: string;
   ratio: number;
   state: BudgetState;
-  /** Groupe auquel cette ligne appartient — sert à l'imbrication à l'affichage. */
-  parent_id: string | null;
+  /** Catégorie sous laquelle ranger cette ligne à l'affichage. */
+  category_id: string | null;
+}
+
+/**
+ * Le sous-total d'une catégorie, **calculé par le serveur**.
+ *
+ * Ne jamais le recalculer côté client à partir de `budgets` : le total et le
+ * panneau se mettraient à répondre chacun le sien à « combien a-t-on dépensé ? »,
+ * et c'est exactement la règle « un compteur ne peut pas avoir deux définitions ».
+ */
+export interface BudgetCategoryRow {
+  id: string;
+  name: string;
   /**
-   * Cette ligne est un **sous-total** : ses chiffres sont la somme de ses
-   * enfants, et aucun euro n'y est rangé directement.
+   * Plafond de la catégorie : le sien s'il existe, sinon la somme de ceux des
+   * budgets qu'elle range. `null` quand aucun n'en a — jamais "0.00".
    */
-  is_group: boolean;
+  amount: string | null;
+  /** Vrai quand `amount` est le plafond propre de la catégorie, pas une somme. */
+  has_own_amount: boolean;
+  spent: string;
+  spent_attested: string;
+  spent_pending: string;
+  refunded: string;
+  net_spent: string;
+  committed: string;
+  ratio: number;
+  state: BudgetState;
+  budget_count: number;
 }
 
 export interface BudgetOverview {
   month: string | null;
   global: BudgetOverviewRow | null;
   budgets: BudgetOverviewRow[];
+  categories: BudgetCategoryRow[];
   unbudgeted: string;
   total_spent: string;
   total_attested: string;
@@ -74,8 +118,8 @@ export interface BudgetPayload {
   /** Omis ou `null` = catégorie sans plafond. Requis sur le budget global. */
   monthly_amount?: number | null;
   is_global?: boolean;
-  /** Groupe parent ; `null` sort le budget de son groupe. Deux niveaux au plus. */
-  parent_id?: string | null;
+  /** Catégorie de rangement ; `null` explicite sort le budget de la sienne. */
+  category_id?: string | null;
 }
 
 // --- Analyse fine des dépenses par budget -----------------------------------
@@ -161,6 +205,34 @@ export async function updateBudget(id: string, payload: Partial<BudgetPayload>):
 
 export async function deleteBudget(id: string): Promise<void> {
   await api.delete(`/budget/budgets/${id}/`);
+}
+
+// --- Catégories de budget ---------------------------------------------------
+
+export async function fetchBudgetCategories(): Promise<BudgetCategory[]> {
+  const { data } = await api.get<BudgetCategory[] | { results: BudgetCategory[] }>(
+    '/budget/categories/',
+  );
+  return Array.isArray(data) ? data : data.results;
+}
+
+export async function createBudgetCategory(
+  payload: BudgetCategoryPayload,
+): Promise<BudgetCategory> {
+  const { data } = await api.post<BudgetCategory>('/budget/categories/', payload);
+  return data;
+}
+
+export async function updateBudgetCategory(
+  id: string,
+  payload: Partial<BudgetCategoryPayload>,
+): Promise<BudgetCategory> {
+  const { data } = await api.patch<BudgetCategory>(`/budget/categories/${id}/`, payload);
+  return data;
+}
+
+export async function deleteBudgetCategory(id: string): Promise<void> {
+  await api.delete(`/budget/categories/${id}/`);
 }
 
 // --- Recurring expenses (parcours 21 lot 2) ---------------------------------

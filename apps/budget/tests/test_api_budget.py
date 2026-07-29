@@ -877,7 +877,11 @@ class TestWhatTheStatementAttests:
             self._expense(hh, owner, amount, budget=groceries, transaction=txn)
         client = _client_for(owner)
 
-        # Quatre : session, foyer, l'agrégat des dépenses (les deux chiffres en
-        # un seul GROUP BY) et celui des récurrences.
-        with django_assert_max_num_queries(5):
+        # Session, foyer, l'agrégat des dépenses (les deux chiffres en un seul
+        # GROUP BY), celui des récurrences, les budgets, et **une** requête pour
+        # les catégories. Cette dernière est constante, jamais par budget : les
+        # sous-totaux sont resommés depuis les lignes déjà calculées. Elle ne peut
+        # pas non plus se replier en ``select_related`` sur les budgets — une
+        # catégorie qu'on vient de créer, encore vide, doit apparaître quand même.
+        with django_assert_max_num_queries(6):
             client.get(reverse("budget-overview"))

@@ -3282,10 +3282,28 @@
       "isGlobal": "Budget global (plafonne toutes les dépenses)",
       "monthlyAmountOptional": "Plafond mensuel (facultatif)",
       "amountHint": "Laisse vide pour suivre la catégorie sans la plafonner.",
-      "parent": "Groupe",
-      "parentNone": "Aucun groupe",
-      "parentHint": "Range ce budget sous un autre, qui en affichera le total. Deux niveaux au maximum.",
-      "isGroupHint": "Ce budget est un groupe : il totalise ses budgets et ne reçoit pas de dépense directement."
+      "category": "Catégorie",
+      "categoryNone": "Sans catégorie",
+      "categoryHint": "Range ce budget dans une catégorie, qui en affichera le total."
+    },
+    "category": {
+      "new": {
+        "title": "Nouvelle catégorie",
+        "action": "Catégorie"
+      },
+      "edit": {
+        "title": "Modifier la catégorie"
+      },
+      "namePlaceholder": "ex. Maison",
+      "amountHint": "Laisse vide : la catégorie vaudra la somme des plafonds qu'elle contient.",
+      "sumHint": "somme de ses budgets",
+      "holds_one": "{{count}} budget",
+      "holds_other": "{{count}} budgets",
+      "empty": "Aucun budget dans cette catégorie.",
+      "ungrouped": "Sans catégorie",
+      "created": "Catégorie créée",
+      "updated": "Catégorie modifiée",
+      "deleted": "Catégorie supprimée"
     },
     "errors": {
       "amountInvalid": "Saisis un montant positif.",

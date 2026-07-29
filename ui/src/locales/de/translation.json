@@ -3282,10 +3282,28 @@
       "isGlobal": "Globales Budget (begrenzt alle Ausgaben)",
       "monthlyAmountOptional": "Monatliche Obergrenze (optional)",
       "amountHint": "Leer lassen, um die Kategorie ohne Obergrenze zu verfolgen.",
-      "parent": "Gruppe",
-      "parentNone": "Keine Gruppe",
-      "parentHint": "Ordnen Sie dieses Budget einem anderen unter, das die Summe anzeigt. Höchstens zwei Ebenen.",
-      "isGroupHint": "Dieses Budget ist eine Gruppe: Es summiert seine Budgets und nimmt selbst keine Ausgabe auf."
+      "category": "Kategorie",
+      "categoryNone": "Keine Kategorie",
+      "categoryHint": "Ordnen Sie dieses Budget einer Kategorie zu, die die Summe anzeigt."
+    },
+    "category": {
+      "new": {
+        "title": "Neue Kategorie",
+        "action": "Kategorie"
+      },
+      "edit": {
+        "title": "Kategorie bearbeiten"
+      },
+      "namePlaceholder": "z. B. Haus",
+      "amountHint": "Leer lassen: Die Kategorie entspricht der Summe der enthaltenen Obergrenzen.",
+      "sumHint": "Summe ihrer Budgets",
+      "holds_one": "{{count}} Budget",
+      "holds_other": "{{count}} Budgets",
+      "empty": "Kein Budget in dieser Kategorie.",
+      "ungrouped": "Ohne Kategorie",
+      "created": "Kategorie erstellt",
+      "updated": "Kategorie geändert",
+      "deleted": "Kategorie gelöscht"
     },
     "errors": {
       "amountInvalid": "Gib einen positiven Betrag ein.",

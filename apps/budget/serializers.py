@@ -3,7 +3,52 @@ from decimal import Decimal
 
 from rest_framework import serializers
 
-from .models import Budget, BudgetReport, RecurringExpense
+from .models import Budget, BudgetCategory, BudgetReport, RecurringExpense
+
+
+class BudgetCategorySerializer(serializers.ModelSerializer):
+    """Read/write serializer for a budget category.
+
+    A category is a **heading**, so it validates almost nothing: a non-blank name
+    and, when given, a strictly positive ceiling. There is no rule about what it
+    may contain, because there is nothing to protect — no expense can point at a
+    category, so a category can never hold money of its own.
+    """
+
+    monthly_amount = serializers.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        min_value=Decimal("0.01"),
+        required=False,
+        allow_null=True,
+    )
+    budget_count = serializers.SerializerMethodField()
+
+    class Meta:
+        model = BudgetCategory
+        fields = [
+            "id",
+            "household",
+            "name",
+            "monthly_amount",
+            "budget_count",
+            "created_at",
+            "updated_at",
+            "created_by",
+        ]
+        read_only_fields = ["id", "household", "created_at", "updated_at", "created_by"]
+
+    def get_budget_count(self, obj):
+        # Annoté par la vue liste (``budgets_total``) ; le ``count()`` reste le
+        # repli pour une instance fraîchement créée, qui n'est pas annotée.
+        annotated = getattr(obj, "budgets_total", None)
+        return annotated if annotated is not None else obj.budgets.count()
+
+    def validate_name(self, value):
+        value = (value or "").strip()
+        if not value:
+            raise serializers.ValidationError("This field cannot be blank.")
+        return value
 
 
 class BudgetSerializer(serializers.ModelSerializer):
@@ -23,12 +68,8 @@ class BudgetSerializer(serializers.ModelSerializer):
         required=False,
         allow_null=True,
     )
-    parent_id = serializers.UUIDField(required=False, allow_null=True)
-    parent = serializers.SerializerMethodField()
-    #: Vrai dès que le budget porte des enfants : il devient un sous-total, et
-    #: cesse d'être une cible de ventilation. Le front en a besoin pour ne pas
-    #: proposer un groupe dans ses six sélecteurs de dépense.
-    is_group = serializers.SerializerMethodField()
+    category_id = serializers.UUIDField(required=False, allow_null=True)
+    category = serializers.SerializerMethodField()
 
     class Meta:
         model = Budget
@@ -38,22 +79,18 @@ class BudgetSerializer(serializers.ModelSerializer):
             "name",
             "monthly_amount",
             "is_global",
-            "parent",
-            "parent_id",
-            "is_group",
+            "category",
+            "category_id",
             "created_at",
             "updated_at",
             "created_by",
         ]
         read_only_fields = ["id", "household", "created_at", "updated_at", "created_by"]
 
-    def get_parent(self, obj):
-        if not obj.parent_id:
+    def get_category(self, obj):
+        if not obj.category_id:
             return None
-        return {"id": str(obj.parent_id), "name": obj.parent.name}
-
-    def get_is_group(self, obj):
-        return obj.children.exists()
+        return {"id": str(obj.category_id), "name": obj.category.name}
 
     def validate_name(self, value):
         value = (value or "").strip()
@@ -61,73 +98,57 @@ class BudgetSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("This field cannot be blank.")
         return value
 
-    def _validate_parent(self, attrs):
-        """Les quatre règles qui gardent « un euro, une feuille ».
+    def _validate_category(self, attrs):
+        """Resolve ``category_id`` to a household-scoped ``BudgetCategory``.
 
-        Un groupe est un **sous-total**, jamais une case. Tout ce qui pourrait
-        rendre cette phrase fausse est refusé ici, en 400 nommé :
+        Two rules, and that is the whole of it — because a category is a distinct
+        type, not a budget in a particular mode. It cannot be its own parent, it
+        cannot nest, it cannot already carry expenses, and it can never be
+        mistaken for a spending target in one of the six expense selectors. None
+        of those questions exist to be answered:
 
-        1. **deux niveaux** — un budget qui a déjà un parent ne peut pas en
-           devenir un. Une profondeur libre demanderait une CTE récursive pour
-           chaque total et un sélecteur en arbre dans six formulaires ; ce n'est
-           pas le besoin, et on pourra toujours l'ouvrir plus tard ;
-        2. **le budget global ne se range pas** et ne range personne : il plafonne
-           déjà tout ;
-        3. **pas de cycle**, ni de budget son propre parent ;
-        4. **un budget qui porte déjà des dépenses ne peut pas recevoir d'enfants**
-           — ses dépenses deviendraient le « propre » d'un parent, c'est-à-dire
-           exactement l'ambiguïté qu'on refuse.
+        1. **household scope** — filing an envelope under a category you cannot
+           see would leak that category's name back to you through the panel;
+        2. **the global budget is filed under nothing** — it already caps every
+           category at once, so putting it inside one would make it a member of
+           what it measures.
+
+        A ``None`` id is meaningful and kept: it takes the budget *out* of its
+        category. A missing key (partial PATCH) leaves the filing untouched.
         """
-        if "parent_id" not in attrs:
+        if "category_id" not in attrs:
             return
-        parent_id = attrs.pop("parent_id")
-        if parent_id is None:
-            attrs["parent"] = None
+        category_id = attrs.pop("category_id")
+        if category_id is None:
+            attrs["category"] = None
             return
 
         is_global = attrs.get("is_global", getattr(self.instance, "is_global", False))
         if is_global:
             raise serializers.ValidationError(
-                {"parent_id": "The global budget caps everything; it belongs to no group."}
-            )
-
-        household_id = (
-            self.instance.household_id
-            if self.instance is not None
-            else self.context["request"].household.id
-        )
-        parent = Budget.objects.filter(id=parent_id, household_id=household_id).first()
-        if parent is None:
-            raise serializers.ValidationError({"parent_id": "Unknown budget in this household."})
-        if parent.is_global:
-            raise serializers.ValidationError(
-                {"parent_id": "The global budget cannot be a group."}
-            )
-        if self.instance is not None and parent.id == self.instance.id:
-            raise serializers.ValidationError({"parent_id": "A budget cannot be its own group."})
-        if parent.parent_id is not None:
-            raise serializers.ValidationError(
-                {"parent_id": "Groups are two levels deep: this budget is already inside one."}
-            )
-        if self.instance is not None and self.instance.children.exists():
-            raise serializers.ValidationError(
-                {"parent_id": "This budget is already a group; a group cannot be nested."}
-            )
-
-        from interactions.models import Interaction
-
-        carried = Interaction.objects.filter(budget_id=parent.id).count()
-        if carried:
-            raise serializers.ValidationError(
                 {
-                    "parent_id": (
-                        f"« {parent.name} » already carries {carried} expense(s): a group is a "
-                        "subtotal, so it cannot hold money of its own. Move them first."
+                    "category_id": (
+                        "The global budget caps every category at once; it is "
+                        "filed under none of them."
                     )
                 }
             )
 
-        attrs["parent"] = parent
+        request = self.context.get("request")
+        household_id = (
+            self.instance.household_id
+            if self.instance is not None
+            else getattr(getattr(request, "household", None), "id", None)
+        )
+        category = BudgetCategory.objects.filter(
+            id=category_id, household_id=household_id
+        ).first()
+        if category is None:
+            raise serializers.ValidationError(
+                {"category_id": "Unknown category in this household."}
+            )
+
+        attrs["category"] = category
 
     def validate(self, attrs):
         """The global budget keeps its ceiling: capping is its only job.
@@ -140,11 +161,20 @@ class BudgetSerializer(serializers.ModelSerializer):
         not require re-sending its amount, and clearing the amount of an existing
         global one must still be refused.
         """
-        self._validate_parent(attrs)
+        self._validate_category(attrs)
 
         is_global = attrs.get("is_global", getattr(self.instance, "is_global", False))
         if not is_global:
             return attrs
+
+        # ⚠️ L'invariant ne doit pas dépendre des clés que le client a envoyées.
+        # Refuser ``category_id`` sur un budget global (plus haut) ne couvre que
+        # les requêtes qui en parlent : un PATCH portant le seul ``is_global``
+        # n'atteint jamais ce contrôle, et laissait un budget global rangé dans
+        # une catégorie — c'est-à-dire membre de ce qu'il mesure. On le sort,
+        # plutôt que de refuser : promouvoir une enveloppe en plafond global est
+        # une demande claire, et sa catégorie n'a simplement plus de sens.
+        attrs["category"] = None
 
         amount = attrs.get(
             "monthly_amount", getattr(self.instance, "monthly_amount", None)

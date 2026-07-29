@@ -8,8 +8,8 @@ import { Button } from '@/design-system/button';
 import { CheckboxField } from '@/design-system/checkbox-field';
 import { Select } from '@/design-system/select';
 import type { Budget } from '@/lib/api/budget';
-import { useBudgets, useCreateBudget, useUpdateBudget } from './hooks';
-import { groupCandidates } from './tree';
+import { useBudgetCategories, useCreateBudget, useUpdateBudget } from './hooks';
+import { categoryOptions } from './tree';
 
 interface BudgetDialogProps {
   open: boolean;
@@ -30,18 +30,14 @@ export default function BudgetDialog({ open, onOpenChange, existing, allowGlobal
   const [name, setName] = React.useState('');
   const [amount, setAmount] = React.useState('');
   const [isGlobal, setIsGlobal] = React.useState(false);
-  const [parentId, setParentId] = React.useState('');
+  const [categoryId, setCategoryId] = React.useState('');
   const [error, setError] = React.useState<string | null>(null);
-  const { data: budgets } = useBudgets();
+  const { data: categories } = useBudgetCategories();
 
-  // Un groupe ne se range pas dans un groupe, et un budget déjà rangé n'en
-  // devient pas un : deux niveaux, comme le serveur. Le sélecteur disparaît
-  // entièrement quand ce budget est lui-même un groupe — proposer une option
-  // que l'API refuse est pire que ne rien proposer.
-  const parentOptions = React.useMemo(
-    () => groupCandidates(budgets, existing?.id),
-    [budgets, existing?.id],
-  );
+  // Toutes les catégories du foyer, sans exception : une catégorie est un
+  // intitulé, donc aucune n'est jamais indisponible pour une raison qu'il
+  // faudrait expliquer.
+  const categoryChoices = React.useMemo(() => categoryOptions(categories), [categories]);
 
   React.useEffect(() => {
     if (!open) return;
@@ -50,12 +46,12 @@ export default function BudgetDialog({ open, onOpenChange, existing, allowGlobal
       setName(existing.name);
       setAmount(existing.monthly_amount ?? '');
       setIsGlobal(existing.is_global);
-      setParentId(existing.parent?.id ?? '');
+      setCategoryId(existing.category?.id ?? '');
     } else {
       setName('');
       setAmount('');
       setIsGlobal(false);
-      setParentId('');
+      setCategoryId('');
     }
   }, [open, existing]);
 
@@ -94,9 +90,10 @@ export default function BudgetDialog({ open, onOpenChange, existing, allowGlobal
       // doit **retirer** le plafond, ce qu'un PATCH partiel sans la clé ne ferait pas.
       monthly_amount: hasAmount ? parsed : null,
       is_global: isGlobal,
-      // `null` explicite, comme le montant : sur une édition, vider le groupe
-      // doit **sortir** le budget de son groupe.
-      parent_id: isGlobal ? null : parentId || null,
+      // `null` explicite, comme le montant : sur une édition, vider la catégorie
+      // doit **sortir** le budget de son rangement, ce qu'un PATCH partiel sans
+      // la clé ne ferait pas.
+      category_id: isGlobal ? null : categoryId || null,
     };
 
     try {
@@ -107,11 +104,10 @@ export default function BudgetDialog({ open, onOpenChange, existing, allowGlobal
       }
       onOpenChange(false);
     } catch (err) {
-      // Le serveur nomme ses refus de groupe (« porte déjà 3 dépenses », « deux
-      // niveaux ») : les afficher tels quels vaut mieux qu'un « échec » opaque,
-      // parce que chacun dit quoi faire.
+      // Le serveur nomme ses refus : les afficher tels quels vaut mieux qu'un
+      // « échec » opaque, parce que chacun dit quoi faire.
       const detail = (err as { response?: { data?: Record<string, string[] | string> } })?.response
-        ?.data?.parent_id;
+        ?.data?.category_id;
       setError(
         Array.isArray(detail) ? detail[0] : typeof detail === 'string' ? detail : t('common.saveFailed'),
       );
@@ -166,23 +162,19 @@ export default function BudgetDialog({ open, onOpenChange, existing, allowGlobal
           )}
         </FormField>
 
-        {/* Le groupe : « Maison » au-dessus de « Bricolage ». C'est un
-            sous-total, jamais une case — on ne ventile que sur les feuilles,
-            et c'est ce qui laisse « dépensé » avec un seul sens. */}
-        {!isGlobal && !existing?.is_group && parentOptions.length > 0 ? (
-          <FormField label={t('budget.fields.parent')} htmlFor="budget-parent">
+        {/* La catégorie : « Maison » au-dessus de « Bricolage ». Ranger une
+            enveloppe ne lui retire rien — elle reste une cible de dépense comme
+            avant, et son plafond continue de la mesurer. */}
+        {!isGlobal && categoryChoices.length > 0 ? (
+          <FormField label={t('budget.fields.category')} htmlFor="budget-category">
             <Select
-              id="budget-parent"
-              value={parentId}
-              onChange={(e) => setParentId(e.target.value)}
-              options={[{ value: '', label: t('budget.fields.parentNone') }, ...parentOptions]}
+              id="budget-category"
+              value={categoryId}
+              onChange={(e) => setCategoryId(e.target.value)}
+              options={[{ value: '', label: t('budget.fields.categoryNone') }, ...categoryChoices]}
             />
-            <p className="text-xs text-muted-foreground">{t('budget.fields.parentHint')}</p>
+            <p className="text-xs text-muted-foreground">{t('budget.fields.categoryHint')}</p>
           </FormField>
-        ) : null}
-
-        {existing?.is_group ? (
-          <p className="text-xs text-muted-foreground">{t('budget.fields.isGroupHint')}</p>
         ) : null}
 
         {error ? (
