@@ -757,6 +757,90 @@ def set_refund_allocations(*, household, user, transaction, lines):
     return created
 
 
+def credit_budget_from_refund(*, household, user, transaction, budget_id, amount):
+    """Créditer **une** enveloppe depuis un remboursement, sans toucher aux autres.
+
+    Le jumeau *additif* de :func:`set_refund_allocations`, et la distinction n'est
+    pas cosmétique.
+
+    ``set_refund_allocations`` **remplace tout** : il efface la répartition puis la
+    réécrit. C'est le bon contrat pour l'éditeur, qui tient la répartition entière
+    dans son brouillon et l'envoie en bloc. C'est le mauvais contrat pour un geste
+    parti d'**une** dépense, qui ne connaît que son enveloppe : appelé avec sa
+    seule ligne, il effacerait tout ce que les autres dépenses ont déjà rattaché à
+    la même recette. Un remboursement de 70 € réparti 40 € Courses / 30 € Santé
+    perdrait le 40/30 en silence — le « chantier facturé deux fois » de l'éditeur
+    de ventilation (CLAUDE.md), transposé aux remboursements. Régression :
+    ``test_credit_budget.py::TestCreditingOneBudgetLeavesTheOthersAlone``.
+
+    Deux autres choix qui tiennent la cohérence :
+
+    - **C'est un `set`, pas un `+=`.** Sans lien vers la dépense, House ne peut
+      pas distinguer « je reclique sur la même dépense » de « une seconde dépense
+      sur la même enveloppe ». Un incrément ferait donc doubler un remboursement
+      sur un double-clic, et un montant faux obtenu par un double-clic ne se
+      retrouve plus après coup. ``amount == 0`` supprime le crédit.
+    - **Une recette non classée est classée `refund` au passage ; une recette
+      classée autrement est refusée.** ``inflow_nature == ""`` veut dire « personne
+      n'a regardé » ; ``salary`` veut dire « quelqu'un a tranché ». Reclasser un
+      salaire retirerait de l'argent à une enveloppe sans qu'un euro soit revenu.
+    """
+    from .models import InflowNature, RefundAllocation
+    from .validators import remaining_to_refund
+
+    if transaction.household_id != household.id:
+        raise ValidationError({"transaction": "Belongs to another household."})
+    if transaction.inflow <= 0:
+        raise ValidationError({"transaction": "Only a receipt can credit a budget back."})
+
+    nature = transaction.inflow_nature
+    if nature and nature != InflowNature.REFUND:
+        raise ValidationError(
+            {
+                "inflow_nature": (
+                    "This receipt is already classified as something else. "
+                    "Reclassify it as a refund first."
+                )
+            }
+        )
+
+    budget = _resolve_refund_target(household, budget_id, 0)
+    amount = Decimal(str(amount or "0"))
+    if amount < 0:
+        raise ValidationError({"amount": "A credit is never negative."})
+
+    with atomic():
+        locked = BankTransaction.objects.select_for_update().get(pk=transaction.pk)
+
+        if amount == 0:
+            RefundAllocation.objects.filter(transaction=locked, budget=budget).delete()
+        else:
+            # La borne **exclut** l'enveloppe visée : on la remplace, sa part
+            # actuelle ne doit donc pas se compter deux fois contre la recette.
+            room = remaining_to_refund(locked, exclude_budget_id=str(budget.id))
+            if amount > room:
+                raise ValidationError(
+                    {
+                        "amount": (
+                            f"Only {room} left on this receipt once the other "
+                            f"budgets are served."
+                        )
+                    }
+                )
+            RefundAllocation.objects.update_or_create(
+                transaction=locked,
+                budget=budget,
+                defaults={"amount": amount, "household": locked.household},
+            )
+
+        if not locked.inflow_nature:
+            locked.inflow_nature = InflowNature.REFUND
+            locked.save(update_fields=["inflow_nature", "updated_at"])
+
+    transaction.refresh_from_db()
+    return transaction
+
+
 def _resolve_refund_target(household, budget_id, index):
     """L'enveloppe créditée — mêmes refus que pour une dépense, dans le même ordre."""
     from budget.models import Budget

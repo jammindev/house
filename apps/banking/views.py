@@ -72,6 +72,7 @@ from .services import (
     apply_statement_opening_balance,
     archive_account,
     create_account,
+    credit_budget_from_refund,
     import_statement_file,
     record_cash_deposit,
     record_cash_expense,
@@ -822,6 +823,28 @@ class BankTransactionViewSet(viewsets.ReadOnlyModelViewSet):
         household = request.household or instance.household
         set_refund_allocations(
             household=household, user=request.user, transaction=instance, lines=lines
+        )
+        return Response(self.get_serializer(self.get_object()).data)
+
+    @action(detail=True, methods=["post"], url_path="credit-budget")
+    def credit_budget(self, request, pk=None):
+        """Créditer une seule enveloppe depuis ce remboursement.
+
+        ``POST`` d'une paire (budget, montant) et non le ``PUT`` complet d'à
+        côté : ce geste part d'**une** dépense et ne connaît que son enveloppe.
+        Passer par le ``PUT`` effacerait ce que les autres dépenses ont déjà
+        rattaché à la même recette — voir
+        :func:`banking.services.credit_budget_from_refund`.
+        """
+        instance = self.get_object()
+        household = request.household or instance.household
+
+        credit_budget_from_refund(
+            household=household,
+            user=request.user,
+            transaction=instance,
+            budget_id=request.data.get("budget"),
+            amount=request.data.get("amount"),
         )
         return Response(self.get_serializer(self.get_object()).data)
 

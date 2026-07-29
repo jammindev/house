@@ -4129,6 +4129,17 @@
       "noReceipt": "No receipt attached.",
       "deleteConfirm": "Delete this expense? It will disappear from the journal and from budget totals.",
       "deleteSplitConfirm": "Delete this expense? The bank transaction is untouched: its amount goes back to the queue."
+    },
+    "refundExpense": {
+      "action": "Refunded to me",
+      "title": "This expense was refunded",
+      "description": "Credits the {{budget}} envelope back. The expense itself stays unchanged.",
+      "amountLabel": "Amount refunded",
+      "amountHint": "What goes back into {{budget}}. Leave the full amount for a cancelled order, lower it for a partial refund.",
+      "room": "{{amount}} still free on this receipt",
+      "credit": "Credit back",
+      "credited": "Envelope credited back",
+      "none": "No incoming line can carry this refund yet. Import the statement, or classify the receipt as a refund first."
     }
   },
   "recap": {

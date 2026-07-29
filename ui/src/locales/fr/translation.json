@@ -4129,6 +4129,17 @@
       "noReceipt": "Aucun justificatif joint.",
       "deleteConfirm": "Supprimer cette dépense ? Elle disparaîtra du journal et des totaux de budget.",
       "deleteSplitConfirm": "Supprimer cette dépense ? L'opération bancaire n'est pas touchée : son montant redevient à ranger."
+    },
+    "refundExpense": {
+      "action": "Remboursée",
+      "title": "Cette dépense m'a été remboursée",
+      "description": "Recrédite l'enveloppe {{budget}}. La dépense, elle, reste inchangée.",
+      "amountLabel": "Montant remboursé",
+      "amountHint": "Ce qui retourne dans {{budget}}. Laisse le montant entier pour une commande annulée, baisse-le pour un remboursement partiel.",
+      "room": "{{amount}} encore libres sur cette recette",
+      "credit": "Recréditer",
+      "credited": "Enveloppe recréditée",
+      "none": "Aucune recette ne peut encore porter ce remboursement. Importe le relevé, ou classe d'abord la recette en remboursement."
     }
   },
   "recap": {

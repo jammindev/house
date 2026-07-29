@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import {
   archiveBankAccount,
   createBankAccount,
+  creditBudgetFromRefund,
   fetchAccountBalance,
   fetchAccountBalanceHistory,
   fetchAccountCoverage,
@@ -369,6 +370,34 @@ export function useSetRefundAllocations() {
       // réparti change des plafonds, le Contrôle et la file en même temps.
       invalidate();
       toast({ description: t('banking.inflow.refundSaved'), variant: 'success' });
+    },
+    onError: () => toast({ description: t('common.saveFailed'), variant: 'destructive' }),
+  });
+}
+
+/**
+ * Créditer une enveloppe depuis un remboursement — le geste parti d'une dépense.
+ *
+ * Distinct de `useSetRefundAllocations` **par le contrat, pas par commodité** :
+ * celui-ci est additif, l'autre remplace toute la répartition. Les confondre
+ * effacerait ce que d'autres dépenses ont rattaché à la même recette.
+ */
+export function useCreditBudgetFromRefund() {
+  const invalidate = useInvalidateMoney();
+  const { t } = useTranslation();
+  return useMutation({
+    mutationFn: ({
+      transactionId,
+      budgetId,
+      amount,
+    }: {
+      transactionId: string;
+      budgetId: string;
+      amount: string;
+    }) => creditBudgetFromRefund(transactionId, { budget: budgetId, amount }),
+    onSuccess: () => {
+      invalidate();
+      toast({ description: t('money.refundExpense.credited'), variant: 'success' });
     },
     onError: () => toast({ description: t('common.saveFailed'), variant: 'destructive' }),
   });

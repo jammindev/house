@@ -609,6 +609,27 @@ export async function setRefundAllocations(
   return data;
 }
 
+/**
+ * Crédite **une** enveloppe depuis un remboursement, sans toucher aux autres.
+ *
+ * ⚠️ Ne jamais remplacer cet appel par `setRefundAllocations` avec une ligne
+ * unique : celui-là **remplace toute** la répartition, donc il effacerait les
+ * enveloppes créditées par d'autres dépenses sur la même recette. C'est le geste
+ * parti d'une dépense — il ne connaît que son enveloppe.
+ *
+ * `amount: '0'` retire le crédit de cette enveloppe.
+ */
+export async function creditBudgetFromRefund(
+  transactionId: string,
+  payload: { budget: string; amount: string },
+): Promise<BankTransaction> {
+  const { data } = await api.post<BankTransaction>(
+    `/banking/transactions/${transactionId}/credit-budget/`,
+    payload,
+  );
+  return data;
+}
+
 export async function setAllocations(
   transactionId: string,
   lines: AllocationLine[],

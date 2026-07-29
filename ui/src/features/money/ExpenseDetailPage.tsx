@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { FileText, Link2, Paperclip, Pencil, Receipt, Wallet } from 'lucide-react';
+import { FileText, Link2, Paperclip, Pencil, Receipt, Undo2, Wallet } from 'lucide-react';
 import { Badge } from '@/design-system/badge';
 import { Button } from '@/design-system/button';
 import { Card, CardContent } from '@/design-system/card';
@@ -22,6 +22,7 @@ import { isOwnedByAllocationEditor } from '@/features/banking/ownership';
 import { useAllocations } from '@/features/banking/hooks';
 import { useDocuments } from '@/features/documents/hooks';
 import ReconciliationBadge from './ReconciliationBadge';
+import RefundExpenseDialog from './RefundExpenseDialog';
 
 /** Vers quoi pointe l'objet auquel la dépense est rattachée, quand il en a un. */
 function sourceLink(sourceType: string | null | undefined, sourceId: string | null | undefined) {
@@ -64,6 +65,7 @@ export default function ExpenseDetailPage() {
   const navigateBack = useNavigateBack('/app/money?tab=expenses');
 
   const [attachOpen, setAttachOpen] = React.useState(false);
+  const [refundOpen, setRefundOpen] = React.useState(false);
   const [uploadOpen, setUploadOpen] = React.useState(false);
 
   const { data: expense, isLoading, error } = useInteraction(id ?? '');
@@ -119,6 +121,20 @@ export default function ExpenseDetailPage() {
             </span>
           }
         >
+          {/* Le geste part d'ici parce que c'est d'ici que part l'utilisateur :
+              il regarde l'achat qu'il regrette, pas la recette. Et partir de la
+              dépense fait disparaître la question du budget — c'est le sien. */}
+          {budget ? (
+            <Button
+              type="button"
+              variant="outline"
+              className="h-8 px-3 text-sm"
+              onClick={() => setRefundOpen(true)}
+            >
+              <Undo2 className="mr-1.5 h-3.5 w-3.5" />
+              {t('money.refundExpense.action')}
+            </Button>
+          ) : null}
           <Button
             type="button"
             variant="outline"
@@ -403,6 +419,20 @@ export default function ExpenseDetailPage() {
             amount,
             occurred_at: expense.occurred_at,
           }}
+        />
+      ) : null}
+
+      {budget ? (
+        <RefundExpenseDialog
+          open={refundOpen}
+          onOpenChange={setRefundOpen}
+          expense={{
+            id: expense.id,
+            subject: expense.subject,
+            amount,
+            occurred_at: expense.occurred_at,
+          }}
+          budget={budget}
         />
       ) : null}
     </>

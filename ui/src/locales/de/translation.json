@@ -4129,6 +4129,17 @@
       "noReceipt": "Kein Beleg angehängt.",
       "deleteConfirm": "Diese Ausgabe löschen? Sie verschwindet aus dem Journal und aus den Budgetsummen.",
       "deleteSplitConfirm": "Diese Ausgabe löschen? Die Kontobewegung bleibt unberührt: ihr Betrag wandert zurück in die Warteschlange."
+    },
+    "refundExpense": {
+      "action": "Erstattet",
+      "title": "Diese Ausgabe wurde mir erstattet",
+      "description": "Schreibt dem Umschlag {{budget}} den Betrag wieder gut. Die Ausgabe selbst bleibt unverändert.",
+      "amountLabel": "Erstatteter Betrag",
+      "amountHint": "Was zurück in {{budget}} fließt. Bei einer stornierten Bestellung den vollen Betrag lassen, bei einer Teilerstattung verringern.",
+      "room": "Noch {{amount}} frei auf dieser Einnahme",
+      "credit": "Gutschreiben",
+      "credited": "Umschlag wieder gutgeschrieben",
+      "none": "Noch keine Einnahme kann diese Erstattung tragen. Importiere den Kontoauszug oder stufe die Einnahme zuerst als Erstattung ein."
     }
   },
   "recap": {

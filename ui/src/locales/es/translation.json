@@ -4129,6 +4129,17 @@
       "noReceipt": "Ningún justificante adjunto.",
       "deleteConfirm": "¿Eliminar este gasto? Desaparecerá del diario y de los totales de presupuesto.",
       "deleteSplitConfirm": "¿Eliminar este gasto? La operación bancaria no se toca: su importe vuelve a la cola."
+    },
+    "refundExpense": {
+      "action": "Reembolsado",
+      "title": "Este gasto me fue reembolsado",
+      "description": "Devuelve el importe al sobre {{budget}}. El gasto en sí no cambia.",
+      "amountLabel": "Importe reembolsado",
+      "amountHint": "Lo que vuelve a {{budget}}. Deja el importe completo si el pedido se anuló, redúcelo si el reembolso es parcial.",
+      "room": "Quedan {{amount}} libres en este ingreso",
+      "credit": "Devolver al sobre",
+      "credited": "Sobre acreditado de nuevo",
+      "none": "Todavía no hay ningún ingreso que pueda soportar este reembolso. Importa el extracto o clasifica primero el ingreso como reembolso."
     }
   },
   "recap": {
