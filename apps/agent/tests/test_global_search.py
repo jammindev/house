@@ -176,27 +176,47 @@ class TestBounds:
 
 
 @pytest.mark.django_db
-class TestTheSemanticLegStaysOut:
-    """A debounced keystroke must never cost an embedding call.
+class TestTheSemanticLegIsASecondStage:
+    """Stage one never embeds; stage two is where the meaning comes from.
 
-    The hybrid flag is the right default for a question asked to the agent (one
-    embedding per turn). On a search box it would be one per keystroke — so the
-    palette opts out explicitly instead of inheriting the setting.
+    Embedding a query costs 211 ms on average in production (up to 1.6 s). Waiting for
+    it would make every keystroke feel that slow and put the search box behind the
+    provider's availability — so the two legs answer separately and the client appends
+    the second when it lands.
     """
 
-    def test_hybrid_is_off_even_when_the_setting_is_on(
+    def test_the_first_stage_never_embeds_even_when_hybrid_is_on(
         self, owner_client, project, settings, monkeypatch
     ):
         settings.AGENT_HYBRID_RETRIEVAL_ENABLED = True
 
         def _boom(*args, **kwargs):  # pragma: no cover - must never run
-            raise AssertionError("the global search must not embed the query")
+            raise AssertionError("the first stage must not embed the query")
 
         monkeypatch.setattr("agent.embeddings.get_embedding_client", _boom)
 
         resp = owner_client.get(URL, {"q": "pompe"})
         assert resp.status_code == status.HTTP_200_OK
         assert "Pompe à chaleur" in _labels(resp)
+
+    def test_the_second_stage_is_empty_when_hybrid_is_off(
+        self, owner_client, project, settings, monkeypatch
+    ):
+        """No semantic index, no second stage — and above all no provider call.
+
+        A deployment that never turned the flag on must not pay a request per
+        keystroke to be told there is nothing to add.
+        """
+        settings.AGENT_HYBRID_RETRIEVAL_ENABLED = False
+
+        def _boom(*args, **kwargs):  # pragma: no cover - must never run
+            raise AssertionError("no embedding call when hybrid is disabled")
+
+        monkeypatch.setattr("agent.embeddings.get_embedding_client", _boom)
+
+        resp = owner_client.get(URL, {"q": "pompe", "semantic": "1"})
+        assert resp.status_code == status.HTTP_200_OK
+        assert _results(resp) == []
 
     def test_the_agent_still_honours_the_setting(
         self, household, project, settings, monkeypatch
@@ -213,6 +233,115 @@ class TestTheSemanticLegStaysOut:
         monkeypatch.setattr("agent.retrieval._vector_search", _spy)
         retrieval.search(household.id, "pompe")
         assert calls == [1]
+
+
+_HEAT_WORDS = ("chauffage", "pompe", "chaleur", "pac", "daikin")
+
+
+class _FakeEmbeddingClient:
+    """Deterministic one-hot embeddings — same trick as `test_retrieval_hybrid.py`.
+
+    A query and a document land at cosine distance 0 iff they share a "bucket", which
+    drives the k-NN with no provider and no network.
+    """
+
+    model = "fake-embed"
+
+    def _vec(self, text: str):
+        vector = [0.0] * 1024
+        vector[0 if any(word in text.lower() for word in _HEAT_WORDS) else 1] = 1.0
+        return vector
+
+    def embed(self, texts, *, household_id, feature="embed", user_id=None, metadata=None):
+        from agent.embeddings import EmbeddingResponse
+
+        return EmbeddingResponse(
+            vectors=[self._vec(t) for t in texts],
+            model=self.model,
+            dimensions=1024,
+            duration_ms=1,
+        )
+
+    def embed_query(self, text, *, household_id, feature="embed", user_id=None, metadata=None):
+        return self._vec(text)
+
+
+@pytest.mark.django_db
+class TestTheSecondStageAddsWhatTheFirstCannotFind:
+    """The whole point of stage two: recall the keyword search cannot reach.
+
+    « chauffage » shares no word with a document titled « Pompe à chaleur Daikin » —
+    lexical search returns nothing, the semantic leg returns it. And what stage one
+    already showed must NOT come back, or the palette would list it twice.
+    """
+
+    @pytest.fixture
+    def heat_pump(self, household, settings, monkeypatch):
+        """An indexed equipment named « Pompe à chaleur Daikin »."""
+        from agent import embeddings as embeddings_module
+        from agent import indexing
+        from equipment.models import Equipment
+
+        settings.AGENT_HYBRID_RETRIEVAL_ENABLED = True
+        client = _FakeEmbeddingClient()
+        # The *query* side resolves the client at call time, so patching the module
+        # attribute covers it. `indexing` imported the name at import time — hence the
+        # explicit `client=`, same as `test_retrieval_hybrid.py`.
+        monkeypatch.setattr(embeddings_module, "get_embedding_client", lambda *a, **k: client)
+
+        equipment = Equipment.objects.create(
+            household=household,
+            name="Pompe à chaleur Daikin",
+            notes="Installation air/eau",
+        )
+        indexing.reindex_instance(equipment, client=client)
+        return equipment
+
+    def test_a_synonym_is_found_only_by_the_second_stage(self, owner_client, heat_pump):
+        lexical = _results(owner_client.get(URL, {"q": "chauffage"}))
+        assert lexical == [], "« chauffage » ne partage aucun mot avec l'équipement"
+
+        semantic = _results(owner_client.get(URL, {"q": "chauffage", "semantic": "1"}))
+        assert [row["label"] for row in semantic] == ["Pompe à chaleur Daikin"]
+
+    def test_the_second_stage_never_repeats_the_first(self, owner_client, heat_pump):
+        """« pompe » matches both legs — the extras must exclude what stage one showed,
+        otherwise the palette lists the same entity twice."""
+        lexical = _results(owner_client.get(URL, {"q": "pompe"}))
+        assert "Pompe à chaleur Daikin" in [row["label"] for row in lexical]
+
+        semantic = _results(owner_client.get(URL, {"q": "pompe", "semantic": "1"}))
+        assert "Pompe à chaleur Daikin" not in [row["label"] for row in semantic]
+
+    def test_the_second_stage_stays_in_the_household(self, stranger, heat_pump):
+        resp = _client_for(stranger).get(URL, {"q": "chauffage", "semantic": "1"})
+        assert _results(resp) == []
+
+    def test_a_disabled_module_is_invisible_to_the_second_stage_too(
+        self, owner_client, household, heat_pump
+    ):
+        """The semantic leg does its own gating — an entity of a module the household
+        turned off must not slip in through the second stage. Insurance because it is
+        an optional module (`equipment` is core, so it is never gated)."""
+        from agent import indexing
+        from insurance.models import InsuranceContract
+
+        contract = InsuranceContract.objects.create(
+            household=household,
+            name="Entretien pompe à chaleur",
+            # Surtout pas le mot « chauffage » : il rendrait le contrat trouvable dès
+            # l'étape lexicale, donc légitimement absent de l'étape deux.
+            coverage_summary="Contrat PAC air/eau",
+        )
+        indexing.reindex_instance(contract, client=_FakeEmbeddingClient())
+
+        found = _results(owner_client.get(URL, {"q": "chauffage", "semantic": "1"}))
+        assert "Entretien pompe à chaleur" in [row["label"] for row in found]
+
+        household.disabled_modules = ["insurance"]
+        household.save(update_fields=["disabled_modules"])
+        found = _results(owner_client.get(URL, {"q": "chauffage", "semantic": "1"}))
+        assert "Entretien pompe à chaleur" not in [row["label"] for row in found]
 
 
 class TestThePaletteCoversTheRegistry:

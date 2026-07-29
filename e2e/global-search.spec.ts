@@ -105,4 +105,55 @@ test.describe('Recherche globale', () => {
     await page.getByTestId('global-search-input').fill('zzzzintrouvable');
     await expect(page.getByText('Aucun résultat.')).toBeVisible();
   });
+
+  /**
+   * La recherche répond en deux temps : le mot-clé tout de suite, le sens ensuite.
+   * C'est la seule garantie qui ne se teste qu'ici — en jsdom rien ne dit qu'un
+   * `await` de trop n'a pas remis les deux appels en série. On retarde donc l'étape
+   * sémantique de 1,5 s et on exige que le résultat lexical soit déjà à l'écran.
+   */
+  test("l'étape par le sens n'attend jamais l'étape mot-clé", async ({ page }) => {
+    const fabricated = {
+      entity_type: 'document',
+      object_id: '00000000-0000-0000-0000-000000000001',
+      label: 'Devis trouvé par le sens',
+      url: '/app/documents/00000000-0000-0000-0000-000000000001',
+      snippet: 'Chaudière à remplacer',
+    };
+
+    await page.route(/\/api\/search\/\?.*semantic=1/, async (route) => {
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ results: [fabricated] }),
+      });
+    });
+
+    await page.getByTestId('global-search-trigger').click();
+    await page.getByTestId('global-search-input').fill(needle);
+
+    // Le résultat lexical est là bien avant que le sens ait répondu.
+    await expect(page.getByTestId('global-search-result').filter({ hasText: needle })).toBeVisible({
+      timeout: 1000,
+    });
+    await expect(page.getByTestId('global-search-sense-group')).toBeHidden();
+
+    // Puis le groupe « Par le sens » s'ajoute, sans déplacer ce qui précède.
+    await expect(page.getByTestId('global-search-sense-group')).toBeVisible({ timeout: 4000 });
+    await expect(page.getByText('Devis trouvé par le sens')).toBeVisible();
+  });
+
+  test('un échec de l’étape par le sens ne casse pas la recherche', async ({ page }) => {
+    await page.route(/\/api\/search\/\?.*semantic=1/, (route) =>
+      route.fulfill({ status: 503, contentType: 'application/json', body: '{"detail":"nope"}' }),
+    );
+
+    await page.getByTestId('global-search-trigger').click();
+    await page.getByTestId('global-search-input').fill(needle);
+
+    // Les résultats mot-clé restent une réponse complète : aucune erreur affichée.
+    await expect(page.getByTestId('global-search-result').filter({ hasText: needle })).toBeVisible();
+    await expect(page.getByTestId('global-search-sense-group')).toBeHidden();
+  });
 });

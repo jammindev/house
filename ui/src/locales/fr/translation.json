@@ -2984,6 +2984,8 @@
     "placeholder": "Rechercher…",
     "hint": "Saisis au moins deux caractères pour lancer la recherche.",
     "noResults": "Aucun résultat.",
+    "senseGroup": "Par le sens",
+    "senseSearching": "Recherche aussi par le sens…",
     "entity": {
       "document": "Documents",
       "interaction": "Activité",
