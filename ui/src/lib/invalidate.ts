@@ -1,3 +1,4 @@
+import * as React from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 
 /**
@@ -188,9 +189,15 @@ export function rootsInvalidatedBy(...written: readonly QueryRoot[]): QueryRoot[
  */
 export function useInvalidate() {
   const queryClient = useQueryClient();
-  return (...written: readonly QueryRoot[]) => {
-    for (const root of rootsInvalidatedBy(...written)) {
-      void queryClient.invalidateQueries({ queryKey: [root] });
-    }
-  };
+  // `useCallback` pour que la fonction soit stable d'un rendu à l'autre : elle
+  // est appelée depuis tant d'endroits qu'elle finira dans un tableau de
+  // dépendances, et une fonction recréée à chaque rendu y boucle.
+  return React.useCallback(
+    (...written: readonly QueryRoot[]) => {
+      for (const root of rootsInvalidatedBy(...written)) {
+        void queryClient.invalidateQueries({ queryKey: [root] });
+      }
+    },
+    [queryClient],
+  );
 }

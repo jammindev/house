@@ -38,13 +38,32 @@ const apiModules = import.meta.glob<string>('../lib/api/*.ts', {
 });
 
 /**
- * Ce qui compte comme une écriture, par son préfixe.
+ * Ce qui compte comme une écriture — **détecté sur l'implémentation**, jamais
+ * sur le nom.
  *
- * `send*` en est exclu à dessein : `sendTestWebPush` / `sendBriefingNow`
- * déclenchent un envoi, ils ne changent aucune donnée lue par un écran.
+ * Première version de ce test : une liste de préfixes (`create*`, `update*`,
+ * `set*`…). Elle ratait **trente-trois** fonctions, dont la totalité des
+ * écritures de l'argent — `recordCashExpense`, `creditBudgetFromRefund`,
+ * `qualifyTransaction`, `withdrawToCash`, `registerProjectPurchase`,
+ * `purchaseStockItem`, `logEggs`, `adjustStockQuantity`… Un garde-fou qui
+ * dépend d'une convention de nommage protège ce dont on s'est souvenu en
+ * l'écrivant, c'est-à-dire précisément pas les cas oubliés : `recordCashExpense`
+ * n'a jamais eu l'air d'une écriture, et c'en est une.
+ *
+ * Le verbe HTTP, lui, ne s'oublie pas — on ne poste pas par distraction.
  */
-const WRITE_PREFIX =
-  /^(create|update|delete|patch|remove|add|set|link|unlink|upload|import|confirm|toggle|mark|attach|detach|archive|restore|bulk|reconcile|move|revoke|reprocess)[A-Z]/;
+const MUTATING_CALL = /\bapi\.(post|patch|put|delete)\b|\b(post|patch|put)Multipart\b/;
+
+/**
+ * Une déclaration de fonction, de sa signature à l'accolade qui la ferme en
+ * colonne 0.
+ *
+ * ⚠️ `^\}$` et pas `^\}` : une signature dont le paramètre est un objet inline
+ * (`function f(params: {`) porte un `}` en colonne 0 **au milieu** de sa propre
+ * signature. Avec `^\}`, le corps d'`importStatementFile` s'arrêtait là et son
+ * `postMultipart` passait inaperçu.
+ */
+const FUNCTION_DECLARATION = /^(export )?(?:async )?function (\w+)[\s\S]*?^\}$/gm;
 
 /**
  * Les fichiers autorisés à importer une écriture.
@@ -64,14 +83,61 @@ function isAllowed(file: string): boolean {
   return false;
 }
 
+/**
+ * Les deux écritures qui n'ont **rien à invalider**, et pourquoi.
+ *
+ * Une exception se justifie par un fait vérifiable, pas par une préférence —
+ * sinon cette liste devient l'endroit où l'on range ce qu'on ne veut pas
+ * corriger.
+ */
+const NOTHING_TO_INVALIDATE: Record<string, string> = {
+  // Rejoindre un foyer se termine par `window.location.assign('/app/dashboard')`
+  // — un chargement complet, qui jette le cache entier. Un hook n'aurait rien à
+  // périmer, et le foyer change de sous les pieds de toutes les clés à la fois.
+  joinHousehold: 'features/auth/JoinHouseholdPage.tsx — suivi d’un rechargement complet',
+  // L'abonnement push vit dans le navigateur (permission + `PushSubscription`),
+  // pas dans une requête en cache : la seule `useQuery` de l'écran lit la clé
+  // VAPID, qui est de la configuration statique.
+  subscribeWebPush: 'features/settings/components/WebPushSection.tsx — état navigateur, aucun cache lecteur',
+  unsubscribeWebPush: 'features/settings/components/WebPushSection.tsx — idem',
+  sendTestWebPush: 'features/settings/components/WebPushSection.tsx — un envoi, aucune donnée changée',
+};
+
 function writeFunctions(): Set<string> {
-  const names = new Set<string>();
+  const bodies = new Map<string, string>();
+  const exported = new Set<string>();
   for (const source of Object.values(apiModules)) {
-    for (const match of source.matchAll(/export\s+(?:async\s+)?function\s+(\w+)/g)) {
-      if (WRITE_PREFIX.test(match[1])) names.add(match[1]);
+    for (const match of source.matchAll(FUNCTION_DECLARATION)) {
+      bodies.set(match[2], match[0]);
+      if (match[1]) exported.add(match[2]);
     }
   }
-  return names;
+
+  const writes = new Set<string>();
+  for (const [name, body] of bodies) {
+    if (MUTATING_CALL.test(body)) writes.add(name);
+  }
+
+  // Point fixe : **déléguer à une écriture est écrire.** `restoreBankAccount`
+  // ne poste rien lui-même, il appelle `updateBankAccount` — et il en a tous
+  // les effets. Même chose pour les helpers non exportés du module.
+  let grew = true;
+  while (grew) {
+    grew = false;
+    for (const [name, body] of bodies) {
+      if (writes.has(name)) continue;
+      for (const write of writes) {
+        // `[<(]` : capter aussi un appel générique — `postMultipart<Foo>(…)`.
+        if (new RegExp(`\\b${write}\\s*[<(]`).test(body)) {
+          writes.add(name);
+          grew = true;
+          break;
+        }
+      }
+    }
+  }
+
+  return new Set([...writes].filter((name) => exported.has(name)));
 }
 
 /** Les noms importés depuis `@/lib/api/…` par un fichier. */
@@ -91,17 +157,50 @@ describe('les écritures passent par un hook', () => {
 
   it('le test lit bien tout le front et toute la couche API', () => {
     expect(Object.keys(sources).length).toBeGreaterThan(300);
-    expect(writes.size).toBeGreaterThan(80);
+    // 173 au moment d'écrire ces lignes. Le plancher est là pour attraper une
+    // détection qui retomberait à vide (regex cassée, glob qui ne matche plus) —
+    // un test qui ne teste rien passe, et c'est le pire des deux mondes.
+    expect(writes.size).toBeGreaterThan(150);
+  });
+
+  it('les écritures se reconnaissent par leur verbe HTTP, pas par leur nom', () => {
+    // Les cas que la détection par préfixe ratait : aucun ne « ressemble » à une
+    // écriture, tous en sont une.
+    for (const name of [
+      'recordCashExpense',
+      'creditBudgetFromRefund',
+      'qualifyTransaction',
+      'withdrawToCash',
+      'registerProjectPurchase',
+      'purchaseStockItem',
+      'logEggs',
+      'importStatementFile', // via `postMultipart`
+      'restoreBankAccount', // via `updateBankAccount`
+    ]) {
+      expect(writes, name).toContain(name);
+    }
+    // Et une lecture reste une lecture.
+    expect(writes).not.toContain('fetchInteractions');
   });
 
   it("aucun composant n'appelle l'API d'écriture en direct", () => {
     const offenders: string[] = [];
     for (const [file, source] of Object.entries(sources)) {
       if (isAllowed(file)) continue;
-      const direct = importedFromApi(source).filter((name) => writes.has(name));
+      const direct = importedFromApi(source)
+        .filter((name) => writes.has(name))
+        .filter((name) => !(name in NOTHING_TO_INVALIDATE));
       if (direct.length > 0) offenders.push(`${file} → ${direct.sort().join(', ')}`);
     }
     expect(offenders.sort()).toEqual([]);
+  });
+
+  it('la liste des exceptions ne survit pas à ce qu’elle nomme', () => {
+    // Une exception qui désigne une fonction disparue est un commentaire faux
+    // qu'aucune relecture ne remarquera.
+    for (const name of Object.keys(NOTHING_TO_INVALIDATE)) {
+      expect(writes, `${name} n'est plus une écriture`).toContain(name);
+    }
   });
 });
 
