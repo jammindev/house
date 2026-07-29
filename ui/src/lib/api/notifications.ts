@@ -8,6 +8,9 @@ export interface NotificationItem {
   title: string;
   body: string;
   payload: Record<string, unknown>;
+  /** Où mène la notification. Porté par la ligne et non par le type : « Bob a
+   * terminé Tondre la pelouse » désigne cette tâche-là. Vide = rien à ouvrir. */
+  url: string;
   is_read: boolean;
   read_at: string | null;
   created_at: string;
@@ -42,4 +45,16 @@ export async function markNotificationRead(id: string): Promise<void> {
 
 export async function markAllNotificationsRead(): Promise<void> {
   await api.post('/notifications/mark-all-read/', {});
+}
+
+/**
+ * Les types que l'utilisateur a le droit de faire taire.
+ *
+ * Servi par l'API et non redéclaré ici : `MUTABLE_TYPES` est ce que le chemin
+ * d'écriture applique réellement, donc une liste en dur finirait par proposer
+ * une case que l'API refuse — ou par en cacher une qu'elle accepterait.
+ */
+export async function fetchMutableNotificationTypes(): Promise<string[]> {
+  const { data } = await api.get<{ types: string[] }>('/notifications/mutable-types/');
+  return data?.types ?? [];
 }

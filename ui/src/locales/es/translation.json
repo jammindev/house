@@ -1125,7 +1125,11 @@
     },
     "createHouseholdTitle": "Crear un hogar",
     "avatarUploadFailed": "Error al subir la foto.",
-    "avatarDeleteFailed": "Error al eliminar la foto."
+    "avatarDeleteFailed": "Error al eliminar la foto.",
+    "notifications": {
+      "title": "Notificaciones",
+      "description": "Elija qué llega a su campana. Desmarque para dejar de recibir un tipo de notificación."
+    }
   },
   "tutorials": {
     "title": "Tutorial",
@@ -2739,6 +2743,11 @@
     "filters": {
       "all": "Todas",
       "unread": "No leídas"
+    },
+    "type": {
+      "stock_low": "Existencias bajas",
+      "stock_out": "Sin existencias",
+      "weather_alert": "Alerta meteorológica"
     }
   },
   "invitations": {

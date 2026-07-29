@@ -6,13 +6,10 @@ service module is already the place where the *membership* invariants live.
 """
 from __future__ import annotations
 
-from django.utils import translation
 from django.utils.translation import gettext as _
 
 from notifications.models import Notification
-from notifications.service import send
-
-from .models import HouseholdMember
+from notifications.service import notify_household
 
 
 def notify_member_joined(household, joiner) -> int:
@@ -23,41 +20,29 @@ def notify_member_joined(household, joiner) -> int:
     addressee at all, and "somebody joined the foyer" is a fact the whole
     household reads rather than a receipt owed to one person.
 
-    Each notification is rendered under **its own recipient's** locale: one
-    household can mix languages, and the text is stored in plain form (see the
-    write-time localisation rule in `CLAUDE.md`), so a single `gettext` around
-    the loop would post everyone the language of whoever happened to accept —
-    with no second chance at display time.
+    The fan-out, the actor exclusion and the per-recipient language all come from
+    `notify_household` — this function only knows *what* to say.
     """
     joiner_name = joiner.display_name or joiner.email
-    payload = {
-        "household_id": str(household.id),
-        "household_name": household.name,
-        "member_id": str(joiner.id),
-        "member_name": joiner_name,
-    }
 
-    recipients = (
-        HouseholdMember.objects
-        .filter(household=household)
-        .exclude(user=joiner)
-        .select_related("user")
-    )
-
-    told = 0
-    for member in recipients:
-        with translation.override(getattr(member.user, "locale", None) or "en"):
-            title = _("%(member)s joined %(household)s") % {
-                "member": joiner_name,
-                "household": household.name,
-            }
-            body = _("They now have access to the household.")
-        send(
-            member.user,
-            notification_type=Notification.Type.HOUSEHOLD_MEMBER_JOINED,
-            title=title,
-            body=body,
-            payload=payload,
+    def text():
+        return (
+            _("%(member)s joined %(household)s")
+            % {"member": joiner_name, "household": household.name},
+            _("They now have access to the household."),
         )
-        told += 1
-    return told
+
+    told = notify_household(
+        household,
+        Notification.Type.HOUSEHOLD_MEMBER_JOINED,
+        actor=joiner,
+        text=text,
+        url="/app/settings",
+        payload={
+            "household_id": str(household.id),
+            "household_name": household.name,
+            "member_id": str(joiner.id),
+            "member_name": joiner_name,
+        },
+    )
+    return len(told)

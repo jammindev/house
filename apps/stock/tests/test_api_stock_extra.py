@@ -164,3 +164,68 @@ def test_stock_create_rejects_zone_from_other_household(client, user, household,
 
     assert response.status_code == 400
     assert "zone" in response.json()
+
+
+@pytest.mark.django_db
+class TestTheWarningIsWrittenInEachReadersLanguage:
+    """A household mixes languages; the notification text is stored in plain
+    form, so it can only be written right once — at creation, per recipient.
+
+    This module used to call `gettext` **once**, before the loop, and hand the
+    result to everybody: the whole household read the alert in the language of
+    whoever happened to move the stock. Nothing signalled it, because the
+    sentence was perfectly valid — just not in their language.
+    """
+
+    def _drop_below_threshold(self, client, user, household):
+        category = StockCategory.objects.create(household=household, name="Food", created_by=user)
+        item = StockItem.objects.create(
+            household=household, category=category, name="Café",
+            quantity=5, min_quantity=2, unit="pcs", status="in_stock", created_by=user,
+        )
+        client.force_login(user)
+        client.post(
+            reverse("stock-item-adjust-quantity", kwargs={"pk": item.id}),
+            data={"delta": -4},
+            content_type="application/json",
+        )
+        return item
+
+    def test_two_members_two_languages(self, client, user, household, dual_membership):
+        user.locale = "en"
+        user.save(update_fields=["locale"])
+        french = User.objects.create_user(email="fr@test.dev", password="secret", locale="fr")
+        HouseholdMember.objects.create(user=french, household=household)
+
+        self._drop_below_threshold(client, user, household)
+
+        assert "Low stock" in Notification.objects.get(user=user).title
+        assert "Stock bas" in Notification.objects.get(user=french).title
+
+    def test_the_warning_leads_to_the_item_not_the_inventory(self, client, user, household, dual_membership):
+        item = self._drop_below_threshold(client, user, household)
+
+        assert Notification.objects.get(user=user).url == f"/app/stock/{item.id}"
+
+    def test_crossing_the_threshold_twice_says_it_once(self, client, user, household, dual_membership):
+        item = self._drop_below_threshold(client, user, household)
+        # Back up, then under again — the warning already in the bell is still true.
+        for delta in (+4, -4):
+            client.post(
+                reverse("stock-item-adjust-quantity", kwargs={"pk": item.id}),
+                data={"delta": delta},
+                content_type="application/json",
+            )
+
+        assert Notification.objects.filter(user=user, type=Notification.Type.STOCK_LOW).count() == 1
+
+    def test_a_member_who_silenced_stock_gets_nothing(self, client, user, household, dual_membership):
+        quiet = User.objects.create_user(email="quiet@test.dev", password="secret")
+        quiet.muted_notification_types = [Notification.Type.STOCK_LOW]
+        quiet.save(update_fields=["muted_notification_types"])
+        HouseholdMember.objects.create(user=quiet, household=household)
+
+        self._drop_below_threshold(client, user, household)
+
+        assert not Notification.objects.filter(user=quiet).exists()
+        assert Notification.objects.filter(user=user).exists()

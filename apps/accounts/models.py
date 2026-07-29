@@ -129,6 +129,16 @@ class User(AbstractBaseUser, PermissionsMixin):
         help_text=_("Tutorial keys the user has completed."),
     )
 
+    # Notification types this user silenced. Opt-OUT (empty = receives all),
+    # like digest_disabled_sections: a preference the user only touches when
+    # something bothers them. Only types in notifications.MUTABLE_TYPES can be
+    # listed — an invitation is not something a checkbox may hide.
+    muted_notification_types = models.JSONField(
+        default=list,
+        blank=True,
+        help_text=_("Notification types the user does not want to receive."),
+    )
+
     agent_memory_enabled = models.BooleanField(
         default=True,
         help_text=_(

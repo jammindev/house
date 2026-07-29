@@ -69,6 +69,21 @@ export class NotificationsService {
         });
     }
     /**
+     * The types the settings screen may offer to silence.
+     *
+     * Served rather than duplicated in the front: `MUTABLE_TYPES` is what the
+     * write path actually enforces, so a hard-coded list would eventually
+     * offer a checkbox the API refuses, or hide one it would accept.
+     * @returns Notification
+     * @throws ApiError
+     */
+    public static notificationsMutableTypesRetrieve(): CancelablePromise<Notification> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/notifications/mutable-types/',
+        });
+    }
+    /**
      * @returns Notification
      * @throws ApiError
      */

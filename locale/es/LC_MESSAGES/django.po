@@ -1915,20 +1915,20 @@ msgstr "Marcar como leído"
 #: apps/stock/notifications.py:30
 #, python-format
 msgid "Out of stock: %(name)s"
-msgstr ""
+msgstr "Sin existencias: %(name)s"
 
 #: apps/stock/notifications.py:31
 msgid "This item is now out of stock. Restock or update its status."
-msgstr ""
+msgstr "Este artículo se ha agotado. Repóngalo o actualice su estado."
 
 #: apps/stock/notifications.py:34
 #, python-format
 msgid "Low stock: %(name)s"
-msgstr ""
+msgstr "Existencias bajas: %(name)s"
 
 #: apps/stock/notifications.py:35
 msgid "This item has crossed its minimum quantity threshold."
-msgstr ""
+msgstr "Este artículo ha bajado de su cantidad mínima."
 
 #: apps/stock/serializers.py:92
 #, fuzzy

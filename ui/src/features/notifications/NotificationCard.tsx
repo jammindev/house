@@ -1,13 +1,15 @@
 import { useTranslation } from 'react-i18next';
-import { Bell, Mail, UserPlus } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
 
 import { Button } from '@/design-system/button';
 import { Card } from '@/design-system/card';
 import { useAcceptInvitation, useDeclineInvitation } from '@/features/settings/hooks';
+import { pushBack } from '@/lib/backNavigation';
 import { triggerBellRefresh } from '@/lib/notifications';
 import type { NotificationItem } from '@/lib/api/notifications';
 
 import { useMarkRead } from './hooks';
+import { NotificationIcon } from './icons';
 
 interface NotificationCardProps {
   notification: NotificationItem;
@@ -34,11 +36,15 @@ export default function NotificationCard({ notification }: NotificationCardProps
   const { t } = useTranslation();
   const markRead = useMarkRead();
 
+  const location = useLocation();
+
   const isInvitation = notification.type === 'household_invitation';
-  // A join is informational — an icon and nothing to click, unlike an invitation
-  // which carries its accept/decline buttons.
-  const isMemberJoined = notification.type === 'household_member_joined';
-  const Icon = isInvitation ? Mail : isMemberJoined ? UserPlus : Bell;
+
+  // Une invitation porte ses propres boutons : envelopper la carte dans un lien
+  // avalerait « Accepter »/« Refuser ». Partout ailleurs, une notification qui
+  // annonce quelque chose sans y mener oblige le lecteur à refaire la recherche
+  // qu'elle vient de faire pour lui.
+  const to = !isInvitation && notification.url ? notification.url : null;
 
   const relative = formatRelativeFromNow(notification.created_at);
 
@@ -47,9 +53,49 @@ export default function NotificationCard({ notification }: NotificationCardProps
     markRead.mutate(notification.id);
   }
 
+  const content = (
+    <div className="flex items-start gap-3">
+      <div
+        className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${
+          notification.is_read ? 'bg-muted text-muted-foreground' : 'bg-primary/10 text-primary'
+        }`}
+      >
+        <NotificationIcon type={notification.type} className="h-4 w-4" />
+      </div>
+      <div className="min-w-0 flex-1 space-y-1">
+        <div className="flex items-start justify-between gap-2">
+          <p className="text-sm font-medium text-foreground">{notification.title}</p>
+          {!notification.is_read && (
+            <span
+              className="mt-1.5 inline-block h-2 w-2 shrink-0 rounded-full bg-primary"
+              aria-label={t('notifications.unread')}
+            />
+          )}
+        </div>
+        {notification.body ? (
+          <p className="text-sm text-muted-foreground">{notification.body}</p>
+        ) : null}
+        <p className="text-xs text-muted-foreground/70">{relative}</p>
+        {isInvitation ? <InvitationActions notification={notification} /> : null}
+      </div>
+    </div>
+  );
+
+  const cardClass = `p-3 transition-colors ${notification.is_read ? '' : 'border-primary/40 bg-primary/5'}`;
+
+  if (to) {
+    return (
+      <Card className={`${cardClass} hover:border-primary/40`}>
+        <Link to={to} state={pushBack(location)} onClick={handleMarkRead} className="block">
+          {content}
+        </Link>
+      </Card>
+    );
+  }
+
   return (
     <Card
-      className={`p-3 transition-colors ${notification.is_read ? '' : 'border-primary/40 bg-primary/5'}`}
+      className={cardClass}
       onClick={handleMarkRead}
       role={notification.is_read ? undefined : 'button'}
       tabIndex={notification.is_read ? -1 : 0}
@@ -60,31 +106,7 @@ export default function NotificationCard({ notification }: NotificationCardProps
         }
       }}
     >
-      <div className="flex items-start gap-3">
-        <div
-          className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${
-            notification.is_read ? 'bg-muted text-muted-foreground' : 'bg-primary/10 text-primary'
-          }`}
-        >
-          <Icon className="h-4 w-4" />
-        </div>
-        <div className="min-w-0 flex-1 space-y-1">
-          <div className="flex items-start justify-between gap-2">
-            <p className="text-sm font-medium text-foreground">{notification.title}</p>
-            {!notification.is_read && (
-              <span
-                className="mt-1.5 inline-block h-2 w-2 shrink-0 rounded-full bg-primary"
-                aria-label={t('notifications.unread')}
-              />
-            )}
-          </div>
-          {notification.body ? (
-            <p className="text-sm text-muted-foreground">{notification.body}</p>
-          ) : null}
-          <p className="text-xs text-muted-foreground/70">{relative}</p>
-          {isInvitation ? <InvitationActions notification={notification} /> : null}
-        </div>
-      </div>
+      {content}
     </Card>
   );
 }

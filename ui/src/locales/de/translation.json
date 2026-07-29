@@ -1125,7 +1125,11 @@
     },
     "createHouseholdTitle": "Haushalt erstellen",
     "avatarUploadFailed": "Upload fehlgeschlagen.",
-    "avatarDeleteFailed": "Löschen fehlgeschlagen."
+    "avatarDeleteFailed": "Löschen fehlgeschlagen.",
+    "notifications": {
+      "title": "Benachrichtigungen",
+      "description": "Wählen Sie, was in Ihrer Glocke landet. Abwählen, um eine Art von Benachrichtigung nicht mehr zu erhalten."
+    }
   },
   "tutorials": {
     "title": "Tutorial",
@@ -2739,6 +2743,11 @@
     "filters": {
       "all": "Alle",
       "unread": "Ungelesen"
+    },
+    "type": {
+      "stock_low": "Geringer Bestand",
+      "stock_out": "Nicht mehr vorrätig",
+      "weather_alert": "Wetterwarnung"
     }
   },
   "invitations": {
