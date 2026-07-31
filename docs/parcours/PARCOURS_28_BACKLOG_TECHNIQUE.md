@@ -520,6 +520,25 @@ une sauvegarde.
 - `docs/self-hosting/releases.md` — versionnement semver, tags `v*`, notes de
   release alimentées par `generate_changelog`
 
+> ⚠️ **Un tag `v1.0.0` existe déjà, et il faudra trancher son sort ici.** Il a été
+> posé à la main le 2025-10-12 sur un commit de configuration TypeScript sans
+> rapport ; **rien ne le lit** (`ChangelogEntry` est adossé au `commit_sha`, pas à
+> une version, et `package.json` est resté à `0.0.0`). Publier `v0.1.0` derrière
+> lui afficherait donc une release *antérieure* à une release déjà présente — sans
+> rien casser (`latest` est posé sur tout tag non-préversion, l'ordre n'intervient
+> pas) mais en faisant croire à un lecteur qu'il a raté une étape.
+> **Préférence : supprimer `v1.0.0` et partir de `v0.1.0`.** Un tag que personne
+> ne lit et qui désigne un commit sans rapport ne vaut pas les explications qu'il
+> coûte. Le `0` reste juste : un `1.0` qui ne sait pas se restaurer promet plus
+> qu'il ne tient — et c'est précisément ce lot qui lui apprend.
+>
+> **Reste aussi à lever ici le critère 4 du lot 2** (démarrage arm64) : le
+> workflow `release.yml` est écrit mais **n'a jamais été exécuté**, puisqu'il ne se
+> déclenche que sur un tag. Le premier tag le prouve ou le casse. Et le paquet
+> `ghcr` naît **privé**, même sur un dépôt public : sans un passage manuel en
+> public, le `docker compose up` d'un inconnu échoue sur `denied` — ce qui
+> ressemble à un bug et n'en est pas un.
+
 **Critères**
 
 1. Une sauvegarde prise sur une instance A est restaurée sur une instance B neuve,
