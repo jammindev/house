@@ -6,6 +6,9 @@ from decimal import Decimal
 from django.db import transaction
 from django.contrib.contenttypes.models import ContentType
 from rest_framework import serializers
+from core.serializers import (
+    HouseholdScopedPrimaryKeyRelatedField as ScopedFK,
+)
 from documents.models import Document
 from documents.services import link_document
 from tags.models import Tag, TagLink
@@ -591,8 +594,11 @@ class InteractionStructureSerializer(serializers.ModelSerializer):
 class InteractionDocumentSerializer(serializers.Serializer):
     """Interaction↔Document link, backed by DocumentLink (shape preserved)."""
 
-    interaction = serializers.PrimaryKeyRelatedField(queryset=Interaction.objects.all())
-    document = serializers.PrimaryKeyRelatedField(queryset=Document.objects.all())
+    # Plancher : la FK n'accepte qu'un objet d'un foyer accessible. Le
+    # `validate()` ci-dessous vérifie en plus que les deux sont dans le
+    # *même* foyer, ce que le bornage ne dit pas — les deux sont nécessaires.
+    interaction = ScopedFK(model=Interaction)
+    document = ScopedFK(model=Document)
     role = serializers.CharField(required=False, allow_blank=True, default='attachment')
     note = serializers.CharField(required=False, allow_blank=True, default='')
     created_at = serializers.DateTimeField(read_only=True)
