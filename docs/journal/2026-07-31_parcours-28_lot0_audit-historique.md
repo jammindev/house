@@ -68,6 +68,42 @@ les droits d'écriture), mais son déclencheur `pull_request` commenté porte
 désormais l'avertissement — la remise en service sans la garde reproduirait le
 trou.
 
+## 3bis. Réglages du dépôt (appliqués le 2026-07-31)
+
+| Réglage | Avant | Après |
+|---|---|---|
+| Approbation des workflows de fork | `first_time_contributors` | `all_external_contributors` |
+| `allowed_actions` | `all` | `selected` (GitHub + `anthropics/claude-code-action@*` + `gitleaks/gitleaks-action@*`) |
+| `sha_pinning_required` | `false` | `true` |
+| `default_workflow_permissions` | `read` | inchangé — déjà au minimum |
+
+**L'ordre comptait.** `sha_pinning_required` **rejette** toute action référencée
+par tag : l'activer avant d'avoir épinglé aurait cassé les quatre workflows, donc
+le deploy. Les 11 références ont donc été résolues en SHA de commit *d'abord*
+(avec le tag conservé en commentaire pour rester lisible), le réglage ensuite.
+C'est exactement le piège annoncé au cadrage : *un dépôt bien gardé qui ne
+déploie plus est une régression, pas un durcissement.*
+
+À noter : **le job `deploy` n'utilise aucune action** — que des étapes `run:`.
+Ce durcissement ne peut donc pas l'affecter, ce qui rend le risque nul de ce
+côté-là.
+
+`verified_allowed` est laissé à `false` : les actions « vérifiées » du Marketplace
+sont un annuaire, pas une garantie. Deux patterns explicites valent mieux qu'une
+catégorie ouverte.
+
+### Ce qui n'a délibérément pas été touché : la protection de `main`
+
+Elle reste telle quelle — `enforce_admins: false`, 0 review requise,
+`allow_force_pushes: false`, `allow_deletions: false`. La renforcer casserait le
+workflow trunk-based de l'auteur (push direct sur `main`), qui est un choix
+assumé et documenté. Tant qu'il est seul à avoir les droits d'écriture, la
+protection ne protégerait de personne.
+
+Le jour où un contributeur obtient les droits, deux choses changent en même
+temps : ce réglage, **et** la sortie du deploy hors du runner (cf. lot 0,
+« le vrai risque est social »).
+
 ## 4. Ménage
 
 - Détrackés : `coverage.json`, `issues/tasks.md` (+ ajoutés au `.gitignore` avec
