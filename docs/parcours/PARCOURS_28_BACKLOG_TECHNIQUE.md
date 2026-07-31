@@ -119,6 +119,32 @@ Deux risques concrets déjà identifiés, tous deux liés à la CI plutôt qu'au
   public, un runner self-hosted qui exécute du code de PR est la faille classique.
   Il est aujourd'hui gardé par `if: github.ref == 'refs/heads/main' && push`, ce
   qui est correct mais implicite ; il faut le rendre explicite et le vérifier ;
+
+  > **Audit du 2026-07-31 — la structure est déjà saine, rien à refondre.** Un
+  > seul job est `self-hosted` (`deploy`) ; `backend`, `frontend` et `proxy` sont
+  > sur `ubuntu-latest`. Une PR de fork est un `pull_request`, donc `deploy` est
+  > sauté et **le runner ne prend jamais le job**. Aucun `pull_request_target`
+  > (le déclencheur qui exécuterait du code de fork avec les secrets) nulle part.
+  > `default_workflow_permissions` vaut déjà `read`.
+
+  Restent quatre réglages de dépôt, tous en clics, aucun code :
+
+  | Réglage | Aujourd'hui | Cible |
+  |---|---|---|
+  | Approbation des workflows de fork | `first_time_contributors` | **`all_external_contributors`** — sinon la 2ᵉ PR d'un contributeur tourne sans validation |
+  | `allowed_actions` | `all` | `selected` (GitHub + liste explicite) |
+  | `sha_pinning_required` | `false` | **`true`** — un tag d'action peut être déplacé sous toi |
+  | Protection de `main` | `enforce_admins: false`, 0 review requise | à assumer explicitement (voir ci-dessous) |
+
+  > ⚠️ **Le vrai risque n'est pas technique, il est social.** `deploy` s'exécute
+  > sur le VPS dès qu'un push atterrit sur `main`, et la protection de branche est
+  > décorative (`enforce_admins: false`). Donc **donner un accès write, c'est
+  > donner un shell sur le VPS**. Sans objet tant que l'auteur est seul. Règle à
+  > tenir : les contributions extérieures passent par **fork + PR**, jamais par un
+  > accès write. Et si un contributeur régulier devait un jour obtenir les droits,
+  > il faut **d'abord sortir le deploy du runner** — un VPS qui *tire* (webhook +
+  > `git pull` côté serveur) au lieu d'un GitHub qui *pousse* supprime la classe
+  > entière de problèmes.
 - `claude.yml` déclenche sur `issue_comment` contenant `@claude` avec
   `secrets.CLAUDE_CODE_OAUTH_TOKEN` : sur un dépôt public, **n'importe qui** peut
   consommer le quota Claude de l'auteur en commentant.
@@ -157,6 +183,12 @@ Deux risques concrets déjà identifiés, tous deux liés à la CI plutôt qu'au
 4. Un `@claude` posté par un compte extérieur ne déclenche aucun workflow.
 5. `grep -riE "benjamin|vandamme|<domaine perso>"` sur l'arbre suivi ne renvoie que
    des occurrences volontaires (copyright, `AUTHORS`).
+6. Les quatre réglages de dépôt sont posés, et **un deploy réel passe encore**
+   après coup — un dépôt bien gardé qui ne déploie plus est une régression, pas
+   un durcissement.
+7. La règle « aucun accès write à un contributeur tant que le deploy est sur le
+   runner » est écrite dans `CONTRIBUTING` (lot 4) — elle protège le VPS, pas le
+   code.
 
 ---
 
