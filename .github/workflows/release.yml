@@ -1,0 +1,85 @@
+# Publication de l'image que les autres installent.
+#
+# Le déploiement de l'auteur ne passe PAS par ici : il construit l'image sur son
+# VPS depuis `docker-compose.prod.yml` (job `deploy` de `ci.yml`), et rien dans
+# ce fichier ne le touche. Ce workflow n'existe que pour le `docker compose up`
+# d'un inconnu, qui doit tirer une image déjà construite — personne ne va
+# compiler un bundle React sur un Raspberry Pi pour essayer un produit.
+#
+# Déclenché par un tag `v*`, jamais par un push sur `main` : une image que
+# quelqu'un installe est une **release**, c'est-à-dire une chose datée qu'on peut
+# nommer, à laquelle on peut revenir, et dont on peut dire ce qu'elle contient.
+# Republier `latest` à chaque commit rendrait « j'ai la dernière version » une
+# phrase sans contenu, et un `docker compose pull` un pari.
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  # Pour republier une image sans re-tagger (échec de registre, par exemple).
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag git à publier (ex. v0.1.0)"
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  image:
+    name: Publier l'image multi-architecture
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      # Le seul droit d'écriture du job, et il ne porte que sur le registre.
+      packages: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ inputs.tag || github.ref }}
+
+      # arm64 sans machine arm64 : le Raspberry Pi et le NAS sont la moitié du
+      # public de l'auto-hébergement, et une image amd64 seule leur répond
+      # « exec format error » — un message qui n'apprend rien à personne.
+      - uses: docker/setup-qemu-action@96fe6ef7f33517b61c61be40b68a1882f3264fb8 # v4.2.0
+      - uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4.2.0
+
+      - uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - id: meta
+        uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/maisonnee
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=raw,value=latest,enable=${{ !contains(github.ref, '-') }}
+
+      - uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # Une image qu'on n'a pas démarrée n'est pas une image publiée, c'est un
+      # espoir publié. Le test est minuscule et il attrape ce qui casse vraiment
+      # : une dépendance native absente de l'architecture, un `collectstatic`
+      # raté au build, un module qui ne s'importe pas.
+      - name: L'image démarre et se connaît
+        run: |
+          docker run --rm \
+            -e DJANGO_SETTINGS_MODULE=config.settings.selfhost \
+            -e MAISONNEE_STATE_DIR=/tmp/state \
+            -e DATABASE_URL=postgres://u:p@127.0.0.1:5432/none \
+            ghcr.io/${{ github.repository_owner }}/maisonnee:${{ steps.meta.outputs.version }} \
+            python manage.py check --deploy --fail-level ERROR

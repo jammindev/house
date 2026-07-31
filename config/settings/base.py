@@ -147,11 +147,35 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [
     BASE_DIR / "static",  # Custom static files (compiled React components)
 ]
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+# ⚠️ `STATICFILES_STORAGE` vivait ici et **ne faisait rien depuis Django 5.1**,
+# qui l'a supprimé au profit de `STORAGES`. Le réglage avait donc l'air d'être en
+# place et ne l'était pas : le bundle React partait brut, 900 Ko à chaque visite
+# froide. Derrière Nginx ça se voyait peu (`gzip on` le recompressait à la
+# volée) ; dans une pile auto-hébergée, qui n'a pas de Nginx, ça se voit tout de
+# suite — et c'est la première seconde de quelqu'un qui essaie le produit.
+#
+# `CompressedStaticFilesStorage` et pas `CompressedManifest…` : les noms de
+# fichiers portent déjà l'empreinte que Vite y met, donc le manifeste de Django
+# n'ajouterait qu'un second schéma de nommage par-dessus le premier — et
+# django-vite lit le sien. On veut la compression, pas le renommage.
+#
+# La compression se fait au `collectstatic`, donc **au build de l'image** : le
+# démarrage n'en porte rien.
+STORAGES = {
+    "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+    "staticfiles": {"BACKEND": "whitenoise.storage.CompressedStaticFilesStorage"},
+}
 
 # Media files (user-uploaded content, e.g. avatars)
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
+
+# Qui envoie les octets d'un fichier une fois l'accès accordé — voir
+# `core.views_media`. `False` = Django lui-même ; `True` = délégué à Nginx par
+# `X-Accel-Redirect`, ce que seul un déploiement avec Nginx devant peut promettre.
+# Le défaut prudent est donc `False` : un mécanisme absent doit se déclarer, pas
+# se deviner.
+PROTECTED_MEDIA_ACCEL = False
 
 # Custom user model
 AUTH_USER_MODEL = "accounts.User"

@@ -31,3 +31,7 @@ sqlparse==0.5.5
 typing_extensions==4.15.0
 uritemplate==4.2.0
 whitenoise==6.11.0
+# Brotli — whitenoise ne produit des .br qu'avec lui. Le bundle React tombe de
+# 900 Ko à ~215 Ko, contre ~257 Ko en gzip, et le travail est fait une fois au
+# build plutôt qu'à chaque requête.
+Brotli==1.1.0

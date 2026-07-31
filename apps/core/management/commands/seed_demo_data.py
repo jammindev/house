@@ -46,12 +46,17 @@ Creates:
 - 9 zones (salon, cuisine, sdb, chambres, bureau, garage, jardin, cave)
 - 2 projects: rénovation salle de bain, aménagement jardin
 - 23 tasks avec statuts, priorités, assignations et zones variés
+- 1 installation électrique complète (tableau, circuits, points d'usage)
+- 1 compte bancaire + un relevé de deux mois importé par le vrai chemin
+  d'import, 10 enveloppes de budget, des ventilations, un remboursement,
+  et deux opérations laissées « à ranger » exprès
 """
 
 from datetime import date, datetime, timedelta
+from decimal import Decimal
 
 from django.contrib.auth import get_user_model
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 from django.utils import timezone
 
@@ -67,8 +72,10 @@ from banking.models import (
     BankAccount,
     BankTransaction,
     ComplianceWaiver,
+    RefundAllocation,
     StatementImport,
 )
+from budget.models import Budget, BudgetCategory
 from interactions.models import Interaction
 from projects.models import Project
 from stock.models import StockCategory, StockItem
@@ -99,6 +106,7 @@ class Command(BaseCommand):
             projects = self._create_projects(household, claire, antoine, zones)
             self._create_tasks(household, claire, antoine, lea, zones, projects)
             self._create_electricity(household, claire, zones)
+            self._create_money(household, claire, projects)
 
         self.stdout.write(self.style.SUCCESS("Demo data seeded successfully."))
 
@@ -117,6 +125,9 @@ class Command(BaseCommand):
             ProtectiveDevice.objects.filter(board__household_id__in=household_ids).delete()
             ElectricityBoard.objects.filter(household_id__in=household_ids).delete()
             Interaction.objects.filter(household_id__in=household_ids).delete()
+            # Refund allocations point at both a transaction and a budget: they go
+            # before either, or the FK protecting them refuses the delete.
+            RefundAllocation.objects.filter(household_id__in=household_ids).delete()
             # Banking must go before the household: ``BankTransaction.account`` is
             # PROTECT (an account holding history is archived, never deleted), so a
             # household carrying a single statement line — or a cash expense typed
@@ -126,6 +137,8 @@ class Command(BaseCommand):
             ComplianceWaiver.objects.filter(household_id__in=household_ids).delete()
             StatementImport.objects.filter(household_id__in=household_ids).delete()
             BankAccount.objects.filter(household_id__in=household_ids).delete()
+            Budget.objects.filter(household_id__in=household_ids).delete()
+            BudgetCategory.objects.filter(household_id__in=household_ids).delete()
             StockItem.objects.filter(household_id__in=household_ids).delete()
             StockCategory.objects.filter(household_id__in=household_ids).delete()
             Zone.objects.filter(household_id__in=household_ids).delete()
@@ -865,3 +878,265 @@ class Command(BaseCommand):
         self.stdout.write(
             f"  Electricity: {dev_count} appareils, {cir_count} circuits, {up_count} points d'usage"
         )
+
+    # ------------------------------------------------------------------
+    # Argent — comptes, relevé importé, budgets, ventilations
+    # ------------------------------------------------------------------
+
+    def _create_money(self, household, user, projects):
+        """Le module Argent rempli comme il le serait après un vrai mois d'usage.
+
+        **Le relevé passe par le vrai chemin d'import** (``import_statement_file``
+        sur un CSV construit ici), jamais par des ``BankTransaction.objects.create``.
+        Trois raisons, dans l'ordre d'importance :
+
+        1. une seed qui écrit en base directement contourne exactement ce que la
+           démonstration doit montrer — le rapprochement, la déduplication, la
+           devinette de fournisseur, la chaîne des soldes ;
+        2. l'idempotence est gratuite : la contrainte ``unique(account, dedup_hash)``
+           fait que ré-importer le même relevé ne crée rien ;
+        3. une seed qui emprunte un chemin à elle est une seed qui vieillit sans
+           que rien ne le signale. Celle-ci casse le jour où l'import casse, ce qui
+           est précisément le jour où on veut le savoir.
+
+        Le foyer de démonstration n'est **pas** en règle, et c'est délibéré : deux
+        opérations restent sans budget. Une démo entièrement verte ne montre pas
+        l'écran qui fait le sel du module — le Contrôle — et laisse croire qu'un
+        foyer réel finit un mois sans une seule ligne en suspens.
+        """
+        from django.core.files.uploadedfile import SimpleUploadedFile
+
+        from banking.services import (
+            create_account,
+            credit_budget_from_refund,
+            import_statement_file,
+            set_allocations,
+        )
+        from core.timezones import household_today
+
+        today = household_today(household)
+        # Le relevé couvre le mois précédent et le mois courant : l'aperçu des
+        # budgets a donc quelque chose à montrer quel que soit le jour du mois
+        # où la démonstration est lancée.
+        first_of_month = today.replace(day=1)
+        period_start = (first_of_month - timedelta(days=1)).replace(day=1)
+
+        def d(offset_days: int) -> date:
+            return period_start + timedelta(days=offset_days)
+
+        account = BankAccount.objects.filter(household=household, name="Compte courant").first()
+        if account is None:
+            account = create_account(
+                household=household,
+                user=user,
+                name="Compte courant",
+                bank_label="Crédit Mutuel",
+                kind=BankAccount.Kind.BANK,
+                iban_last4="4417",
+                opening_balance="2480.00",
+                # Le solde d'ouverture précède la première ligne du relevé : sans
+                # ça la fenêtre de conformité est vide et le Contrôle se tait —
+                # la coche verte qui ne veut rien dire (CLAUDE.md, parcours 26).
+                opening_balance_date=(period_start - timedelta(days=1)).isoformat(),
+            )
+
+        # ── Les enveloppes ────────────────────────────────────────────────────
+        maison = self._budget_category(household, "Maison", None)
+        quotidien = self._budget_category(household, "Quotidien", None)
+
+        budgets = {
+            "courses": self._budget(household, "Courses", "450.00", quotidien),
+            "maison": self._budget(household, "Maison", "200.00", maison),
+            "bricolage": self._budget(household, "Bricolage", "150.00", maison),
+            "energie": self._budget(household, "Énergie", "180.00", maison),
+            "transport": self._budget(household, "Transport", "120.00", quotidien),
+            "sante": self._budget(household, "Santé", "80.00", quotidien),
+            # Sans plafond : « catégorie suivie, non plafonnée ». Elle existe pour
+            # montrer l'état `uncapped`, qui n'est ni « ok » ni « dépassé ».
+            "loisirs": self._budget(household, "Loisirs", None, quotidien),
+            "assurances": self._budget(household, "Assurances", "95.00", None),
+            "abonnements": self._budget(household, "Abonnements", "60.00", None),
+        }
+        self._global_budget(household, "1800.00")
+
+        # ── Le relevé ─────────────────────────────────────────────────────────
+        #
+        # (jour depuis le début de la période, libellé, montant signé)
+        lines = [
+            (1, "VIR SEPA RECU SALAIRE MERCIER C", "2410.00"),
+            (2, "PRLV CREDIT IMMOBILIER CM", "-892.40"),
+            (3, "PRLV EDF ENERGIE", "-134.20"),
+            (4, "CB CARREFOUR MARKET LYON", "-96.35"),
+            (6, "PRLV ORANGE FIXE ET INTERNET", "-42.99"),
+            (8, "CB LEROY MERLIN VENISSIEUX", "-150.00"),
+            (10, "CB TOTALENERGIES STATION", "-68.10"),
+            (12, "CB CARREFOUR MARKET LYON", "-112.80"),
+            (14, "PRLV MAIF ASSURANCE HABITATION", "-58.30"),
+            (16, "RETRAIT DAB CM PART DIEU", "-60.00"),
+            (18, "CB LE BISTROT DE LYON", "-74.50"),
+            (20, "VIR SEPA EMIS EPARGNE LIVRET A", "-300.00"),
+            (22, "CB CARREFOUR MARKET LYON", "-88.15"),
+            (24, "VIR SEPA RECU MUTUELLE REMB SOINS", "47.60"),
+            (32, "VIR SEPA RECU SALAIRE MERCIER C", "2410.00"),
+            (33, "PRLV CREDIT IMMOBILIER CM", "-892.40"),
+            (34, "PRLV EDF ENERGIE", "-141.75"),
+            (36, "CB CARREFOUR MARKET LYON", "-103.60"),
+            (38, "PRLV ORANGE FIXE ET INTERNET", "-42.99"),
+            (40, "CB CASTORAMA LYON EST", "-64.90"),
+        ]
+        # On ne sème que ce qui est déjà arrivé : un relevé qui contient des
+        # opérations futures n'existe pas, et fausserait tous les compteurs du
+        # mois en cours.
+        lines = [line for line in lines if d(line[0]) <= today]
+
+        rows = ["Date;Libelle;Montant;Solde"]
+        balance = Decimal("2480.00")
+        for offset, label, amount in lines:
+            balance += Decimal(amount)
+            rows.append(f"{d(offset).strftime('%d/%m/%Y')};{label};{amount};{balance:.2f}")
+
+        trace = import_statement_file(
+            household,
+            user,
+            account=account,
+            uploaded_file=SimpleUploadedFile(
+                "releve-demo.csv", "\n".join(rows).encode("utf-8"), content_type="text/csv"
+            ),
+            provider="generic_csv",
+            options={
+                "date_column": "Date",
+                "label_column": "Libelle",
+                "amount_column": "Montant",
+                "balance_column": "Solde",
+                "date_format": "%d/%m/%Y",
+                "decimal_separator": ".",
+                "delimiter": ";",
+            },
+        )
+        if trace.status != "completed":
+            raise CommandError(f"Import du relevé de démonstration échoué : {trace.error}")
+
+        # ── Les ventilations ──────────────────────────────────────────────────
+        #
+        # Chaque motif de libellé donne l'enveloppe. Deux libellés n'y sont pas
+        # (« LE BISTROT », « RETRAIT DAB ») : ce sont les écarts assumés.
+        by_pattern = {
+            "CARREFOUR": ("courses", "Carrefour Market"),
+            "EDF": ("energie", "EDF"),
+            "ORANGE": ("abonnements", "Orange"),
+            "TOTALENERGIES": ("transport", "TotalEnergies"),
+            "MAIF": ("assurances", "MAIF"),
+            "CREDIT IMMOBILIER": ("maison", "Crédit Mutuel"),
+            "CASTORAMA": ("bricolage", "Castorama"),
+        }
+
+        renovation = projects.get("sdb") if isinstance(projects, dict) else None
+        allocated = 0
+        for transaction in BankTransaction.objects.filter(account=account, direction="out"):
+            if transaction.is_internal or transaction.interactions.exists():
+                continue
+
+            label = transaction.label_raw.upper()
+
+            # La ligne Leroy Merlin est ventilée en deux, sur deux axes : 90 €
+            # sur le chantier salle de bain (donc dans son coût réel) et 60 € sur
+            # l'enveloppe Maison. C'est l'exemple qui montre qu'un budget et un
+            # projet ne sont pas la même question.
+            if "LEROY MERLIN" in label:
+                split = [
+                    {
+                        "subject": "Robinetterie et joints",
+                        "amount": "90.00",
+                        "budget_id": str(budgets["bricolage"].id),
+                        "supplier": "Leroy Merlin",
+                    },
+                    {
+                        "subject": "Ampoules et petit outillage",
+                        "amount": "60.00",
+                        "budget_id": str(budgets["maison"].id),
+                        "supplier": "Leroy Merlin",
+                    },
+                ]
+                if renovation is not None:
+                    split[0]["source_type"] = "projects.project"
+                    split[0]["source_id"] = str(renovation.id)
+                set_allocations(
+                    household=household, user=user, transaction=transaction, lines=split
+                )
+                allocated += 2
+                continue
+
+            match = next((v for k, v in by_pattern.items() if k in label), None)
+            if match is None:
+                continue
+            budget_key, supplier = match
+            set_allocations(
+                household=household,
+                user=user,
+                transaction=transaction,
+                lines=[
+                    {
+                        "subject": supplier,
+                        "amount": f"{transaction.outflow:.2f}",
+                        "budget_id": str(budgets[budget_key].id),
+                        "supplier": supplier,
+                    }
+                ],
+            )
+            allocated += 1
+
+        # ── Le remboursement ──────────────────────────────────────────────────
+        #
+        # Une recette qui recrédite une enveloppe, plutôt qu'une dépense négative :
+        # 47,60 € rendus par la mutuelle veulent dire que Santé a consommé
+        # d'autant moins, pas que le foyer a gagné de l'argent.
+        refund = (
+            BankTransaction.objects.filter(account=account, direction="in")
+            .filter(label_raw__icontains="MUTUELLE")
+            .first()
+        )
+        if refund is not None and not RefundAllocation.objects.filter(transaction=refund).exists():
+            credit_budget_from_refund(
+                household=household,
+                user=user,
+                transaction=refund,
+                budget_id=str(budgets["sante"].id),
+                amount=refund.inflow,
+            )
+
+        pending = (
+            BankTransaction.objects.filter(account=account, direction="out", is_internal=False)
+            .filter(interactions__isnull=True)
+            .count()
+        )
+        self.stdout.write(
+            f"  Argent : {len(lines)} opérations importées, {allocated} dépenses ventilées, "
+            f"{pending} à ranger, {len(budgets)} enveloppes"
+        )
+
+    def _budget_category(self, household, name, monthly_amount):
+        category, _ = BudgetCategory.objects.get_or_create(
+            household=household,
+            name=name,
+            defaults={"monthly_amount": monthly_amount},
+        )
+        return category
+
+    def _budget(self, household, name, monthly_amount, category):
+        budget, _ = Budget.objects.get_or_create(
+            household=household,
+            name=name,
+            defaults={"monthly_amount": monthly_amount, "category": category},
+        )
+        return budget
+
+    def _global_budget(self, household, monthly_amount):
+        budget = Budget.objects.filter(household=household, is_global=True).first()
+        if budget is None:
+            budget = Budget.objects.create(
+                household=household,
+                name="Budget global",
+                monthly_amount=monthly_amount,
+                is_global=True,
+            )
+        return budget

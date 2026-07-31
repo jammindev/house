@@ -636,7 +636,7 @@ class TestDocumentPrivacy:
     #    private document
     # ------------------------------------------------------------------
 
-    @override_settings(DEBUG=False)
+    @override_settings(PROTECTED_MEDIA_ACCEL=True)
     def test_serve_protected_media_owner_can_access_private_document(self, owner, household):
         file_path = f"documents/{household.id}/2026/03/private-owner.pdf"
         self._create_document(household, owner, is_private=True, file_path=file_path)
@@ -653,7 +653,7 @@ class TestDocumentPrivacy:
     # 8. serve_protected_media: non-owner member gets 403 on private document
     # ------------------------------------------------------------------
 
-    @override_settings(DEBUG=False)
+    @override_settings(PROTECTED_MEDIA_ACCEL=True)
     def test_serve_protected_media_non_owner_gets_403_on_private_document(self, owner, household):
         file_path = f"documents/{household.id}/2026/03/private-other.pdf"
         self._create_document(household, owner, is_private=True, file_path=file_path)

@@ -108,6 +108,10 @@ TELEGRAM_BOT_TOKEN = env("TELEGRAM_BOT_TOKEN", default="")
 TELEGRAM_BOT_USERNAME = env("TELEGRAM_BOT_USERNAME", default="")
 TELEGRAM_WEBHOOK_SECRET = env("TELEGRAM_WEBHOOK_SECRET", default="")
 
+# Nginx est devant : il sert les fichiers protégés par `X-Accel-Redirect`, sans
+# occuper un worker gunicorn. Voir `core.views_media`.
+PROTECTED_MEDIA_ACCEL = env.bool("PROTECTED_MEDIA_ACCEL", default=True)
+
 # Django Vite Configuration (compiled assets in production)
 DJANGO_VITE = {
     "default": {

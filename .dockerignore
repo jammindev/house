@@ -33,6 +33,12 @@ htmlcov/
 .git/
 .github/
 
+# Sessions et worktrees de l'assistant. `.claude/worktrees/` contient des COPIES
+# COMPLÈTES du dépôt : sans cette ligne, le contexte de build enfle d'un dépôt
+# entier par branche en cours, et l'image publiée emporterait des branches non
+# fusionnées de l'auteur chez tous ceux qui l'installent.
+.claude/
+
 # Tests E2E
 playwright-report/
 test-results/
