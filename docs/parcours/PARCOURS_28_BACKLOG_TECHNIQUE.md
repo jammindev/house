@@ -81,6 +81,22 @@ Le parcours d'un inconnu, de bout en bout, après ce chantier :
   personnelle** (8 remontées, 8 faux positifs sur le mot « adresse »). Question
   close : elle ne justifie pas un dépôt neuf.
 - **Pas de télémétrie**, pas de démo en ligne (voir doc produit, § différé).
+- **Le déploiement de l'auteur est intouchable.** Le VPS, `docker-compose.prod.yml`,
+  le job `deploy`, la séquence `--no-deps`, la migration sur conteneur jetable
+  avant bascule et `nginx/test-resilience.sh` **restent tels quels**. Le
+  self-hosting s'ajoute **à côté**, il ne remplace rien. Ce que chaque lot a le
+  droit de faire à la prod :
+
+  | Lot | Effet sur le déploiement existant |
+  |---|---|
+  | 0 (CI) | ⚠️ **modifie la garde du job `deploy`** — le seul lot à risque, à vérifier sur un vrai push |
+  | 1 (isolation) | code applicatif ; `DEBUG`/`ALLOWED_HOSTS` durcis → vérifier le `.env` de prod avant de livrer |
+  | 2 (compose) | **aucun** — nouveau `docker-compose.yml` à côté, `Dockerfile` inchangé |
+  | 3 (capacités) | additif (nouvel endpoint, lien d'invitation) |
+  | 4 (licence) | aucun, sauf un lien « source » dans l'UI |
+  | 5 (exploitation) | `backup_db.sh` généralisé (tes options actuelles conservées) ; `DEPLOYMENT.md` **reste**, il est simplement renommé « le déploiement de l'auteur » |
+  | 6 / 8 (façade, logo) | cosmétique, visible sur ta prod (nom, icônes, manifeste) |
+
 - **Annonce publique** (premier lien posté quelque part) : après les lots 0→6,
   jamais avant. Les lots 1 (isolation) et 4 (licence) sont **bloquants** au sens
   strict ; les lots 0 et 4 se traitent **tout de suite**, hors séquence.
@@ -214,11 +230,23 @@ ferme l'onglet.
   (`pgvector/pgvector:pg16`), `web` (image **`ghcr.io/<owner>/maisonnee:latest`**,
   pas `build:`), `nginx`, `scheduler`. Volumes nommés pour `postgres-data` et
   `media-files`. Profil `demo` qui lance `seed_demo_data`
-- `docker-entrypoint.sh` (nouveau) — au démarrage : génère et persiste
-  `SECRET_KEY` si absent, attend la base, applique `migrate`, `collectstatic`, puis
-  passe la main au `CMD` (qui doit rester remplaçable — cf. commentaire du
-  `Dockerfile`)
-- `Dockerfile` — ajouter l'`ENTRYPOINT`, vérifier le build multi-arch
+- `scripts/selfhost-init.sh` (nouveau) — génère et persiste `SECRET_KEY` si
+  absent, attend la base, applique `migrate` et `collectstatic`, **puis sort**.
+  Il est lancé par un service `init` **one-shot** du nouveau
+  `docker-compose.yml`, dont `web` dépend
+  (`depends_on: init: condition: service_completed_successfully`)
+- `Dockerfile` — **surtout pas d'`ENTRYPOINT`** (voir ci-dessous) ; seul le build
+  multi-arch est à vérifier
+
+> ⚠️ **Pourquoi un service `init` et pas un `ENTRYPOINT`.** Le `Dockerfile` porte
+> une note explicite : *« Pas d'ENTRYPOINT : le CMD reste remplaçable, ce qui
+> permet au deploy de lancer `compose run --rm web python manage.py migrate` sur
+> l'image neuve — donc de migrer AVANT de basculer le trafic. »* Un entrypoint qui
+> migre au démarrage ferait migrer le conteneur `web` en même temps qu'il commence
+> à servir, ce qui est exactement l'invariant que le déploiement de l'auteur
+> protège (`CLAUDE.md` § Déploiement). Le service `init` donne la même
+> installation sans configuration au self-hoster **sans toucher à l'image**, qui
+> reste identique pour les deux usages.
 - `.env.example` — réduit au strict minimum pour démarrer ; tout le reste passe en
   section « optionnel » clairement séparée
 - `apps/core/management/commands/create_admin.py` (nouveau) — création du premier
@@ -589,7 +617,16 @@ ils rattrapent une exposition en cours et passent devant tout le reste.
   `deploy` et `nginx/test-resilience.sh` sont un socle éprouvé et testé. Le
   nouveau `docker-compose.yml` s'ajoute **à côté** ; les invariants du §3.4 de
   `DEPLOYMENT.md` (résolveur nginx, montage par répertoire, `--no-deps`, migration
-  avant bascule) restent intégralement valables.
+  avant bascule) restent intégralement valables. **Le piège est le confort du
+  self-hoster** : tout ce qui rend l'installation « magique » (migrer au
+  démarrage, deviner une valeur, se relancer tout seul) est précisément ce que le
+  déploiement de l'auteur interdit. La sortie est toujours la même — mettre le
+  confort **dans le compose de self-hosting**, jamais dans l'image partagée. Cas
+  déjà attrapé au cadrage : l'`ENTRYPOINT` du lot 2, devenu un service `init`.
+- **Un seul lot touche vraiment la prod : le 0.** Il modifie la garde du job
+  `deploy`. Vérifier sur un push réel qu'un deploy passe encore *avant* de
+  considérer le lot livré — un dépôt public bien gardé mais qui ne déploie plus
+  est une régression, pas un durcissement.
 - **Le lot 1 ne se déclare pas fini sur une relecture.** Un audit est vrai le jour
   où il est fait ; c'est le test générique qui tient la propriété dans le temps.
   S'il n'existe pas, le lot n'est pas livré.
