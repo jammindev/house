@@ -92,17 +92,34 @@ côté-là.
 sont un annuaire, pas une garantie. Deux patterns explicites valent mieux qu'une
 catégorie ouverte.
 
-### Ce qui n'a délibérément pas été touché : la protection de `main`
+### Protection de `main` : les tests deviennent bloquants, le push direct non
 
-Elle reste telle quelle — `enforce_admins: false`, 0 review requise,
-`allow_force_pushes: false`, `allow_deletions: false`. La renforcer casserait le
-workflow trunk-based de l'auteur (push direct sur `main`), qui est un choix
-assumé et documenté. Tant qu'il est seul à avoir les droits d'écriture, la
-protection ne protégerait de personne.
+Ajouté : `required_status_checks` sur **Backend tests**, **Frontend lint &
+build**, **Reverse-proxy resilience**. Jusqu'ici la CI pouvait être rouge et le
+bouton *Merge* restait actif — rien n'empêchait de merger du code cassé.
 
-Le jour où un contributeur obtient les droits, deux choses changent en même
-temps : ce réglage, **et** la sortie du deploy hors du runner (cf. lot 0,
-« le vrai risque est social »).
+Trois réglages volontairement laissés en l'état, et chacun pour une raison :
+
+- **`enforce_admins: false`** — c'est ce qui préserve le workflow trunk-based de
+  l'auteur : son push direct sur `main` continue de passer. La règle bloque le
+  *merge d'une PR*, pas le travail quotidien.
+- **`strict: false`** — exiger qu'une branche soit à jour avec `main` avant merge
+  imposerait un rebase à chaque fois que `main` bouge. Du bruit pour un
+  mainteneur seul.
+- **`required_pull_request_reviews: null`** — se demander une revue à soi-même
+  n'a pas de sens tant qu'on est seul.
+
+`allow_force_pushes` et `allow_deletions` étaient déjà à `false`, ce qui est
+l'essentiel une fois le dépôt public : personne ne peut réécrire ni supprimer
+`main`.
+
+Le job `gitleaks` n'est **pas** rendu bloquant pour l'instant : un check jamais
+rapporté fige un merge en « waiting for status ». À ajouter une fois qu'il aura
+tourné pour de vrai sur une PR.
+
+Le jour où un contributeur obtient les droits d'écriture, deux choses changent en
+même temps : `enforce_admins`, **et** la sortie du deploy hors du runner (cf. « le
+vrai risque est social »).
 
 ## 4. Ménage
 
@@ -114,13 +131,20 @@ temps : ce réglage, **et** la sortie du deploy hors du runner (cf. lot 0,
   `src/` / `tests/` qui n'a jamais existé ici : périmé **et** trompeur pour un
   visiteur.
 
-## 5. Ce que l'audit a soulevé et qui reste à arbitrer
+## 5. `specs/` — supprimé
 
-`specs/` contient encore **29 fichiers suivis** (`001-document-context-linking`,
-`002-settings-migration`, `003-migrate-zones-parity`) — les *sorties* du même
-workflow speckit dont les gabarits viennent d'être supprimés. Dernier travail réel
-en mars 2026. Le sujet 001 recoupe le parcours 02.
+L'audit a soulevé **29 fichiers suivis** dans `specs/`
+(`001-document-context-linking`, `002-settings-migration`,
+`003-migrate-zones-parity`) : les *sorties* du même workflow speckit dont les
+gabarits viennent d'être supprimés. Dernier travail réel en mars 2026, et le
+sujet 001 recoupe le parcours 02.
 
-Ce n'est pas un gabarit mais du contenu, donc pas supprimé unilatéralement. Le
-point à trancher : un visiteur voit à la racine **deux systèmes de documentation**,
-`specs/` et `docs/parcours/`, dont un seul est vivant.
+Le vrai problème n'était pas leur présence mais leur **ambiguïté** : un visiteur
+voyait à la racine deux systèmes de documentation, `specs/` et `docs/`, sans que
+rien ne dise lequel fait foi. Un dépôt qui documente deux fois documente mal —
+c'est « un compteur ne peut pas avoir deux définitions » appliqué à la doc.
+
+Supprimés après arbitrage. **Rien n'est perdu** : les fichiers restent dans les
+787 commits, récupérables par `git show <commit>:specs/…`. C'est précisément
+l'argument qui rend la suppression sans risque — et c'est le même que celui qui a
+fait conserver l'historique plutôt que repartir d'un dépôt neuf.
