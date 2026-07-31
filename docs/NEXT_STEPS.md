@@ -1,6 +1,38 @@
 # Next steps
 
-> **Priorité au 2026-07-28 — Parcours 27 : le récap mensuel raconté.** Chantier cadré
+> **Priorité au 2026-07-31 — Parcours 28 : ouvrir Maisonnée (open source,
+> auto-hébergeable).** Chantier cadré ce jour (doc produit, fiche concept, backlog
+> en 8 lots, issues #485 → #493) ; aucun lot démarré.
+>
+> Changement de nature par rapport aux parcours 21 → 27, qui ont construit le
+> produit : celui-ci ne construit rien pour le foyer de l'auteur. Il transforme un
+> déploiement personnel en un **produit qu'un inconnu peut installer, comprendre et
+> exploiter** — sous le nom **Maisonnée**, en **AGPL-3.0**.
+>
+> **Constat qui réordonne tout** : le dépôt est **déjà public depuis le
+> 2025-09-21** (0★, aucune licence). Les lots 0 (hygiène + CI) et 4 (licence) ne
+> préparent donc rien — ils corrigent des écarts **ouverts aujourd'hui** : un
+> runner `self-hosted` exposé, un `@claude` que n'importe qui peut déclencher sur
+> le quota de l'auteur, et un code sous « tous droits réservés » par défaut. À
+> traiter tout de suite, hors séquence.
+>
+> Ordre ensuite : **1** (isolation multi-tenant — le plus long, bloquant) → **2**
+> (`docker compose up`) → **3** (dégradation sans clé d'API) → **5**
+> (sauvegarde/restauration) → **6** (README + captures) → **7** (5-10 foyers
+> pilotes, puis annonce). Ne pas faire 6 avant 3 : une capture d'un onglet qui
+> promet ce qu'il ne peut pas tenir est une capture à refaire.
+>
+> Ce qu'on mesure : la **rétention** à S+6, pas les étoiles. Cent installations et
+> zéro retour en semaine 3 est un résultat négatif.
+>
+> - Doc produit : [`PARCOURS_28_OUVRIR_MAISONNEE.md`](./parcours/PARCOURS_28_OUVRIR_MAISONNEE.md)
+> - Backlog : [`PARCOURS_28_BACKLOG_TECHNIQUE.md`](./parcours/PARCOURS_28_BACKLOG_TECHNIQUE.md)
+> - Fiche concept : [`AUTO_HEBERGEMENT.md`](./fiches/AUTO_HEBERGEMENT.md)
+> - Journal : [`2026-07-31_parcours-28_cadrage_initial.md`](./journal/2026-07-31_parcours-28_cadrage_initial.md)
+
+---
+
+> **Priorité précédente au 2026-07-28 — Parcours 27 : le récap mensuel raconté.** Chantier cadré
 > ce jour (doc produit, fiche concept, backlog en 6 lots, issues #435 → #441) ;
 > implémentation à démarrer au lot 1.
 >

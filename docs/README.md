@@ -37,6 +37,19 @@ Parcours 01→06 livrés. Voir `JOURNAL_PRODUIT.md` pour le détail.
 - `./parcours/PARCOURS_06_*.md` — alertes proactives
 - `./parcours/PARCOURS_07_*.md` — agent conversationnel sur le foyer (V1 livrée 2026-05-02, lots 0a→3)
 
+> Les parcours 08 et suivants ne sont pas listés ici un par un — voir
+> `./NEXT_STEPS.md` pour le chantier courant et `./parcours/` pour l'ensemble.
+
+## Auto-hébergement
+
+- `./parcours/PARCOURS_28_OUVRIR_MAISONNEE.md` — publier le projet en open source
+  auto-hébergeable (AGPL-3.0, `docker compose up`, foyers pilotes)
+- `./fiches/AUTO_HEBERGEMENT.md` — le cours : d'un déploiement à un produit
+  installable (modèle de menace, capacités optionnelles, licence, sauvegarde)
+- `./self-hosting/` — *(à créer, lot 5)* installation, sauvegarde/restauration,
+  mises à jour et dépannage pour une machine quelconque. `../DEPLOYMENT.md` reste
+  le déploiement de l'auteur.
+
 ## RFC et notes thématiques
 
 - `./SYNC_CONTACTS_STRUCTURES.md` — RFC vCard pour le directory

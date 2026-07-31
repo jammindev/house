@@ -1,0 +1,503 @@
+# Parcours 28 — Backlog technique : ouvrir Maisonnée
+
+> **État au 2026-07-31** — cadrage terminé, aucun lot démarré.
+> Chantier technique transverse : rendre le projet publiable, installable par un
+> tiers et défendable une fois exposé. Aucune feature métier.
+
+Doc produit : [PARCOURS_28_OUVRIR_MAISONNEE.md](./PARCOURS_28_OUVRIR_MAISONNEE.md)
+Fiche concept (le cours) : [docs/fiches/AUTO_HEBERGEMENT.md](../fiches/AUTO_HEBERGEMENT.md)
+Socle dont on hérite : `DEPLOYMENT.md` (§3.4 résilience du proxy), `CLAUDE.md`
+(§ Déploiement), `nginx/test-resilience.sh`, `apps/tasks/management/commands/seed_demo_data.py`
+
+## Tableau de bord
+
+Issue ombrelle : **#485**
+
+| Lot | Sujet | Statut | Issue |
+|---|---|---|---|
+| 0 | Hygiène du dépôt + durcissement CI (**urgent — dépôt déjà public**) | ⬜ À faire | #486 |
+| 1 | Durcissement multi-tenant + test générique d'isolation (**bloquant**) | ⬜ À faire | #487 |
+| 2 | `docker compose up` — première installation en une commande | ⬜ À faire | #488 |
+| 3 | Dégradation propre sans service tiers (IA, SMTP, push, Telegram) | ⬜ À faire | #489 |
+| 4 | LICENSE AGPL-3.0 + gouvernance (CONTRIBUTING, SECURITY, DCO, templates) | ⬜ À faire | #490 |
+| 5 | Exploitation par un tiers : sauvegarde, restauration testée, mises à jour, releases | ⬜ À faire | #491 |
+| 6 | Façade Maisonnée : README bilingue, captures, GIF, identité | ⬜ À faire | #492 |
+| 7 | Recette pilote (5-10 foyers) puis annonce et mesure de la rétention | ⬜ À faire | #493 |
+
+## Flow cible
+
+Le parcours d'un inconnu, de bout en bout, après ce chantier :
+
+1. Il tombe sur le dépôt (r/selfhosted, awesome-selfhosted, un lien) et voit
+   **une capture avant une ligne de texte technique**.
+2. Il copie trois lignes : `curl -O .../docker-compose.yml`, `docker compose up`,
+   `open localhost:8000`. Aucun venv, aucun `npm`, aucune clé à souscrire.
+3. Il arrive sur un foyer de démonstration pré-rempli (« Famille Mercier ») et
+   **clique dans un produit** au lieu de lire une promesse.
+4. Il crée son propre foyer, invite son conjoint par **lien copiable** (sans SMTP),
+   importe un relevé bancaire, le ventile.
+5. Les capacités qu'il n'a pas — assistant, récap, recherche sémantique, push —
+   sont **visiblement indisponibles avec le moyen de les activer**, jamais cassées
+   ni silencieuses.
+6. Il met à jour d'un `docker compose pull && up -d`, sauvegarde d'une commande, et
+   sait comment **restaurer** parce que c'est écrit et vérifié.
+
+## Décisions de cadrage (toutes tranchées)
+
+- **Nom** : *Maisonnée* en façade (dépôt, README, UI, manifeste PWA, e-mails,
+  image Docker) ; `house` conservé dans les paquets Python, la base et les
+  settings. Pas de renommage transverse.
+- **Licence** : **AGPL-3.0-only**, copyright détenu par l'auteur seul → l'option
+  « hébergement payant » reste ouverte sans relicenciement.
+- **Contributions** : **DCO** (`Signed-off-by`), pas de CLA.
+- **Dépôt** : `jammindev/house` est **déjà public** (depuis le 2025-09-21, 0★, 0
+  fork, aucune licence). On ne bascule donc rien : on assume l'exposition
+  existante et on choisit **quand annoncer**. Historique conservé (778 commits,
+  aucun secret ni média jamais commité) — après scan de secrets sur *tout*
+  l'historique, pas seulement l'arbre courant. Corollaire : le lot 0 et le lot 4
+  ne sont pas des préparatifs, ce sont des **écarts ouverts aujourd'hui**.
+- **Distribution** : image **`ghcr.io`** multi-arch **amd64 + arm64** (Raspberry Pi,
+  Synology, N100) publiée par la CI sur tag. Un self-hoster ne construit pas
+  l'image.
+- **Base de données** : PostgreSQL uniquement (`pgvector/pgvector:pg16`, déjà
+  requis par le parcours 21), embarqué dans le compose. Pas de support SQLite en
+  production — il n'a jamais été testé hors CI.
+- **Reverse proxy** : nginx inclus dans le compose, **mais** le port applicatif
+  reste exposable pour qui a déjà Traefik ou Caddy. Pas de gestion de certificat
+  intégrée en V1 (documentée, pas automatisée).
+- **Secrets** : `SECRET_KEY` **généré au premier démarrage** et persisté, jamais
+  réclamé à l'utilisateur.
+- **Langue** : façade bilingue FR/EN ; code, commentaires et `docs/` restent en
+  français.
+- **Pas de télémétrie**, pas de démo en ligne (voir doc produit, § différé).
+- **Annonce publique** (premier lien posté quelque part) : après les lots 0→6,
+  jamais avant. Les lots 1 (isolation) et 4 (licence) sont **bloquants** au sens
+  strict ; les lots 0 et 4 se traitent **tout de suite**, hors séquence.
+
+---
+
+## Lot 0 — Hygiène du dépôt + durcissement CI (#486) — **urgent**
+
+**But.** Faire en sorte que l'exposition publique — **déjà effective depuis le
+2025-09-21** — n'offre rien d'involontaire, ni donnée, ni ressource de calcul. Le
+dépôt est propre à 90 % ; ce lot ferme les 10 % restants et vérifie la totalité de
+l'historique plutôt que de la supposer.
+
+Ce lot ne prépare pas une ouverture future : il corrige des écarts **ouverts
+aujourd'hui**. À faire en premier, indépendamment du reste du parcours.
+
+Deux risques concrets déjà identifiés, tous deux liés à la CI plutôt qu'au code :
+
+- le job `deploy` de `ci.yml` tourne sur un runner **`self-hosted`** — sur un dépôt
+  public, un runner self-hosted qui exécute du code de PR est la faille classique.
+  Il est aujourd'hui gardé par `if: github.ref == 'refs/heads/main' && push`, ce
+  qui est correct mais implicite ; il faut le rendre explicite et le vérifier ;
+- `claude.yml` déclenche sur `issue_comment` contenant `@claude` avec
+  `secrets.CLAUDE_CODE_OAUTH_TOKEN` : sur un dépôt public, **n'importe qui** peut
+  consommer le quota Claude de l'auteur en commentant.
+
+**Fichiers**
+
+- `.gitignore` — ajouter `coverage.json`, `issues/`, `playwright-report/`,
+  `.claude/worktrees/`
+- `git rm --cached coverage.json issues/tasks.md` (fichiers suivis à tort ;
+  contenu conservé localement)
+- `.github/agents/`, `.github/prompts/` — supprimer les gabarits *speckit*
+  inutilisés (12 fichiers) : ils décrivent un workflow qui n'est pas celui du
+  projet et désorientent un contributeur
+- `.github/workflows/claude.yml` — restreindre le déclencheur par
+  `github.event.comment.author_association` ∈ {OWNER, MEMBER, COLLABORATOR}
+- `.github/workflows/claude-code-review.yml` — même garde
+- `.github/workflows/ci.yml` — expliciter la garde du job `deploy` (commentaire +
+  condition sur `github.repository == '<owner>/<repo>'` pour neutraliser les forks)
+- `.github/workflows/secrets-scan.yml` (nouveau) — `gitleaks` sur l'arbre à chaque
+  PR
+- `docs/journal/2026-XX-XX_parcours-28_audit-historique.md` — trace du scan complet
+- Audit ponctuel : `docs/SYNC_CONTACTS_STRUCTURES.md` et
+  `docs/journal/2026-03-09_parcours-02_cadrage_initial.md` citent des données
+  personnelles réelles (seuls fichiers détectés) → anonymiser ou archiver
+- Vérifier `.env.e2e` (suivi ? ignoré ?) et l'absence de valeurs réelles dans
+  `.env.example` / `.env.production.example`
+
+**Critères**
+
+1. `gitleaks detect --no-git=false` sur **les 778 commits** ne remonte aucun secret,
+   et le rapport est archivé dans `docs/journal/`.
+2. `git ls-files` ne contient aucun artefact de build, de couverture ni de note
+   personnelle.
+3. Une PR ouverte depuis un **fork** exécute `backend`/`frontend`/`proxy` et
+   **jamais** `deploy` — vérifié en conditions réelles, pas par lecture.
+4. Un `@claude` posté par un compte extérieur ne déclenche aucun workflow.
+5. `grep -riE "benjamin|vandamme|<domaine perso>"` sur l'arbre suivi ne renvoie que
+   des occurrences volontaires (copyright, `AUTHORS`).
+
+---
+
+## Lot 1 — Durcissement multi-tenant + test générique d'isolation (#487)
+
+**But.** Passer d'un scoping qui sépare des membres d'une famille de bonne foi à
+un scoping qui résiste à quelqu'un qui cherche à passer à travers — et surtout,
+rendre cette propriété **vérifiée en continu** plutôt qu'auditée une fois. C'est le
+lot bloquant du parcours.
+
+Le livrable central n'est pas une liste de correctifs : c'est un **test paramétré
+sur le routeur DRF** qui, pour chaque endpoint enregistré, crée deux foyers et
+vérifie qu'aucune lecture ni écriture ne traverse. Ajouter un endpoint devient
+alors un acte couvert par défaut — même mécanique que
+`banking.compliance.REGISTRY` (« ajouter un mécanisme à l'argent = ajouter son
+détecteur ») et que le test de parité i18n.
+
+**Fichiers**
+
+- `apps/core/tests/test_tenant_isolation.py` (nouveau) — parcourt les routeurs DRF
+  (`config/urls.py`), instancie deux foyers via factories, et vérifie
+  `list`/`retrieve`/`update`/`destroy` croisés → 404/403. Liste d'exemptions
+  **explicite et commentée** pour les endpoints légitimement globaux
+  (`releases`, `/health/`, auth)
+- `apps/core/permissions.py` — revue de `IsHouseholdMember`, `IsHouseholdOwner`,
+  `CanViewPrivateContent` : vérifier que `has_object_permission` est bien atteint
+  sur toutes les actions custom (`@action`)
+- `apps/interactions/services.py::resolve_allocation_source` — déjà vérifie le
+  foyer ; ajouter le test adverse correspondant
+- `apps/agent/tools.py`, `apps/agent/writables.py`, `apps/agent/search_api.py` —
+  vérifier le scope sur l'adressage `entity_type:id` en **lecture et en écriture**
+- `apps/core/views_media.py` — contrôle d'accès sur les fichiers servis
+  (documents, avatars, photos) : un chemin deviné ne doit rien rendre
+- `apps/households/throttles.py` + `config/settings/base.py` — throttling sur les
+  endpoints d'authentification, d'invitation et d'import
+- `config/settings/production.py` — revue : `DEBUG=False` non contournable,
+  `ALLOWED_HOSTS` obligatoire (échec au démarrage plutôt que `*`), cookies
+  `Secure`/`HttpOnly`/`SameSite`, `SECURE_HSTS_*` documentés
+- `apps/accounts/` — politique de mot de passe et verrouillage après échecs répétés
+- `docs/MODULES/security.md` (nouveau) — modèle de menace, surfaces, exemptions
+
+**Critères**
+
+1. `test_tenant_isolation.py` couvre **tous** les endpoints du routeur ; toute
+   exemption porte un commentaire justifiant pourquoi elle est légitime.
+2. Le test échoue si on ajoute un viewset non scopé (vérifié en le cassant
+   volontairement une fois).
+3. Un `/security-review` est passé sur **l'ensemble du dépôt**, pas sur un diff ;
+   les conclusions sont tracées et arbitrées une par une.
+4. Un fichier de `media/` appartenant au foyer A est inaccessible au foyer B, même
+   avec l'URL exacte.
+5. `DEBUG=True` en production échoue au démarrage.
+6. `SECURITY.md` (lot 4) décrit le canal de signalement — les deux lots se
+   rejoignent ici.
+
+---
+
+## Lot 2 — `docker compose up` : première installation en une commande (#488)
+
+**But.** Une machine nue avec Docker, trois lignes copiées, une app fonctionnelle
+en moins de cinq minutes — sans venv, sans `npm`, sans clé d'API, sans
+`SECRET_KEY` à générer soi-même. C'est le lot qui décide si quelqu'un essaie ou
+ferme l'onglet.
+
+`docker-compose.prod.yml` existe mais suppose une image construite localement, un
+`.env` rempli et des migrations lancées à part par le pipeline de déploiement.
+
+**Fichiers**
+
+- `docker-compose.yml` (nouveau, à la racine) — pile complète : `db`
+  (`pgvector/pgvector:pg16`), `web` (image **`ghcr.io/<owner>/maisonnee:latest`**,
+  pas `build:`), `nginx`, `scheduler`. Volumes nommés pour `postgres-data` et
+  `media-files`. Profil `demo` qui lance `seed_demo_data`
+- `docker-entrypoint.sh` (nouveau) — au démarrage : génère et persiste
+  `SECRET_KEY` si absent, attend la base, applique `migrate`, `collectstatic`, puis
+  passe la main au `CMD` (qui doit rester remplaçable — cf. commentaire du
+  `Dockerfile`)
+- `Dockerfile` — ajouter l'`ENTRYPOINT`, vérifier le build multi-arch
+- `.env.example` — réduit au strict minimum pour démarrer ; tout le reste passe en
+  section « optionnel » clairement séparée
+- `apps/core/management/commands/create_admin.py` (nouveau) — création du premier
+  compte depuis des variables d'environnement, idempotente
+- `apps/tasks/management/commands/seed_demo_data.py` — **déplacer** vers
+  `apps/core/management/commands/` (la seed couvre 30 apps, pas les tâches) et
+  vérifier qu'elle couvre les modules Argent (relevé bancaire fictif, budgets,
+  ventilations) — c'est ce que la démo doit montrer en premier
+- `.github/workflows/release.yml` (nouveau) — build multi-arch amd64/arm64 +
+  publication `ghcr.io` sur tag `v*`
+- `docker-compose.prod.yml` — inchangé (le déploiement de l'auteur ne bouge pas)
+
+**Critères**
+
+1. Sur une VM Linux neuve avec Docker seul : `curl -O`, `docker compose up`,
+   l'app répond sur `:8000` **sans aucune édition de fichier**.
+2. Le profil `demo` donne un foyer rempli où l'onglet Argent montre un relevé
+   importé et ventilé.
+3. Aucune variable obligatoire n'est demandée avant le premier écran.
+4. L'image démarre sur **arm64** (testé sur Raspberry Pi ou émulation `qemu`).
+5. `docker compose down && up` conserve les données ; `docker compose pull && up -d`
+   applique les migrations tout seul.
+6. Le pipeline de déploiement existant (`docker-compose.prod.yml`, job `deploy`,
+   `nginx/test-resilience.sh`) reste **vert et inchangé**.
+
+---
+
+## Lot 3 — Dégradation propre sans service tiers (#489)
+
+**But.** Un foyer qui s'auto-héberge n'a ni clé Anthropic, ni Voyage, ni SMTP, ni
+VAPID, ni bot Telegram. Aujourd'hui l'app ne plante pas — `agent.service.ask`
+renvoie proprement « je ne sais pas » — mais **l'interface promet quand même** ce
+qu'elle ne peut pas tenir, et l'utilisateur en conclut que le produit est mauvais
+plutôt qu'il lui manque une clé. Une capacité absente doit se **déclarer**.
+
+Un cas est bloquant et non cosmétique : **sans SMTP, inviter un second membre part
+dans le vide**, donc le foyer reste à une personne — ce qui vide de son sens un
+produit dont l'unité est le foyer.
+
+**Fichiers**
+
+- `apps/app_settings/capabilities.py` (nouveau) — registre des capacités
+  optionnelles (`assistant`, `semantic_search`, `recap_ai`, `email`, `push`,
+  `telegram`), chacune avec : clé, disponibilité dérivée des settings, libellé i18n
+  et lien de documentation. Alimenté depuis `apps.py::ready()` — même modèle que
+  `agent.searchables` et `banking.compliance.REGISTRY`
+- `apps/app_settings/views.py` — endpoint `GET /api/capabilities/`
+- `ui/src/lib/api/capabilities.ts`, `ui/src/features/settings/hooks.ts` — accès +
+  hook `useCapabilities()`
+- `ui/src/features/agent/`, `ui/src/features/recap/`, `ui/src/features/search/` —
+  masquer ou désactiver avec un message actionnable (« nécessite une clé
+  Anthropic — voir la doc »), jamais un écran vide
+- `apps/households/services.py` + `ui/src/features/households/` — **lien
+  d'invitation copiable**, l'e-mail devenant un confort et non le véhicule unique
+- `config/settings/base.py` — backend e-mail `console` par défaut hors production
+- Locales : `ui/src/locales/{en,fr,de,es}/*.json` — clés `capabilities.*`
+- `docs/MODULES/app_settings.md` — documenter le registre
+
+**Critères**
+
+1. Une pile démarrée **sans aucune clé** ne montre nulle part un écran cassé, un
+   spinner infini ou une erreur technique.
+2. Chaque capacité indisponible affiche **pourquoi** et **comment l'activer**.
+3. Un second membre rejoint un foyer **sans serveur SMTP configuré**.
+4. Ajouter une capacité optionnelle = une entrée dans le registre + une clé i18n,
+   aucune modification d'écran (vérifié par un test de couverture du registre,
+   miroir de `test_global_search.py::TestThePaletteCoversTheRegistry`).
+5. Une capacité désactivée n'est pas seulement masquée côté client : l'endpoint
+   correspondant répond proprement (409/503 nommé), jamais 500.
+
+---
+
+## Lot 4 — LICENSE AGPL-3.0 + gouvernance (#490)
+
+**But.** Donner le droit d'usage, dire comment contribuer, et ouvrir un canal de
+signalement de vulnérabilité — sans lequel une faille se découvre sur Twitter.
+Lot court mais bloquant : sans `LICENSE`, personne n'a légalement le droit
+d'utiliser le code et `awesome-selfhosted` refuse l'entrée.
+
+**Urgence particulière** : le code est lisible publiquement depuis dix mois *sans
+licence*, c'est-à-dire sous « tous droits réservés » par défaut. La situation
+actuelle est la plus mauvaise des deux — visible mais inutilisable. À traiter avec
+le lot 0, sans attendre le reste du parcours.
+
+**Fichiers**
+
+- `LICENSE` — texte intégral AGPL-3.0
+- `AUTHORS` / en-tête de copyright — détenteur unique
+- `CONTRIBUTING.md` (EN + `CONTRIBUTING.fr.md`) — DCO `Signed-off-by`, format des
+  commits conventionnels (contrat du changelog, déjà tenu — pointer `CLAUDE.md`),
+  comment lancer les tests, où lire `docs/fiches/`
+- `CODE_OF_CONDUCT.md` — Contributor Covenant 2.1
+- `SECURITY.md` — versions supportées, canal privé de signalement, délai de réponse
+  annoncé et tenable pour une personne seule
+- `.github/ISSUE_TEMPLATE/{bug_report,feature_request,config.yml}`,
+  `.github/PULL_REQUEST_TEMPLATE.md`
+- `package.json` — champ `license`
+- `README.md` — badge et mention de licence
+- `ui/src/features/settings/` — mention de licence et lien source dans l'app
+  (obligation AGPL §13 : l'utilisateur d'une instance doit pouvoir obtenir la source)
+
+**Critères**
+
+1. `LICENSE` reconnu par GitHub (bandeau « AGPL-3.0 » sur la page du dépôt).
+2. L'app expose un lien vers son code source depuis l'interface (conformité §13).
+3. `CONTRIBUTING.md` permet à un inconnu de faire tourner les tests sans poser de
+   question.
+4. `SECURITY.md` donne un canal **privé** qui aboutit réellement.
+5. Les modèles d'issue reprennent les labels existants (`bug`, `feat`,
+   `app:<module>`).
+
+---
+
+## Lot 5 — Exploitation par un tiers : sauvegarde, restauration, mises à jour (#491)
+
+**But.** Quelqu'un va mettre ses relevés bancaires et ses contrats d'assurance
+là-dedans. `DEPLOYMENT.md` est excellent mais écrit pour *un* VPS OVH avec son
+auteur dans la boucle. Il faut la version pour une machine quelconque — et surtout
+une **restauration vérifiée**, parce qu'une sauvegarde jamais restaurée n'est pas
+une sauvegarde.
+
+**Fichiers**
+
+- `docs/self-hosting/README.md` (nouveau) — sommaire
+- `docs/self-hosting/install.md` — installation, reverse proxy externe
+  (Traefik/Caddy) ou nginx inclus, certificat TLS, exposition Internet vs LAN/VPN
+- `docs/self-hosting/backup-restore.md` — sauvegarde (base **et** `media/`),
+  rotation, procédure de restauration **pas à pas**
+- `docs/self-hosting/upgrade.md` — `pull` + `up -d`, migrations automatiques, et la
+  règle **« une migration destructive se livre en deux fois »** promue de règle
+  interne à **promesse de compatibilité publique** (personne ne contrôle plus quand
+  les utilisateurs mettent à jour)
+- `docs/self-hosting/troubleshooting.md` — page de maintenance nginx, `/health/`,
+  logs, base injoignable
+- `backup_db.sh` — généraliser (déjà paramétré : `--out-dir`, `--db-url`,
+  `--keep`) + inclure `media/`
+- `restore_db.sh` (nouveau) — pendant en lecture, avec confirmation explicite
+- `scripts/test-backup-restore.sh` (nouveau) — sauvegarde → base neuve →
+  restauration → assertions ; appelé par la CI
+- `.github/workflows/ci.yml` — job `backup` (non bloquant pour le deploy, bloquant
+  pour une release)
+- `DEPLOYMENT.md` — devient explicitement « le déploiement de l'auteur », et
+  renvoie vers `docs/self-hosting/` pour tout le reste
+- `docs/self-hosting/releases.md` — versionnement semver, tags `v*`, notes de
+  release alimentées par `generate_changelog`
+
+**Critères**
+
+1. Une sauvegarde prise sur une instance A est restaurée sur une instance B neuve,
+   et le foyer y est intact — **exécuté**, pas décrit.
+2. `scripts/test-backup-restore.sh` tourne en CI et échoue si le format de dump
+   change.
+3. Un tag `v0.1.0` produit une image `ghcr.io` multi-arch et des notes de release.
+4. La doc ne mentionne ni OVH, ni un domaine, ni un chemin personnel.
+
+---
+
+## Lot 6 — Façade Maisonnée : README bilingue, captures, identité (#492)
+
+**But.** C'est la seule page que 95 % des visiteurs verront. Aujourd'hui elle
+ouvre sur « backend Django (SSR + API REST) avec mini-SPA React par page via
+Vite » — une stack, et personne n'installe une stack. Elle est aussi périmée (elle
+annonce deux langues d'interface, il y en a quatre). Et il n'y a **aucune capture
+dans tout le dépôt**, alors que c'est le point le plus rentable du parcours.
+
+**Fichiers**
+
+- `README.md` (EN) et `README.fr.md` — dans l'ordre : nom + promesse en une phrase,
+  capture principale, ce que ça fait (modules, en langage d'usage), quickstart
+  Docker en trois lignes, captures par module, ce que ça **ne** fait **pas**,
+  licence, statut du projet
+- `docs/assets/screenshots/` (nouveau) — 6 captures depuis le foyer de démo
+  (dashboard, Argent/Contrôle, import de relevé, budgets, tâches, assistant) —
+  **`seed_demo_data` uniquement**, aucune donnée réelle
+- `docs/assets/demo-import.gif` — l'import d'un relevé qui se ventile ; surveiller
+  le poids (le dépôt fait 9,7 Mio, ne pas le tripler)
+- `ui/public/manifest.webmanifest`, `ui/index.html`, templates Django — nom
+  d'affichage *Maisonnée*
+- `ui/src/locales/{en,fr,de,es}/*.json` — occurrences du nom produit
+- `apps/*/templates/**` + gabarits d'e-mail — expéditeur et signature
+- `docs/README.md` — hub documentaire : ajouter l'entrée self-hosting
+- `AGENTS.md`, `CLAUDE.md` — mention du nom produit (le code reste `house`)
+
+**Critères**
+
+1. Un visiteur comprend ce que fait le produit **avant** de lire un mot de stack.
+2. Les captures sont générées depuis la seed de démo, reproductibles, sans donnée
+   réelle.
+3. Aucune donnée d'un foyer réel dans `docs/assets/`.
+4. Le README dit la vérité sur le périmètre (quatre langues, ce qui manque, l'état
+   du projet).
+5. `npm run build` + `pytest` restent verts après le renommage de façade.
+
+---
+
+## Lot 7 — Recette pilote, publication, mesure de la rétention (#493)
+
+**But.** On n'a **qu'un seul coup par communauté** : trente personnes qui tombent
+sur une installation cassée partent et ne reviennent pas. Ce lot impose la
+séquence et définit ce qu'on mesure — la rétention, pas les étoiles.
+
+**Fichiers**
+
+- `docs/parcours/PARCOURS_28_RECETTE_PILOTE.md` (nouveau) — protocole : recrutement
+  de 5 à 10 foyers, script d'installation à leur donner, questions posées à J+1,
+  S+2, S+6, journal des plantages et des corrections
+- `docs/journal/2026-XX-XX_parcours-28_retours-pilotes.md` — les retours bruts
+- `docs/NEXT_STEPS.md` — arbitrage post-recette (quel module retient, que faire
+  ensuite)
+- Issues `idea` créées au fil des retours, labellisées `app:<module>`
+
+**Critères**
+
+1. Au moins **cinq foyers** ont installé sans assistance en direct, et chaque
+   blocage rencontré a produit une issue.
+2. **Au moins un foyer où un non-développeur se sert de l'app** — un ingénieur qui
+   teste une soirée n'est pas le même signal qu'une famille qui a rangé ses
+   factures dedans.
+3. Les canaux publics (r/selfhosted, awesome-selfhosted, Show HN, lobste.rs) ne
+   sont ouverts **qu'après** la correction des blocages pilotes.
+4. La question « quel module retient ? » reçoit une réponse écrite à S+6, fondée
+   sur des conversations et non sur des logs.
+5. Cinq utilisateurs ont été interrogés **en direct** — un utilisateur qui
+   abandonne ne laisse aucune trace exploitable.
+
+---
+
+## Ordre recommandé d'implémentation
+
+```
+Lot 0  (hygiène + CI)          ← court, prérequis absolu à toute exposition
+  └─ Lot 1  (isolation)        ← le plus long, non négociable : le démarrer tôt
+       └─ Lot 2  (compose)     ← rend le produit testable par un tiers
+            └─ Lot 3  (dégradation)  ← ses défauts se découvrent en lançant le lot 2 à nu
+                 └─ Lot 4  (licence) ← court, obligatoire avant toute publication
+                      └─ Lot 5  (exploitation)
+                           └─ Lot 6  (façade)  ← en dernier : les captures montrent l'app finale
+                                └─ Lot 7  (pilotes → publication)
+```
+
+Les lots 1 et 2 peuvent avancer en parallèle (backend vs packaging). Le lot 6
+**doit** venir après le 3 : une capture d'un onglet Assistant qui promet ce qu'il
+ne peut pas tenir est une capture à refaire.
+
+**Le dépôt étant déjà public**, il n'y a pas de bascule à placer dans cette
+séquence. Ce qui se place entre le lot 6 et le lot 7, c'est **l'annonce** — le
+premier lien posté quelque part. Les lots 0 et 4, eux, ne s'ordonnancent pas :
+ils rattrapent une exposition en cours et passent devant tout le reste.
+
+## Points de vigilance
+
+- **Ne rien casser du déploiement existant.** `docker-compose.prod.yml`, le job
+  `deploy` et `nginx/test-resilience.sh` sont un socle éprouvé et testé. Le
+  nouveau `docker-compose.yml` s'ajoute **à côté** ; les invariants du §3.4 de
+  `DEPLOYMENT.md` (résolveur nginx, montage par répertoire, `--no-deps`, migration
+  avant bascule) restent intégralement valables.
+- **Le lot 1 ne se déclare pas fini sur une relecture.** Un audit est vrai le jour
+  où il est fait ; c'est le test générique qui tient la propriété dans le temps.
+  S'il n'existe pas, le lot n'est pas livré.
+- **Les captures sont un livrable, pas une illustration.** C'est le point le plus
+  rentable du parcours ; les bâcler annule le reste.
+- **Le poids du dépôt.** 9,7 Mio aujourd'hui, ce qui rend le clone instantané.
+  Captures optimisées, GIF borné, aucune vidéo dans le dépôt.
+- **La compatibilité devient une promesse publique.** Une fois des instances
+  tierces en service, un changement destructif se livre en deux étapes — la règle
+  interne du deploy devient une règle de release.
+- **Ne pas confondre installer et revenir.** Le succès du lot 7 se mesure à S+6.
+- **La seed de démo est aussi une vitrine.** Elle doit montrer le module Argent en
+  premier : c'est la seule partie avec une promesse que personne d'autre ne tient.
+
+## Définition de done technique
+
+1. Aucun secret dans l'arbre **ni dans les 778 commits** (scan archivé).
+2. Test générique d'isolation multi-tenant vert sur **tous** les endpoints, avec
+   exemptions justifiées ; `/security-review` complet passé et arbitré.
+3. `docker compose up` sur machine nue → app fonctionnelle, amd64 **et** arm64.
+4. Aucune capacité tierce absente ne produit d'écran cassé ; second membre
+   invitable sans SMTP.
+5. `LICENSE` AGPL-3.0, `CONTRIBUTING`, `SECURITY`, `CODE_OF_CONDUCT`, templates
+   d'issue en place ; lien source exposé dans l'app (AGPL §13).
+6. Sauvegarde **et restauration** exécutées de bout en bout, testées en CI.
+7. README bilingue orienté promesse + 6 captures + 1 GIF, générés depuis la seed.
+8. i18n : clés `capabilities.*` présentes dans les **4** catalogues
+   (`ui/src/locales/keys.test.ts` vert, aucun `defaultValue`).
+9. `npm run lint`, `tsc -b`, `pytest` et la suite E2E verts ; `nginx/test-resilience.sh`
+   vert ; pipeline de déploiement inchangé et fonctionnel.
+10. Fiches `docs/MODULES/security.md` et `docs/MODULES/app_settings.md`
+    créées/à jour ; `docs/MODULES/` inchangé par ailleurs.
+11. **Tutoriels** (`/tutorials`) : le parcours d'installation change pour un
+    nouvel utilisateur → guide « Bien démarrer » revu, dont l'activation des
+    capacités optionnelles.
+12. `docs/JOURNAL_PRODUIT.md` + `docs/NEXT_STEPS.md` à jour ; entrée `docs/journal/`
+    datée pour l'annonce publique.
