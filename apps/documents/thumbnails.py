@@ -47,6 +47,29 @@ def thumbnail_storage_path(file_path: str, size: str) -> str:
     return str(p.parent / THUMBNAIL_DIR / size / f"{p.stem}.jpg")
 
 
+def source_path_prefix(thumbnail_path: str) -> str | None:
+    """Inverse de :func:`thumbnail_storage_path` — le préfixe du document source.
+
+    Rend ``"<dossier>/<stem>."`` pour un chemin de vignette, ``None`` sinon.
+    On ne peut pas rendre le chemin exact : l'extension d'origine est perdue
+    dans le nom de la vignette (toujours ``.jpg``). Le préfixe suffit, le
+    ``stem`` contenant déjà un uuid — il identifie donc le document.
+
+    **Pourquoi cette fonction vit ici et pas dans la vue qui l'appelle** :
+    elle doit rester le miroir exact de la fonction juste au-dessus. Les
+    séparer, c'est laisser le contrôle de confidentialité se désaligner en
+    silence du jour où le schéma de nommage change — et un contrôle désaligné
+    ne refuse plus rien.
+    """
+    if not thumbnail_path:
+        return None
+    p = PurePosixPath(thumbnail_path)
+    # <dossier>/.thumbnails/<taille>/<stem>.jpg
+    if p.parent.name not in THUMBNAIL_SIZES or p.parent.parent.name != THUMBNAIL_DIR:
+        return None
+    return f"{p.parent.parent.parent}/{p.stem}."
+
+
 def thumbnail_exists(file_path: str, size: str) -> bool:
     path = thumbnail_storage_path(file_path, size)
     return bool(path) and default_storage.exists(path)

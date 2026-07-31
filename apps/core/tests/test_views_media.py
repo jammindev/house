@@ -44,11 +44,21 @@ class TestServeProtectedMedia:
     # ── Avatars : auth suffisante ─────────────────────────────────────────────
 
     @override_settings(DEBUG=False)
-    def test_authenticated_user_can_access_avatar(self, client, member_user):
+    def test_user_can_access_their_own_avatar(self, client, member_user):
+        """Un avatar vit sous ``avatars/<user_pk>/<fichier>``.
+
+        Ce test attendait auparavant qu'un utilisateur authentifié quelconque
+        puisse lire *n'importe quel* avatar, sur un chemin (``avatars/photo.jpg``)
+        qui ne correspondait même pas au format produit par
+        ``User._avatar_upload_path``. La règle est désormais : le sien, et ceux
+        des personnes avec qui on partage un foyer. Voir
+        ``test_media_isolation.py::TestAnAvatarStaysInsideItsHouseholds``.
+        """
         client.force_login(member_user)
-        response = client.get(media_url('avatars/photo.jpg'))
+        path = f'avatars/{member_user.pk}/photo.jpg'
+        response = client.get(media_url(path))
         assert response.status_code == 200
-        assert response.get('X-Accel-Redirect') == '/_protected_media/avatars/photo.jpg'
+        assert response.get('X-Accel-Redirect') == f'/_protected_media/{path}'
 
     # ── Documents : vérification du foyer ────────────────────────────────────
 
