@@ -1,6 +1,9 @@
 """Shopping list serializers."""
 from django.utils import timezone
 from rest_framework import serializers
+from core.serializers import (
+    HouseholdScopedPrimaryKeyRelatedField as ScopedFK,
+)
 
 from stock.models import StockItem
 
@@ -38,9 +41,12 @@ class ShoppingListItemSerializer(serializers.ModelSerializer):
     """
 
     checked = serializers.BooleanField(required=False)
-    stock_item = serializers.PrimaryKeyRelatedField(
-        queryset=StockItem.objects.all(), required=False, allow_null=True
-    )
+    # Seul champ des six recensés au lot 1bis qui n'avait **aucun** filet :
+    # ni `validate_*`, ni contrôle dans la vue, ni dans `create_list_item`.
+    # Rattacher l'article de stock d'un autre foyer réussissait, et la réponse
+    # en divulguait le nom via `get_stock_item_name`. Non exploitable en
+    # pratique (il faut l'UUID), mais sans rien pour l'arrêter.
+    stock_item = ScopedFK(model=StockItem, required=False, allow_null=True)
     stock_item_name = serializers.SerializerMethodField()
     stock_item_status = serializers.SerializerMethodField()
     stock_item_emoji = serializers.SerializerMethodField()

@@ -3,6 +3,9 @@ Tracker serializers — CRUD API.
 """
 from django.utils import timezone
 from rest_framework import serializers
+from core.serializers import (
+    HouseholdScopedPrimaryKeyRelatedField as ScopedFK,
+)
 
 from .models import Tracker, TrackerEntry
 
@@ -10,7 +13,9 @@ from .models import Tracker, TrackerEntry
 class TrackerEntrySerializer(serializers.ModelSerializer):
     """Read/write serializer for tracker entries."""
 
-    tracker = serializers.PrimaryKeyRelatedField(queryset=Tracker.objects.all())
+    # Plancher : `validate_tracker` ci-dessous reste, il couvre le cas où le
+    # contexte porte un `household_id` explicite (services métier).
+    tracker = ScopedFK(model=Tracker)
     # Optional on input — validate() defaults it to now (quick-add from the card).
     occurred_at = serializers.DateTimeField(required=False)
 

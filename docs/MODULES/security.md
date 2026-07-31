@@ -63,6 +63,64 @@ Trois choses à savoir avant d'y toucher :
 3. **Une exemption est une dette nommée.** Elle vit en tête du fichier, avec sa
    raison et sa contrepartie.
 
+## L'écriture — un plancher partagé, pas six vigilances
+
+> Ajouté au **lot 1bis** (issue #498).
+
+Le test ci-dessus ne parcourt que les **lectures**. La différence de nature
+compte : une lecture mal bornée se voit — la liste montre ce qu'elle ne devrait
+pas. Une **écriture** mal bornée ne se voit pas : elle réussit, l'utilisateur lit
+« enregistré », et l'objet d'un autre foyer entre dans le graphe sans un mot.
+
+Six champs relationnels de serializer acceptaient `Model.objects.all()`, donc
+n'importe quel identifiant. **Cinq étaient rattrapés en aval** — mais par trois
+mécanismes différents, écrits indépendamment :
+
+| Site | Ce qui protégeait |
+|---|---|
+| `InteractionDocumentSerializer` (×2) | `validate()` : les deux objets dans les foyers de l'user, même foyer, foyer sélectionné cohérent |
+| `TaskDocumentLinkSerializer` (×2) | `TaskDocumentViewSet.perform_create` : tâche accessible, **créateur seul**, document du même foyer |
+| `TrackerEntrySerializer` | `validate_tracker` + `services.add_entry` qui repasse toujours `household_id` |
+
+**Le sixième n'avait rien.** `ShoppingListItemSerializer.stock_item` : ni
+`validate_*`, ni contrôle dans la vue, ni dans `create_list_item`. Rattacher
+l'article de stock d'un autre foyer à sa liste réussissait, et la réponse en
+divulguait le **nom**, le statut et l'emoji via `get_stock_item_name`. Non
+exploitable en pratique — il faut connaître l'UUID — mais rien ne l'arrêtait.
+
+Il est révélateur de la manière dont il a été trouvé : **pas par relecture, pas
+par `grep`** (il était écrit sur trois lignes, le motif de recherche l'a raté),
+mais par le test générique, à sa première exécution.
+
+### Le champ partagé
+
+`core.serializers.HouseholdScopedPrimaryKeyRelatedField(model=…)` borne son
+queryset au foyer résolu — contexte explicite, puis `request.household`, puis
+les foyers de l'utilisateur, puis **rien**.
+
+Ce dernier point est le comportement important : **sans contexte exploitable, le
+champ n'accepte aucun identifiant.** Un champ qui laisse passer quand il ne sait
+pas protège exactement tant que personne ne l'attaque ; fermer par défaut rend le
+défaut bruyant, tout de suite, chez celui qui l'introduit.
+
+**C'est un plancher, pas un plafond.** Il garantit « l'objet est dans un foyer
+accessible » ; il ne dit rien de « les deux objets sont dans le *même* foyer » ni
+de « seul le créateur peut attacher ». Les validations existantes vérifient ces
+choses en plus et **n'ont pas été retirées** en posant le champ.
+
+Régression : `apps/core/tests/test_write_isolation.py`, vérifié par sabotage.
+
+### Ce qui reste ouvert en écriture
+
+- **Les actions custom.** `test_tenant_isolation` n'exerce que `list`. Le risque
+  n'est pas `get_object()`, qui passe par `get_queryset()` et est donc déjà
+  couvert : c'est une `@action` qui fait sa **propre** requête ORM. Ça ne se
+  détecte pas au SQL, seulement à la lecture.
+- **Les 26 `APIView`.** Sans queryset, donc invisibles pour les deux tests
+  génériques. À examiner une par une.
+
+Les deux restent dans l'issue #498.
+
 ## Les surfaces qui ne passent pas par un queryset
 
 Le test ci-dessus ne peut rien dire de ce qui n'interroge pas la base par un

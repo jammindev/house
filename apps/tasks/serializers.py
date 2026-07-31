@@ -3,6 +3,9 @@ Task serializers — CRUD API.
 """
 from django.db import transaction
 from rest_framework import serializers
+from core.serializers import (
+    HouseholdScopedPrimaryKeyRelatedField as ScopedFK,
+)
 from households.models import HouseholdMember
 from documents.models import Document
 from documents.services import link_document
@@ -53,8 +56,11 @@ class TaskDocumentLinkSerializer(serializers.Serializer):
     """
 
     id = serializers.IntegerField(read_only=True)
-    task = serializers.PrimaryKeyRelatedField(queryset=Task.objects.all())
-    document = serializers.PrimaryKeyRelatedField(queryset=Document.objects.all())
+    # Plancher : la FK n'accepte qu'un objet d'un foyer accessible.
+    # `TaskDocumentViewSet.perform_create` vérifie en plus le même foyer et
+    # le fait que seul le créateur de la tâche peut attacher.
+    task = ScopedFK(model=Task)
+    document = ScopedFK(model=Document)
     note = serializers.CharField(required=False, allow_blank=True, default='')
     created_at = serializers.DateTimeField(read_only=True)
     created_by = serializers.PrimaryKeyRelatedField(read_only=True)
