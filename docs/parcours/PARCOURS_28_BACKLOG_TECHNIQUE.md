@@ -366,6 +366,28 @@ produit dont l'unité est le foyer.
 - `config/settings/base.py` — backend e-mail `console` par défaut hors production
 - Locales : `ui/src/locales/{en,fr,de,es}/*.json` — clés `capabilities.*`
 - `docs/MODULES/app_settings.md` — documenter le registre
+- **`docs/self-hosting/ai-providers.md` (nouveau, anglais)** — la cible du « lien
+  de documentation » de chaque capacité. Une clé par section : où l'obtenir, quelle
+  variable la porte (`ANTHROPIC_API_KEY`, `VOYAGE_API_KEY`, `LLM_PROVIDER`,
+  `LLM_TEXT_MODEL`, `EMBEDDING_PROVIDER`…), **ce que l'app fait sans elle**, et
+  l'ordre de grandeur du coût mensuel pour un foyer
+
+> **Pourquoi cette page appartient au lot 3 et pas au lot 5.** Le registre de
+> capacités promet à chaque écran de dire *comment activer* ce qui manque : sans la
+> page, ces liens sont morts le jour où ils sont écrits, et « nécessite une clé
+> Anthropic » redevient exactement le mur qu'on voulait supprimer. Le lot 5 (doc
+> d'exploitation) arrive après et ne fait que la référencer.
+
+> ⚠️ **Deux pièges à écrire noir sur blanc dans cette page.** ① Changer
+> `EMBEDDING_PROVIDER` ou `EMBEDDING_MODEL` **après** un premier indexage impose un
+> `backfill_embeddings` complet : la colonne pgvector est figée à
+> `EMBEDDING_DIMENSIONS`, et un index mélangeant deux modèles rend la recherche
+> sémantique silencieusement fausse (`_check_dimensions` n'attrape que le
+> changement de *largeur*, pas le changement de *modèle* à largeur égale).
+> ② Les clés se configurent **par instance** (`.env`), jamais par foyer : le `.env`
+> **est** le BYOK du self-hoster. Une saisie de clé dans l'interface ferait de
+> `get_llm_client()` une décision d'appelant — ce que `apps/agent/llm.py` interdit
+> explicitement — et n'a de sens que le jour où quelqu'un héberge des foyers tiers.
 
 **Critères**
 
@@ -378,6 +400,11 @@ produit dont l'unité est le foyer.
    miroir de `test_global_search.py::TestThePaletteCoversTheRegistry`).
 5. Une capacité désactivée n'est pas seulement masquée côté client : l'endpoint
    correspondant répond proprement (409/503 nommé), jamais 500.
+6. Chaque capacité du registre porte un lien qui **atteint une section existante**
+   de `docs/self-hosting/ai-providers.md` — vérifié par un test, sinon la page et
+   le registre dérivent (même raison que la parité des catalogues i18n).
+7. En partant d'une pile sans aucune clé, un lecteur active l'assistant **en
+   suivant la page seule**, sans lire le code ni `config/settings/base.py`.
 
 ---
 
@@ -469,7 +496,8 @@ une sauvegarde.
 
 **Fichiers**
 
-- `docs/self-hosting/README.md` (nouveau) — sommaire
+- `docs/self-hosting/README.md` (nouveau) — sommaire ; **référence**
+  `ai-providers.md`, livré au lot 3, sans le réécrire
 - `docs/self-hosting/install.md` — installation, reverse proxy externe
   (Traefik/Caddy) ou nginx inclus, certificat TLS, exposition Internet vs LAN/VPN
 - `docs/self-hosting/backup-restore.md` — sauvegarde (base **et** `media/`),
