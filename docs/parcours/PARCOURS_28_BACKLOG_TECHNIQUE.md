@@ -1,13 +1,13 @@
 # Parcours 28 — Backlog technique : ouvrir Maisonnée
 
-> **État au 2026-07-31** — cadrage terminé, aucun lot démarré.
+> **État au 2026-07-31** — lots 0, 1, 2 et 4 livrés ; lot 1bis partiel.
 > Chantier technique transverse : rendre le projet publiable, installable par un
 > tiers et défendable une fois exposé. Aucune feature métier.
 
 Doc produit : [PARCOURS_28_OUVRIR_MAISONNEE.md](./PARCOURS_28_OUVRIR_MAISONNEE.md)
 Fiche concept (le cours) : [docs/fiches/AUTO_HEBERGEMENT.md](../fiches/AUTO_HEBERGEMENT.md)
 Socle dont on hérite : `DEPLOYMENT.md` (§3.4 résilience du proxy), `CLAUDE.md`
-(§ Déploiement), `nginx/test-resilience.sh`, `apps/tasks/management/commands/seed_demo_data.py`
+(§ Déploiement), `nginx/test-resilience.sh`, `apps/core/management/commands/seed_demo_data.py`
 
 ## Tableau de bord
 
@@ -18,7 +18,7 @@ Issue ombrelle : **#485**
 | 0 | Hygiène du dépôt + durcissement CI (**urgent — dépôt déjà public**) | ✅ Livré (PR #495) | #486 |
 | 1 | Durcissement multi-tenant + test générique d'isolation (**bloquant**) | ✅ Livré (PR #497) | #487 |
 | 1bis | Isolation **en écriture** : FK de serializer ✅ (PR #499) ; actions custom + 26 `APIView` restants | 🔄 Partiel | #498 |
-| 2 | `docker compose up` — première installation en une commande | ⬜ À faire | #488 |
+| 2 | `docker compose up` — première installation en une commande | ✅ Livré | #488 |
 | 3 | Dégradation propre sans service tiers (IA, SMTP, push, Telegram) | ⬜ À faire | #489 |
 | 4 | LICENSE AGPL-3.0 + gouvernance (CONTRIBUTING, SECURITY, DCO, templates) | ✅ Livré (PR #496) | #490 |
 | 5 | Exploitation par un tiers : sauvegarde, restauration testée, mises à jour, releases | ⬜ À faire | #491 |
@@ -284,13 +284,42 @@ ferme l'onglet.
   section « optionnel » clairement séparée
 - `apps/core/management/commands/create_admin.py` (nouveau) — création du premier
   compte depuis des variables d'environnement, idempotente
-- `apps/tasks/management/commands/seed_demo_data.py` — **déplacer** vers
+- `apps/tasks/management/commands/seed_demo_data.py` → **déplacée** vers
   `apps/core/management/commands/` (la seed couvre 30 apps, pas les tâches) et
   vérifier qu'elle couvre les modules Argent (relevé bancaire fictif, budgets,
   ventilations) — c'est ce que la démo doit montrer en premier
 - `.github/workflows/release.yml` (nouveau) — build multi-arch amd64/arm64 +
   publication `ghcr.io` sur tag `v*`
 - `docker-compose.prod.yml` — inchangé (le déploiement de l'auteur ne bouge pas)
+
+> **Livré — trois écarts au plan, tous assumés.**
+>
+> **① Pas de Nginx dans la pile auto-hébergée.** Le plan en prévoyait un ; il
+> aurait fallu monter sa configuration, donc distribuer un dépôt au lieu d'un
+> fichier — ou en recopier le contenu dans le compose, c'est-à-dire créer un
+> second texte qui dérive du premier. La pile tient en **db + init + web +
+> deux schedulers** : whitenoise sert les fichiers statiques (il est déjà dans le
+> middleware, la production s'y appuie depuis toujours), et Django sert les
+> médias protégés lui-même. Le TLS d'une instance exposée se termine dans le
+> reverse proxy de l'hébergeur, qui existe déjà chez tous ceux qui exposent.
+>
+> **② Un module de réglages, pas des variables dans le compose.**
+> `config/settings/selfhost.py` **importe** `production.py` après avoir rempli
+> ses défauts. Le durcissement de l'auteur et celui d'un inconnu sont donc le
+> même texte, et `test_production_settings.py` continue de surveiller le seul
+> fichier qui compte. Un unique bouton facultatif, `MAISONNEE_PUBLIC_URL` : le
+> déclarer resserre `ALLOWED_HOSTS` à ce seul hôte et rallume cookies `Secure` et
+> HSTS — **la liste d'hôtes se referme au moment exact où l'exposition
+> s'élargit**.
+>
+> **③ Deux défauts trouvés en chemin, réparés ici.** Le mécanisme de service des
+> médias se déduisait de `DEBUG` : `DEBUG=False` sans Nginx — la pile
+> auto-hébergée exactement — renvoyait une réponse vide portant un
+> `X-Accel-Redirect` que personne n'allait interpréter. Il se déclare désormais
+> (`PROTECTED_MEDIA_ACCEL`). Et `STATICFILES_STORAGE` ne faisait **rien** depuis
+> Django 5.1, qui l'a supprimé au profit de `STORAGES` : le bundle React partait
+> brut, 900 Ko par visite froide, masqué en production par le `gzip on` de Nginx.
+> Rétabli en brotli au `collectstatic`, donc au build : **215 Ko**.
 
 **Critères**
 

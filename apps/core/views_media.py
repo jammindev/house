@@ -1,8 +1,22 @@
 """Service de fichiers protégés, avec contrôle d'accès.
 
-Production : Django authentifie la requête puis renvoie un ``X-Accel-Redirect``
-pour que Nginx serve le fichier depuis un emplacement interne
-(``/_protected_media/``). Développement : Django sert le fichier directement.
+Django authentifie toujours la requête. Ce qui change, c'est **qui envoie les
+octets** une fois l'accès accordé, et c'est réglé par ``PROTECTED_MEDIA_ACCEL`` :
+
+- ``True`` (défaut, déploiement de l'auteur) — Django répond un en-tête
+  ``X-Accel-Redirect`` et Nginx sert le fichier depuis un emplacement interne
+  (``/_protected_media/``), sans occuper un worker gunicorn ;
+- ``False`` — Django sert le fichier lui-même. C'est le cas du développement, et
+  celui d'une **instance auto-hébergée** : la pile ``docker compose up`` tient en
+  trois conteneurs et n'a pas de Nginx à qui déléguer.
+
+⚠️ **Ce réglage se déclare, il ne se déduit pas de ``DEBUG``.** C'est ce qu'il
+faisait, et le raccourci était faux dès qu'on sortait des deux seuls
+déploiements connus : ``DEBUG=False`` sans Nginx en face — exactement la pile
+auto-hébergée — renvoyait au navigateur une réponse **vide** portant un en-tête
+que personne n'allait interpréter. Une image cassée sans une ligne d'erreur, et
+un réglage de confidentialité qui décide d'un mécanisme de transport n'a aucune
+raison de rester lisible six mois.
 
 ⚠️ **Cette vue est la seule porte du foyer qui ne passe ni par un viewset ni par
 un queryset** : elle reçoit un chemin et rend des octets. Les cinquante-sept
@@ -127,7 +141,7 @@ def serve_protected_media(request, path):
     if denied is not None:
         return HttpResponse(status=denied)
 
-    if settings.DEBUG:
+    if not settings.PROTECTED_MEDIA_ACCEL:
         from django.views.static import serve as static_serve
 
         return static_serve(request, path, document_root=settings.MEDIA_ROOT)

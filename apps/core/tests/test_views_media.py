@@ -43,7 +43,7 @@ class TestServeProtectedMedia:
 
     # ── Avatars : auth suffisante ─────────────────────────────────────────────
 
-    @override_settings(DEBUG=False)
+    @override_settings(PROTECTED_MEDIA_ACCEL=True)
     def test_user_can_access_their_own_avatar(self, client, member_user):
         """Un avatar vit sous ``avatars/<user_pk>/<fichier>``.
 
@@ -62,7 +62,7 @@ class TestServeProtectedMedia:
 
     # ── Documents : vérification du foyer ────────────────────────────────────
 
-    @override_settings(DEBUG=False)
+    @override_settings(PROTECTED_MEDIA_ACCEL=True)
     def test_member_can_access_household_document(self, client, member_user, household):
         client.force_login(member_user)
         path = f'documents/{household.id}/2025/01/abc-invoice.pdf'
@@ -70,21 +70,21 @@ class TestServeProtectedMedia:
         assert response.status_code == 200
         assert response.get('X-Accel-Redirect') == f'/_protected_media/{path}'
 
-    @override_settings(DEBUG=False)
+    @override_settings(PROTECTED_MEDIA_ACCEL=True)
     def test_non_member_cannot_access_household_document(self, client, other_user, household):
         client.force_login(other_user)
         path = f'documents/{household.id}/2025/01/secret.pdf'
         response = client.get(media_url(path))
         assert response.status_code == 403
 
-    @override_settings(DEBUG=False)
+    @override_settings(PROTECTED_MEDIA_ACCEL=True)
     def test_malformed_document_path_raises_404(self, client, member_user):
         client.force_login(member_user)
         response = client.get(media_url('documents/'))
         # No household_id in path
         assert response.status_code == 404
 
-    @override_settings(DEBUG=False)
+    @override_settings(PROTECTED_MEDIA_ACCEL=True)
     def test_invalid_household_uuid_in_path_raises_404(self, client, member_user):
         client.force_login(member_user)
         response = client.get(media_url('documents/not-a-uuid/file.pdf'))
@@ -92,7 +92,7 @@ class TestServeProtectedMedia:
 
     # ── X-Accel-Redirect header ───────────────────────────────────────────────
 
-    @override_settings(DEBUG=False)
+    @override_settings(PROTECTED_MEDIA_ACCEL=True)
     def test_x_accel_redirect_points_to_protected_location(self, client, member_user, household):
         client.force_login(member_user)
         path = f'documents/{household.id}/2025/03/file.pdf'
@@ -100,7 +100,7 @@ class TestServeProtectedMedia:
         assert response['X-Accel-Redirect'] == f'/_protected_media/{path}'
         assert response['Content-Type'] == ''
 
-    @override_settings(DEBUG=False)
+    @override_settings(PROTECTED_MEDIA_ACCEL=True)
     def test_x_accel_redirect_url_encodes_non_ascii_filename(self, client, member_user, household):
         # A non-ASCII filename must be percent-encoded in X-Accel-Redirect. WSGI
         # serializes headers as latin-1, so sending "é" raw would emit the wrong

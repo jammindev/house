@@ -1,5 +1,12 @@
 # ─── Stage 1: Build React frontend ───────────────────────────────────────────
-FROM node:22-alpine AS frontend
+#
+# `--platform=$BUILDPLATFORM` : cette étape tourne sur l'architecture de la
+# MACHINE DE BUILD, jamais sur celle de l'image cible. Ce qu'elle produit — du
+# JavaScript et du CSS — est identique sur amd64 et arm64, alors que la produire
+# sous émulation qemu pour une image arm64 coûte des dizaines de minutes de
+# `npm ci` et de bundling. Sans cette ligne, publier une image pour Raspberry Pi
+# ferait tourner Node en émulation pour un résultat rigoureusement le même.
+FROM --platform=$BUILDPLATFORM node:22-alpine AS frontend
 WORKDIR /app
 COPY package*.json ./
 RUN npm ci

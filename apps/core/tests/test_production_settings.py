@@ -160,6 +160,39 @@ class TestTheSensitiveEndpointsAreThrottled:
         assert "LoginEmailRateThrottle" in source
 
 
+class TestTheBundleIsCompressedBeforeItIsShipped:
+    """Un réglage qui a l'air posé et ne fait rien est pire qu'un réglage absent.
+
+    ``STATICFILES_STORAGE`` a vécu ici des mois **sans aucun effet** : Django 5.1
+    l'a supprimé au profit de ``STORAGES``, silencieusement. Le bundle React
+    partait donc brut — 900 Ko à chaque visite froide — pendant que le fichier de
+    réglages affirmait le contraire. Derrière Nginx le ``gzip on`` masquait la
+    moitié du problème ; dans une pile auto-hébergée, qui n'a pas de Nginx, il
+    n'y a rien pour masquer.
+    """
+
+    def test_the_whitenoise_backend_is_declared_where_django_reads_it(self, settings):
+        backend = settings.STORAGES["staticfiles"]["BACKEND"]
+        assert backend.startswith("whitenoise.storage."), (
+            f"Le stockage des fichiers statiques est {backend} : la compression "
+            "au build n'a plus lieu."
+        )
+
+    def test_the_dead_setting_has_not_come_back(self):
+        from pathlib import Path
+
+        source = Path("config/settings/base.py").read_text(encoding="utf-8")
+        assert "STATICFILES_STORAGE = " not in source, (
+            "STATICFILES_STORAGE n'est plus lu par Django depuis la 5.1 — le "
+            "réintroduire donne l'illusion d'un réglage actif."
+        )
+
+    def test_brotli_is_installed(self):
+        """Sans lui, whitenoise ne produit que du gzip et l'écart est réel :
+        215 Ko en brotli contre 257 Ko en gzip, sur 900 Ko de bundle."""
+        import brotli  # noqa: F401
+
+
 class TestClickjackingIsBlocked:
     def test_the_middleware_is_installed(self, settings):
         assert (

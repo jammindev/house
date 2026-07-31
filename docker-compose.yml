@@ -1,0 +1,162 @@
+# Maisonnée — auto-hébergement, en une commande.
+#
+#   curl -O https://raw.githubusercontent.com/jammindev/house/main/docker-compose.yml
+#   docker compose up
+#
+# Puis http://localhost:8000. Les identifiants du premier compte s'affichent dans
+# la sortie de la commande, encadrés. Rien à éditer, aucune clé à souscrire.
+#
+# Avec un foyer de démonstration pré-rempli, pour visiter avant de saisir :
+#   docker compose --profile demo up
+#
+# ── Ce fichier n'est PAS celui du déploiement de l'auteur ────────────────────
+#
+# `docker-compose.prod.yml` est un autre fichier, inchangé, avec ses propres
+# hypothèses (Traefik, TLS, domaine public, migration hors du démarrage). Les
+# deux partagent la même image et le même code ; ils ne partagent pas leurs
+# hypothèses, et c'est la raison pour laquelle ils restent deux fichiers.
+#
+# ── Réglages facultatifs ─────────────────────────────────────────────────────
+#
+# Tous ont un défaut qui marche. À poser dans un fichier `.env` à côté de
+# celui-ci, ou dans l'environnement :
+#
+#   MAISONNEE_PUBLIC_URL   l'adresse publique, si l'instance est exposée
+#                          (ex. https://maison.exemple.fr). En la déclarant, les
+#                          cookies passent en Secure, HSTS s'active et les hôtes
+#                          autorisés se réduisent à celui-là. Le certificat TLS
+#                          se termine dans TON reverse proxy (Caddy, Traefik…) —
+#                          cette pile sert en clair sur le port publié.
+#   MAISONNEE_PORT         port publié sur l'hôte (défaut : 8000)
+#   MAISONNEE_ADMIN_EMAIL  identifiant du premier compte (défaut :
+#                          admin@maisonnee.local)
+#   MAISONNEE_ADMIN_PASSWORD  son mot de passe (défaut : généré et affiché une
+#                          seule fois au premier démarrage)
+#   MAISONNEE_IMAGE        image à utiliser (défaut : ghcr.io/jammindev/maisonnee:latest)
+#   POSTGRES_PASSWORD      mot de passe de la base. La base n'est jamais publiée
+#                          hors du réseau interne ; le changer avant le premier
+#                          démarrage n'en reste pas moins une bonne idée.
+#
+# ── Sauvegarder ──────────────────────────────────────────────────────────────
+#
+# Deux volumes, et il faut les deux : `postgres-data` (les données) et
+# `maisonnee-state` (la clé secrète et les fichiers téléversés). Perdre le second
+# déconnecte tout le monde et perd les documents, base intacte.
+
+x-app: &app
+  image: ${MAISONNEE_IMAGE:-ghcr.io/jammindev/maisonnee:latest}
+  environment:
+    DJANGO_SETTINGS_MODULE: config.settings.selfhost
+    DATABASE_URL: postgres://maisonnee:${POSTGRES_PASSWORD:-maisonnee}@db:5432/maisonnee
+    MAISONNEE_STATE_DIR: /data
+    MAISONNEE_PUBLIC_URL: ${MAISONNEE_PUBLIC_URL:-}
+    MAISONNEE_PORT: ${MAISONNEE_PORT:-8000}
+    MAISONNEE_ADMIN_EMAIL: ${MAISONNEE_ADMIN_EMAIL:-}
+    MAISONNEE_ADMIN_PASSWORD: ${MAISONNEE_ADMIN_PASSWORD:-}
+    MAISONNEE_HOUSEHOLD_NAME: ${MAISONNEE_HOUSEHOLD_NAME:-}
+  volumes:
+    # La clé secrète ET les fichiers du foyer. Un seul volume pour les deux :
+    # ce qu'une sauvegarde doit prendre en plus de la base est ainsi un seul nom
+    # à retenir, pas deux à oublier.
+    - maisonnee-state:/data
+  networks:
+    - maisonnee
+
+services:
+  db:
+    # pgvector/pgvector:pg16 = postgres:16 + l'extension `vector` préinstallée,
+    # dont la recherche sémantique a besoin. Publiée en amd64 et arm64, donc un
+    # Raspberry Pi la tire sans rien changer.
+    image: pgvector/pgvector:pg16
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: maisonnee
+      POSTGRES_USER: maisonnee
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-maisonnee}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - maisonnee
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U maisonnee -d maisonnee"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  # Conteneur jetable : migre, crée le premier compte, sort. `web` ne démarre
+  # qu'une fois qu'il a réussi — le serveur ne sert donc jamais sur un schéma
+  # non migré, ce qui rend `docker compose pull && up -d` sûr par construction.
+  init:
+    <<: *app
+    restart: "no"
+    depends_on:
+      db:
+        condition: service_healthy
+    command: ["sh", "scripts/selfhost-init.sh"]
+
+  web:
+    <<: *app
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      init:
+        condition: service_completed_successfully
+    ports:
+      - "${MAISONNEE_PORT:-8000}:8000"
+    # Deux workers, pas quatre : cette pile doit tenir sur un Raspberry Pi. Le
+    # `CMD` de l'image vise un VPS ; on le remplace ici, ce que l'absence
+    # d'ENTRYPOINT rend possible.
+    command:
+      - gunicorn
+      - config.wsgi:application
+      - --bind=0.0.0.0:8000
+      - --workers=${GUNICORN_WORKERS:-2}
+      - --timeout=60
+      - --access-logfile=-
+      - --error-logfile=-
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request as u; u.urlopen('http://127.0.0.1:8000/health/', timeout=5)"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
+
+  # Rappels proactifs et briefings — des ticks au repos tant que personne n'en a
+  # programmé. Ils sont là dès le premier démarrage exprès : une échéance qu'on
+  # règle dans l'interface et qui ne part jamais est pire que pas d'échéance.
+  scheduler:
+    <<: *app
+    restart: unless-stopped
+    depends_on:
+      init:
+        condition: service_completed_successfully
+    command: ["python", "manage.py", "send_scheduled_pings", "--loop"]
+
+  scheduler-briefings:
+    <<: *app
+    restart: unless-stopped
+    depends_on:
+      init:
+        condition: service_completed_successfully
+    command: ["python", "manage.py", "send_due_briefings", "--loop"]
+
+  # `docker compose --profile demo up` — le foyer « Famille Mercier », pour
+  # cliquer dans un produit rempli au lieu de lire une promesse. Jamais lancé
+  # sans le profil : il n'a rien à faire dans une instance qui a de vraies
+  # données.
+  demo:
+    <<: *app
+    profiles: ["demo"]
+    restart: "no"
+    depends_on:
+      init:
+        condition: service_completed_successfully
+    command: ["python", "manage.py", "seed_demo_data"]
+
+volumes:
+  postgres-data:
+  maisonnee-state:
+
+networks:
+  maisonnee:
