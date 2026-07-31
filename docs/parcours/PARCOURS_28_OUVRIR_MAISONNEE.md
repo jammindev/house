@@ -98,12 +98,44 @@ qualité d'un post. La rétention mesure le produit. Trois questions, dans l'ord
 | « Je n'ai pas de serveur SMTP. » | ❌ l'invitation d'un second membre part dans le vide — le foyer reste à une personne | ✅ lien d'invitation copiable, l'e-mail devient une commodité |
 | « Mes relevés bancaires sont dedans. Et si je perds tout ? » | 🟡 un `backup_db.sh` écrit pour un VPS précis, restauration jamais décrite | ✅ sauvegarde et **restauration testée**, documentées pour une machine quelconque |
 | « Et si un autre foyer voit mes données ? » | 🟡 le scope `household` protège des membres d'une famille | ✅ il protège de gens qui *cherchent* à passer à travers, et un test générique le vérifie sur chaque endpoint |
+| « Ça a l'air de quoi ? » | ❌ une icône clipart : maison blanche sur dégradé bleu, aucun logo dans l'app | ✅ une identité qui tient à 16 px, en monochrome, sur les 17 thèmes |
+
+## Le dehors arrive — et ça change les captures
+
+Deux modules sont annoncés à la suite de ce chantier : **potager** et **élevage**.
+Ils ne font pas partie du parcours 28, mais ils en fixent deux contraintes :
+
+- le **nom** ne doit pas enfermer le produit dans le bâti (traité ci-dessus) ;
+- les **captures** du lot 6 et le **logo** du lot 8 ne peuvent pas montrer un
+  produit d'intérieur. Un tableau de budgets et une liste de tâches racontent un
+  gestionnaire de comptes ; ce qui distingue Maisonnée d'un YNAB auto-hébergé,
+  c'est que les poules, l'eau, l'électricité et le potager sont dans le même
+  registre que l'argent. La vitrine doit montrer ça, sinon elle vend le produit
+  générique plutôt que le vrai.
 
 ## Le nom : Maisonnée
 
-Le produit publié s'appelle **Maisonnée** — le foyer comme groupe de personnes,
+Le produit publié s'appelle **Maisonnée** — le foyer comme **groupe de personnes**,
 pas comme bâtiment. C'est ce que l'app modélise depuis le premier jour
 (`Household`, `HouseholdMember`), et c'est ce que « house » ne dit pas.
+
+**Pourquoi un nom de gens et pas un nom de lieu.** La question s'est posée au
+cadrage, en voyant arriver les modules **potager** et **élevage** : « maisonnée »
+ne rétrécit-il pas le produit au dedans ? C'est l'inverse. Dans l'usage rural, la
+maisonnée englobait tous ceux qui faisaient tourner le lieu — le poulailler et le
+jardin lui appartiennent parce que c'est elle qui les tient. Et surtout : **un nom
+de gens s'étend à n'importe quel module, un nom de lieu se referme.** `Closerie`,
+`Enclos`, `Bastide` (tous libres, vérifiés) décrivent un périmètre — et un
+périmètre finit toujours par être débordé, par un véhicule, une résidence
+secondaire, un contrat. Le dehors est donc porté par la **baseline**, pas par le
+nom :
+
+> **Maisonnée** — tout ce qu'un foyer fait vivre. Dedans comme dehors : les
+> comptes, les chantiers, les compteurs, le potager, les bêtes.
+
+Le seul défaut assumé est l'accent : `maisonnée` ne peut être ni un nom de dépôt,
+ni une image Docker, ni un domaine. On écrit **`maisonnee`** partout où l'on tape,
+et les deux orthographes cohabitent — comme *café/cafe*.
 
 Décision de portée, tranchée : **le nom change en façade, pas dans le code.**
 README, interface, manifeste PWA, e-mails, image Docker, dépôt : *Maisonnée*. Les

@@ -23,6 +23,10 @@ Issue ombrelle : **#485**
 | 5 | Exploitation par un tiers : sauvegarde, restauration testée, mises à jour, releases | ⬜ À faire | #491 |
 | 6 | Façade Maisonnée : README bilingue, captures, GIF, identité | ⬜ À faire | #492 |
 | 7 | Recette pilote (5-10 foyers) puis annonce et mesure de la rétention | ⬜ À faire | #493 |
+| 8 | Identité visuelle : logo, palette de marque, icônes, aperçu social | ⬜ À faire | #494 |
+
+> Le lot 8 porte un numéro tardif mais s'exécute **avant le lot 6** : les captures
+> d'écran contiennent le logo et les icônes.
 
 ## Flow cible
 
@@ -435,6 +439,77 @@ séquence et définit ce qu'on mesure — la rétention, pas les étoiles.
 
 ---
 
+## Lot 8 — Identité visuelle : logo, palette de marque, icônes (#494)
+
+**But.** Donner un visage à Maisonnée. Aujourd'hui il n'y en a pas : l'icône PWA
+est un **placeholder générique** — une maison blanche sur un dégradé bleu, de
+qualité clipart — et le `TopBar` n'affiche aucun logo, seulement l'icône `Home` de
+lucide.
+
+Ce placeholder dit deux fois le contraire de ce qu'on vient de décider : c'est un
+**bâtiment**, alors que *maisonnée* désigne les **gens** ; et il n'y a **rien du
+dehors**, alors que le potager et l'élevage arrivent. Un visiteur de
+r/selfhosted lit l'icône avant le README.
+
+**Contrainte structurante à ne pas rater** : `ui/src/styles/themes.css` contient
+**17 thèmes de couleur** que l'utilisateur choisit (`theme-blue`, `theme-house`,
+`theme-emerald`, `theme-midnight`…). La marque ne peut donc **pas** être
+`--primary` : elle serait repeinte par le thème du foyer. Le logo doit être
+lisible en **monochrome / `currentColor`** dans l'app, et la couleur de marque ne
+vit qu'aux endroits que le thème ne touche pas — favicon, icônes PWA, aperçu
+social, README.
+
+Deuxième point, moins évident et lié au lot 4 : **l'AGPL ne couvre pas les
+marques.** Le code se copie et se modifie librement ; le nom et le logo, non. Ça
+se dit une fois, clairement, sinon un fork redistribue une app qui se présente
+comme la tienne.
+
+**Fichiers**
+
+- `docs/assets/brand/` (nouveau) — sources vectorielles (`logo.svg`,
+  `logo-mark.svg`, `logo-wordmark.svg`), variantes claire/sombre/monochrome
+- `docs/assets/brand/README.md` — règles d'usage : ce que l'AGPL couvre (le code)
+  et ce qu'elle ne couvre pas (le nom, le logo) ; un fork doit se renommer
+- `static/icons/` — remplacer `icon-192.png`, `icon-512.png`,
+  `apple-touch-icon.png` ; ajouter une variante `maskable` **distincte** de `any`
+  (aujourd'hui les deux `purpose` pointent le même fichier, donc Android rogne
+  dans le dessin)
+- `templates/manifest.json` — `name`/`short_name` **Maisonnée**, `description`
+  (aujourd'hui « Gestionnaire de maison »), `theme_color` et `background_color`
+  (aujourd'hui `#f3f4f6`, un gris qui n'est la marque de personne)
+- `favicon.ico` / `favicon.svg` + `<link>` dans les templates Django
+- `ui/src/components/TopBar.tsx` — composant `<Logo />` en `currentColor`
+- `ui/src/design-system/logo.tsx` (nouveau) — mark seul + wordmark, une prop de
+  taille, aucun PNG dans le bundle
+- `ui/src/styles/themes.css` — **ne pas y toucher** ; si une couleur de marque
+  doit exister dans l'app, elle passe par un token dédié (`--brand`) indépendant
+  de `--primary`
+- Écran de connexion, gabarits d'e-mail, bot Telegram — mêmes marques
+- Aperçu social GitHub (1280×640) + description + topics du dépôt
+  (`self-hosted`, `household`, `personal-finance`, `homestead`, `django`,
+  `react`) — visibilité gratuite, aujourd'hui vide
+
+**Direction à trancher avant de dessiner** (ce lot ne l'impose pas) : qui produit
+le dessin — commande à un illustrateur, génération assistée, ou tracé à la main.
+Et quel motif : le lot 6 vendra « dedans comme dehors », donc un signe qui tient
+les deux (un toit **et** quelque chose qui pousse, un enclos, une clé de voûte)
+plutôt qu'une n-ième maison stylisée.
+
+**Critères**
+
+1. Le logo reste lisible à **16 px** et en **une seule couleur** — c'est le test
+   qui élimine les dessins trop détaillés.
+2. Il ne se casse sur **aucun des 17 thèmes**, en clair comme en sombre.
+3. Aucune maison-bâtiment isolée : le signe doit pouvoir accueillir le dehors.
+4. Icônes PWA `any` et `maskable` **distinctes** ; l'installation sur Android ne
+   rogne rien d'important.
+5. `docs/assets/brand/README.md` énonce la règle de marque, et `CONTRIBUTING`
+   (#490) y renvoie.
+6. L'aperçu social GitHub s'affiche correctement quand on colle le lien du dépôt
+   dans Slack, Discord et Mastodon — vérifié en collant réellement.
+
+---
+
 ## Ordre recommandé d'implémentation
 
 ```
@@ -444,13 +519,17 @@ Lot 0  (hygiène + CI)          ← court, prérequis absolu à toute exposition
             └─ Lot 3  (dégradation)  ← ses défauts se découvrent en lançant le lot 2 à nu
                  └─ Lot 4  (licence) ← court, obligatoire avant toute publication
                       └─ Lot 5  (exploitation)
-                           └─ Lot 6  (façade)  ← en dernier : les captures montrent l'app finale
-                                └─ Lot 7  (pilotes → publication)
+                           └─ Lot 8  (identité visuelle)  ← le logo doit exister avant les captures
+                                └─ Lot 6  (façade)  ← les captures montrent l'app finale, logo compris
+                                     └─ Lot 7  (pilotes → annonce)
 ```
 
 Les lots 1 et 2 peuvent avancer en parallèle (backend vs packaging). Le lot 6
 **doit** venir après le 3 : une capture d'un onglet Assistant qui promet ce qu'il
-ne peut pas tenir est une capture à refaire.
+ne peut pas tenir est une capture à refaire. Il doit aussi venir après le **8**,
+pour la même raison : une capture avec l'ancienne icône est une capture à refaire.
+Le lot 8 est le seul du parcours qui peut démarrer à tout moment — il ne dépend de
+rien.
 
 **Le dépôt étant déjà public**, il n'y a pas de bascule à placer dans cette
 séquence. Ce qui se place entre le lot 6 et le lot 7, c'est **l'annonce** — le
@@ -489,7 +568,11 @@ ils rattrapent une exposition en cours et passent devant tout le reste.
 5. `LICENSE` AGPL-3.0, `CONTRIBUTING`, `SECURITY`, `CODE_OF_CONDUCT`, templates
    d'issue en place ; lien source exposé dans l'app (AGPL §13).
 6. Sauvegarde **et restauration** exécutées de bout en bout, testées en CI.
-7. README bilingue orienté promesse + 6 captures + 1 GIF, générés depuis la seed.
+7. README bilingue orienté promesse + 6 captures + 1 GIF, générés depuis la seed
+   — **après** le remplacement du logo et des icônes.
+7bis. Logo lisible à 16 px et en monochrome, valide sur les 17 thèmes ; icônes PWA
+   `any` et `maskable` distinctes ; aperçu social GitHub en place ; règle de marque
+   écrite (l'AGPL ne couvre pas le nom ni le logo).
 8. i18n : clés `capabilities.*` présentes dans les **4** catalogues
    (`ui/src/locales/keys.test.ts` vert, aucun `defaultValue`).
 9. `npm run lint`, `tsc -b`, `pytest` et la suite E2E verts ; `nginx/test-resilience.sh`
