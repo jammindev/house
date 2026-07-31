@@ -1129,6 +1129,13 @@
     "notifications": {
       "title": "Benachrichtigungen",
       "description": "Wählen Sie, was in Ihrer Glocke landet. Abwählen, um eine Art von Benachrichtigung nicht mehr zu erhalten."
+    },
+    "about": {
+      "title": "Über Maisonnée",
+      "description": "Lizenz und Quellcode dieser Instanz.",
+      "license": "Maisonnée ist freie Software unter der GNU Affero General Public License v3.0. Sie dürfen sie nutzen, untersuchen, verändern und weitergeben.",
+      "sourceCode": "Quellcode",
+      "licenseLink": "Lizenz lesen"
     }
   },
   "tutorials": {

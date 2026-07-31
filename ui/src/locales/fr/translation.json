@@ -1129,6 +1129,13 @@
     "notifications": {
       "title": "Notifications",
       "description": "Choisissez ce qui arrive dans votre cloche. Décochez pour ne plus recevoir un type de notification."
+    },
+    "about": {
+      "title": "À propos de Maisonnée",
+      "description": "Licence et code source de cette instance.",
+      "license": "Maisonnée est un logiciel libre, sous licence GNU Affero General Public License v3.0. Vous pouvez l'utiliser, l'étudier, le modifier et le partager.",
+      "sourceCode": "Code source",
+      "licenseLink": "Lire la licence"
     }
   },
   "tutorials": {

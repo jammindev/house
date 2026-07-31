@@ -1,0 +1,48 @@
+name: Feature request
+description: Suggest something Maisonnée should do
+labels: ["idea"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Answers in **English or French** are both fine.
+
+        Two things worth knowing before you write, so the answer is not a surprise:
+
+        - Maisonnée is maintained by **one person**. Every accepted feature is a
+          thing to maintain for years, so "no" is a frequent and normal answer —
+          it is not a judgement on the idea.
+        - This app was built for one household's real life. The strongest case you
+          can make is a concrete situation, not a capability.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem are you hitting
+      description: |
+        Describe the situation, not the solution. What are you doing today instead?
+      placeholder: |
+        Every month I check whether the electricity bill matches the meter reading,
+        and I do it in a spreadsheet because I cannot see the two side by side.
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: What you had in mind
+      description: Optional. If you already have a shape in mind, describe it.
+    validations:
+      required: false
+
+  - type: dropdown
+    id: contribute
+    attributes:
+      label: Would you like to implement it
+      description: Entirely fine either way — this just tells the maintainer whether to discuss the design in detail.
+      options:
+        - "No — just suggesting"
+        - "Maybe, if the direction is agreed first"
+        - "Yes, I would like to open a pull request"
+    validations:
+      required: true
