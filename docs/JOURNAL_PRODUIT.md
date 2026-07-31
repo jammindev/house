@@ -67,6 +67,10 @@ Références :
 - le dashboard est le point d'entrée rapide
 - la page interactions est la source de vérité du parcours
 - la future couche IA devra produire une interaction candidate structurée, pas remplir un formulaire visuellement
+- **(2026-07-31)** le produit ne sera pas vendu en SaaS : il est publié en open
+  source auto-hébergeable sous le nom **Maisonnée**, licence **AGPL-3.0**, modèle
+  Home Assistant. Ce qu'on cherche à apprendre est la **rétention** de foyers
+  réels, pas l'audience — voir [parcours 28](./parcours/PARCOURS_28_OUVRIR_MAISONNEE.md)
 
 ## Ce qui est considéré comme livré sur le parcours 03
 

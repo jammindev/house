@@ -28,6 +28,80 @@ Les messages de commit alimentent **automatiquement** la page « Nouveautés »
 
 Le n° de PR de merge (`(#238)`) est extrait automatiquement pour le lien GitHub.
 
+## Langue — l'audience décide, jamais l'habitude
+
+Le dépôt est **public** (depuis 2025-09-21) et le [parcours 28](docs/parcours/PARCOURS_28_OUVRIR_MAISONNEE.md)
+prépare son annonce sous le nom **Maisonnée**. À partir de maintenant, chaque
+surface écrite a une langue, et elle se déduit de **qui la lit** :
+
+| Surface | Langue | Lecteur |
+|---|---|---|
+| Interface (`ui/src/locales/`) | **en · fr · de · es** | l'utilisateur |
+| `README.md`, `docs/self-hosting/`, notes de release | **anglais** (README aussi en `README.fr.md`) | l'inconnu qui découvre |
+| `CONTRIBUTING`, `SECURITY`, `CODE_OF_CONDUCT`, modèles d'issue/PR, description et topics du dépôt | **anglais** | l'inconnu qui veut aider |
+| Identifiants de code, noms de tests, noms de branches | **anglais** | tout le monde |
+| **Messages de commit** (sujet et corps) | **français** | toi, et l'IA qui les lit |
+| Issues et PRs | **français** jusqu'à l'annonce, **anglais** après | toi, puis tout le monde |
+| `docs/parcours/`, `docs/fiches/`, `docs/MODULES/`, `docs/journal/`, `CLAUDE.md`, `AGENTS.md`, `DEPLOYMENT.md` | **français** | toi et l'assistant |
+| Commentaires et docstrings | **français** admis là où le raisonnement se densifie | toi et l'assistant |
+| Changelog in-app (`/app/admin/changelog`) | **français** | staff uniquement |
+
+**Pourquoi la doc interne reste en français.** Elle porte du raisonnement dense —
+chaque règle d'ici est adossée à un bug réel, avec le pourquoi conservé. Une
+traduction qui dérive vaut moins qu'un texte juste, et c'est exactement ce qui
+rend ce dépôt inhabituel. Le français ne coûte qu'aux **contributeurs**, jamais
+aux **utilisateurs** : un self-hoster fait un `docker compose pull` et n'ouvre
+jamais `apps/banking/queries.py`. Or l'objectif de la V1 publique est la
+**rétention de foyers réels**, pas les pull requests. Mesuré au cadrage : 232
+issues, 0 image, 0 donnée personnelle, et un code déjà majoritairement anglais.
+
+**Pourquoi les commits restent en français.** Le message de commit a déjà un
+lecteur machine assumé dans ce projet : `generate_changelog` le lit et le
+**repolit** en phrase grand-public — c'est le contrat écrit juste au-dessus, qui
+n'a jamais porté que sur la **structure** (`type(scope):`), jamais sur la langue.
+Le reste du temps, un historique se consulte de moins en moins ligne à ligne : on
+demande à une IA, qui lit le français aussi bien que l'anglais. Ce qu'un commit
+doit être, c'est **précis** ; l'exiger dans une langue étrangère le rend plus vague,
+pas plus lisible.
+
+Le bénéfice secondaire est le plus solide : **une seule frontière au lieu de deux.**
+Tout ce qui est interne est en français, tout ce qu'un inconnu lit en premier est
+en anglais. Une règle à une frontière se tient ; une règle à exceptions dérive.
+
+**Ce qui ne se cache pas se déclare.** `CONTRIBUTING` annonce la langue du projet
+dès son premier paragraphe (livrable du lot 4, issue #490) : un contributeur ne
+doit pas la découvrir en ouvrant un fichier.
+
+> This project was built for one real household, in French. The interface speaks
+> English, French, German and Spanish; the internal documentation and some code
+> comments are in French. Issues and pull requests in English are welcome.
+
+**Le jour de l'annonce, une seule chose change** : les nouvelles issues passent en
+anglais. Le tracker devient un espace partagé, et un tracker exclusivement
+français dit à un anglophone qu'il n'est pas le public. Les anciennes ne se
+traduisent pas — réécrire l'histoire coûte plus que de l'assumer.
+
+### Une traduction est additive, datée, et supprimable
+
+`docs/README.en.md` (lot 4, issue #490) n'est pas une traduction : c'est un
+**index anglais commenté** de la doc française — quoi, où, et pourquoi ça vaut la
+peine d'aller lire. Il transforme « tout est en français » d'un mur en menu, et il
+invite explicitement à traduire.
+
+Ce qui **doit** venir avec, sinon l'invitation se retourne :
+
+- **Le fichier français reste la source de vérité.** Toujours. Une traduction ne
+  se corrige pas à la place de l'original.
+- **Une traduction porte la date et le commit de la version qu'elle reflète**, et
+  se nomme `<NOM>.en.md` **à côté** de l'original — jamais dans un dossier `en/`
+  parallèle, qui rend la dérive invisible.
+- **Périmée, elle se supprime.** Une traduction que personne ne met à jour est
+  pire que pas de traduction : elle a l'air de faire autorité en étant fausse.
+  C'est la même règle que les catalogues i18n (`keys.test.ts`) et que « un
+  compteur ne peut pas avoir deux définitions » — **deux textes qui divergent font
+  perdre leur crédit aux deux**, et celui qu'on lit n'est jamais celui qu'on
+  corrige.
+
 ## Déploiement — le proxy ne tombe pas avec l'app
 
 Doc : `DEPLOYMENT.md` § 3.4. Régression : `nginx/test-resilience.sh` (job `proxy`

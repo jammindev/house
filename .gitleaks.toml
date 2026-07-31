@@ -1,0 +1,32 @@
+# Configuration gitleaks — parcours 28, lot 0.
+#
+# Le dépôt est public depuis le 2025-09-21. Un secret commité y est un secret
+# publié : le révoquer après coup ne le retire ni des clones, ni des caches, ni
+# des miroirs. D'où une barrière à l'entrée (workflow `secrets-scan.yml`) plutôt
+# qu'un audit ponctuel.
+#
+# AUDIT COMPLET DE L'HISTORIQUE — 2026-07-31
+#   787 commits scannés, 27 Mo, 4 détections, **4 faux positifs**, 0 secret réel.
+#   Détail dans docs/journal/2026-07-31_parcours-28_lot0_audit-historique.md
+#
+# Les deux commits ci-dessous sont allowlistés **par SHA**, jamais par chemin :
+# un chemin allowlisté couvrirait aussi les fichiers futurs qui y atterriraient,
+# et cacherait donc un vrai secret le jour où il arriverait. Un SHA est figé —
+# il ne peut, par construction, blanchir que ce qui a déjà été vérifié à la main.
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Faux positifs vérifiés un par un lors de l'audit du 2026-07-31"
+commits = [
+  # `specs/001-settings-migration/contracts/user-change-password.md` — corps de
+  # requête d'exemple dans un contrat d'API : `"new_password": "MyNewS3cur3Pass"`.
+  # Mot de passe fictif de documentation.
+  "957e48761c9c0c0a8dbfecd0218a7b358994af9b",
+
+  # `nextjs/src/lib/i18n/dictionaries/{en,fr}.json` — chaînes de traduction
+  # voisines de « Authenticator Device » / « authentification », attrapées par
+  # l'heuristique `generic-api-key`. Code `nextjs/` supprimé depuis.
+  "44dab808b70009ac01d295eb0ff2b637524918a5",
+]

@@ -25,6 +25,7 @@ Chaque fiche suit le même squelette :
 - [CARTOGRAPHIE_DEPENSES.md](CARTOGRAPHIE_DEPENSES.md) — Cartographie du mécanisme de dépenses : tous les points d'écriture et de lecture, et la dette résorbée (parcours 08 + 21)
 - [IMPORT_ET_RAPPROCHEMENT.md](IMPORT_ET_RAPPROCHEMENT.md) — Import idempotent & rapprochement flou : dédupliquer un relevé bancaire sans identifiant natif, et apparier une ligne à un achat déjà saisi (parcours 25)
 - [SNAPSHOT_ET_RECIT.md](SNAPSHOT_ET_RECIT.md) — Instantané figé & récit tardif : garder la mémoire d'une période close sans réécrire l'histoire, et la raconter dans la langue du lecteur (parcours 21 + 27)
+- [AUTO_HEBERGEMENT.md](AUTO_HEBERGEMENT.md) — D'un déploiement à un produit installable : ce que change le passage à l'auto-hébergement (modèle de menace, capacités optionnelles, licence copyleft réseau, sauvegarde comme fonctionnalité) (parcours 28)
 
 ## Quand créer une fiche ?
 

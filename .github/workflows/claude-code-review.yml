@@ -24,13 +24,22 @@
 name: Claude Code Review
 
 on:
+  # `workflow_dispatch` n'est déclenchable que par un compte ayant les droits
+  # d'écriture : sur un dépôt public, ce workflow n'est donc pas atteignable de
+  # l'extérieur en l'état.
   workflow_dispatch:
   # Déclencheur d'origine, à restaurer une fois les deux causes corrigées :
   # pull_request:
   #   types: [opened, synchronize, ready_for_review, reopened]
+  #
+  # ⚠️ DÉPÔT PUBLIC — en le restaurant, ajouter la même garde que `claude.yml` :
+  # une PR ouverte depuis un fork consommerait sinon le quota Claude du
+  # mainteneur à chaque push de son auteur. Filtrer sur
+  # `github.event.pull_request.author_association` ∈ {OWNER, MEMBER, COLLABORATOR}.
 
 jobs:
   claude-review:
+    if: github.repository == 'jammindev/house'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -41,13 +50,13 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           fetch-depth: 1
 
       - name: Run Claude Code Review
         id: claude-review
-        uses: anthropics/claude-code-action@v1
+        uses: anthropics/claude-code-action@be7b93b1907a4abad570368f3c74b6fe3807510b # v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           plugin_marketplaces: 'https://github.com/anthropics/claude-code.git'
