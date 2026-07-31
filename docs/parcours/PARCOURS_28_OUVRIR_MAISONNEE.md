@@ -159,12 +159,8 @@ Explicitement différé, et pourquoi :
 - **Le packaging communautaire** (Unraid, Umbrel, CasaOS, TrueNAS, Helm). Ça se
   mérite après avoir prouvé qu'une installation Docker nue tient chez cinq
   inconnus.
-- **La traduction du code et de la doc interne en anglais.** Le code, les
-  commentaires, `CLAUDE.md` et `docs/` restent en français : c'est l'origine du
-  projet et le raisonnement y est intact. Seule la **façade** est bilingue
-  (README, `CONTRIBUTING`, modèles d'issue). L'interface, elle, est déjà en quatre
-  langues. Barrière contributeur assumée : mieux vaut une doc vraie en français
-  qu'une traduction morte.
+- **La traduction du code et de la doc interne en anglais** — voir la section
+  « La langue » ci-dessous, qui documente la mesure et la décision.
 - **L'hébergement payant** (séquence Home Assistant → Nabu Casa) et
   **l'agrégation bancaire**. Ce sont les portes de sortie que l'AGPL garde
   ouvertes, pas des chantiers de ce parcours.
@@ -193,6 +189,51 @@ Trois conséquences, et elles réordonnent le chantier :
 
 Le bon côté : **rien n'a été gaspillé.** La règle « on n'a qu'un seul coup par
 communauté » est intacte, puisque aucune communauté n'est encore passée.
+
+## La langue : une caractéristique déclarée, pas un défaut caché
+
+La question s'est posée franchement au cadrage — « tout est en français, est-ce
+que je ne devrais pas repartir d'un dépôt neuf ? » — et elle mérite d'être
+tranchée avec des chiffres plutôt qu'à l'intuition, parce qu'elle reviendra.
+
+**Ce que le dépôt contient réellement** (mesuré le 2026-07-31) :
+
+| Mesure | Résultat |
+|---|---|
+| Issues (ouvertes + fermées) | **232**, toutes techniques (lots de parcours, bugs) |
+| Issues avec image ou pièce jointe | **0** |
+| Issues contenant une donnée personnelle | **0** — 8 remontées par la recherche, 8 faux positifs (le mot « adresse » dans « adresse email ») |
+| Secrets ou médias dans les 778 commits | **0** |
+| Docs citant des données réelles | **2 fichiers**, déjà dans les critères du lot 0 |
+| Langue du code | majoritairement **anglais** (structure, noms, docstrings d'en-tête) ; le français apparaît là où le raisonnement se densifie |
+| Sujets de commit en français | ~25 % — et ceux-là sont repolis par l'IA pour le changelog public |
+
+**Un dépôt neuf réglerait donc un problème qui n'existe pas, et laisserait intact
+celui qui existe** : le code partirait en français à l'identique.
+
+**À qui le français coûte-t-il ?** À des contributeurs, pas à des utilisateurs. Un
+self-hoster fait un `docker compose pull` et n'ouvre jamais
+`apps/banking/queries.py`. Or l'objectif de V1 est la **rétention de foyers
+réels**, pas les pull requests. Ce qui doit être en anglais pour servir cet
+objectif l'est déjà dans le plan : README, `CONTRIBUTING`, `SECURITY`, modèles
+d'issue — et l'interface parle quatre langues depuis longtemps.
+
+**Ce que le dépôt neuf coûterait**, lui, est mesurable : 778 commits de
+raisonnement ; **tous les liens croisés** des docs (chaque backlog dit « ✅ Livré
+(PR #333) ») qui deviendraient des liens morts, transformant la documentation en
+labyrinthe ; et `generate_changelog`, câblé au job de deploy, qui lit ce `git log`.
+Sans compter le signal d'un « initial commit » de 40 000 lignes.
+
+**Décision** : garder le dépôt, et **déclarer** la langue au lieu de la cacher —
+une phrase en anglais dans `CONTRIBUTING` (lot 4) désamorce la gêne et dit la
+vérité : ce projet vient de quelque part.
+
+> This project was built for one real household, in French. The interface speaks
+> English, French, German and Spanish; the internal documentation and some code
+> comments are in French. Issues and pull requests in English are welcome.
+
+Si des contributeurs arrivent, traduire des commentaires est **incrémental,
+délégable et réversible**. Jeter un historique ne l'est pas.
 
 ## Le risque assumé
 

@@ -71,8 +71,15 @@ Le parcours d'un inconnu, de bout en bout, après ce chantier :
   intégrée en V1 (documentée, pas automatisée).
 - **Secrets** : `SECRET_KEY` **généré au premier démarrage** et persisté, jamais
   réclamé à l'utilisateur.
-- **Langue** : façade bilingue FR/EN ; code, commentaires et `docs/` restent en
-  français.
+- **Langue** : façade bilingue FR/EN (README, `CONTRIBUTING`, `SECURITY`, modèles
+  d'issue) ; code, commentaires et `docs/` restent en **français**, et
+  `CONTRIBUTING` le **déclare** au lieu de le cacher. Mesuré : le code est déjà
+  majoritairement anglais, le français ne coûte qu'aux contributeurs — pas aux
+  utilisateurs, qui sont l'objectif de V1. Détail et chiffres : doc produit,
+  section « La langue ».
+- **Contenu personnel** : audité le 2026-07-31 → **232 issues, 0 image, 0 donnée
+  personnelle** (8 remontées, 8 faux positifs sur le mot « adresse »). Question
+  close : elle ne justifie pas un dépôt neuf.
 - **Pas de télémétrie**, pas de démo en ligne (voir doc produit, § différé).
 - **Annonce publique** (premier lien posté quelque part) : après les lots 0→6,
   jamais avant. Les lots 1 (isolation) et 4 (licence) sont **bloquants** au sens
@@ -302,7 +309,11 @@ le lot 0, sans attendre le reste du parcours.
 - `AUTHORS` / en-tête de copyright — détenteur unique
 - `CONTRIBUTING.md` (EN + `CONTRIBUTING.fr.md`) — DCO `Signed-off-by`, format des
   commits conventionnels (contrat du changelog, déjà tenu — pointer `CLAUDE.md`),
-  comment lancer les tests, où lire `docs/fiches/`
+  comment lancer les tests, où lire `docs/fiches/`. **Porte la déclaration de
+  langue**, en tête et telle quelle :
+  > This project was built for one real household, in French. The interface speaks
+  > English, French, German and Spanish; the internal documentation and some code
+  > comments are in French. Issues and pull requests in English are welcome.
 - `CODE_OF_CONDUCT.md` — Contributor Covenant 2.1
 - `SECURITY.md` — versions supportées, canal privé de signalement, délai de réponse
   annoncé et tenable pour une personne seule
@@ -318,7 +329,8 @@ le lot 0, sans attendre le reste du parcours.
 1. `LICENSE` reconnu par GitHub (bandeau « AGPL-3.0 » sur la page du dépôt).
 2. L'app expose un lien vers son code source depuis l'interface (conformité §13).
 3. `CONTRIBUTING.md` permet à un inconnu de faire tourner les tests sans poser de
-   question.
+   question, et **annonce la langue du projet** dès le premier paragraphe — un
+   contributeur ne doit pas le découvrir en ouvrant un fichier.
 4. `SECURITY.md` donne un canal **privé** qui aboutit réellement.
 5. Les modèles d'issue reprennent les labels existants (`bug`, `feat`,
    `app:<module>`).

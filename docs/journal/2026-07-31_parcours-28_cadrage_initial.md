@@ -95,11 +95,56 @@ semaine 3 est un résultat négatif ; dix foyers qui saisissent encore leurs dé
 retient ? le problème existe-t-il ailleurs que chez soi — sachant que la réponse
 honnête peut être non, et que ce serait une information qui vaut un an.
 
+## Deuxième passe — le nom, le branding, la langue
+
+Trois points rouverts après le cadrage initial, dans la même session.
+
+**Le nom, confirmé contre une objection.** « Maisonnée ne rétrécit-il pas le
+produit au dedans, alors que des modules **potager** et **élevage** arrivent ? »
+Réponse retenue : c'est l'inverse. *Maisonnée* désigne les **gens**, pas les murs
+— le poulailler et le jardin lui appartiennent parce que c'est elle qui les tient.
+Et surtout, **un nom de gens s'étend à n'importe quel module ; un nom de lieu se
+referme.** `Closerie`, `Enclos`, `Bastide` étaient tous libres sur GitHub, et
+c'est précisément ce qui les disqualifie : un périmètre finit par être débordé,
+par un véhicule, une résidence secondaire, un contrat. Le dehors est donc porté
+par la **baseline**, pas par le nom.
+
+**Le branding est devenu un lot (#494).** L'icône PWA actuelle est un placeholder
+clipart — maison blanche sur dégradé bleu — qui dit deux fois le contraire du
+positionnement : un bâtiment, et rien du dehors. Le `TopBar` n'a pas de logo du
+tout. Contrainte découverte en inspectant : `themes.css` porte **17 thèmes de
+couleur** choisis par l'utilisateur, donc la marque ne peut pas être `--primary`
+— elle serait repeinte par le thème du foyer. Point connexe au lot 4 : **l'AGPL ne
+couvre pas les marques**, ce qui doit être écrit une fois pour qu'un fork ne se
+présente pas comme l'original.
+
+**La langue, tranchée par la mesure.** Doute exprimé : « tout est en français, et
+il y a peut-être des issues ou des documents personnels — mieux vaut repartir d'un
+dépôt neuf ? » L'audit dit non :
+
+- **232 issues**, **0** image ou pièce jointe, **0** donnée personnelle (8
+  remontées par la recherche de marqueurs, 8 faux positifs sur le mot
+  « adresse ») ;
+- le code est déjà **majoritairement anglais** ; le français apparaît là où le
+  raisonnement se densifie.
+
+D'où le raisonnement décisif : **un dépôt neuf réglerait un problème inexistant et
+laisserait intact le seul qui existe** — le code partirait en français à
+l'identique. Et le français ne coûte qu'aux **contributeurs**, pas aux
+**utilisateurs**, qui sont l'objectif de V1 ; un self-hoster fait un `docker
+compose pull` et n'ouvre jamais `apps/banking/queries.py`. Décision : garder le
+dépôt et **déclarer** la langue dans `CONTRIBUTING` au lieu de la cacher.
+
+Coût mesuré d'un dépôt neuf, pour mémoire : 778 commits de raisonnement, tous les
+liens croisés des docs (« ✅ Livré (PR #333) ») transformés en liens morts, et
+`generate_changelog` — câblé au deploy — privé du `git log` qu'il lit.
+
 ## Livrables de la session
 
 - Doc produit : [`PARCOURS_28_OUVRIR_MAISONNEE.md`](../parcours/PARCOURS_28_OUVRIR_MAISONNEE.md)
 - Fiche concept : [`AUTO_HEBERGEMENT.md`](../fiches/AUTO_HEBERGEMENT.md)
 - Backlog technique : [`PARCOURS_28_BACKLOG_TECHNIQUE.md`](../parcours/PARCOURS_28_BACKLOG_TECHNIQUE.md)
-- Issues : **#485** (ombrelle), **#486 → #493** (lots 0 à 7)
+- Issues : **#485** (ombrelle), **#486 → #493** (lots 0 à 7), **#494** (lot 8 —
+  identité visuelle)
 
 Zéro ligne de code applicatif.
