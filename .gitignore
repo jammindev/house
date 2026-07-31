@@ -86,10 +86,9 @@ scripts/sync_from_prod.sh
 .claude/settings.local.json
 .claude/worktrees/
 
-# Artefacts de test et de couverture — jamais suivis (parcours 28, lot 0).
-# `coverage.json` et `issues/` l'étaient par accident : le dépôt est public,
-# et un artefact suivi finit par publier un chemin ou un nom local.
+# Artefacts et notes locales — l'étaient par accident (parcours 28, lot 0).
+# Le dépôt est public : un artefact suivi finit par publier un chemin, un nom
+# local ou une note de travail. (`playwright-report/` et `test-results/` sont
+# déjà couverts plus haut.)
 coverage.json
-playwright-report/
-test-results/
 issues/

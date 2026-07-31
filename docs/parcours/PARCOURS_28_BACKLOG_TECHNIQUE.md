@@ -156,7 +156,7 @@ Deux risques concrets déjà identifiés, tous deux liés à la CI plutôt qu'au
 - `git rm --cached coverage.json issues/tasks.md` (fichiers suivis à tort ;
   contenu conservé localement)
 - `.github/agents/`, `.github/prompts/` — supprimer les gabarits *speckit*
-  inutilisés (12 fichiers) : ils décrivent un workflow qui n'est pas celui du
+  inutilisés (19 fichiers) : ils décrivent un workflow qui n'est pas celui du
   projet et désorientent un contributeur
 - `.github/workflows/claude.yml` — restreindre le déclencheur par
   `github.event.comment.author_association` ∈ {OWNER, MEMBER, COLLABORATOR}
