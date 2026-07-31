@@ -314,11 +314,39 @@ le lot 0, sans attendre le reste du parcours.
   > This project was built for one real household, in French. The interface speaks
   > English, French, German and Spanish; the internal documentation and some code
   > comments are in French. Issues and pull requests in English are welcome.
+- `docs/README.en.md` (nouveau) — **le guide anglais de la documentation
+  française**. Ce n'est pas une traduction : c'est un **index commenté** qui dit,
+  pour chaque famille de docs, de quoi il s'agit et pourquoi ça peut valoir la
+  peine d'aller la lire (au traducteur automatique s'il le faut). Il transforme
+  « tout est en français » d'un mur en menu. Structure :
+
+  | Where | What it is | Why you may care |
+  |---|---|---|
+  | `CLAUDE.md` | The project's rulebook. Every rule is tied to a bug that actually happened in production, with the reasoning kept and the name of the regression test that guards it. | The fastest way to understand *why* the code looks like it does — and the file to read before changing anything. |
+  | `docs/fiches/` | Concept notes ("the lesson"): RAG, embeddings, idempotent import, self-hosting… Each one states the problem, the concept, how it was applied here, the trade-offs, and **what was rejected and why**. | Background on the non-obvious parts, and the decisions you would otherwise re-litigate. |
+  | `docs/parcours/` | One folder per feature effort: a product document (what problem, for whom) and a technical backlog split into deliverable lots. | What is planned, what is deliberately out of scope, and where the current work sits. |
+  | `docs/MODULES/` | Status of each Django app: what to fix, what to build, what to improve. | Where to start on a given module. |
+  | `docs/journal/` | Dated notes from working sessions — decisions as they were made. | Archaeology: why a choice was made on a given day. |
+  | Commit messages & issues | In French, conventional commits (`type(scope): …`). | The changelog is generated from them. |
+
+  Il se termine par l'invitation explicite, dans les termes ci-dessous.
 - `CODE_OF_CONDUCT.md` — Contributor Covenant 2.1
 - `SECURITY.md` — versions supportées, canal privé de signalement, délai de réponse
   annoncé et tenable pour une personne seule
 - `.github/ISSUE_TEMPLATE/{bug_report,feature_request,config.yml}`,
   `.github/PULL_REQUEST_TEMPLATE.md`
+- **L'invitation à traduire**, à poser à la fin de `docs/README.en.md` et à
+  reprendre en une ligne dans `CONTRIBUTING.md` :
+
+  > **Translating any of these is a genuinely useful contribution** — probably the
+  > easiest way to make a first, meaningful one. Two rules keep it from backfiring:
+  > the French file stays the source of truth, and a translation records the date
+  > and commit of the version it mirrors. A translation nobody updates is worse
+  > than no translation at all: it looks authoritative while being wrong. If one
+  > goes stale and you can't refresh it, delete it — that is a contribution too.
+
+  Convention de nommage : `<NOM>.en.md` à côté de l'original (jamais un dossier
+  `en/` parallèle, qui rend la dérive invisible).
 - `package.json` — champ `license`
 - `README.md` — badge et mention de licence
 - `ui/src/features/settings/` — mention de licence et lien source dans l'app
@@ -331,6 +359,10 @@ le lot 0, sans attendre le reste du parcours.
 3. `CONTRIBUTING.md` permet à un inconnu de faire tourner les tests sans poser de
    question, et **annonce la langue du projet** dès le premier paragraphe — un
    contributeur ne doit pas le découvrir en ouvrant un fichier.
+3bis. `docs/README.en.md` existe et **couvre toutes les familles de docs** : un
+   anglophone sait ce que contient chaque dossier sans en lire une ligne, et
+   l'invitation à traduire énonce les deux garde-fous (source de vérité française,
+   traduction datée — périmée, on la supprime). Le README anglais y renvoie.
 4. `SECURITY.md` donne un canal **privé** qui aboutit réellement.
 5. Les modèles d'issue reprennent les labels existants (`bug`, `feat`,
    `app:<module>`).

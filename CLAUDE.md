@@ -81,6 +81,27 @@ anglais. Le tracker devient un espace partagé, et un tracker exclusivement
 français dit à un anglophone qu'il n'est pas le public. Les anciennes ne se
 traduisent pas — réécrire l'histoire coûte plus que de l'assumer.
 
+### Une traduction est additive, datée, et supprimable
+
+`docs/README.en.md` (lot 4, issue #490) n'est pas une traduction : c'est un
+**index anglais commenté** de la doc française — quoi, où, et pourquoi ça vaut la
+peine d'aller lire. Il transforme « tout est en français » d'un mur en menu, et il
+invite explicitement à traduire.
+
+Ce qui **doit** venir avec, sinon l'invitation se retourne :
+
+- **Le fichier français reste la source de vérité.** Toujours. Une traduction ne
+  se corrige pas à la place de l'original.
+- **Une traduction porte la date et le commit de la version qu'elle reflète**, et
+  se nomme `<NOM>.en.md` **à côté** de l'original — jamais dans un dossier `en/`
+  parallèle, qui rend la dérive invisible.
+- **Périmée, elle se supprime.** Une traduction que personne ne met à jour est
+  pire que pas de traduction : elle a l'air de faire autorité en étant fausse.
+  C'est la même règle que les catalogues i18n (`keys.test.ts`) et que « un
+  compteur ne peut pas avoir deux définitions » — **deux textes qui divergent font
+  perdre leur crédit aux deux**, et celui qu'on lit n'est jamais celui qu'on
+  corrige.
+
 ## Déploiement — le proxy ne tombe pas avec l'app
 
 Doc : `DEPLOYMENT.md` § 3.4. Régression : `nginx/test-resilience.sh` (job `proxy`

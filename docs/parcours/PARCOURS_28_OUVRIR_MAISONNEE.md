@@ -252,6 +252,21 @@ Une seule bascule est datée : les **nouvelles issues** passent en anglais **le 
 de l'annonce** (lot 7), quand le tracker cesse d'être un carnet personnel pour
 devenir un espace partagé. Les anciennes ne se traduisent pas.
 
+**Et l'anglophone n'est pas laissé devant un mur.** Le lot 4 livre
+`docs/README.en.md` : pas une traduction, un **index anglais commenté** de la doc
+française — pour chaque famille (`CLAUDE.md`, `fiches/`, `parcours/`, `MODULES/`,
+`journal/`), ce que c'est et pourquoi ça peut valoir la peine d'aller la lire, au
+traducteur automatique s'il le faut. « Tout est en français » devient un menu au
+lieu d'une porte fermée, et la page invite explicitement à traduire — c'est
+probablement la première contribution utile la plus accessible du projet.
+
+Deux garde-fous rendent cette invitation tenable, et ils sont la règle générale du
+projet appliquée aux textes : **le fichier français reste la source de vérité**, et
+**une traduction périmée se supprime**. Une traduction que personne ne met à jour
+a l'air de faire autorité en étant fausse — c'est « un compteur ne peut pas avoir
+deux définitions » transposé à la prose : deux textes qui divergent font perdre
+leur crédit aux deux, et celui qu'on lit n'est jamais celui qu'on corrige.
+
 ## Le risque assumé
 
 Publier une app qui contient les relevés bancaires, les documents et l'adresse
