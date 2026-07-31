@@ -16,8 +16,8 @@ Issue ombrelle : **#485**
 | Lot | Sujet | Statut | Issue |
 |---|---|---|---|
 | 0 | Hygiène du dépôt + durcissement CI (**urgent — dépôt déjà public**) | ✅ Livré (PR #495) | #486 |
-| 1 | Durcissement multi-tenant + test générique d'isolation (**bloquant**) | 🔄 En revue (PR #497) | #487 |
-| 1bis | Isolation **en écriture** : FK de serializer, actions custom, APIView (**bloquant**) | ⬜ À faire | #498 |
+| 1 | Durcissement multi-tenant + test générique d'isolation (**bloquant**) | ✅ Livré (PR #497) | #487 |
+| 1bis | Isolation **en écriture** : FK de serializer ✅ (PR #499) ; actions custom + 26 `APIView` restants | 🔄 Partiel | #498 |
 | 2 | `docker compose up` — première installation en une commande | ⬜ À faire | #488 |
 | 3 | Dégradation propre sans service tiers (IA, SMTP, push, Telegram) | ⬜ À faire | #489 |
 | 4 | LICENSE AGPL-3.0 + gouvernance (CONTRIBUTING, SECURITY, DCO, templates) | ✅ Livré (PR #496) | #490 |
