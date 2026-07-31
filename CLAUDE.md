@@ -40,7 +40,7 @@ surface écrite a une langue, et elle se déduit de **qui la lit** :
 | `README.md`, `docs/self-hosting/`, notes de release | **anglais** (README aussi en `README.fr.md`) | l'inconnu qui découvre |
 | `CONTRIBUTING`, `SECURITY`, `CODE_OF_CONDUCT`, modèles d'issue/PR, description et topics du dépôt | **anglais** | l'inconnu qui veut aider |
 | Identifiants de code, noms de tests, noms de branches | **anglais** | tout le monde |
-| **Sujets de commit** | **anglais** | tout le monde |
+| **Messages de commit** (sujet et corps) | **français** | toi, et l'IA qui les lit |
 | Issues et PRs | **français** jusqu'à l'annonce, **anglais** après | toi, puis tout le monde |
 | `docs/parcours/`, `docs/fiches/`, `docs/MODULES/`, `docs/journal/`, `CLAUDE.md`, `AGENTS.md`, `DEPLOYMENT.md` | **français** | toi et l'assistant |
 | Commentaires et docstrings | **français** admis là où le raisonnement se densifie | toi et l'assistant |
@@ -55,11 +55,18 @@ jamais `apps/banking/queries.py`. Or l'objectif de la V1 publique est la
 **rétention de foyers réels**, pas les pull requests. Mesuré au cadrage : 232
 issues, 0 image, 0 donnée personnelle, et un code déjà majoritairement anglais.
 
-**Pourquoi les sujets de commit basculent tout de suite.** Le `git log` est la
-deuxième surface publique la plus parcourue après le README. Le contrat du
-changelog ne dépend que de la **structure** (`type(scope):`), jamais de la langue
-— la description est repolie par l'IA de toute façon. Coût du changement : nul.
-Le **corps** du commit peut rester en français.
+**Pourquoi les commits restent en français.** Le message de commit a déjà un
+lecteur machine assumé dans ce projet : `generate_changelog` le lit et le
+**repolit** en phrase grand-public — c'est le contrat écrit juste au-dessus, qui
+n'a jamais porté que sur la **structure** (`type(scope):`), jamais sur la langue.
+Le reste du temps, un historique se consulte de moins en moins ligne à ligne : on
+demande à une IA, qui lit le français aussi bien que l'anglais. Ce qu'un commit
+doit être, c'est **précis** ; l'exiger dans une langue étrangère le rend plus vague,
+pas plus lisible.
+
+Le bénéfice secondaire est le plus solide : **une seule frontière au lieu de deux.**
+Tout ce qui est interne est en français, tout ce qu'un inconnu lit en premier est
+en anglais. Une règle à une frontière se tient ; une règle à exceptions dérive.
 
 **Ce qui ne se cache pas se déclare.** `CONTRIBUTING` annonce la langue du projet
 dès son premier paragraphe (livrable du lot 4, issue #490) : un contributeur ne

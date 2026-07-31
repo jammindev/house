@@ -237,13 +237,20 @@ délégable et réversible**. Jeter un historique ne l'est pas.
 
 **Le cadre est écrit, et il tient dans le temps** : le tableau surface par surface
 vit dans `CLAUDE.md` § « Langue — l'audience décide, jamais l'habitude », donc il
-est chargé à chaque session de travail plutôt qu'oublié dans un parcours. Deux
-bascules y sont datées : les **sujets de commit** passent en anglais dès
-maintenant (le `git log` est la deuxième surface publique la plus lue après le
-README, et le contrat du changelog ne dépend que de la structure `type(scope):`) ;
-les **nouvelles issues** passent en anglais **le jour de l'annonce**, quand le
-tracker cesse d'être un carnet personnel pour devenir un espace partagé. Les
-anciennes ne se traduisent pas.
+est chargé à chaque session de travail plutôt qu'oublié dans un parcours.
+
+Il n'a **qu'une frontière** : ce qui est interne (docs, `CLAUDE.md`, commentaires,
+**commits**, issues) reste en français ; ce qu'un inconnu lit en premier (README,
+`docs/self-hosting/`, `CONTRIBUTING`, `SECURITY`, templates, description du dépôt)
+est en anglais, comme les identifiants de code et les noms de tests, qui le sont
+déjà. Les commits y sont restés français à dessein : dans ce projet leur lecteur
+est d'abord `generate_changelog`, qui les **repolit**, et le contrat n'a jamais
+porté que sur la structure `type(scope):`. Exiger la précision dans une langue
+étrangère rend un commit plus vague, pas plus lisible.
+
+Une seule bascule est datée : les **nouvelles issues** passent en anglais **le jour
+de l'annonce** (lot 7), quand le tracker cesse d'être un carnet personnel pour
+devenir un espace partagé. Les anciennes ne se traduisent pas.
 
 ## Le risque assumé
 
