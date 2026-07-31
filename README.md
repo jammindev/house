@@ -136,3 +136,26 @@ Configuration dans `pytest.ini` avec couverture sur l’app `accounts`.
 - Lookup bidirectionnel: `/api/electricity/mapping/lookup/?ref=<label>`
 - Soft delete lien: `POST /api/electricity/links/<id>/deactivate/`
 - Permissions: owner écriture, member lecture (même foyer uniquement)
+
+## Licence et contribution
+
+Maisonnée est un **logiciel libre** sous licence
+[GNU AGPL-3.0-only](LICENSE) — vous pouvez l'utiliser, l'étudier, le modifier et
+le partager, y compris pour votre propre foyer. Héberger une version *modifiée*
+pour d'autres personnes impose d'en publier les modifications ; s'auto-héberger
+pour sa famille est l'usage normal du logiciel, pas une distribution.
+
+Le **nom « Maisonnée » et le logo ne sont pas couverts par la licence** : le code
+est libre, l'identité non.
+
+- [`CONTRIBUTING.md`](CONTRIBUTING.md) — comment contribuer (en anglais),
+  [version française](CONTRIBUTING.fr.md)
+- [`SECURITY.md`](SECURITY.md) — signaler une vulnérabilité (jamais en issue
+  publique)
+- [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md)
+- [`docs/README.en.md`](docs/README.en.md) — guide anglais de la documentation
+  française, pour les visiteurs anglophones
+
+> Ce README s'adresse encore à un développeur du projet. Il sera réécrit pour
+> s'adresser à un visiteur — promesse d'abord, captures ensuite, stack en
+> dernier — au lot 6 du [parcours 28](docs/parcours/PARCOURS_28_OUVRIR_MAISONNEE.md).

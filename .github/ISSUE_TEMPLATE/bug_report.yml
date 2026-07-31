@@ -1,0 +1,68 @@
+name: Bug report
+description: Something is broken or behaves wrongly
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time. Answers in **English or French** are both fine.
+
+        ⚠️ **Found a security vulnerability?** Do not report it here — use
+        [Security → Report a vulnerability](https://github.com/jammindev/house/security/advisories/new).
+        See [SECURITY.md](https://github.com/jammindev/house/blob/main/SECURITY.md).
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What you saw, and what you expected instead.
+      placeholder: |
+        I imported a bank statement and the balance shown afterwards was 40 € short.
+        I expected it to match the last printed balance.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      description: The shortest path from a working app to the problem.
+      placeholder: |
+        1. Go to Money → Accounts
+        2. Import the attached CSV
+        3. Open the Control tab — the counter reads 0 discrepancies
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: The release tag or commit you are running (`docker compose images`, or the version shown in Settings).
+      placeholder: "v0.2.0"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: install
+    attributes:
+      label: How is it installed
+      options:
+        - Docker Compose (self-hosted)
+        - Development setup (venv + npm)
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything else
+      description: |
+        Logs (`docker compose logs web`), screenshots, browser and version.
+
+        **Please redact real data** — amounts, account numbers, names, addresses.
+        A screenshot of your actual bank statement helps nobody once it is on a
+        public issue tracker.
+    validations:
+      required: false

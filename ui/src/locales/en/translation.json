@@ -1129,6 +1129,13 @@
     "notifications": {
       "title": "Notifications",
       "description": "Choose what lands in your bell. Untick to stop receiving a kind of notification."
+    },
+    "about": {
+      "title": "About Maisonnée",
+      "description": "Licence and source code of this instance.",
+      "license": "Maisonnée is free software, licensed under the GNU Affero General Public License v3.0. You may run, study, modify and share it.",
+      "sourceCode": "Source code",
+      "licenseLink": "Read the licence"
     }
   },
   "tutorials": {

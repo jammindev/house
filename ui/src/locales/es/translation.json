@@ -1129,6 +1129,13 @@
     "notifications": {
       "title": "Notificaciones",
       "description": "Elija qué llega a su campana. Desmarque para dejar de recibir un tipo de notificación."
+    },
+    "about": {
+      "title": "Acerca de Maisonnée",
+      "description": "Licencia y código fuente de esta instancia.",
+      "license": "Maisonnée es software libre, bajo licencia GNU Affero General Public License v3.0. Puede usarlo, estudiarlo, modificarlo y compartirlo.",
+      "sourceCode": "Código fuente",
+      "licenseLink": "Leer la licencia"
     }
   },
   "tutorials": {
