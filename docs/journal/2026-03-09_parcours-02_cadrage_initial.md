@@ -27,8 +27,8 @@ Objectif réel de la session : transformer la priorité produit du parcours 02 e
 
 ## Documents produits ou mis à jour
 
-- [docs/PARCOURS_02_TRAITER_UN_DOCUMENT_ENTRANT_ET_LE_RELIER_AU_BON_CONTEXTE.md](/Users/benjaminvandamme/Dev/house/docs/PARCOURS_02_TRAITER_UN_DOCUMENT_ENTRANT_ET_LE_RELIER_AU_BON_CONTEXTE.md)
-- [docs/PARCOURS_02_BACKLOG_TECHNIQUE.md](/Users/benjaminvandamme/Dev/house/docs/PARCOURS_02_BACKLOG_TECHNIQUE.md)
+- [PARCOURS_02_TRAITER_UN_DOCUMENT_ENTRANT_ET_LE_RELIER_AU_BON_CONTEXTE.md](../parcours/PARCOURS_02_TRAITER_UN_DOCUMENT_ENTRANT_ET_LE_RELIER_AU_BON_CONTEXTE.md)
+- [PARCOURS_02_BACKLOG_TECHNIQUE.md](../parcours/PARCOURS_02_BACKLOG_TECHNIQUE.md)
 - note de compréhension IA pour le parcours 02 (depuis consolidée dans [docs/parcours/PARCOURS_07_AGENT_CONVERSATIONNEL.md](../../docs/parcours/PARCOURS_07_AGENT_CONVERSATIONNEL.md), section "Évolutions ultérieures")
 
 ## Recommandation pour la suite

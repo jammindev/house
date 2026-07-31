@@ -92,9 +92,28 @@ jobs:
 
   deploy:
     name: Deploy to Production
+    # ⚠️ SEUL job de ce dépôt PUBIC à tourner sur le runner self-hosted, donc sur
+    # le VPS. Les trois autres sont sur `ubuntu-latest` : du code venu d'une PR de
+    # fork ne touche jamais la machine.
+    #
+    # La garde ci-dessous est ce qui rend ça vrai, et chacune de ses trois
+    # conditions compte :
+    #   - `event_name == 'push'`    → une PR (y compris de fork) est un
+    #                                 `pull_request` : le job est sauté, le runner
+    #                                 ne prend jamais le job ;
+    #   - `ref == refs/heads/main`  → une branche poussée directement ne déploie pas ;
+    #   - `repository == …`         → un fork qui hérite du workflow ne peut pas
+    #                                 réquisitionner le runner s'il s'en enregistrait un.
+    #
+    # Corollaire à ne jamais perdre de vue : ce job donne un shell sur le VPS à
+    # quiconque peut pousser sur `main`. Les contributions extérieures passent par
+    # fork + PR, jamais par un accès write. Voir le lot 0 du parcours 28.
     runs-on: self-hosted
     needs: [backend, frontend, proxy]
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: >-
+      github.repository == 'jammindev/house' &&
+      github.ref == 'refs/heads/main' &&
+      github.event_name == 'push'
 
     env:
       COMPOSE: /usr/local/bin/docker compose -f docker-compose.prod.yml

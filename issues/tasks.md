@@ -1,1 +1,0 @@
-en tant qu'utilisateur de l'application je voudrais pouvoir convertir une taches réalisé en interaction. En prenant connaissance du rojet

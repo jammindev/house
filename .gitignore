@@ -84,3 +84,12 @@ scripts/sync_from_prod.sh
 # Claude Code runtime / local
 .claude/scheduled_tasks.lock
 .claude/settings.local.json
+.claude/worktrees/
+
+# Artefacts de test et de couverture — jamais suivis (parcours 28, lot 0).
+# `coverage.json` et `issues/` l'étaient par accident : le dépôt est public,
+# et un artefact suivi finit par publier un chemin ou un nom local.
+coverage.json
+playwright-report/
+test-results/
+issues/

@@ -12,11 +12,25 @@ on:
 
 jobs:
   claude:
+    # ⚠️ Dépôt PUBLIC : sans la garde sur `author_association`, n'importe qui
+    # peut écrire « @claude » dans un commentaire et consommer le quota Claude du
+    # mainteneur — indéfiniment, et sans jamais toucher au code. Le déclencheur
+    # `issue_comment` est ouvert à tous par construction ; c'est donc ici, et
+    # nulle part ailleurs, que la porte se ferme.
+    #
+    # OWNER / MEMBER / COLLABORATOR = les seuls à avoir un lien établi avec le
+    # dépôt. CONTRIBUTOR (quelqu'un dont une PR a déjà été mergée) est
+    # volontairement exclu : un contributeur d'un jour garderait la clé pour
+    # toujours.
     if: |
-      (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude')) ||
-      (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '@claude')) ||
-      (github.event_name == 'pull_request_review' && contains(github.event.review.body, '@claude')) ||
-      (github.event_name == 'issues' && (contains(github.event.issue.body, '@claude') || contains(github.event.issue.title, '@claude')))
+      (github.repository == 'jammindev/house') &&
+      contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.comment.author_association || github.event.issue.author_association || github.event.review.author_association) &&
+      (
+        (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude')) ||
+        (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '@claude')) ||
+        (github.event_name == 'pull_request_review' && contains(github.event.review.body, '@claude')) ||
+        (github.event_name == 'issues' && (contains(github.event.issue.body, '@claude') || contains(github.event.issue.title, '@claude')))
+      )
     runs-on: ubuntu-latest
     permissions:
       contents: read

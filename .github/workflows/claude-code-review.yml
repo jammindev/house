@@ -24,13 +24,22 @@
 name: Claude Code Review
 
 on:
+  # `workflow_dispatch` n'est déclenchable que par un compte ayant les droits
+  # d'écriture : sur un dépôt public, ce workflow n'est donc pas atteignable de
+  # l'extérieur en l'état.
   workflow_dispatch:
   # Déclencheur d'origine, à restaurer une fois les deux causes corrigées :
   # pull_request:
   #   types: [opened, synchronize, ready_for_review, reopened]
+  #
+  # ⚠️ DÉPÔT PUBLIC — en le restaurant, ajouter la même garde que `claude.yml` :
+  # une PR ouverte depuis un fork consommerait sinon le quota Claude du
+  # mainteneur à chaque push de son auteur. Filtrer sur
+  # `github.event.pull_request.author_association` ∈ {OWNER, MEMBER, COLLABORATOR}.
 
 jobs:
   claude-review:
+    if: github.repository == 'jammindev/house'
     runs-on: ubuntu-latest
     permissions:
       contents: read
