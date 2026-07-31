@@ -448,6 +448,9 @@ séquence et définit ce qu'on mesure — la rétention, pas les étoiles.
    sur des conversations et non sur des logs.
 5. Cinq utilisateurs ont été interrogés **en direct** — un utilisateur qui
    abandonne ne laisse aucune trace exploitable.
+6. **Le jour de l'annonce, les nouvelles issues passent en anglais** : le tracker
+   cesse d'être un carnet personnel pour devenir un espace partagé. Les anciennes
+   ne se traduisent pas. Règle : `CLAUDE.md` § « Langue ».
 
 ---
 

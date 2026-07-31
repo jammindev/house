@@ -235,6 +235,16 @@ vérité : ce projet vient de quelque part.
 Si des contributeurs arrivent, traduire des commentaires est **incrémental,
 délégable et réversible**. Jeter un historique ne l'est pas.
 
+**Le cadre est écrit, et il tient dans le temps** : le tableau surface par surface
+vit dans `CLAUDE.md` § « Langue — l'audience décide, jamais l'habitude », donc il
+est chargé à chaque session de travail plutôt qu'oublié dans un parcours. Deux
+bascules y sont datées : les **sujets de commit** passent en anglais dès
+maintenant (le `git log` est la deuxième surface publique la plus lue après le
+README, et le contrat du changelog ne dépend que de la structure `type(scope):`) ;
+les **nouvelles issues** passent en anglais **le jour de l'annonce**, quand le
+tracker cesse d'être un carnet personnel pour devenir un espace partagé. Les
+anciennes ne se traduisent pas.
+
 ## Le risque assumé
 
 Publier une app qui contient les relevés bancaires, les documents et l'adresse

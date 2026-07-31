@@ -234,6 +234,10 @@ L'agent `playwright-e2e-writer` est disponible pour générer les tests E2E auto
   4. Inclure `path("api/<name>/", include("<name>.urls"))` dans `config/urls.py`
   5. Permissions `IsAuthenticated, IsHouseholdMember` par défaut
 - **i18n** : jamais de `defaultValue` dans `t()`. Toujours mettre la clé dans les 4 locales.
+- **Langue de ce qu'on écrit** : l'audience décide. Doc interne (`docs/`, `CLAUDE.md`,
+  commentaires) en **français** ; tout ce qu'un inconnu lit en premier (README,
+  `docs/self-hosting/`, `CONTRIBUTING`, `SECURITY`, templates) et les **sujets de
+  commit** en **anglais**. Tableau complet : `CLAUDE.md` § « Langue ».
 - **Couleurs** : tokens design-system uniquement (cf. `CLAUDE.md` projet)
 - **Tests** : pytest backend obligatoire pour viewset/permissions ; Playwright E2E pour les flux frontend critiques
 

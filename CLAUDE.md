@@ -28,6 +28,52 @@ Les messages de commit alimentent **automatiquement** la page « Nouveautés »
 
 Le n° de PR de merge (`(#238)`) est extrait automatiquement pour le lien GitHub.
 
+## Langue — l'audience décide, jamais l'habitude
+
+Le dépôt est **public** (depuis 2025-09-21) et le [parcours 28](docs/parcours/PARCOURS_28_OUVRIR_MAISONNEE.md)
+prépare son annonce sous le nom **Maisonnée**. À partir de maintenant, chaque
+surface écrite a une langue, et elle se déduit de **qui la lit** :
+
+| Surface | Langue | Lecteur |
+|---|---|---|
+| Interface (`ui/src/locales/`) | **en · fr · de · es** | l'utilisateur |
+| `README.md`, `docs/self-hosting/`, notes de release | **anglais** (README aussi en `README.fr.md`) | l'inconnu qui découvre |
+| `CONTRIBUTING`, `SECURITY`, `CODE_OF_CONDUCT`, modèles d'issue/PR, description et topics du dépôt | **anglais** | l'inconnu qui veut aider |
+| Identifiants de code, noms de tests, noms de branches | **anglais** | tout le monde |
+| **Sujets de commit** | **anglais** | tout le monde |
+| Issues et PRs | **français** jusqu'à l'annonce, **anglais** après | toi, puis tout le monde |
+| `docs/parcours/`, `docs/fiches/`, `docs/MODULES/`, `docs/journal/`, `CLAUDE.md`, `AGENTS.md`, `DEPLOYMENT.md` | **français** | toi et l'assistant |
+| Commentaires et docstrings | **français** admis là où le raisonnement se densifie | toi et l'assistant |
+| Changelog in-app (`/app/admin/changelog`) | **français** | staff uniquement |
+
+**Pourquoi la doc interne reste en français.** Elle porte du raisonnement dense —
+chaque règle d'ici est adossée à un bug réel, avec le pourquoi conservé. Une
+traduction qui dérive vaut moins qu'un texte juste, et c'est exactement ce qui
+rend ce dépôt inhabituel. Le français ne coûte qu'aux **contributeurs**, jamais
+aux **utilisateurs** : un self-hoster fait un `docker compose pull` et n'ouvre
+jamais `apps/banking/queries.py`. Or l'objectif de la V1 publique est la
+**rétention de foyers réels**, pas les pull requests. Mesuré au cadrage : 232
+issues, 0 image, 0 donnée personnelle, et un code déjà majoritairement anglais.
+
+**Pourquoi les sujets de commit basculent tout de suite.** Le `git log` est la
+deuxième surface publique la plus parcourue après le README. Le contrat du
+changelog ne dépend que de la **structure** (`type(scope):`), jamais de la langue
+— la description est repolie par l'IA de toute façon. Coût du changement : nul.
+Le **corps** du commit peut rester en français.
+
+**Ce qui ne se cache pas se déclare.** `CONTRIBUTING` annonce la langue du projet
+dès son premier paragraphe (livrable du lot 4, issue #490) : un contributeur ne
+doit pas la découvrir en ouvrant un fichier.
+
+> This project was built for one real household, in French. The interface speaks
+> English, French, German and Spanish; the internal documentation and some code
+> comments are in French. Issues and pull requests in English are welcome.
+
+**Le jour de l'annonce, une seule chose change** : les nouvelles issues passent en
+anglais. Le tracker devient un espace partagé, et un tracker exclusivement
+français dit à un anglophone qu'il n'est pas le public. Les anciennes ne se
+traduisent pas — réécrire l'histoire coûte plus que de l'assumer.
+
 ## Déploiement — le proxy ne tombe pas avec l'app
 
 Doc : `DEPLOYMENT.md` § 3.4. Régression : `nginx/test-resilience.sh` (job `proxy`
