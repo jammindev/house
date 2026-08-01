@@ -39,6 +39,13 @@ def _create_vector_extension(host, port, user, password, dbname):
     except psycopg.OperationalError:
         # DB doesn't exist yet (it will be cloned from template1) — fine.
         pass
+    except (psycopg.errors.UniqueViolation, psycopg.errors.DuplicateObject):
+        # Deux workers xdist ont assuré l'extension sur la *même* base au même
+        # instant — `template1`, que tous partagent. `IF NOT EXISTS` ne protège
+        # pas de ça : les deux la voient absente, les deux insèrent, l'un perd
+        # sur `pg_extension_name_index`. Ce qu'on demandait est vrai quand même
+        # (l'extension existe), donc perdre la course n'est pas un échec.
+        pass
 
 
 @pytest.fixture(scope="session")
