@@ -32,6 +32,23 @@ D'où deux règles structurantes, tenues par
 2. **Un contrôle porte sur ce qu'on sert, pas sur ce qu'on croit servir.** La
    vignette d'un document privé est *le* document pour un scan ou une photo ;
    la faire échapper au contrôle rendait ``is_private`` décoratif.
+
+⚠️ **Un préfixe déclaré dit ce que le code écrit, jamais ce que le foyer
+possède.** La règle 1, appliquée aux seuls préfixes que
+``Document.build_upload_path`` produit *aujourd'hui*, a fermé l'accès aux
+documents rangés sous ``<foyer>/<dossier>/…`` — une disposition que plus aucune
+ligne n'écrit mais que la base porte toujours. En production, 177 documents sur
+202 sont devenus invisibles d'un coup, vignettes comprises, et rien dans les
+tests ne pouvait le voir : ils fabriquaient leurs fixtures avec le builder,
+c'est-à-dire dans la seule disposition qui marchait encore (issue #517).
+
+D'où la troisième règle, qui est la forme durable des deux premières :
+
+3. **Un fichier se rattache à un foyer en base, pas par la forme de son
+   chemin.** Ce qu'aucun document ne réclame reste refusé — le default-deny est
+   intact —, mais ce qu'un document réclame est contrôlé sur *son* foyer et
+   *sa* confidentialité, quelle que soit la disposition sous laquelle il a été
+   écrit. Un schéma de nommage change ; l'appartenance, non.
 """
 from urllib.parse import quote
 
@@ -60,6 +77,26 @@ def _is_member(user, household_id) -> bool:
         raise Http404
 
 
+def _document_at(path: str, **filters) -> Document | None:
+    """Le document dont ``path`` est le fichier — ou sa vignette.
+
+    La vignette vit à un autre chemin que l'original ; ``source_path_prefix``
+    est l'inverse exact de la fonction qui l'a produit, et rend ``None`` sur un
+    chemin qui n'en est pas une. C'est le **seul** endroit où l'on traduit un
+    chemin en document, pour que les deux portes ci-dessous ne se mettent pas à
+    répondre différemment sur le même fichier.
+    """
+    prefix = source_path_prefix(path)
+    if prefix is not None:
+        return Document.objects.filter(file_path__startswith=prefix, **filters).first()
+    return Document.objects.filter(file_path=path, **filters).first()
+
+
+def _is_readable_by(document: Document, user) -> bool:
+    """Un document privé n'appartient qu'à qui l'a déposé."""
+    return not document.is_private or document.created_by_id == user.id
+
+
 def _check_document(user, path: str) -> int | None:
     """``None`` si l'accès est permis, sinon le code HTTP à renvoyer."""
     parts = path.split("/")
@@ -70,13 +107,11 @@ def _check_document(user, path: str) -> int | None:
         return FORBIDDEN
 
     # Confidentialité — sur l'original comme sur sa vignette.
-    prefix = source_path_prefix(path)
-    if prefix is not None:
-        document = Document.objects.filter(
-            household_id=household_id, file_path__startswith=prefix
-        ).first()
-    else:
-        document = Document.objects.filter(file_path=path).first()
+    document = (
+        _document_at(path, household_id=household_id)
+        if source_path_prefix(path) is not None
+        else _document_at(path)
+    )
 
     if document is None:
         # Chemin sous `documents/<foyer>/` sans document en base : orphelin de
@@ -84,9 +119,29 @@ def _check_document(user, path: str) -> int | None:
         # refuser casserait les fichiers importés hors du modèle.
         return None
 
-    if document.is_private and document.created_by_id != user.id:
+    return None if _is_readable_by(document, user) else FORBIDDEN
+
+
+def _check_by_ownership(user, path: str) -> int | None:
+    """Le contrôle de dernier recours — voir la règle 3 en tête de module.
+
+    Aucune hypothèse sur la forme du chemin : on demande à la base **quel
+    document réclame ce fichier**, et on contrôle sur le foyer de ce
+    document-là. C'est ce qui rend le service indifférent à la disposition de
+    stockage, présente comme passée.
+
+    La différence avec ``_check_document`` tient en une ligne, et c'est la plus
+    importante : ici, **un fichier que personne ne réclame est refusé**. Là-bas
+    l'orphelin est servi, parce que l'appartenance au foyer était déjà établie
+    par le chemin lui-même ; ici on ne sait rien du chemin, donc l'absence de
+    document n'est pas un détail de stockage — c'est un fichier non attribuable.
+    """
+    document = _document_at(path)
+    if document is None:
         return FORBIDDEN
-    return None
+    if not _is_member(user, document.household_id):
+        return FORBIDDEN
+    return None if _is_readable_by(document, user) else FORBIDDEN
 
 
 def _check_avatar(user, path: str) -> int | None:
@@ -116,7 +171,8 @@ def _check_avatar(user, path: str) -> int | None:
 
 
 # Préfixe → contrôleur. Ajouter un emplacement de fichiers, c'est ajouter sa
-# ligne ici : sans elle il est refusé, ce qui est le bon défaut.
+# ligne ici : sans elle, le chemin doit se faire reconnaître en base
+# (`_check_by_ownership`) ou il est refusé — ce qui reste le bon défaut.
 _CHECKS = {
     "documents": _check_document,
     "avatars": _check_avatar,
@@ -132,10 +188,9 @@ def serve_protected_media(request, path):
         raise Http404
 
     prefix = path.split("/", 1)[0]
-    check = _CHECKS.get(prefix)
-    if check is None:
-        # Default-deny : voir la règle 1 en tête de module.
-        return HttpResponse(status=FORBIDDEN)
+    # Un préfixe déclaré porte son propre contrôle ; tout le reste doit se faire
+    # reconnaître par un document en base, sinon c'est 403 (règles 1 et 3).
+    check = _CHECKS.get(prefix, _check_by_ownership)
 
     denied = check(request.user, path)
     if denied is not None:
