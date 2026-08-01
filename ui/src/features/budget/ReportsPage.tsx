@@ -5,20 +5,14 @@ import BackLink from '@/components/BackLink';
 import EmptyState from '@/components/EmptyState';
 import { Card, CardTitle } from '@/design-system/card';
 import { useDelayedLoading } from '@/lib/useDelayedLoading';
+import { formatMonthKey } from '@/lib/format';
 import type { BudgetReport } from '@/lib/api/budget';
 import { useBudgetReports, useLatestBudgetReport } from './hooks';
-
-/** 'YYYY-MM' → localized month label, e.g. "juillet 2026". */
-function monthLabel(month: string): string {
-  const [y, m] = month.split('-').map(Number);
-  const d = new Date(y, (m || 1) - 1, 1);
-  return new Intl.DateTimeFormat(undefined, { month: 'long', year: 'numeric' }).format(d);
-}
 
 function ReportCard({ report, featured }: { report: BudgetReport; featured?: boolean }) {
   return (
     <Card className="p-4">
-      <CardTitle className="capitalize">{monthLabel(report.month)}</CardTitle>
+      <CardTitle className="capitalize">{formatMonthKey(report.month)}</CardTitle>
       <p className={`mt-2 whitespace-pre-line text-sm ${featured ? 'text-foreground' : 'text-muted-foreground'}`}>
         {report.text}
       </p>

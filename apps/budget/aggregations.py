@@ -18,7 +18,7 @@ from django.db.models import Q, Sum
 from django.db.models.functions import Coalesce
 
 from core.timezones import current_month_range as _current_month_range
-from core.timezones import household_today
+from core.timezones import household_today, month_range
 from interactions.queries import expenses
 
 from .models import Budget, BudgetCategory, RecurringExpense
@@ -50,6 +50,40 @@ def current_month_range(household) -> tuple[datetime, datetime, str]:
     compteur d'une enveloppe et la page qui l'ouvre bornent le même mois.
     """
     return _current_month_range(household)
+
+
+def parse_month(value: str) -> tuple[int, int]:
+    """``'2026-06'`` → ``(2026, 6)``. Lève ``ValueError`` sur tout le reste.
+
+    Un mois illisible **se dit**, il ne se remplace pas : replier silencieusement
+    sur le mois en cours afficherait des chiffres parfaitement valides pour un
+    mois que personne n'a demandé, et rien à l'écran ne le signalerait. C'est la
+    même règle qu'un compteur à zéro qui distingue « rien à signaler » de « rien
+    d'évaluable » — un aperçu juste sur la mauvaise fenêtre est un aperçu faux.
+    """
+    year_str, _, month_str = str(value).partition("-")
+    if len(year_str) != 4 or len(month_str) != 2 or not (year_str + month_str).isdigit():
+        raise ValueError(f"Mois attendu au format YYYY-MM, reçu : {value!r}")
+    year, month = int(year_str), int(month_str)
+    if not 1 <= month <= 12:
+        raise ValueError(f"Mois hors de l'année : {value!r}")
+    return year, month
+
+
+def month_window(household, month: str | None) -> tuple[datetime, datetime, str]:
+    """``(début, fin_exclusive, 'YYYY-MM')`` du mois demandé, ou du mois en cours.
+
+    Un mois passé se borne **chez le foyer**, exactement comme le mois courant :
+    borner en UTC ferait glisser les dépenses des premières et dernières heures
+    d'un mois à l'autre, et relire juin depuis le sélecteur donnerait un autre
+    total que le résumé des dépenses sur la même période — le « deux voix pour un
+    même fait » que le module argent paie cher.
+    """
+    if month is None:
+        return current_month_range(household)
+    year, index = parse_month(month)
+    start, end = month_range(household, year=year, month=index)
+    return start, end, f"{year:04d}-{index:02d}"
 
 
 def _spent_by_budget(household_id, start, end) -> tuple[dict, dict]:
@@ -257,8 +291,14 @@ def _category_row(
     }
 
 
-def compute_budget_overview(*, household) -> dict[str, Any]:
+def compute_budget_overview(*, household, month: str | None = None) -> dict[str, Any]:
     """Return the month's budget overview for a household.
+
+    ``month`` (``'YYYY-MM'``) relit un mois passé ; ``None`` — le défaut, celui
+    des fiches budget et catégorie — garde le mois en cours. Toute la fenêtre
+    suit : lignes, sous-totaux de catégorie, hors budget, engagé. Un aperçu qui
+    ne décalerait que ses lignes serait pire que pas de sélecteur du tout, les
+    lignes disant juin pendant que les totaux disent juillet.
 
     Shape::
 
@@ -289,7 +329,7 @@ def compute_budget_overview(*, household) -> dict[str, Any]:
     définition brute — sept agrégations le lisent, et sa décomposition
     attesté/en attente perdrait son sens s'il changeait.
     """
-    start, end, month = current_month_range(household)
+    start, end, month = month_window(household, month)
     spent_map, attested_map = _spent_by_budget(household.id, start, end)
     committed_map = _committed_by_budget(household.id, start, end)
     refunded_map = _refunded_by_budget(household.id, start, end)

@@ -51,6 +51,23 @@ export function formatMonthYear(value?: string | null): string {
 }
 
 /**
+ * Un mois `YYYY-MM` en toutes lettres (« juillet 2026 »).
+ *
+ * Le pendant de `toLocalISODate` à l'affichage : la date est reconstruite
+ * **localement** (`new Date(y, m - 1, 1)`) et non parsée depuis la chaîne, que
+ * la spec lit en UTC. À l'ouest de Greenwich, `new Date('2026-07')` vaut le
+ * 30 juin local — un sélecteur de mois qui affiche le mois d'avant celui qu'il
+ * interroge.
+ */
+export function formatMonthKey(month: string): string {
+  const [year, index] = month.split('-').map(Number);
+  if (!year || !index) return month;
+  return new Intl.DateTimeFormat(undefined, { month: 'long', year: 'numeric' }).format(
+    new Date(year, index - 1, 1),
+  );
+}
+
+/**
  * Le séparateur décimal de la locale de lecture — « , » en français, « . » en
  * anglais. Même source que `formatAmount` (la locale du navigateur), pour qu'un
  * montant saisi et le même montant réaffiché ne se lisent pas de deux façons.

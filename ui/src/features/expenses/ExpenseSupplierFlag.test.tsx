@@ -99,7 +99,7 @@ describe('le filtre « sans fournisseur »', () => {
   function renderFilters(over: Partial<React.ComponentProps<typeof ExpenseFilters>> = {}) {
     return render(
       <ExpenseFilters
-        period={{ preset: 'currentMonth' }}
+        period={{ preset: 'month', month: '2026-07' }}
         onPeriodChange={noop}
         supplier=""
         onSupplierChange={noop}

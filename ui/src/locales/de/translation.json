@@ -3185,8 +3185,8 @@
       "allKinds": "Alle Typen",
       "allSuppliers": "Alle Lieferanten",
       "period": {
-        "currentMonth": "Dieser Monat",
-        "previousMonth": "Letzter Monat",
+        "previousMonth": "Vorheriger Monat",
+        "nextMonth": "Nächster Monat",
         "last30Days": "Letzte 30 Tage",
         "currentYear": "Dieses Jahr",
         "custom": "Benutzerdefiniert"

@@ -312,8 +312,15 @@ export async function fetchBudgets(): Promise<Budget[]> {
   return Array.isArray(data) ? data : data.results;
 }
 
-export async function fetchBudgetOverview(): Promise<BudgetOverview> {
-  const { data } = await api.get<BudgetOverview>('/budget/budgets/overview/');
+/**
+ * L'aperçu du mois. `month` (`YYYY-MM`) en relit un passé ; omis, c'est le mois
+ * en cours — ce que demandent les fiches budget et catégorie, qui n'y cherchent
+ * qu'un plafond et un nom.
+ */
+export async function fetchBudgetOverview(month?: string): Promise<BudgetOverview> {
+  const { data } = await api.get<BudgetOverview>('/budget/budgets/overview/', {
+    params: month ? { month } : undefined,
+  });
   return data;
 }
 

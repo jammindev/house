@@ -14,7 +14,7 @@ from core.permissions import IsHouseholdMember
 from core.timezones import household_today
 from interactions.aggregations import UNBUDGETED
 
-from .aggregations import compute_budget_overview, compute_cashflow_projection
+from .aggregations import compute_budget_overview, compute_cashflow_projection, parse_month
 from .analysis import DEFAULT_MONTHS, compute_budget_analysis
 from .insights import compute_budget_insights
 from .models import Budget, BudgetCategory, BudgetReport, RecurringExpense
@@ -98,11 +98,23 @@ class BudgetViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=["get"])
     def overview(self, request):
-        """GET /api/budget/budgets/overview/
+        """GET /api/budget/budgets/overview/?month=YYYY-MM
 
         The month's budgets with spent/ceiling, the "hors budget" total and the
         optional global cap. Empty-but-valid shape when no household context.
+
+        ``month`` est optionnel et relit un mois passé (issue #516) ; absent, le
+        mois en cours. Mal formé, c'est un **400** : servir le mois en cours à qui
+        a demandé « 2026-13 » afficherait des chiffres justes sur une fenêtre que
+        personne n'a choisie, sans rien qui le signale.
         """
+        month = request.query_params.get("month")
+        if month is not None:
+            try:
+                parse_month(month)
+            except ValueError as exc:
+                raise ValidationError({"month": str(exc)}) from exc
+
         household = request.household
         if household is None:
             return Response(
@@ -120,7 +132,7 @@ class BudgetViewSet(viewsets.ModelViewSet):
                     "named_exceeds_global": False,
                 }
             )
-        return Response(compute_budget_overview(household=household))
+        return Response(compute_budget_overview(household=household, month=month))
 
     @action(detail=False, methods=["get"])
     def analysis(self, request):

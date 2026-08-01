@@ -15,8 +15,11 @@ import { Button } from '@/design-system/button';
 import { Card } from '@/design-system/card';
 import { useDelayedLoading } from '@/lib/useDelayedLoading';
 import { useDeleteWithUndo } from '@/lib/useDeleteWithUndo';
+import { useSessionState } from '@/lib/useSessionState';
 import { pushBack } from '@/lib/backNavigation';
 import { formatAmount } from '@/lib/format';
+import PeriodPicker from '@/features/expenses/PeriodPicker';
+import { currentMonthKey, normalizePeriod, type PeriodRange } from '@/features/expenses/period';
 import type {
   Budget,
   BudgetCategory,
@@ -73,7 +76,20 @@ function rowToCategory(row: BudgetCategoryRow): BudgetCategory {
 export default function BudgetsPanel() {
   const { t } = useTranslation();
   const location = useLocation();
-  const overviewQuery = useBudgetOverview();
+
+  // Le panneau n'offre **que** la navigation par mois (`presets={[]}`), et ce
+  // n'est pas une simplification de mise en page : chaque ligne compare un
+  // dépensé à un plafond **mensuel**. Sur « cette année », « Bricolage » se
+  // lirait 4 200 € / 400 € — rouge vif sur une enveloppe parfaitement tenue.
+  // Une fenêtre libre a un sens dans le journal des dépenses, aucun ici.
+  const [storedPeriod, setPeriod] = useSessionState<PeriodRange>('budget.period', {
+    preset: 'month',
+    month: currentMonthKey(),
+  });
+  const period = React.useMemo(() => normalizePeriod(storedPeriod), [storedPeriod]);
+  const month = period.month ?? currentMonthKey();
+
+  const overviewQuery = useBudgetOverview(month);
   const deleteMutation = useDeleteBudget();
   const deleteCategoryMutation = useDeleteBudgetCategory();
 
@@ -180,7 +196,13 @@ export default function BudgetsPanel() {
 
   return (
     <>
-      <div className="flex justify-end pb-4">
+      <div className="flex flex-wrap items-center justify-between gap-3 pb-4">
+        <PeriodPicker
+          period={period}
+          onChange={setPeriod}
+          presets={[]}
+          idPrefix="budget-panel"
+        />
         <Button type="button" onClick={openCreate} className="gap-1.5">
           <Plus className="h-4 w-4" />
           {t('budget.new.action')}
@@ -204,7 +226,15 @@ export default function BudgetsPanel() {
             action={{ label: t('budget.new.action'), onClick: openCreate }}
           />
         ) : (
-          <div className="space-y-5">
+          // Pendant le chargement d'un autre mois, les chiffres affichés sont
+          // encore ceux du précédent (`placeholderData`) : ils s'estompent le
+          // temps que les vrais arrivent. Sans ce signal, un mois lent laisse
+          // croire que les montants du mois d'avant sont ceux qu'on a demandés.
+          <div
+            className={`space-y-5 transition-opacity ${
+              overviewQuery.isPlaceholderData ? 'opacity-50' : ''
+            }`}
+          >
             {/* Global cap — the safety net over everything. */}
             {globalRow ? (
               <div className="space-y-2">

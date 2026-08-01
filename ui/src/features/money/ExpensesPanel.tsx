@@ -16,7 +16,12 @@ import { useExpenseSummary } from '@/features/expenses/hooks';
 import { useAccountFlow } from '@/features/banking/hooks';
 import ExpenseSummaryCards from '@/features/expenses/ExpenseSummaryCards';
 import ExpenseFilters from '@/features/expenses/ExpenseFilters';
-import { resolvePeriod, type PeriodRange } from '@/features/expenses/period';
+import {
+  currentMonthKey,
+  normalizePeriod,
+  resolvePeriod,
+  type PeriodRange,
+} from '@/features/expenses/period';
 import ExpenseList from '@/features/expenses/ExpenseList';
 import BulkEditDialog from '@/features/expenses/BulkEditDialog';
 import CashExpenseDialog from './CashExpenseDialog';
@@ -28,7 +33,16 @@ import CashExpenseDialog from './CashExpenseDialog';
 export default function ExpensesPanel() {
   const { t } = useTranslation();
 
-  const [period, setPeriod] = useSessionState<PeriodRange>('expenses.period', { preset: 'currentMonth' });
+  // `normalizePeriod` convertit ce que la session porte peut-être encore :
+  // `currentMonth`/`previousMonth` ont laissé place au stepper, et un état
+  // persisté leur survit. Non converti, l'ancien preset tombe dans la branche
+  // `custom` de `resolvePeriod` — deux bornes vides, donc **tout l'historique du
+  // foyer** additionné sous un libellé qui annonce un mois.
+  const [storedPeriod, setPeriod] = useSessionState<PeriodRange>('expenses.period', {
+    preset: 'month',
+    month: currentMonthKey(),
+  });
+  const period = React.useMemo(() => normalizePeriod(storedPeriod), [storedPeriod]);
   const [supplier, setSupplier] = useSessionState<string>('expenses.supplier', '');
   const [withoutSupplier, setWithoutSupplier] = useSessionState<boolean>(
     'expenses.withoutSupplier',

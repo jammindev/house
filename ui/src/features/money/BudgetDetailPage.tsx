@@ -23,7 +23,12 @@ import { fetchInteractions, type InteractionListItem } from '@/lib/api/interacti
 import { interactionKeys } from '@/features/interactions/hooks';
 import { useBudgetInsights, useBudgetOverview } from '@/features/budget/hooks';
 import { useTransactions } from '@/features/banking/hooks';
-import { resolvePeriod, type PeriodRange } from '@/features/expenses/period';
+import {
+  currentMonthKey,
+  normalizePeriod,
+  resolvePeriod,
+  type PeriodRange,
+} from '@/features/expenses/period';
 import PeriodPicker from '@/features/expenses/PeriodPicker';
 import ExpenseFilters from '@/features/expenses/ExpenseFilters';
 import ExpenseList from '@/features/expenses/ExpenseList';
@@ -65,14 +70,21 @@ export default function BudgetDetailPage() {
   const { id = '' } = useParams<{ id: string }>();
   const isUnbudgeted = id === UNBUDGETED;
 
-  const [period, setPeriod] = useSessionState<PeriodRange>('budget.detail.period', {
-    preset: 'currentMonth',
+  const [storedPeriod, setPeriod] = useSessionState<PeriodRange>('budget.detail.period', {
+    preset: 'month',
+    month: currentMonthKey(),
   });
+  const period = React.useMemo(() => normalizePeriod(storedPeriod), [storedPeriod]);
   const range = React.useMemo(() => resolvePeriod(period), [period]);
 
   // Le nom et le plafond viennent de l'aperçu, déjà en cache quand on arrive du
   // panneau : ouvrir un budget ne doit pas coûter un aller-retour de plus.
-  const overviewQuery = useBudgetOverview();
+  //
+  // Il suit **le mois choisi** quand il y en a un — le panneau demande le même,
+  // donc le cache est bien celui qu'on partage. Sur une fenêtre libre on retombe
+  // sur le mois en cours, dont on ne lira alors que le nom : un plafond ne
+  // s'affiche pas en face d'un total qui ne couvre pas un mois (`showCeiling`).
+  const overviewQuery = useBudgetOverview(period.preset === 'month' ? period.month : undefined);
   const row = React.useMemo(() => {
     const rows = overviewQuery.data;
     if (!rows) return null;
@@ -235,9 +247,11 @@ export default function BudgetDetailPage() {
   const showSkeleton = useDelayedLoading(isLoading);
 
   const title = isUnbudgeted ? t('budget.unbudgeted.label') : (row?.name ?? t('budget.title'));
-  // Un plafond n'a de sens que sur le mois en cours : le comparer à un total
-  // annuel afficherait « 4 200 € / 400 € », un dépassement qui n'existe pas.
-  const showCeiling = period.preset === 'currentMonth' && row?.amount != null;
+  // Un plafond n'a de sens qu'en face d'un **mois entier** : le comparer à un
+  // total annuel afficherait « 4 200 € / 400 € », un dépassement qui n'existe
+  // pas. Peu importe **quel** mois, en revanche — juin se compare à son plafond
+  // aussi bien que juillet, et c'est ce que l'aperçu renvoie désormais.
+  const showCeiling = period.preset === 'month' && row?.amount != null;
 
   const buckets: ConsumptionChartBucket[] = React.useMemo(() => {
     if (!insights) return [];

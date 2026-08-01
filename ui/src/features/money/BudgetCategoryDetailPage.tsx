@@ -15,7 +15,12 @@ import { pushBack } from '@/lib/backNavigation';
 import { useDelayedLoading } from '@/lib/useDelayedLoading';
 import { useSessionState } from '@/lib/useSessionState';
 import { useBudgetCategoryInsights, useBudgetOverview } from '@/features/budget/hooks';
-import { resolvePeriod, type PeriodRange } from '@/features/expenses/period';
+import {
+  currentMonthKey,
+  normalizePeriod,
+  resolvePeriod,
+  type PeriodRange,
+} from '@/features/expenses/period';
 import PeriodPicker from '@/features/expenses/PeriodPicker';
 import ShareChart, { type ShareRow } from './ShareChart';
 import InsightComparison from './InsightComparison';
@@ -42,26 +47,32 @@ import InsightComparison from './InsightComparison';
  *   total affiché soit exactement celui sur lequel on vient de cliquer. En
  *   changer est ensuite un choix explicite.
  * - **⚠️ Et tout ce qui porte un montant obéit à cette période.** L'aperçu du
- *   panneau (`useBudgetOverview`) est figé sur le mois en cours : il ne donne ici
- *   que le nom, le plafond et l'**appartenance** des enveloppes. Lire ses
- *   montants pour la liste du bas — la faute livrée le 29/07 — affichait juillet
- *   sous un en-tête qui annonçait juin, et faisait passer un remboursement de
- *   juillet pour une incohérence du total de juin.
+ *   panneau (`useBudgetOverview`) ne donne ici que le nom, le plafond et
+ *   l'**appartenance** des enveloppes. Lire ses montants pour la liste du bas —
+ *   la faute livrée le 29/07 — affichait juillet sous un en-tête qui annonçait
+ *   juin, et faisait passer un remboursement de juillet pour une incohérence du
+ *   total de juin. Depuis l'issue #516 l'aperçu suit le mois choisi, ce qui rend
+ *   la confusion moins visible mais **pas** moins fautive : sur une fenêtre
+ *   libre — trente jours, une année — il répond toujours un mois, et les
+ *   montants de la page viennent d'`insights`, jamais d'ici.
  */
 export default function BudgetCategoryDetailPage() {
   const { t, i18n } = useTranslation();
   const { id = '' } = useParams<{ id: string }>();
   const location = useLocation();
 
-  const [period, setPeriod] = useSessionState<PeriodRange>('budget.category.period', {
-    preset: 'currentMonth',
+  const [storedPeriod, setPeriod] = useSessionState<PeriodRange>('budget.category.period', {
+    preset: 'month',
+    month: currentMonthKey(),
   });
+  const period = React.useMemo(() => normalizePeriod(storedPeriod), [storedPeriod]);
   const range = React.useMemo(() => resolvePeriod(period), [period]);
 
   // Le nom, le plafond et les enveloppes rangées dessous viennent de l'aperçu,
   // déjà en cache quand on arrive du panneau : ouvrir une catégorie ne doit pas
-  // coûter un aller-retour de plus.
-  const overviewQuery = useBudgetOverview();
+  // coûter un aller-retour de plus. Il suit **le mois choisi** quand il y en a
+  // un — le panneau demande le même, donc c'est bien le cache partagé.
+  const overviewQuery = useBudgetOverview(period.preset === 'month' ? period.month : undefined);
   const row = React.useMemo(
     () => (overviewQuery.data?.categories ?? []).find((c) => c.id === id) ?? null,
     [overviewQuery.data, id],
@@ -75,9 +86,10 @@ export default function BudgetCategoryDetailPage() {
   const insights = insightsQuery.data;
   const showSkeleton = useDelayedLoading(insightsQuery.isLoading);
 
-  // Un plafond n'a de sens que sur le mois en cours : le comparer à un total
-  // annuel afficherait « 4 200 € / 450 € », un dépassement qui n'existe pas.
-  const showCeiling = period.preset === 'currentMonth' && row?.amount != null;
+  // Un plafond n'a de sens qu'en face d'un **mois entier** : le comparer à un
+  // total annuel afficherait « 4 200 € / 450 € », un dépassement qui n'existe
+  // pas. Quel mois, en revanche, n'a pas d'importance.
+  const showCeiling = period.preset === 'month' && row?.amount != null;
 
   const buckets: ConsumptionChartBucket[] = React.useMemo(() => {
     if (!insights) return [];

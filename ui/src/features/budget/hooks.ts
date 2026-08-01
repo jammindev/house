@@ -33,7 +33,9 @@ export const budgetKeys = {
   all: BUDGET_ROOT,
   list: () => [...budgetKeys.all, 'list'] as const,
   categories: () => [...budgetKeys.all, 'categories'] as const,
-  overview: () => [...budgetKeys.all, 'overview'] as const,
+  // Le mois entre dans la clé : sans lui, revenir sur juillet réafficherait le
+  // cache de juin sous le libellé de juillet le temps du refetch.
+  overview: (month?: string) => [...budgetKeys.all, 'overview', month ?? ''] as const,
   recurring: () => [...budgetKeys.all, 'recurring'] as const,
   recurringDue: () => [...budgetKeys.all, 'recurring', 'due'] as const,
   projection: () => [...budgetKeys.all, 'projection'] as const,
@@ -53,8 +55,19 @@ export function useBudgets() {
   return useQuery({ queryKey: budgetKeys.list(), queryFn: fetchBudgets });
 }
 
-export function useBudgetOverview() {
-  return useQuery({ queryKey: budgetKeys.overview(), queryFn: fetchBudgetOverview });
+/**
+ * L'aperçu d'un mois. `month` omis = le mois en cours.
+ *
+ * `placeholderData` garde les lignes du mois précédemment lu à l'écran pendant
+ * le chargement du suivant : sans lui, chaque coup de flèche vide la page puis
+ * la remplit, et le sélecteur devient inutilisable à la deuxième pression.
+ */
+export function useBudgetOverview(month?: string) {
+  return useQuery({
+    queryKey: budgetKeys.overview(month),
+    queryFn: () => fetchBudgetOverview(month),
+    placeholderData: (previous) => previous,
+  });
 }
 
 export function useCreateBudget() {
