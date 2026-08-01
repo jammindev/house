@@ -30,6 +30,9 @@ jobs:
 
     env:
       DATABASE_URL: postgres://house_user:test_password@localhost:5432/house_test
+      # Une seule définition du nombre de workers : l'étape qui crée les bases et
+      # celle qui lance pytest doivent toujours parler du même chiffre.
+      PYTEST_WORKERS: 2
 
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
@@ -44,8 +47,26 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements/test.txt
 
+      # La suite tourne en parallèle (`-n`), donc sur une base par worker :
+      # pytest-django suffixe `TEST['NAME']` (→ `house_test_gw0`, `house_test_gw1`).
+      #
+      # On les crée ici plutôt que de laisser Django le faire, et c'est le point à
+      # ne pas défaire : un `CREATE DATABASE` sans template explicite clone
+      # `template1`, or conftest.py y ouvre une connexion pour poser l'extension
+      # `vector` (contrepartie de --nomigrations, voir sa docstring). Postgres
+      # refuse de cloner une base à laquelle une autre session est connectée — deux
+      # workers qui démarrent ensemble, c'est un rouge intermittent, le genre qui
+      # coûte plus cher que les secondes gagnées. Bases pré-créées, `--reuse-db`
+      # (pytest.ini) les réutilise : aucun clone n'a lieu, et le conftest pose
+      # l'extension dans chacune par son chemin « la base existe déjà ».
+      - name: Create one test database per worker
+        run: |
+          for i in $(seq 0 $((PYTEST_WORKERS - 1))); do
+            psql "$DATABASE_URL" -c "CREATE DATABASE house_test_gw$i"
+          done
+
       - name: Run tests
-        run: pytest --no-cov-on-fail -q
+        run: pytest -n "$PYTEST_WORKERS" --no-cov-on-fail -q
 
   frontend:
     name: Frontend lint & build
