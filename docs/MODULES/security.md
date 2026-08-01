@@ -146,10 +146,30 @@ Deux défauts y ont été trouvés et corrigés au lot 1 :
   remonte de la vignette au document vit **à côté** de celle qui produit le
   chemin (`documents/thumbnails.py`), pour qu'elles ne puissent pas se désaligner.
 
+⚠️ **Et le durcissement lui-même a produit le troisième défaut** (issue #517) :
+`_CHECKS` déclare les préfixes que `Document.build_upload_path` écrit
+**aujourd'hui**, alors que la base porte encore ceux d'hier. Les documents rangés
+sous `<foyer>/<dossier>/…` sont tombés en 403 d'un bloc — **177 sur 202 en
+production**, vignettes comprises, donc la page Photos vide et aucun document
+consultable. Personne n'a pu le voir : les tests d'isolation fabriquaient leurs
+fixtures avec le builder, c'est-à-dire dans la seule disposition qui marchait
+encore. **Un test qui ne connaît qu'un schéma de chemin ne peut pas voir mourir
+les autres** — d'où des chemins écrits en dur, sous la forme trouvée en base.
+
+D'où la règle qui porte les deux premières :
+
+> **Un fichier se rattache à un foyer en base, pas par la forme de son chemin.**
+
+Un préfixe déclaré garde son contrôle ; tout le reste passe par
+`_check_by_ownership`, qui demande à la base **quel document réclame ce
+fichier** et contrôle sur le foyer *de ce document*. Ce qu'aucun document ne
+réclame reste refusé — le default-deny est intact, et il ne dépend plus d'un
+schéma de nommage qui, lui, changera encore.
+
 Régression : `apps/core/tests/test_media_isolation.py`.
 
 **Ajouter un emplacement de fichiers = ajouter sa ligne dans `_CHECKS`.** Sans
-elle il est refusé, ce qui est le bon défaut.
+elle, le chemin doit se faire reconnaître en base ou il est refusé.
 
 ### La révocation d'accès — un invariant sur un fil
 

@@ -214,3 +214,96 @@ class TestTheDocumentRulesStillHold:
         """401 et 403 disent deux choses différentes ; le front s'en sert."""
         path = self._doc(household_a, alice)
         assert client.get(media_url(path)).status_code == 401
+
+
+@pytest.mark.django_db
+class TestADocumentWrittenBeforeTodaysLayoutStaysReadable:
+    """Régression : le *default-deny* a fermé l'accès à l'existant.
+
+    Le durcissement précédent n'autorise que les préfixes ``documents/`` et
+    ``avatars/`` — ceux que ``Document.build_upload_path`` produit
+    **aujourd'hui**. Or les documents plus anciens sont rangés sous
+    ``<foyer>/<dossier>/…``, une disposition que plus aucune ligne de code
+    n'écrit mais que la base porte toujours : en production, 177 documents sur
+    202 sont devenus invisibles d'un coup, vignettes comprises.
+
+    ⚠️ **Ce que ces tests corrigent tient moins au code qu'à leur propre
+    fabrication.** Toute la classe voisine construit ses fixtures avec
+    ``build_upload_path`` : elle vérifie donc le service des fichiers contre ce
+    que le code écrit, jamais contre ce que le foyer possède. Un contrôle qui ne
+    connaît qu'un seul schéma de chemin ne peut pas voir mourir les autres —
+    d'où les chemins écrits **en dur** ici, exactement sous la forme trouvée en
+    base.
+
+    L'attribution ne se déduit pas du chemin : elle se **résout en base**, par le
+    document dont c'est le fichier. Un chemin qu'aucun document ne réclame reste
+    donc refusé, et le default-deny garde son sens.
+    """
+
+    def _legacy_paths(self, household):
+        """La forme réellement présente en base — jamais celle du builder."""
+        folder = "44e6e84b-b680-428d-982e-3b5e0c9a1f27"
+        file_path = f"{household.id}/{folder}/e997edd3_IMG_2212.jpg"
+        thumb_path = f"{household.id}/{folder}/.thumbnails/thumb/e997edd3_IMG_2212.jpg"
+        return file_path, thumb_path
+
+    def _legacy_doc(self, household, owner, *, private=False):
+        file_path, thumb_path = self._legacy_paths(household)
+        default_storage.save(file_path, ContentFile(b"\xff\xd8\xff fake jpeg"))
+        default_storage.save(thumb_path, ContentFile(b"\xff\xd8\xff fake jpeg"))
+        Document.objects.create(
+            household=household,
+            created_by=owner,
+            name="IMG_2212",
+            file_path=file_path,
+            is_private=private,
+        )
+        return file_path, thumb_path
+
+    def test_a_member_reads_it(self, client, household_a, alice, amelie):
+        file_path, _ = self._legacy_doc(household_a, alice)
+        client.force_login(amelie)
+        assert client.get(media_url(file_path)).status_code == 200
+
+    def test_a_member_reads_its_thumbnail(self, client, household_a, alice, amelie):
+        """La grille de photos ne montre que des vignettes : sans elles, page vide."""
+        _, thumb_path = self._legacy_doc(household_a, alice)
+        client.force_login(amelie)
+        assert client.get(media_url(thumb_path)).status_code == 200
+
+    def test_a_stranger_still_does_not(self, client, household_a, alice, bob):
+        file_path, _ = self._legacy_doc(household_a, alice)
+        client.force_login(bob)
+        assert client.get(media_url(file_path)).status_code == 403
+
+    def test_a_stranger_does_not_get_the_thumbnail_either(
+        self, client, household_a, alice, bob
+    ):
+        _, thumb_path = self._legacy_doc(household_a, alice)
+        client.force_login(bob)
+        assert client.get(media_url(thumb_path)).status_code == 403
+
+    def test_privacy_still_holds_between_members(
+        self, client, household_a, alice, amelie
+    ):
+        file_path, thumb_path = self._legacy_doc(household_a, alice, private=True)
+        client.force_login(amelie)
+        assert client.get(media_url(file_path)).status_code == 403
+        assert client.get(media_url(thumb_path)).status_code == 403
+
+    def test_a_file_no_document_claims_is_still_refused(self, client, household_a, alice):
+        """Le default-deny reste entier : on sert ce qu'un document réclame.
+
+        Un fichier posé sous un chemin d'apparence légitime, mais qu'aucune ligne
+        de la base ne rattache à un foyer, n'est attribuable à personne — donc
+        refusé. C'est ce qui distingue « rouvrir l'ancien » de « rouvrir tout ».
+        """
+        path = f"{household_a.id}/orphelin/inconnu.jpg"
+        default_storage.save(path, ContentFile(b"\xff\xd8\xff fake jpeg"))
+        client.force_login(alice)
+        assert client.get(media_url(path)).status_code == 403
+
+    def test_an_unknown_prefix_is_still_refused(self, client, alice):
+        """Le garde-fou de la classe voisine, rejoué depuis cette porte-ci."""
+        client.force_login(alice)
+        assert client.get(media_url("exports/2026/tout.csv")).status_code == 403
