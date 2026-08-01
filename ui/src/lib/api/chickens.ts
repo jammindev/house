@@ -283,3 +283,78 @@ export async function fetchFlockSummary(): Promise<FlockSummary> {
   const { data } = await api.get('/chickens/summary/');
   return data as FlockSummary;
 }
+
+// --- Recurring chores --------------------------------------------------------
+
+/**
+ * Derived state of a chore, computed server-side by `chickens.services.chore_status`.
+ *
+ * Never recompute `is_due` from `next_due_on` in the client: the reminder, the
+ * dashboard alert and this badge must all read the one verdict the server gives,
+ * or the panel and the notification end up disagreeing about what is late.
+ */
+export interface ChoreStatus {
+  /** null = never done; the cadence is then counted from `starts_on`. */
+  last_done_on: string | null;
+  next_due_on: string;
+  days_overdue: number;
+  is_due: boolean;
+  never_done: boolean;
+}
+
+export interface ChickenChore {
+  id: string;
+  household: string;
+  name: string;
+  emoji: string;
+  interval_days: number;
+  starts_on: string;
+  is_active: boolean;
+  notes: string;
+  status: ChoreStatus;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ChickenChorePayload {
+  name: string;
+  interval_days: number;
+  emoji?: string;
+  starts_on?: string;
+  notes?: string;
+  is_active?: boolean;
+}
+
+export async function fetchChores(
+  filters: { active?: boolean } = {},
+): Promise<ChickenChore[]> {
+  const params: Record<string, string> = {};
+  if (filters.active === false) params.active = 'false';
+  const { data } = await api.get('/chickens/chores/', { params });
+  return (data.results ?? data) as ChickenChore[];
+}
+
+export async function createChore(payload: ChickenChorePayload): Promise<ChickenChore> {
+  const { data } = await api.post('/chickens/chores/', payload);
+  return data as ChickenChore;
+}
+
+export async function updateChore(
+  id: string,
+  payload: Partial<ChickenChorePayload>,
+): Promise<ChickenChore> {
+  const { data } = await api.patch(`/chickens/chores/${id}/`, payload);
+  return data as ChickenChore;
+}
+
+export async function deleteChore(id: string): Promise<void> {
+  await api.delete(`/chickens/chores/${id}/`);
+}
+
+export async function completeChore(
+  id: string,
+  payload: { occurred_on?: string; notes?: string } = {},
+): Promise<{ chore: ChickenChore; event: ChickenEvent }> {
+  const { data } = await api.post(`/chickens/chores/${id}/complete/`, payload);
+  return data as { chore: ChickenChore; event: ChickenEvent };
+}

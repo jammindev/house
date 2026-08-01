@@ -1022,7 +1022,8 @@
         "weather_alert": "Weather alert",
         "daily_digest": "Daily digest",
         "recurring_due": "Recurring expense due",
-        "monthly_budget_report": "Monthly budget report"
+        "monthly_budget_report": "Monthly budget report",
+        "chicken_chore": "Coop chore reminder"
       }
     },
     "theme": "Theme",
@@ -1406,6 +1407,10 @@
           "events": {
             "title": "Record events",
             "body": "Care, brooding, moulting, death: each hen's record keeps its timeline."
+          },
+          "chores": {
+            "title": "Never wonder when you last cleaned",
+            "body": "Add the jobs you redo — clean the coop, wash the feeder — with how many days apart. Tick « Done » each time and House counts from there; turn on the coop reminder in Settings › Proactive messages and it tells you in the morning when one has slipped."
           },
           "stats": {
             "title": "Track laying and cost",
@@ -2758,7 +2763,8 @@
     "type": {
       "stock_low": "Low stock",
       "stock_out": "Out of stock",
-      "weather_alert": "Weather alert"
+      "weather_alert": "Weather alert",
+      "chicken_chore_due": "Coop chore due"
     }
   },
   "invitations": {
@@ -2948,6 +2954,39 @@
       "assistant": "Assistant",
       "documents": "Documents",
       "photos": "Photos"
+    },
+    "chores": {
+      "title": "Chores",
+      "empty": "No recurring chore yet. Add the ones you redo — cleaning the coop, washing the feeder — and House will tell you when they slip.",
+      "created": "Chore added",
+      "updated": "Chore updated",
+      "deleted": "Chore deleted",
+      "done": "Chore done",
+      "paused": "Paused",
+      "never_done": "Never done",
+      "last_done": "Done on {{date}}",
+      "cadence_one": "every day",
+      "cadence_other": "every {{count}} days",
+      "due_today": "Due today",
+      "overdue_one": "{{count}} day late",
+      "overdue_other": "{{count}} days late",
+      "new_title": "New chore",
+      "edit_title": "Edit chore",
+      "actions": {
+        "new": "New chore",
+        "done": "Done",
+        "pause": "Pause",
+        "resume": "Resume"
+      },
+      "fields": {
+        "name": "Name",
+        "name_placeholder": "Clean the coop",
+        "emoji": "Emoji",
+        "interval_days": "Every how many days",
+        "starts_on": "Counting from",
+        "starts_on_help": "Used as the starting point until the chore is done for the first time. Set it to the day you last did it and the first reminder will land at the right time.",
+        "notes": "Notes"
+      }
     }
   },
   "alerts": {
@@ -2968,7 +3007,8 @@
       "maintenances": "Upcoming maintenances",
       "stock": "Stock to restock",
       "weather": "Weather",
-      "eggDrop": "Egg-laying drop"
+      "eggDrop": "Egg-laying drop",
+      "chores": "Coop chores"
     },
     "severity": {
       "critical": "Urgent",
@@ -3000,7 +3040,12 @@
         "weather": "Recent extreme weather · {{recent}} vs {{baseline}} eggs/day",
         "unknown": "Unknown cause, keep an eye · {{recent}} vs {{baseline}} eggs/day"
       }
-    }
+    },
+    "choreNeverDone_one": "Never done — planned every day",
+    "choreNeverDone_other": "Never done — planned every {{count}} days",
+    "choreDueToday": "Due today",
+    "choreOverdue_one": "{{count}} day late — was due {{date}}",
+    "choreOverdue_other": "{{count}} days late — was due {{date}}"
   },
   "search": {
     "title": "Search",
@@ -3027,7 +3072,8 @@
       "chicken_event": "Chicken coop log",
       "meter": "Meters",
       "tracker": "Trackers",
-      "shopping_item": "Shopping list"
+      "shopping_item": "Shopping list",
+      "chicken_chore": "Coop chores"
     }
   },
   "agent": {

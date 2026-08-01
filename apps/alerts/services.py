@@ -18,6 +18,11 @@ OVERDUE_TASK_CRITICAL_DAYS = 3
 WARRANTY_CRITICAL_DAYS = 30
 MAINTENANCE_CRITICAL_DAYS = 7
 
+# A chore turns critical once it is late by its own period again — a weekly
+# chore at 7 days late, a yearly one at a year. A fixed day count cannot serve
+# both: 7 days late on "clean the coop" is neglect, on "vermifuger" it is noise.
+CHORE_CRITICAL_FACTOR = 1
+
 STOCK_ALERT_STATUSES = [
     StockItem.Status.LOW_STOCK,
     StockItem.Status.OUT_OF_STOCK,
@@ -173,6 +178,40 @@ def _egg_drop_alerts(household, today: date) -> list[dict]:
     return [alert] if alert is not None else []
 
 
+def _due_chores(household, today: date) -> list[dict]:
+    """Recurring coop chores whose due date has passed.
+
+    Reads ``chickens.services.overdue_chores`` — the very function the reminder
+    ping reads. The dashboard and the notification must never be able to
+    disagree about what is late; recomputing "en retard" here would be a second
+    definition of the same verdict.
+    """
+    if "chickens" in (household.disabled_modules or []):
+        return []
+    from chickens.services import overdue_chores
+
+    items = []
+    for chore, state in overdue_chores(household, today=today):
+        items.append(
+            {
+                "id": str(chore.id),
+                "title": chore.name,
+                "emoji": chore.emoji,
+                "interval_days": chore.interval_days,
+                "next_due_on": state["next_due_on"].isoformat(),
+                "days_overdue": state["days_overdue"],
+                "never_done": state["never_done"],
+                "entity_url": f"/app/chickens?chore={chore.id}",
+                "severity": (
+                    "critical"
+                    if state["days_overdue"] >= CHORE_CRITICAL_FACTOR * chore.interval_days
+                    else "warning"
+                ),
+            }
+        )
+    return items
+
+
 def build_alerts_summary(household, today: date | None = None) -> dict:
     today = today or timezone.localdate()
     overdue_tasks = _overdue_tasks(household, today)
@@ -181,6 +220,7 @@ def build_alerts_summary(household, today: date | None = None) -> dict:
     low_stock = _low_stock(household)
     weather_alerts = _weather_alerts(household)
     egg_drop_alerts = _egg_drop_alerts(household, today)
+    due_chores = _due_chores(household, today)
     return {
         "overdue_tasks": overdue_tasks,
         "expiring_warranties": expiring_warranties,
@@ -188,6 +228,7 @@ def build_alerts_summary(household, today: date | None = None) -> dict:
         "low_stock": low_stock,
         "weather_alerts": weather_alerts,
         "egg_drop_alerts": egg_drop_alerts,
+        "due_chores": due_chores,
         "total": (
             len(overdue_tasks)
             + len(expiring_warranties)
@@ -195,5 +236,6 @@ def build_alerts_summary(household, today: date | None = None) -> dict:
             + len(low_stock)
             + len(weather_alerts)
             + len(egg_drop_alerts)
+            + len(due_chores)
         ),
     }

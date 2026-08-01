@@ -11,12 +11,19 @@ from datetime import date, timedelta
 from decimal import Decimal
 
 from django.db import transaction
-from django.db.models import Sum
+from django.db.models import Max, Sum
 from django.utils import timezone
 from django.utils.translation import gettext as _
 
-from .models import Chicken, ChickenEvent, ChickenSettings, EggLog
-from .serializers import ChickenEventSerializer, ChickenSerializer, EggLogSerializer
+from core.timezones import household_today
+
+from .models import Chicken, ChickenChore, ChickenEvent, ChickenSettings, EggLog
+from .serializers import (
+    ChickenChoreSerializer,
+    ChickenEventSerializer,
+    ChickenSerializer,
+    EggLogSerializer,
+)
 
 
 # Status transitions that leave the flock auto-create a journal entry (US-2).
@@ -185,6 +192,136 @@ def delete_event(household, user, event: ChickenEvent) -> None:
     if event.household_id != household.id:
         raise ValueError("delete_event: event belongs to another household")
     event.delete()
+
+
+# --- Recurring chores ---------------------------------------------------------
+#
+# A chore holds the cadence; the flock journal holds the occurrences. Everything
+# below derives the due date rather than storing it — see ChickenChore's
+# docstring for why that rule is not negotiable here.
+
+
+def create_chore(
+    household,
+    user,
+    *,
+    name: str,
+    interval_days,
+    emoji: str = '',
+    starts_on=None,
+    notes: str = '',
+    is_active: bool | None = None,
+) -> ChickenChore:
+    """Create a recurring coop chore for ``household`` (REST + agent)."""
+    payload: dict = {
+        'name': name,
+        'interval_days': interval_days,
+        'starts_on': starts_on or household_today(household),
+    }
+    if emoji:
+        payload['emoji'] = emoji
+    if notes:
+        payload['notes'] = notes
+    if is_active is not None:
+        payload['is_active'] = is_active
+
+    serializer = ChickenChoreSerializer(data=payload, context={'household_id': household.id})
+    serializer.is_valid(raise_exception=True)
+    return serializer.save(household=household, created_by=user)
+
+
+def update_chore(household, user, chore: ChickenChore, *, fields: dict) -> ChickenChore:
+    """Update a chore — shared by the REST PATCH and the agent's ``update_entity``."""
+    allowed = {'name', 'emoji', 'interval_days', 'starts_on', 'notes', 'is_active'}
+    payload = {k: v for k, v in fields.items() if k in allowed}
+
+    serializer = ChickenChoreSerializer(
+        chore, data=payload, partial=True, context={'household_id': household.id}
+    )
+    serializer.is_valid(raise_exception=True)
+    return serializer.save(updated_by=user)
+
+
+def delete_chore(household, user, chore: ChickenChore) -> None:
+    """Hard delete a chore. Its journal entries survive (FK is SET_NULL)."""
+    if chore.household_id != household.id:
+        raise ValueError("delete_chore: chore belongs to another household")
+    chore.delete()
+
+
+def complete_chore(
+    household,
+    user,
+    chore: ChickenChore,
+    *,
+    occurred_on=None,
+    notes: str = '',
+) -> ChickenEvent:
+    """Record that the chore was done — writes the journal entry, nothing else.
+
+    The chore itself is **not** touched: its next due date is recomputed from
+    this very entry on the next read. That is what keeps a corrected or deleted
+    journal entry from leaving a due date behind that nothing can explain.
+    """
+    if chore.household_id != household.id:
+        raise ValueError("complete_chore: chore belongs to another household")
+
+    day = occurred_on or household_today(household)
+    title = f"{chore.emoji} {chore.name}".strip() if chore.emoji else chore.name
+    serializer = ChickenEventSerializer(
+        data={
+            'type': ChickenEvent.Type.CARE,
+            'title': title,
+            'occurred_on': day,
+            'notes': notes or '',
+        },
+        context={'household_id': household.id},
+    )
+    serializer.is_valid(raise_exception=True)
+    return serializer.save(household=household, created_by=user, chore=chore)
+
+
+def chore_status(chore: ChickenChore, *, today: date, last_done_on=None) -> dict:
+    """Derived state of one chore: when it was last done, when it is next due.
+
+    ``last_done_on`` is passed in by the callers that already annotated it in
+    SQL (see ``chores_with_status``), so a list of chores costs one query, not
+    one per chore.
+    """
+    anchor = last_done_on or chore.starts_on
+    next_due_on = anchor + timedelta(days=chore.interval_days)
+    days_overdue = (today - next_due_on).days
+    return {
+        'last_done_on': last_done_on,
+        'next_due_on': next_due_on,
+        # Due today is due, not late — a chore is overdue only once its day passed.
+        'days_overdue': max(days_overdue, 0),
+        'is_due': days_overdue >= 0,
+        'never_done': last_done_on is None,
+    }
+
+
+def chores_with_status(household, *, today: date | None = None, active_only: bool = True):
+    """Chores of the household, each with its derived status, in one query.
+
+    Ordered by urgency (the most overdue first), because that is the order the
+    panel and the reminder both need — sorting by name would bury the one thing
+    the screen exists to say.
+    """
+    today = today or household_today(household)
+    qs = ChickenChore.objects.filter(household=household)
+    if active_only:
+        qs = qs.filter(is_active=True)
+    qs = qs.annotate(last_done_on=Max('completions__occurred_on'))
+
+    rows = [(chore, chore_status(chore, today=today, last_done_on=chore.last_done_on)) for chore in qs]
+    rows.sort(key=lambda row: (row[1]['next_due_on'], row[0].name))
+    return rows
+
+
+def overdue_chores(household, *, today: date | None = None) -> list[tuple[ChickenChore, dict]]:
+    """Active chores whose due date has passed — the reminder's and the dashboard's input."""
+    return [row for row in chores_with_status(household, today=today) if row[1]['is_due']]
 
 
 def get_settings(household) -> ChickenSettings:

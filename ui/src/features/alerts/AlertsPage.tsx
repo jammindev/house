@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { Link, useLocation } from 'react-router-dom';
-import { AlertTriangle, Bell, Clock, CloudSun, Egg, Package, ShieldCheck, Wrench } from 'lucide-react';
+import { AlertTriangle, Bell, Brush, Clock, CloudSun, Egg, Package, ShieldCheck, Wrench } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
 import { pushBack } from '@/lib/backNavigation';
 import EmptyState from '@/components/EmptyState';
@@ -10,6 +10,7 @@ import { useDelayedLoading } from '@/lib/useDelayedLoading';
 import { cn } from '@/lib/utils';
 import {
   type AlertSeverity,
+  type DueChoreAlert,
   type DueMaintenanceAlert,
   type EggDropAlert,
   type ExpiringWarrantyAlert,
@@ -83,6 +84,7 @@ export default function AlertsPage() {
     low_stock: [],
     weather_alerts: [],
     egg_drop_alerts: [],
+    due_chores: [],
     total: 0,
   };
 
@@ -164,6 +166,37 @@ export default function AlertsPage() {
                     count: item.days_remaining,
                     date: item.next_service_due,
                   })}
+                  severityLabel={t(`alerts.severity.${item.severity}`)}
+                  severity={item.severity}
+                />
+              ))}
+            </div>
+          </section>
+        ) : null}
+
+        {summary.due_chores.length > 0 ? (
+          <section>
+            <h2 className="mb-2 flex items-center gap-2 text-sm font-semibold text-foreground">
+              <Brush className="h-4 w-4 text-primary" aria-hidden />
+              {t('alerts.sections.chores')}
+              <span className="text-muted-foreground">({summary.due_chores.length})</span>
+            </h2>
+            <div className="space-y-2">
+              {summary.due_chores.map((item: DueChoreAlert) => (
+                <AlertCard
+                  key={`chore-${item.id}`}
+                  to={item.entity_url}
+                  title={item.emoji ? `${item.emoji} ${item.title}` : item.title}
+                  meta={
+                    item.never_done
+                      ? t('alerts.choreNeverDone', { count: item.interval_days })
+                      : item.days_overdue === 0
+                        ? t('alerts.choreDueToday')
+                        : t('alerts.choreOverdue', {
+                            count: item.days_overdue,
+                            date: item.next_due_on,
+                          })
+                  }
                   severityLabel={t(`alerts.severity.${item.severity}`)}
                   severity={item.severity}
                 />

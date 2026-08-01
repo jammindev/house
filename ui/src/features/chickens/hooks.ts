@@ -1,15 +1,19 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import {
+  completeChore,
   createChicken,
   createChickenEvent,
+  createChore,
   deleteChicken,
   deleteChickenEvent,
+  deleteChore,
   deleteEggLog,
   fetchChicken,
   fetchChickenEvents,
   fetchChickens,
   fetchChickenSettings,
+  fetchChores,
   fetchEggLogs,
   fetchEggStats,
   fetchFlockSummary,
@@ -18,13 +22,17 @@ import {
   updateChicken,
   updateChickenEvent,
   updateChickenSettings,
+  updateChore,
   type Chicken,
+  type ChickenChore,
+  type ChickenChorePayload,
   type ChickenEvent,
   type ChickenEventPayload,
   type ChickenPayload,
   type ChickenPurchasePayload,
   type EggStatsPeriod,
 } from '@/lib/api/chickens';
+import { useInvalidate } from '@/lib/invalidate';
 import { toast } from '@/lib/toast';
 
 export const chickenKeys = {
@@ -37,6 +45,7 @@ export const chickenKeys = {
   events: (filters?: { chicken?: string }) => [...chickenKeys.all, 'events', filters] as const,
   settings: () => [...chickenKeys.all, 'settings'] as const,
   summary: () => [...chickenKeys.all, 'summary'] as const,
+  chores: (filters?: { active?: boolean }) => [...chickenKeys.all, 'chores', filters] as const,
 };
 
 export function useChickens(filters: { status?: string; in_flock?: boolean } = {}) {
@@ -210,4 +219,69 @@ export function useUpdateChickenSettings() {
   });
 }
 
-export type { Chicken, ChickenEvent };
+export type { Chicken, ChickenChore, ChickenEvent };
+
+// --- Recurring chores --------------------------------------------------------
+
+export function useChores(filters: { active?: boolean } = {}) {
+  return useQuery({
+    queryKey: chickenKeys.chores(filters),
+    queryFn: () => fetchChores(filters),
+  });
+}
+
+export function useCreateChore() {
+  const invalidate = useInvalidate();
+  const { t } = useTranslation();
+  return useMutation({
+    mutationFn: (payload: ChickenChorePayload) => createChore(payload),
+    onSuccess: () => {
+      invalidate('chickens');
+      toast({ description: t('chickens.chores.created'), variant: 'success' });
+    },
+    onError: () => toast({ description: t('common.saveFailed'), variant: 'destructive' }),
+  });
+}
+
+export function useUpdateChore() {
+  const invalidate = useInvalidate();
+  const { t } = useTranslation();
+  return useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: Partial<ChickenChorePayload> }) =>
+      updateChore(id, payload),
+    onSuccess: () => {
+      invalidate('chickens');
+      toast({ description: t('chickens.chores.updated'), variant: 'success' });
+    },
+    onError: () => toast({ description: t('common.saveFailed'), variant: 'destructive' }),
+  });
+}
+
+export function useDeleteChore() {
+  const invalidate = useInvalidate();
+  return useMutation({
+    mutationFn: (id: string) => deleteChore(id),
+    onSuccess: () => invalidate('chickens'),
+  });
+}
+
+/**
+ * Mark a chore done — writes the flock journal entry that resets its cadence.
+ *
+ * Invalidates the `chickens` root, whose declared edges carry the refresh to the
+ * alerts badge (the chore stops being late) and to the journal timeline (a new
+ * care entry appeared). Declaring what was written, never the list of caches.
+ */
+export function useCompleteChore() {
+  const invalidate = useInvalidate();
+  const { t } = useTranslation();
+  return useMutation({
+    mutationFn: ({ id, occurred_on, notes }: { id: string; occurred_on?: string; notes?: string }) =>
+      completeChore(id, { occurred_on, notes }),
+    onSuccess: () => {
+      invalidate('chickens');
+      toast({ description: t('chickens.chores.done'), variant: 'success' });
+    },
+    onError: () => toast({ description: t('common.saveFailed'), variant: 'destructive' }),
+  });
+}

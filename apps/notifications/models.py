@@ -22,6 +22,7 @@ class Notification(models.Model):
         STOCK_LOW = "stock_low", _("Low stock")
         STOCK_OUT = "stock_out", _("Out of stock")
         WEATHER_ALERT = "weather_alert", _("Weather alert")
+        CHICKEN_CHORE_DUE = "chicken_chore_due", _("Coop chore due")
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(
@@ -97,4 +98,8 @@ MUTABLE_TYPES = frozenset({
     Notification.Type.STOCK_LOW,
     Notification.Type.STOCK_OUT,
     Notification.Type.WEATHER_ALERT,
+    # A coop chore is recurring by definition: silencing it must stay possible,
+    # or the reminder that helps for a month becomes the one that trains the
+    # household to ignore the bell.
+    Notification.Type.CHICKEN_CHORE_DUE,
 })

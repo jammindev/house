@@ -100,6 +100,55 @@ class EggLog(HouseholdScopedModel):
         return f"{self.date}: {self.count}"
 
 
+class ChickenChore(HouseholdScopedModel):
+    """A coop care action the household redoes on a cadence (clean the coop, wash the feeder…).
+
+    The chore holds the **cadence**, never the occurrences: doing it writes a
+    ``ChickenEvent`` (type=care) pointing back here, so the flock journal stays
+    the single history of what was done and when. "Quand a-t-on vermifugé ?"
+    keeps exactly one answer, and it is already citable by the agent.
+
+    ``next_due_on`` is therefore **derived at read time** from the last linked
+    event (``chickens.services.chore_status``) and never stored — same rule as
+    the bank balance and the budget "spent": a denormalized due date drifts the
+    first time an event is edited or deleted, and a reminder that fires on a
+    stale date is worse than no reminder.
+    """
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=200)
+    emoji = models.CharField(max_length=16, blank=True, default='')
+    interval_days = models.PositiveIntegerField(
+        help_text="Days between two occurrences — also the delay after which the reminder fires.",
+    )
+    # Anchor for a chore that was never done: without it a brand-new chore has
+    # no last event, so no due date, so it would stay silent forever — the one
+    # state the user is most likely to need reminding about. Defaults to the
+    # creation day; editable so "je l'ai fait hier, compte à partir de là" does
+    # not require faking a journal entry.
+    starts_on = models.DateField()
+    is_active = models.BooleanField(default=True)
+    notes = models.TextField(blank=True, default='')
+
+    objects = HouseholdScopedManager()
+
+    class Meta:
+        db_table = 'chicken_chores'
+        ordering = ['name']
+        indexes = [
+            models.Index(fields=['household', 'is_active'], name='idx_ck_chore_hh_active'),
+        ]
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(interval_days__gte=1),
+                name='chicken_chores_interval_positive',
+            ),
+        ]
+
+    def __str__(self):
+        return self.name
+
+
 class ChickenEvent(HouseholdScopedModel):
     """Flock journal entry — optionally tied to one hen, or flock-wide when chicken is null."""
 
@@ -123,6 +172,17 @@ class ChickenEvent(HouseholdScopedModel):
         related_name='events',
         db_column='chicken_id',
     )
+    # Set when this entry is the completion of a recurring chore. SET_NULL, not
+    # CASCADE: dropping a chore the household no longer does must not erase the
+    # proof that it was done — the journal outlives the cadence.
+    chore = models.ForeignKey(
+        'ChickenChore',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='completions',
+        db_column='chore_id',
+    )
     type = models.CharField(max_length=20, choices=Type.choices)
     occurred_on = models.DateField()
     title = models.CharField(max_length=300)
@@ -136,6 +196,7 @@ class ChickenEvent(HouseholdScopedModel):
         indexes = [
             models.Index(fields=['household', 'occurred_on'], name='idx_ck_event_hh_date'),
             models.Index(fields=['chicken'], name='idx_ck_event_chicken'),
+            models.Index(fields=['chore', '-occurred_on'], name='idx_ck_event_chore_date'),
         ]
 
     def __str__(self):

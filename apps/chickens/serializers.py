@@ -1,11 +1,12 @@
 """
 Chicken coop serializers — CRUD API + purchase/settings payloads.
 """
+from django.db.models import Max
 from rest_framework import serializers
 
 from zones.models import Zone
 
-from .models import Chicken, ChickenEvent, ChickenSettings, EggLog
+from .models import Chicken, ChickenChore, ChickenEvent, ChickenSettings, EggLog
 
 
 class ChickenSerializer(serializers.ModelSerializer):
@@ -114,6 +115,83 @@ class ChickenEventSerializer(serializers.ModelSerializer):
         if household_id and str(value.household_id) != str(household_id):
             raise serializers.ValidationError("Chicken does not belong to the household.")
         return value
+
+
+class ChickenChoreSerializer(serializers.ModelSerializer):
+    """Read/write serializer for recurring coop chores.
+
+    The derived block (``last_done_on``, ``next_due_on``, ``days_overdue``…) is
+    read-only and computed by ``chickens.services.chore_status`` — the same
+    function the reminder and the dashboard alert read. A second definition of
+    "en retard" computed in the client is exactly the two-voices bug the money
+    module already paid for.
+    """
+
+    status = serializers.SerializerMethodField()
+    # Optional on the wire, mandatory in the database: the caller should not have
+    # to send "today", and `create_chore` is the one place that decides what the
+    # anchor is — in the household's timezone, not the server's.
+    starts_on = serializers.DateField(required=False)
+
+    class Meta:
+        model = ChickenChore
+        fields = [
+            'id', 'household',
+            'name', 'emoji', 'interval_days', 'starts_on', 'is_active', 'notes',
+            'status',
+            'created_at', 'updated_at', 'created_by',
+        ]
+        read_only_fields = ['id', 'household', 'created_at', 'updated_at', 'created_by']
+
+    def get_status(self, obj):
+        from core.timezones import household_today
+
+        from .services import chore_status
+
+        # `today` comes from the view, computed once for the whole page. Reading
+        # `obj.household` here instead would load the household row once per
+        # chore — an N+1 that only shows up on a household with several chores,
+        # which is exactly the one this panel is for.
+        today = self.context.get('today')
+        if today is None:
+            today = household_today(obj.household)
+        # Annotated by chores_with_status when the caller listed them in one
+        # query; falls back to a per-object lookup for a single retrieve.
+        last_done_on = getattr(obj, 'last_done_on', ...)
+        if last_done_on is ...:
+            last_done_on = (
+                obj.completions.aggregate(last=Max('occurred_on'))['last']
+                if obj.pk
+                else None
+            )
+
+        state = chore_status(obj, today=today, last_done_on=last_done_on)
+        return {
+            'last_done_on': state['last_done_on'].isoformat() if state['last_done_on'] else None,
+            'next_due_on': state['next_due_on'].isoformat(),
+            'days_overdue': state['days_overdue'],
+            'is_due': state['is_due'],
+            'never_done': state['never_done'],
+        }
+
+    def validate_name(self, value):
+        if not value or not value.strip():
+            raise serializers.ValidationError("Name cannot be blank.")
+        return value.strip()
+
+    def validate_interval_days(self, value):
+        if value is None or value < 1:
+            raise serializers.ValidationError("Interval must be at least 1 day.")
+        if value > 3650:
+            raise serializers.ValidationError("Interval cannot exceed 3650 days.")
+        return value
+
+
+class ChickenChoreCompletionSerializer(serializers.Serializer):
+    """Payload of POST /api/chickens/chores/{id}/complete/."""
+
+    occurred_on = serializers.DateField(required=False, allow_null=True)
+    notes = serializers.CharField(required=False, allow_blank=True, default='')
 
 
 class ChickenPurchaseSerializer(serializers.Serializer):

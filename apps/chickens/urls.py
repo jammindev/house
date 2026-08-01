@@ -2,6 +2,7 @@ from django.urls import path
 from rest_framework.routers import DefaultRouter
 
 from .views import (
+    ChickenChoreViewSet,
     ChickenEventViewSet,
     ChickenSettingsView,
     ChickenSummaryView,
@@ -12,6 +13,8 @@ from .views import (
 router = DefaultRouter()
 router.register(r'egg-logs', EggLogViewSet, basename='chicken-egg-log')
 router.register(r'events', ChickenEventViewSet, basename='chicken-event')
+router.register(r'chores', ChickenChoreViewSet, basename='chicken-chore')
+# Registered last: its prefix is empty, so it would swallow the named routes above.
 router.register(r'', ChickenViewSet, basename='chicken')
 
 urlpatterns = [
