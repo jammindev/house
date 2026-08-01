@@ -72,7 +72,7 @@ export default function BudgetCategoryDetailPage() {
   // déjà en cache quand on arrive du panneau : ouvrir une catégorie ne doit pas
   // coûter un aller-retour de plus. Il suit **le mois choisi** quand il y en a
   // un — le panneau demande le même, donc c'est bien le cache partagé.
-  const overviewQuery = useBudgetOverview(period.preset === 'month' ? period.month : undefined);
+  const overviewQuery = useBudgetOverview(period);
   const row = React.useMemo(
     () => (overviewQuery.data?.categories ?? []).find((c) => c.id === id) ?? null,
     [overviewQuery.data, id],
@@ -88,8 +88,10 @@ export default function BudgetCategoryDetailPage() {
 
   // Un plafond n'a de sens qu'en face d'un **mois entier** : le comparer à un
   // total annuel afficherait « 4 200 € / 450 € », un dépassement qui n'existe
-  // pas. Quel mois, en revanche, n'a pas d'importance.
-  const showCeiling = period.preset === 'month' && row?.amount != null;
+  // pas. Quel mois, en revanche, n'a pas d'importance. Le verdict vient du
+  // serveur (`amount: null` hors mois entier) et n'est pas refait ici — un même
+  // « peut-on comparer ? » calculé à deux endroits finit par répondre deux fois.
+  const showCeiling = row?.amount != null;
 
   const buckets: ConsumptionChartBucket[] = React.useMemo(() => {
     if (!insights) return [];

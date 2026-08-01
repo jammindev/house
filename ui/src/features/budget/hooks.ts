@@ -1,3 +1,4 @@
+import * as React from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import {
@@ -23,8 +24,10 @@ import {
   updateRecurringExpense,
   type BudgetCategoryPayload,
   type BudgetPayload,
+  type OverviewWindow,
   type RecurringExpensePayload,
 } from '@/lib/api/budget';
+import { resolvePeriod, type PeriodRange } from '@/features/expenses/period';
 import { toast } from '@/lib/toast';
 import { BUDGET_ROOT } from '@/features/money/keys';
 import { useInvalidateMoney } from '@/features/money/invalidate';
@@ -33,9 +36,16 @@ export const budgetKeys = {
   all: BUDGET_ROOT,
   list: () => [...budgetKeys.all, 'list'] as const,
   categories: () => [...budgetKeys.all, 'categories'] as const,
-  // Le mois entre dans la clé : sans lui, revenir sur juillet réafficherait le
-  // cache de juin sous le libellé de juillet le temps du refetch.
-  overview: (month?: string) => [...budgetKeys.all, 'overview', month ?? ''] as const,
+  // La fenêtre entre dans la clé : sans elle, revenir sur juillet réafficherait
+  // le cache de juin sous le libellé de juillet le temps du refetch.
+  overview: (window: OverviewWindow = {}) =>
+    [
+      ...budgetKeys.all,
+      'overview',
+      window.month ?? '',
+      window.from ?? '',
+      window.to ?? '',
+    ] as const,
   recurring: () => [...budgetKeys.all, 'recurring'] as const,
   recurringDue: () => [...budgetKeys.all, 'recurring', 'due'] as const,
   projection: () => [...budgetKeys.all, 'projection'] as const,
@@ -56,16 +66,31 @@ export function useBudgets() {
 }
 
 /**
- * L'aperçu d'un mois. `month` omis = le mois en cours.
+ * L'aperçu sur une fenêtre — un mois, une période libre, ou le mois en cours.
  *
- * `placeholderData` garde les lignes du mois précédemment lu à l'écran pendant
- * le chargement du suivant : sans lui, chaque coup de flèche vide la page puis
- * la remplit, et le sélecteur devient inutilisable à la deuxième pression.
+ * Accepte directement la `PeriodRange` du sélecteur : un preset `month` part en
+ * `?month=`, tout le reste en `?from=&to=` résolus par `resolvePeriod`. Traduire
+ * la période au point d'appel obligerait chaque écran à refaire ce choix, et le
+ * premier qui l'oublierait interrogerait un mois en croyant demander l'année.
+ *
+ * ⚠️ Hors mois entier, le serveur répond `amount: null` / `uncapped` : un
+ * plafond mensuel n'a pas d'échelle en face d'une année.
+ *
+ * `placeholderData` garde les lignes de la fenêtre précédente à l'écran pendant
+ * le chargement de la suivante : sans lui, chaque coup de flèche vide la page
+ * puis la remplit, et le sélecteur devient inutilisable à la deuxième pression.
  */
-export function useBudgetOverview(month?: string) {
+export function useBudgetOverview(period?: PeriodRange) {
+  const window = React.useMemo<OverviewWindow>(() => {
+    if (!period) return {};
+    if (period.preset === 'month') return { month: period.month };
+    const { from, to } = resolvePeriod(period);
+    return { from, to };
+  }, [period]);
+
   return useQuery({
-    queryKey: budgetKeys.overview(month),
-    queryFn: () => fetchBudgetOverview(month),
+    queryKey: budgetKeys.overview(window),
+    queryFn: () => fetchBudgetOverview(window),
     placeholderData: (previous) => previous,
   });
 }

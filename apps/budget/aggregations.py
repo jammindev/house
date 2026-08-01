@@ -9,7 +9,8 @@ via the shared ``interactions.queries`` helpers.
 """
 from __future__ import annotations
 
-from datetime import datetime
+import calendar
+from datetime import date, datetime, timedelta
 from decimal import Decimal
 from typing import Any
 
@@ -18,7 +19,7 @@ from django.db.models import Q, Sum
 from django.db.models.functions import Coalesce
 
 from core.timezones import current_month_range as _current_month_range
-from core.timezones import household_today, month_range
+from core.timezones import household_today, month_range, start_of_day
 from interactions.queries import expenses
 
 from .models import Budget, BudgetCategory, RecurringExpense
@@ -84,6 +85,53 @@ def month_window(household, month: str | None) -> tuple[datetime, datetime, str]
     year, index = parse_month(month)
     start, end = month_range(household, year=year, month=index)
     return start, end, f"{year:04d}-{index:02d}"
+
+
+def resolve_window(
+    household,
+    *,
+    month: str | None = None,
+    date_from: date | None = None,
+    date_to: date | None = None,
+) -> tuple[datetime, datetime, str | None]:
+    """La fenêtre de l'aperçu — un mois, ou une période libre.
+
+    Renvoie ``(début, fin_exclusive, mois)``. Le troisième terme est le
+    ``'YYYY-MM'`` **quand la fenêtre est exactement un mois calendaire**, et
+    ``None`` sinon. C'est lui qui décide si les plafonds s'appliquent.
+
+    ⚠️ **Un plafond mensuel n'a de sens qu'en face d'un mois.** Comparer les
+    dépenses de l'année à « 400 € / mois » afficherait « 4 200 € / 400 € » et une
+    barre rouge saturée sur une enveloppe parfaitement tenue — un dépassement qui
+    n'existe pas. Hors mois entier, l'aperçu répond donc ``amount: null`` et
+    l'état ``uncapped``, qui est déjà le vocabulaire du module pour « suivi, non
+    plafonné » : le montant dépensé se lit, la barre disparaît. C'est la règle que
+    les fiches budget et catégorie appliquent depuis toujours (`showCeiling`) ;
+    elle vaut ici pour la même raison.
+
+    La borne haute est **exclusive** : une date nue en fin d'intervalle vaut fin
+    de journée, donc le lendemain à minuit. Un ``__lt`` sur la date elle-même
+    exclurait le dernier jour de la période.
+    """
+    if date_from is None and date_to is None:
+        return month_window(household, month)
+    if date_from is None or date_to is None:
+        raise ValueError("Une période libre demande ses deux bornes (`from` et `to`).")
+    if date_to < date_from:
+        raise ValueError("La fin de la période précède son début.")
+
+    start = start_of_day(date_from, household)
+    end = start_of_day(date_to + timedelta(days=1), household)
+
+    # La fenêtre est-elle *pile* un mois ? Le 1er au dernier jour, et rien de
+    # plus. C'est la seule forme où un plafond mensuel a une échelle en face.
+    last_day = calendar.monthrange(date_from.year, date_from.month)[1]
+    whole_month = (
+        date_from.day == 1
+        and date_to.day == last_day
+        and (date_from.year, date_from.month) == (date_to.year, date_to.month)
+    )
+    return start, end, f"{date_from.year:04d}-{date_from.month:02d}" if whole_month else None
 
 
 def _spent_by_budget(household_id, start, end) -> tuple[dict, dict]:
@@ -202,21 +250,35 @@ def _budget_row(
     committed: Decimal | None = None,
     attested: Decimal | None = None,
     refunded: Decimal | None = None,
+    *,
+    capped: bool = True,
 ) -> dict[str, Any]:
     seen = attested if attested is not None else _zero()
     given_back = refunded if refunded is not None else _zero()
     net = spent - given_back
+    # ``capped=False`` sur une fenêtre qui n'est pas un mois entier : le plafond
+    # est **mensuel**, il n'a pas d'échelle en face de trente jours ou d'une
+    # année. La ligne retombe alors sur ``uncapped``, l'état que le module
+    # réserve depuis toujours à « suivi, non plafonné ».
+    ceiling = budget.monthly_amount if capped else None
     # C'est le **net** que le plafond mesure : de l'argent rendu n'a pas été
     # dépensé. Mesurer le brut laisserait « 150 € / 400 € » sur un achat dont
     # 40 € sont revenus, c'est-à-dire un plafond qu'on atteint plus vite que la
     # réalité — l'inverse du service rendu.
-    ratio, state = _state(net, budget.monthly_amount)
+    ratio, state = _state(net, ceiling)
     return {
         "id": str(budget.id),
         "name": budget.name,
         # ``None``, never "0.00": stringified, a missing ceiling and a ceiling of
         # zero read the same — and the second one is permanently over budget.
-        "amount": None if budget.monthly_amount is None else _str(budget.monthly_amount),
+        "amount": None if ceiling is None else _str(ceiling),
+        # ⚠️ Le plafond **écrit en base**, indépendant de la fenêtre. ``amount``
+        # est le plafond *comparable* et vaut ``null`` hors mois entier ; le
+        # dialogue d'édition doit lire celui-ci, sinon enregistrer un budget
+        # depuis « cette année » effacerait son plafond sans un mot.
+        "monthly_amount": (
+            None if budget.monthly_amount is None else _str(budget.monthly_amount)
+        ),
         # ``spent`` reste le **brut** : sept agrégations le lisent, et le
         # décomposer en attesté/en attente n'aurait plus de sens s'il changeait de
         # définition. Le net est un chiffre de plus, pas une redéfinition.
@@ -242,6 +304,8 @@ def _category_row(
     category: BudgetCategory,
     budgets: list[Budget],
     rows: list[dict[str, Any]],
+    *,
+    capped: bool = True,
 ) -> dict[str, Any]:
     """Le sous-total d'une catégorie, dérivé des lignes de ses budgets.
 
@@ -266,15 +330,25 @@ def _category_row(
         # Une catégorie sans plafond propre vaut la somme de ceux qu'elle range —
         # et ``None`` si aucun de ses budgets n'en a, parce qu'un sous-total de
         # rien du tout n'est pas un plafond de 0 € (perpétuellement dépassé).
-        capped = [b.monthly_amount for b in budgets if b.monthly_amount is not None]
-        ceiling = sum(capped, _zero()) if capped else None
+        inherited = [b.monthly_amount for b in budgets if b.monthly_amount is not None]
+        ceiling = sum(inherited, _zero()) if inherited else None
 
+    # Hors mois entier, plus rien à mesurer — voir ``resolve_window``.
+    shown = ceiling if capped else None
     net = spent - refunded
-    ratio, state = _state(net, ceiling)
+    ratio, state = _state(net, shown)
     return {
         "id": str(category.id),
         "name": category.name,
-        "amount": None if ceiling is None else _str(ceiling),
+        "amount": None if shown is None else _str(shown),
+        # ⚠️ Le plafond **écrit en base**, indépendant de la fenêtre — ce que le
+        # dialogue d'édition doit ré-afficher. ``amount`` est le plafond
+        # *comparable* et disparaît hors mois entier ; s'en servir pour
+        # pré-remplir le formulaire viderait le plafond au premier enregistrement
+        # fait depuis « cette année ».
+        "monthly_amount": (
+            None if category.monthly_amount is None else _str(category.monthly_amount)
+        ),
         # Vrai quand le plafond affiché est celui de la catégorie elle-même, et
         # non la somme de ses budgets. Le front en a besoin pour ne pas proposer
         # d'éditer un chiffre qui n'est écrit nulle part.
@@ -291,25 +365,37 @@ def _category_row(
     }
 
 
-def compute_budget_overview(*, household, month: str | None = None) -> dict[str, Any]:
-    """Return the month's budget overview for a household.
+def compute_budget_overview(
+    *,
+    household,
+    month: str | None = None,
+    date_from: date | None = None,
+    date_to: date | None = None,
+) -> dict[str, Any]:
+    """Return the budget overview for a household, over a month or a free window.
 
-    ``month`` (``'YYYY-MM'``) relit un mois passé ; ``None`` — le défaut, celui
-    des fiches budget et catégorie — garde le mois en cours. Toute la fenêtre
-    suit : lignes, sous-totaux de catégorie, hors budget, engagé. Un aperçu qui
-    ne décalerait que ses lignes serait pire que pas de sélecteur du tout, les
-    lignes disant juin pendant que les totaux disent juillet.
+    ``month`` (``'YYYY-MM'``) relit un mois passé ; ``date_from``/``date_to``
+    ouvrent une fenêtre libre (trente jours, une année, du 3 au 9 février) ; rien
+    du tout — le défaut — garde le mois en cours. Toute la fenêtre suit : lignes,
+    sous-totaux de catégorie, hors budget, engagé. Un aperçu qui ne décalerait
+    que ses lignes serait pire que pas de sélecteur du tout, les lignes disant
+    juin pendant que les totaux disent juillet.
+
+    ⚠️ **Hors mois entier, il n'y a pas de plafond** : ``month`` vaut ``null``,
+    et chaque ligne repasse en ``amount: null`` / ``state: "uncapped"``. Un
+    plafond mensuel n'a pas d'échelle en face d'une année — voir
+    ``resolve_window``. Le montant dépensé, lui, se lit toujours.
 
     Shape::
 
         {
-          "month": "2026-07",
+          "month": "2026-07",              # null hors mois entier
           "global": {id, name, amount, spent, ratio, state} | null,
-          "budgets": [{id, name, amount, spent, spent_attested, spent_pending,
-                       refunded, net_spent, committed, ratio, state,
-                       category_id}, ...],
-          "categories": [{id, name, amount, has_own_amount, spent, ...,
-                          budget_count}, ...],
+          "budgets": [{id, name, amount, monthly_amount, spent, spent_attested,
+                       spent_pending, refunded, net_spent, committed, ratio,
+                       state, category_id}, ...],
+          "categories": [{id, name, amount, monthly_amount, has_own_amount,
+                          spent, ..., budget_count}, ...],
           "unbudgeted": "700.00",
           "total_spent": "1850.00",
           "total_attested": "1600.00",
@@ -329,7 +415,14 @@ def compute_budget_overview(*, household, month: str | None = None) -> dict[str,
     définition brute — sept agrégations le lisent, et sa décomposition
     attesté/en attente perdrait son sens s'il changeait.
     """
-    start, end, month = month_window(household, month)
+    start, end, month = resolve_window(
+        household, month=month, date_from=date_from, date_to=date_to
+    )
+    # Un mois entier a une échelle en face de ses plafonds ; une fenêtre libre
+    # n'en a pas. Le booléen traverse toutes les lignes plutôt que d'être
+    # re-déduit trois fois — c'est le même verdict pour l'aperçu, les catégories
+    # et le plafond global.
+    capped = month is not None
     spent_map, attested_map = _spent_by_budget(household.id, start, end)
     committed_map = _committed_by_budget(household.id, start, end)
     refunded_map = _refunded_by_budget(household.id, start, end)
@@ -356,6 +449,7 @@ def compute_budget_overview(*, household, month: str | None = None) -> dict[str,
             committed_map.get(b.id, _zero()),
             attested_map.get(b.id, _zero()),
             refunded_map.get(b.id, _zero()),
+            capped=capped,
         )
         for b in named
     ]
@@ -371,6 +465,7 @@ def compute_budget_overview(*, household, month: str | None = None) -> dict[str,
             c,
             budgets_by_category.get(c.id, []),
             [rows_by_id[str(b.id)] for b in budgets_by_category.get(c.id, [])],
+            capped=capped,
         )
         for c in categories
     ]
@@ -385,10 +480,19 @@ def compute_budget_overview(*, household, month: str | None = None) -> dict[str,
     # catégorie remplace la somme de ses budgets ; sans plafond propre, elle vaut
     # cette somme — c'est ``_category_row`` qui a déjà tranché, et on relit son
     # verdict plutôt que de le refaire ici avec une deuxième règle.
+    #
+    # Hors mois entier il n'y a pas de plafond à comparer : le total des
+    # enveloppes vaut zéro et l'avertissement « les enveloppes dépassent le
+    # plafond global » se tait. Le lire sur ``monthly_amount`` plutôt que sur
+    # ``amount`` le ferait ressortir sur une fenêtre où il ne veut rien dire.
     named_total_amount = sum(
         (_dec(r["amount"]) for r in category_rows if r["amount"] is not None), _zero()
     ) + sum(
-        (b.monthly_amount for b in named if b.category_id is None and b.monthly_amount is not None),
+        (
+            b.monthly_amount
+            for b in named
+            if capped and b.category_id is None and b.monthly_amount is not None
+        ),
         _zero(),
     )
 
@@ -396,10 +500,16 @@ def compute_budget_overview(*, household, month: str | None = None) -> dict[str,
     named_exceeds_global = False
     if global_budget is not None:
         global_row = _budget_row(
-            global_budget, total_spent, total_committed, total_attested, total_refunded
+            global_budget,
+            total_spent,
+            total_committed,
+            total_attested,
+            total_refunded,
+            capped=capped,
         )
         named_exceeds_global = (
-            global_budget.monthly_amount is not None
+            capped
+            and global_budget.monthly_amount is not None
             and named_total_amount > global_budget.monthly_amount
         )
 

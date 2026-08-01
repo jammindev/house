@@ -87,13 +87,68 @@ test.describe('Budgets — navigation par mois', () => {
     await expect(page.getByRole('button', { name: monthLabel(monthKey(-1)) })).toBeVisible();
   });
 
-  test('aucune fenêtre libre n’est offerte ici — un plafond mensuel n’a rien à y comparer', async ({
+  test('le panneau offre le sélecteur entier, comme les dépenses', async ({ page }) => {
+    for (const label of ['30 derniers jours', 'Cette année', 'Personnalisé']) {
+      await expect(page.getByRole('button', { name: label })).toBeVisible();
+    }
+  });
+
+  test('« cette année » interroge l’année, et non un mois', async ({ page }) => {
+    const year = new Date().getFullYear();
+
+    const request = page.waitForRequest(
+      (req) => req.url().includes('/api/budget/budgets/overview/')
+        && req.url().includes(`from=${year}-01-01`)
+        && req.url().includes(`to=${year}-12-31`),
+    );
+    await page.getByRole('button', { name: 'Cette année' }).click();
+    await request;
+  });
+
+  test('« personnalisé » ouvre les deux champs de dates', async ({ page }) => {
+    await page.getByRole('button', { name: 'Personnalisé' }).click();
+
+    await expect(page.locator('#budget-panel-from')).toBeVisible();
+    await expect(page.locator('#budget-panel-to')).toBeVisible();
+  });
+});
+
+/**
+ * ⚠️ Le plafond est **mensuel** : hors mois entier il n'a pas d'échelle en face.
+ *
+ * Sur « cette année », comparer douze mois de dépenses à « 400 € / mois »
+ * afficherait « 4 200 € / 400 € » et une barre rouge saturée sur une enveloppe
+ * parfaitement tenue — un dépassement qui n'existe pas. Le serveur retire donc
+ * le plafond (`amount: null`, état `uncapped`) et la carte n'affiche plus que le
+ * dépensé, exactement comme pour une enveloppe suivie sans plafond.
+ */
+test.describe('Budgets — le plafond ne se compare qu’à un mois', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/app/money?tab=budgets');
+    await page.evaluate(() => sessionStorage.removeItem('budget.period'));
+    await page.reload();
+    await expect(page.getByRole('heading', { level: 1, name: 'Argent' })).toBeVisible();
+  });
+
+  test('la barre de progression disparaît sur une fenêtre qui n’est pas un mois', async ({
     page,
   }) => {
-    await expect(page.getByRole('button', { name: 'Cette année' })).toHaveCount(0);
-    await expect(page.getByRole('button', { name: '30 derniers jours' })).toHaveCount(0);
-    // …alors que le journal des dépenses, lui, les propose toujours.
-    await page.goto('/app/money?tab=expenses');
-    await expect(page.getByRole('button', { name: 'Cette année' })).toBeVisible();
+    // Sur le mois en cours, les enveloppes plafonnées ont leur barre.
+    const monthBars = await page.getByRole('progressbar').count();
+    test.skip(monthBars === 0, 'aucun budget plafonné dans le jeu de données');
+
+    await page.getByRole('button', { name: 'Cette année' }).click();
+    await expect(page.getByRole('progressbar')).toHaveCount(0);
+  });
+
+  test('revenir sur un mois rend les plafonds', async ({ page }) => {
+    const monthBars = await page.getByRole('progressbar').count();
+    test.skip(monthBars === 0, 'aucun budget plafonné dans le jeu de données');
+
+    await page.getByRole('button', { name: 'Cette année' }).click();
+    await expect(page.getByRole('progressbar')).toHaveCount(0);
+
+    await page.getByRole('button', { name: 'Mois précédent' }).click();
+    await expect(page.getByRole('progressbar')).toHaveCount(monthBars);
   });
 });

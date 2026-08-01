@@ -46,7 +46,12 @@ function rowToBudget(
   return {
     id: row.id,
     name: row.name,
-    monthly_amount: row.amount,
+    // ⚠️ `monthly_amount`, jamais `amount` : le second est le plafond
+    // *comparable*, et il vaut `null` dès que la fenêtre n'est pas un mois
+    // entier. Éditer « Courses » depuis « cette année » aurait alors ouvert un
+    // champ plafond vide, et l'enregistrement l'aurait effacé en base sans un
+    // mot — une donnée perdue par un simple changement de filtre.
+    monthly_amount: row.monthly_amount,
     is_global: isGlobal,
     category: row.category_id ? { id: row.category_id, name: categoryName ?? '' } : null,
     created_at: '',
@@ -59,10 +64,11 @@ function rowToCategory(row: BudgetCategoryRow): BudgetCategory {
   return {
     id: row.id,
     name: row.name,
-    // ⚠️ Uniquement son plafond **propre**. Passer la somme de ses budgets
-    // remplirait le champ avec un chiffre que personne n'a saisi, et le premier
-    // enregistrement le figerait en vrai plafond.
-    monthly_amount: row.has_own_amount ? row.amount : null,
+    // ⚠️ Uniquement son plafond **propre**, et lu sur `monthly_amount` : passer
+    // la somme de ses budgets remplirait le champ avec un chiffre que personne
+    // n'a saisi, et lire `amount` le viderait dès que la fenêtre n'est pas un
+    // mois entier. Dans les deux cas le premier enregistrement fige le mensonge.
+    monthly_amount: row.monthly_amount,
     budget_count: row.budget_count,
     created_at: '',
     updated_at: '',
@@ -77,19 +83,22 @@ export default function BudgetsPanel() {
   const { t } = useTranslation();
   const location = useLocation();
 
-  // Le panneau n'offre **que** la navigation par mois (`presets={[]}`), et ce
-  // n'est pas une simplification de mise en page : chaque ligne compare un
-  // dépensé à un plafond **mensuel**. Sur « cette année », « Bricolage » se
-  // lirait 4 200 € / 400 € — rouge vif sur une enveloppe parfaitement tenue.
-  // Une fenêtre libre a un sens dans le journal des dépenses, aucun ici.
+  // Le sélecteur **entier** des dépenses : la navigation par mois et les
+  // fenêtres libres. Même composant, mêmes fenêtres — sans quoi « ce mois-ci »
+  // finirait par ne pas vouloir dire la même chose d'un onglet à l'autre.
+  //
+  // ⚠️ Hors mois entier, c'est le **serveur** qui retire les plafonds
+  // (`amount: null`, état `uncapped`) : un plafond mensuel n'a pas d'échelle en
+  // face d'une année, et « 4 200 € / 400 € » en rouge sur une enveloppe tenue
+  // serait un dépassement qui n'existe pas. Les cartes savent déjà afficher une
+  // ligne sans plafond — c'est le cas d'une enveloppe suivie mais non plafonnée.
   const [storedPeriod, setPeriod] = useSessionState<PeriodRange>('budget.period', {
     preset: 'month',
     month: currentMonthKey(),
   });
   const period = React.useMemo(() => normalizePeriod(storedPeriod), [storedPeriod]);
-  const month = period.month ?? currentMonthKey();
 
-  const overviewQuery = useBudgetOverview(month);
+  const overviewQuery = useBudgetOverview(period);
   const deleteMutation = useDeleteBudget();
   const deleteCategoryMutation = useDeleteBudgetCategory();
 
@@ -197,12 +206,7 @@ export default function BudgetsPanel() {
   return (
     <>
       <div className="flex flex-wrap items-center justify-between gap-3 pb-4">
-        <PeriodPicker
-          period={period}
-          onChange={setPeriod}
-          presets={[]}
-          idPrefix="budget-panel"
-        />
+        <PeriodPicker period={period} onChange={setPeriod} idPrefix="budget-panel" />
         <Button type="button" onClick={openCreate} className="gap-1.5">
           <Plus className="h-4 w-4" />
           {t('budget.new.action')}

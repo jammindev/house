@@ -44,8 +44,19 @@ export type BudgetState = 'uncapped' | 'ok' | 'warning' | 'over';
 export interface BudgetOverviewRow {
   id: string;
   name: string;
-  /** `null` quand la catégorie n'a pas de plafond — jamais "0.00". */
+  /**
+   * Le plafond **comparable au dépensé affiché** — donc `null` quand il n'y a
+   * rien à comparer : budget non plafonné, ou fenêtre qui n'est pas un mois
+   * entier (un plafond mensuel n'a pas d'échelle en face d'une année). Jamais
+   * "0.00", qui serait perpétuellement dépassé.
+   */
   amount: string | null;
+  /**
+   * ⚠️ Le plafond **écrit en base**, indépendant de la fenêtre. C'est lui que le
+   * dialogue d'édition doit pré-remplir : lire `amount` viderait le plafond au
+   * premier enregistrement fait depuis « cette année ».
+   */
+  monthly_amount: string | null;
   spent: string;
   /**
    * La part de `spent` qu'une ligne de relevé justifie, et le reste.
@@ -84,6 +95,8 @@ export interface BudgetCategoryRow {
    * budgets qu'elle range. `null` quand aucun n'en a — jamais "0.00".
    */
   amount: string | null;
+  /** ⚠️ Son plafond propre **écrit en base**, indépendant de la fenêtre. */
+  monthly_amount: string | null;
   /** Vrai quand `amount` est le plafond propre de la catégorie, pas une somme. */
   has_own_amount: boolean;
   spent: string;
@@ -313,14 +326,28 @@ export async function fetchBudgets(): Promise<Budget[]> {
 }
 
 /**
- * L'aperçu du mois. `month` (`YYYY-MM`) en relit un passé ; omis, c'est le mois
- * en cours — ce que demandent les fiches budget et catégorie, qui n'y cherchent
- * qu'un plafond et un nom.
+ * La fenêtre de l'aperçu — un mois **ou** une période libre, jamais les deux
+ * (le serveur répond 400). Vide = le mois en cours.
  */
-export async function fetchBudgetOverview(month?: string): Promise<BudgetOverview> {
-  const { data } = await api.get<BudgetOverview>('/budget/budgets/overview/', {
-    params: month ? { month } : undefined,
-  });
+export interface OverviewWindow {
+  /** `YYYY-MM`. */
+  month?: string;
+  /** Dates de calendrier `YYYY-MM-DD`, bornes incluses. */
+  from?: string;
+  to?: string;
+}
+
+/**
+ * L'aperçu sur une fenêtre. Omise, c'est le mois en cours — ce que demandent les
+ * fiches budget et catégorie quand elles n'y cherchent qu'un plafond et un nom.
+ */
+export async function fetchBudgetOverview(window: OverviewWindow = {}): Promise<BudgetOverview> {
+  const params = window.month
+    ? { month: window.month }
+    : window.from && window.to
+      ? { from: window.from, to: window.to }
+      : undefined;
+  const { data } = await api.get<BudgetOverview>('/budget/budgets/overview/', { params });
   return data;
 }
 

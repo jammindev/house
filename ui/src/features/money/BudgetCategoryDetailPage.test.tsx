@@ -23,6 +23,7 @@ const category: BudgetCategoryRow = {
   id: 'cat-1',
   name: 'Maison',
   amount: '450.00',
+  monthly_amount: null,
   has_own_amount: false,
   spent: '230.50',
   spent_attested: '150.00',
@@ -38,6 +39,7 @@ const category: BudgetCategoryRow = {
 function envelope(over: Partial<BudgetOverviewRow> & { id: string; name: string }): BudgetOverviewRow {
   return {
     amount: null,
+    monthly_amount: null,
     spent: '0.00',
     spent_attested: '0.00',
     spent_pending: '0.00',

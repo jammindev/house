@@ -84,7 +84,7 @@ export default function BudgetDetailPage() {
   // donc le cache est bien celui qu'on partage. Sur une fenêtre libre on retombe
   // sur le mois en cours, dont on ne lira alors que le nom : un plafond ne
   // s'affiche pas en face d'un total qui ne couvre pas un mois (`showCeiling`).
-  const overviewQuery = useBudgetOverview(period.preset === 'month' ? period.month : undefined);
+  const overviewQuery = useBudgetOverview(period);
   const row = React.useMemo(() => {
     const rows = overviewQuery.data;
     if (!rows) return null;
@@ -250,8 +250,14 @@ export default function BudgetDetailPage() {
   // Un plafond n'a de sens qu'en face d'un **mois entier** : le comparer à un
   // total annuel afficherait « 4 200 € / 400 € », un dépassement qui n'existe
   // pas. Peu importe **quel** mois, en revanche — juin se compare à son plafond
-  // aussi bien que juillet, et c'est ce que l'aperçu renvoie désormais.
-  const showCeiling = period.preset === 'month' && row?.amount != null;
+  // aussi bien que juillet.
+  //
+  // C'est le serveur qui tranche, en renvoyant `amount: null` hors mois entier,
+  // et cette page relit son verdict au lieu de le refaire depuis le preset :
+  // deux définitions du même « peut-on comparer ? » finiraient par diverger, et
+  // un plafond affiché ici pendant que le panneau le tait ferait perdre leur
+  // crédit aux deux.
+  const showCeiling = row?.amount != null;
 
   const buckets: ConsumptionChartBucket[] = React.useMemo(() => {
     if (!insights) return [];

@@ -5,6 +5,7 @@ from datetime import date
 
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db.models import Count
+from django.utils.dateparse import parse_date
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
@@ -98,22 +99,45 @@ class BudgetViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=["get"])
     def overview(self, request):
-        """GET /api/budget/budgets/overview/?month=YYYY-MM
+        """GET /api/budget/budgets/overview/?month=YYYY-MM | ?from=&to=
 
-        The month's budgets with spent/ceiling, the "hors budget" total and the
-        optional global cap. Empty-but-valid shape when no household context.
+        The budgets with spent/ceiling over a window, the "hors budget" total and
+        the optional global cap. Empty-but-valid shape when no household context.
 
-        ``month`` est optionnel et relit un mois passé (issue #516) ; absent, le
-        mois en cours. Mal formé, c'est un **400** : servir le mois en cours à qui
-        a demandé « 2026-13 » afficherait des chiffres justes sur une fenêtre que
+        Trois façons de demander, et une seule à la fois (issue #516) :
+
+        - ``month=YYYY-MM`` — un mois, celui du sélecteur ;
+        - ``from``/``to`` (dates nues) — une fenêtre libre : trente jours, une
+          année, du 3 au 9 février. Hors mois entier les plafonds se taisent
+          (``amount: null``), un plafond mensuel n'ayant pas d'échelle en face ;
+        - rien — le mois en cours.
+
+        Tout paramètre illisible est un **400** : servir le mois en cours à qui a
+        demandé « 2026-13 » afficherait des chiffres justes sur une fenêtre que
         personne n'a choisie, sans rien qui le signale.
         """
-        month = request.query_params.get("month")
+        params = request.query_params
+        month = params.get("month")
+        date_from, date_to = params.get("from"), params.get("to")
+
+        if month is not None and (date_from or date_to):
+            raise ValidationError(
+                {"month": "Choisir un mois **ou** une période libre, pas les deux."}
+            )
         if month is not None:
             try:
                 parse_month(month)
             except ValueError as exc:
                 raise ValidationError({"month": str(exc)}) from exc
+
+        parsed_from = self._parse_day(date_from, "from")
+        parsed_to = self._parse_day(date_to, "to")
+        if (parsed_from is None) != (parsed_to is None):
+            raise ValidationError(
+                {"from": "Une période libre demande ses deux bornes (`from` et `to`)."}
+            )
+        if parsed_from and parsed_to and parsed_to < parsed_from:
+            raise ValidationError({"to": "La fin de la période précède son début."})
 
         household = request.household
         if household is None:
@@ -132,7 +156,30 @@ class BudgetViewSet(viewsets.ModelViewSet):
                     "named_exceeds_global": False,
                 }
             )
-        return Response(compute_budget_overview(household=household, month=month))
+        return Response(
+            compute_budget_overview(
+                household=household, month=month, date_from=parsed_from, date_to=parsed_to
+            )
+        )
+
+    @staticmethod
+    def _parse_day(value: str | None, field: str) -> date | None:
+        """``'2026-07-01'`` → ``date``. Une date illisible est un 400, jamais un
+        ``None`` silencieux — sans quoi ``?from=lundi`` élargit la fenêtre au mois
+        en cours en annonçant la période demandée."""
+        if not value:
+            return None
+        # ``parse_date`` renvoie ``None`` sur une chaîne mal formée mais **lève**
+        # sur une date bien formée et impossible (« 2026-13-40 »). Les deux sont
+        # la même erreur côté client : les traiter séparément laisserait la
+        # seconde remonter en 500.
+        try:
+            parsed = parse_date(value)
+        except ValueError:
+            parsed = None
+        if parsed is None:
+            raise ValidationError({field: f"Date attendue au format YYYY-MM-DD, reçu : {value!r}"})
+        return parsed
 
     @action(detail=False, methods=["get"])
     def analysis(self, request):
