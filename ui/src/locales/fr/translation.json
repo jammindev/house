@@ -1555,7 +1555,7 @@
         "steps": {
           "upload": {
             "title": "Déposer un fichier",
-            "body": "Importez un PDF ou une image et donnez-lui un titre parlant."
+            "body": "Importez un PDF ou une image — plusieurs fichiers à la fois si vous en avez toute une série. Déposé seul, un fichier peut recevoir un titre parlant ; en lot, chacun garde le sien."
           },
           "link": {
             "title": "Relier au bon objet",
@@ -1577,7 +1577,7 @@
           },
           "add": {
             "title": "Ajouter des photos",
-            "body": "Déposez vos photos comme n'importe quel document de type image. Depuis un projet, un équipement ou une zone, l'onglet Photos les classe en Avant / Pendant / Après et sait les comparer."
+            "body": "Sélectionnez toute une série d'un coup : le champ accepte plusieurs photos, envoyées l'une après l'autre. Depuis un projet, un équipement ou une zone, l'onglet Photos les classe en Avant / Pendant / Après et sait les comparer."
           },
           "file": {
             "title": "Ranger une photo dans une zone",
@@ -1813,7 +1813,7 @@
     "addedOn": "Ajoutée le {{date}}",
     "view": "Voir",
     "download": "Télécharger",
-    "upload_title": "Ajouter une photo",
+    "upload_title": "Ajouter des photos",
     "phase": {
       "before": "Avant",
       "during": "Pendant",
@@ -1825,7 +1825,7 @@
       "compare": "Comparer",
       "compareTitle": "Avant / après",
       "compareSlider": "Curseur de comparaison",
-      "upload": "Ajouter une photo",
+      "upload": "Ajouter des photos",
       "addToPhase": "Ajouter ici",
       "moveTo": "Déplacer vers {{phase}}",
       "remove": "Retirer",
@@ -1955,11 +1955,16 @@
       "groupBy_date": "Date"
     },
     "upload": {
-      "title": "Téléverser un document",
+      "title": "Téléverser des documents",
       "submit": "Téléverser",
       "zone": "Zone",
       "noZone": "Aucune zone",
-      "namePlaceholder": "Nom du document (optionnel)"
+      "namePlaceholder": "Nom du document (optionnel)",
+      "progress": "Téléversement {{current}} / {{total}}…",
+      "fileDone": "Envoyé",
+      "fileFailed": "Échec",
+      "someFailed_one": "1 fichier n'a pas pu être téléversé. Réessayez : ceux qui sont déjà partis ne seront pas renvoyés.",
+      "someFailed_other": "{{count}} fichiers n'ont pas pu être téléversés. Réessayez : ceux qui sont déjà partis ne seront pas renvoyés."
     },
     "type": {
       "document": "Document",
@@ -1992,7 +1997,8 @@
       "selectFile": "Choisir un fichier",
       "selectedFile": "Fichier sélectionné",
       "submit": "Téléverser le document",
-      "submitting": "Téléversement…"
+      "submitting": "Téléversement…",
+      "selectFiles": "Choisir des fichiers"
     },
     "detail": {
       "title": "Détail du document",

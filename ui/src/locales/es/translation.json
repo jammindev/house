@@ -1555,7 +1555,7 @@
         "steps": {
           "upload": {
             "title": "Subir un archivo",
-            "body": "Importa un PDF o una imagen y dale un título significativo."
+            "body": "Sube un PDF o una imagen, y varios archivos a la vez si tienes toda una serie. Un archivo subido solo puede recibir un título claro; en lote, cada uno conserva el suyo."
           },
           "link": {
             "title": "Enlazar con el objeto correcto",
@@ -1577,7 +1577,7 @@
           },
           "add": {
             "title": "Añadir fotos",
-            "body": "Sube fotos como cualquier documento de tipo imagen. Desde un proyecto, un equipo o una zona, la pestaña Fotos las clasifica en Antes / Durante / Después y sabe compararlas."
+            "body": "Selecciona toda una serie de una vez: el campo acepta varias fotos, enviadas una tras otra. Desde un proyecto, un equipo o una zona, la pestaña Fotos las clasifica en Antes / Durante / Después y sabe compararlas."
           },
           "file": {
             "title": "Clasificar una foto en una zona",
@@ -1813,7 +1813,7 @@
     "addedOn": "Añadida el {{date}}",
     "view": "Ver",
     "download": "Descargar",
-    "upload_title": "Añadir una foto",
+    "upload_title": "Añadir fotos",
     "phase": {
       "before": "Antes",
       "during": "Durante",
@@ -1825,7 +1825,7 @@
       "compare": "Comparar",
       "compareTitle": "Antes / después",
       "compareSlider": "Control deslizante de comparación",
-      "upload": "Subir una foto",
+      "upload": "Subir fotos",
       "addToPhase": "Añadir aquí",
       "moveTo": "Mover a {{phase}}",
       "remove": "Quitar",
@@ -1955,11 +1955,16 @@
       "groupBy_date": "Fecha"
     },
     "upload": {
-      "title": "Subir documento",
+      "title": "Subir documentos",
       "submit": "Subir",
       "zone": "Zona",
       "noZone": "Sin zona",
-      "namePlaceholder": "Nombre del documento (opcional)"
+      "namePlaceholder": "Nombre del documento (opcional)",
+      "progress": "Subiendo {{current}} / {{total}}…",
+      "fileDone": "Enviado",
+      "fileFailed": "Error",
+      "someFailed_one": "1 archivo no se pudo subir. Inténtalo de nuevo: los que ya se enviaron no se enviarán dos veces.",
+      "someFailed_other": "{{count}} archivos no se pudieron subir. Inténtalo de nuevo: los que ya se enviaron no se enviarán dos veces."
     },
     "type": {
       "document": "Documento",
@@ -1992,7 +1997,8 @@
       "selectFile": "Seleccionar archivo",
       "selectedFile": "Archivo seleccionado",
       "submit": "Subir documento",
-      "submitting": "Subiendo…"
+      "submitting": "Subiendo…",
+      "selectFiles": "Seleccionar archivos"
     },
     "detail": {
       "title": "Detalle del documento",

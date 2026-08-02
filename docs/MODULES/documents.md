@@ -161,6 +161,22 @@ date du déclenchement, lue dans l'EXIF.
 - **OCR synchrone** : l'extraction tourne dans le thread de la requête HTTP d'upload. Sur un PDF lourd ou une image haute résolution, cela peut allonger la réponse. Pas de queue (Celery, etc.) actuellement — décision assumée de garder simple en phase solo.
 - **Pas de pagination** : `DocumentViewSet` n'a pas de `pagination_class`. La liste complète est chargée d'un coup. À surveiller dès que le nombre de documents croît (pas de `PAGE_SIZE` dans `REST_FRAMEWORK` settings non plus — `config/settings/base.py:145`).
 - **Lien au module agent/RAG** : `apps/agent/` n'existe pas encore. Le champ `Interaction.enriched_text` (`interactions/models.py:78`) est prévu pour un futur pipeline qui consolidera le texte OCR des documents. Les documents ne sont pas encore indexés dans un moteur de recherche vectoriel.
+- **Le lot est côté client, l'endpoint reste par fichier.** `DocumentUploadDialog`
+  (le composant partagé par les **cinq** surfaces d'upload : galerie Photos, onglet
+  Photos d'une entité, page Documents, onglet Documents, fiche dépense) accepte
+  plusieurs fichiers et les envoie **séquentiellement** à `POST /upload/`, un par
+  requête. Trois raisons de ne pas fusionner en une requête de lot : l'endpoint
+  normalise l'image, lit l'EXIF et lance l'OCR **synchrone** (note ci-dessus), donc
+  un lot serait une requête longue ; un échec au milieu serait tout-ou-rien ; et le
+  parallélisme ferait attendre le foyer sur son propre import. Conséquences à
+  préserver : `onSaved` est appelé **une fois par document créé** — c'est ce qui
+  laisse les appelants rattacher/invalider sans rien changer — et les fichiers
+  **déjà arrivés** sont mémorisés, pour qu'une relance après échec ne les recrée
+  pas en doublon. Le champ « nom » ne s'affiche qu'à un seul fichier : appliqué à
+  un lot, il donnerait vingt documents homonymes. Régressions :
+  `ui/src/features/documents/DocumentUploadDialog.test.tsx` et
+  `e2e/project-detail-tabs.spec.ts` (le `multiple` d'un `<input type="file">` ne
+  s'atteste que dans un vrai navigateur — jsdom pose `input.files` à la main).
 - **Upload multipart via action custom** : l'endpoint `POST /upload/` est une action custom séparée du `POST documents/` classique. Le `POST documents/` accepte un `file_path` manuel (cas import legacy). Les deux coexistent — ne pas confondre dans les tests ou le client.
 - Parcours 02 cadré dans `docs/parcours/PARCOURS_02_TRAITER_UN_DOCUMENT_ENTRANT_ET_LE_RELIER_AU_BON_CONTEXTE.md` et `PARCOURS_02_BACKLOG_TECHNIQUE.md`.
 

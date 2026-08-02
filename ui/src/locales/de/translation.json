@@ -1555,7 +1555,7 @@
         "steps": {
           "upload": {
             "title": "Eine Datei hochladen",
-            "body": "Importieren Sie ein PDF oder Bild und geben Sie ihm einen sprechenden Titel."
+            "body": "Lade ein PDF oder ein Bild hoch – auch mehrere Dateien auf einmal, wenn du eine ganze Serie hast. Eine einzeln hochgeladene Datei kann einen sprechenden Titel bekommen; im Stapel behält jede ihren eigenen."
           },
           "link": {
             "title": "Mit dem richtigen Objekt verknüpfen",
@@ -1577,7 +1577,7 @@
           },
           "add": {
             "title": "Fotos hinzufügen",
-            "body": "Laden Sie Fotos wie jedes Bilddokument hoch. Aus einem Projekt, einem Gerät oder einem Bereich sortiert der Reiter Fotos sie in Vorher / Während / Nachher und kann sie vergleichen."
+            "body": "Wähle gleich eine ganze Serie aus: Das Feld nimmt mehrere Fotos an, die nacheinander gesendet werden. Aus einem Projekt, einem Gerät oder einer Zone heraus sortiert der Reiter Fotos sie in Vorher / Während / Nachher und kann sie vergleichen."
           },
           "file": {
             "title": "Ein Foto einem Bereich zuordnen",
@@ -1813,7 +1813,7 @@
     "addedOn": "Hinzugefügt am {{date}}",
     "view": "Ansehen",
     "download": "Herunterladen",
-    "upload_title": "Foto hinzufügen",
+    "upload_title": "Fotos hinzufügen",
     "phase": {
       "before": "Vorher",
       "during": "Während",
@@ -1825,7 +1825,7 @@
       "compare": "Vergleichen",
       "compareTitle": "Vorher / nachher",
       "compareSlider": "Vergleichsregler",
-      "upload": "Foto hochladen",
+      "upload": "Fotos hochladen",
       "addToPhase": "Hier hinzufügen",
       "moveTo": "Verschieben nach {{phase}}",
       "remove": "Entfernen",
@@ -1955,11 +1955,16 @@
       "groupBy_date": "Datum"
     },
     "upload": {
-      "title": "Dokument hochladen",
+      "title": "Dokumente hochladen",
       "submit": "Hochladen",
       "zone": "Zone",
       "noZone": "Keine Zone",
-      "namePlaceholder": "Dokumentname (optional)"
+      "namePlaceholder": "Dokumentname (optional)",
+      "progress": "Wird hochgeladen {{current}} / {{total}}…",
+      "fileDone": "Gesendet",
+      "fileFailed": "Fehlgeschlagen",
+      "someFailed_one": "1 Datei konnte nicht hochgeladen werden. Versuch es erneut – bereits gesendete Dateien werden nicht doppelt gesendet.",
+      "someFailed_other": "{{count}} Dateien konnten nicht hochgeladen werden. Versuch es erneut – bereits gesendete Dateien werden nicht doppelt gesendet."
     },
     "type": {
       "document": "Dokument",
@@ -1992,7 +1997,8 @@
       "selectFile": "Datei auswählen",
       "selectedFile": "Ausgewählte Datei",
       "submit": "Dokument hochladen",
-      "submitting": "Wird hochgeladen…"
+      "submitting": "Wird hochgeladen…",
+      "selectFiles": "Dateien auswählen"
     },
     "detail": {
       "title": "Dokumentdetails",

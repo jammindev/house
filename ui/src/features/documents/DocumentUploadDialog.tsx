@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
+import { Check, X } from 'lucide-react';
 import { SheetDialog } from '@/design-system/sheet-dialog';
 import { Input } from '@/design-system/input';
 import { Textarea } from '@/design-system/textarea';
@@ -14,8 +15,13 @@ import ZonePicker from '@/features/zones/ZonePicker';
 interface DocumentUploadDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  /** Called after a successful upload. Receives the newly created document. */
-  onSaved: (created?: DocumentDetail) => void;
+  /**
+   * Called after each successful upload — **une fois par document créé**, pas une
+   * fois par lot : les appelants rattachent le fichier à leur entité ou invalident
+   * leur cache document par document, et n'ont donc rien à changer pour recevoir
+   * un lot.
+   */
+  onSaved: (created?: DocumentDetail) => void | Promise<void>;
   /** When set, hides the type selector and submits with this type. */
   forcedType?: 'photo';
   /**
@@ -37,51 +43,99 @@ export default function DocumentUploadDialog({
   const createDocument = useCreateDocument();
   const isPhotoMode = forcedType === 'photo';
 
-  const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
+  const [files, setFiles] = React.useState<File[]>([]);
   const [name, setName] = React.useState('');
   const [type, setType] = React.useState<DocumentType | 'photo' | ''>(forcedType ?? '');
   const [notes, setNotes] = React.useState('');
   const [zone, setZone] = React.useState('');
   const [error, setError] = React.useState<string | null>(null);
 
+  // Ce qui est **déjà arrivé** dans le foyer, par index dans `files`. C'est la
+  // seule chose qui rend la relance sûre : réessayer après un échec au huitième
+  // fichier ne doit pas recréer les sept premiers en doublon.
+  const [done, setDone] = React.useState<Set<number>>(new Set());
+  const [failed, setFailed] = React.useState<Set<number>>(new Set());
+  const [progress, setProgress] = React.useState<{ current: number; total: number } | null>(null);
+  const [uploading, setUploading] = React.useState(false);
+
+  const isBatch = files.length > 1;
 
   React.useEffect(() => {
     if (!open) return;
-    setSelectedFile(null);
+    setFiles([]);
     setName('');
     setType(forcedType ?? '');
     setNotes('');
     setZone('');
     setError(null);
+    setDone(new Set());
+    setFailed(new Set());
+    setProgress(null);
+    setUploading(false);
   }, [open, forcedType]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0] ?? null;
-    setSelectedFile(file);
+    const picked = Array.from(e.target.files ?? []);
+    setFiles(picked);
     setError(null);
-    if (file && !name) {
-      setName(file.name.replace(/\.[^.]+$/, ''));
+    // Une nouvelle sélection est un nouveau lot : ce qui était envoyé l'a été
+    // sous d'autres fichiers, et le garder ferait sauter des envois.
+    setDone(new Set());
+    setFailed(new Set());
+    if (picked.length === 1 && !name) {
+      setName(picked[0].name.replace(/\.[^.]+$/, ''));
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedFile) {
+    if (files.length === 0) {
       setError(t('documents.new.selectFile'));
       return;
     }
     setError(null);
-    createDocument.mutate(
-      { file: selectedFile, name: name || undefined, type: type || undefined, notes: notes || undefined, zone: zone || undefined },
-      {
-        onSuccess: (response) => {
-          onOpenChange(false);
-          onSaved(response.document);
-        },
-        onError: () => {
-          setError(t('documents.uploadFailed'));
-        },
-      },
+    setUploading(true);
+
+    const remaining = files.map((file, index) => ({ file, index })).filter(({ index }) => !done.has(index));
+    const nextDone = new Set(done);
+    const nextFailed = new Set<number>();
+
+    // Séquentiel, jamais en parallèle : le serveur normalise l'image, lit l'EXIF
+    // et génère les vignettes à chaque fichier. Vingt requêtes d'un coup, c'est
+    // le foyer qui attend son propre import.
+    for (const [position, { file, index }] of remaining.entries()) {
+      setProgress({ current: position + 1, total: remaining.length });
+      try {
+        const response = await createDocument.mutateAsync({
+          // Le nom saisi n'a de sens que pour un fichier seul — appliqué à un lot
+          // il donnerait vingt documents homonymes. Au-delà, chacun garde le sien.
+          file,
+          name: files.length === 1 ? name || undefined : undefined,
+          type: type || undefined,
+          notes: notes || undefined,
+          zone: zone || undefined,
+        });
+        nextDone.add(index);
+        setDone(new Set(nextDone));
+        await onSaved(response.document);
+      } catch {
+        nextFailed.add(index);
+        setFailed(new Set(nextFailed));
+      }
+    }
+
+    setUploading(false);
+    setProgress(null);
+    setFailed(nextFailed);
+
+    if (nextFailed.size === 0) {
+      onOpenChange(false);
+      return;
+    }
+    setError(
+      files.length === 1
+        ? t('documents.uploadFailed')
+        : t('documents.upload.someFailed', { count: nextFailed.size }),
     );
   };
 
@@ -110,12 +164,13 @@ export default function DocumentUploadDialog({
           {/* File input */}
           <div className="space-y-1.5">
             <Label htmlFor="upload-file">
-              {t('documents.new.selectFile')}
+              {t('documents.new.selectFiles')}
               <span className="ml-1 text-destructive">*</span>
             </Label>
             <Input
               id="upload-file"
               type="file"
+              multiple
               accept={
                 isPhotoMode
                   ? 'image/jpeg,image/png,image/gif,image/webp,image/heic,image/heif'
@@ -124,28 +179,69 @@ export default function DocumentUploadDialog({
               onChange={handleFileChange}
               required
             />
-            {selectedFile && (
+
+            {files.length === 1 && (
               <p className="text-xs text-muted-foreground">
-                {t('documents.new.selectedFile')}: {selectedFile.name}
+                {t('documents.new.selectedFile')}: {files[0].name}
               </p>
             )}
-            {createDocument.isPending && (
+
+            {/* Le lot se lit fichier par fichier : sans ça, « 3 échecs » ne dit
+                pas lesquels, et l'utilisateur ne peut ni relancer en confiance ni
+                savoir ce qui manque dans sa galerie. */}
+            {isBatch && (
+              <ul className="max-h-40 space-y-1 overflow-y-auto rounded-lg border border-border p-2">
+                {files.map((file, index) => (
+                  <li
+                    key={`${file.name}-${index}`}
+                    className="flex items-center justify-between gap-2 text-xs"
+                  >
+                    <span className="min-w-0 flex-1 truncate text-muted-foreground">{file.name}</span>
+                    {done.has(index) ? (
+                      <span className="flex shrink-0 items-center gap-1 text-primary">
+                        <Check className="h-3 w-3" />
+                        {t('documents.upload.fileDone')}
+                      </span>
+                    ) : failed.has(index) ? (
+                      <span className="flex shrink-0 items-center gap-1 text-destructive">
+                        <X className="h-3 w-3" />
+                        {t('documents.upload.fileFailed')}
+                      </span>
+                    ) : null}
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            {/* Un lot dit où il en est ; un fichier seul dit ce que le serveur
+                fait de lui (OCR). Remplacer le second par le premier ferait
+                disparaître le seul retour d'un PDF qui met dix secondes. */}
+            {progress && progress.total > 1 ? (
+              <p className="text-xs text-muted-foreground" role="status">
+                {t('documents.upload.progress', {
+                  current: progress.current,
+                  total: progress.total,
+                })}
+              </p>
+            ) : createDocument.isPending ? (
               <p className="text-xs text-muted-foreground" role="status">
                 {t('documents.ocr.processing')}
               </p>
-            )}
+            ) : null}
           </div>
 
-          {/* Name */}
-          <FormField label={t('documents.fieldName')} htmlFor="upload-name">
-            <Input
-              id="upload-name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder={t('documents.upload.namePlaceholder')}
-              autoComplete="off"
-            />
-          </FormField>
+          {/* Name — un seul fichier seulement (voir handleSubmit) */}
+          {!isBatch && (
+            <FormField label={t('documents.fieldName')} htmlFor="upload-name">
+              <Input
+                id="upload-name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder={t('documents.upload.namePlaceholder')}
+                autoComplete="off"
+              />
+            </FormField>
+          )}
 
           {/* Type */}
           {!isPhotoMode && (
@@ -189,10 +285,8 @@ export default function DocumentUploadDialog({
             >
               {t('common.cancel')}
             </Button>
-            <Button type="submit" disabled={createDocument.isPending}>
-              {createDocument.isPending
-                ? t('documents.new.submitting')
-                : t('documents.upload.submit')}
+            <Button type="submit" disabled={uploading}>
+              {uploading ? t('documents.new.submitting') : t('documents.upload.submit')}
             </Button>
           </div>
         </form>
