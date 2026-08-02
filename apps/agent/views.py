@@ -298,7 +298,7 @@ class ConversationViewSet(viewsets.ModelViewSet):
         household = self._resolve_household()
         # The anchor must be a real entity of this household — otherwise any id
         # would silently create an orphan-anchored conversation row.
-        resolved, _error = tools.resolve_entity(entity_type, object_id, household)
+        resolved, _error = tools.resolve_entity(entity_type, object_id, household, request.user)
         if resolved is None:
             raise NotFound(f"No {entity_type} with id {object_id} in this household.")
         conversation, _created = AgentConversation.objects.get_or_create(
@@ -325,7 +325,9 @@ class ConversationViewSet(viewsets.ModelViewSet):
             raise ValidationError("entity_type and object_id are required.")
         if searchables.find_spec(entity_type) is None:
             raise ValidationError(f"Unknown entity_type: {entity_type}")
-        resolved, _error = tools.resolve_entity(entity_type, object_id, conversation.household)
+        resolved, _error = tools.resolve_entity(
+            entity_type, object_id, conversation.household, request.user
+        )
         if resolved is None:
             raise NotFound(f"No {entity_type} with id {object_id} in this household.")
         return entity_type, object_id
@@ -386,7 +388,7 @@ class ConversationViewSet(viewsets.ModelViewSet):
         household = self._resolve_household()
         return Response(
             search_api.search_household_entities(
-                household.id, query, search_api.DEFAULT_LIMIT
+                household.id, query, search_api.DEFAULT_LIMIT, request.user
             ),
             status=status.HTTP_200_OK,
         )

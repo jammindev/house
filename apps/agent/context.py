@@ -72,7 +72,7 @@ class ContextItem:
     available: bool = True
 
 
-def describe_conversation_context(conversation, household) -> list[ContextItem]:
+def describe_conversation_context(conversation, household, viewer=None) -> list[ContextItem]:
     """Resolve a conversation's full injected context into display items.
 
     Single source of truth for the "what I know" panel: it walks the exact same
@@ -96,7 +96,7 @@ def describe_conversation_context(conversation, household) -> list[ContextItem]:
     items: list[ContextItem] = []
     seen: set[tuple[str, str]] = set()
     for origin, entity_type, object_id in roots:
-        ctx = build_entity_context(entity_type, object_id, household)
+        ctx = build_entity_context(entity_type, object_id, household, viewer)
         if ctx is None:
             # Unresolved anchor is silent (structural); a dangling pin stays
             # visible so the user can remove it.
@@ -137,14 +137,17 @@ def build_entity_context(
     entity_type: str,
     object_id: str,
     household,
+    viewer=None,
 ) -> EntityContext | None:
     """Build the pre-injected context for one anchor entity, or None.
 
     Returns ``None`` when the anchor can't be resolved (unknown type, malformed
-    id, or the row no longer exists — an orphaned anchor). The caller then runs
-    the agent without a pre-injected context, exactly like an unanchored chat.
+    id, the row no longer exists — an orphaned anchor — or ``viewer`` may not read
+    it). An anchor one may not read is indistinguishable from an orphaned one, on
+    purpose: the conversation simply proceeds unanchored rather than announcing
+    that something is being withheld.
     """
-    resolved, _error = resolve_entity(entity_type, object_id, household)
+    resolved, _error = resolve_entity(entity_type, object_id, household, viewer)
     if resolved is None:
         logger.info(
             "agent.context: unresolved anchor %s:%s for household %s",
@@ -158,7 +161,7 @@ def build_entity_context(
     # Anchor first (full content), then everything linked to it — each item as
     # its own citable Hit, mirroring get_entity + get_related.
     hits: list[Hit] = [retrieval.hit_from_instance(spec, obj)]
-    hits.extend(_related_hits(spec, obj, household))
+    hits.extend(_related_hits(spec, obj, household, viewer))
 
     rendered = render_context_block(
         hits,
@@ -173,21 +176,28 @@ def build_entity_context(
     )
 
 
-def _related_hits(spec, obj, household) -> list[Hit]:
+def _related_hits(spec, obj, household, viewer=None) -> list[Hit]:
     """Turn the anchor's related instances into citable hits (scoped, bounded).
 
     Same walk and guards as ``tools._get_related_handler``: cap the count, skip
-    unregistered types, and never surface an item from another household. Linked
-    documents are included automatically via ``gather_related``.
+    unregistered types, never surface an item from another household, and drop
+    what ``viewer`` may not read. Linked documents are included automatically via
+    ``gather_related`` — which is precisely why the viewer guard belongs here too:
+    a private invoice attached to a shared project would otherwise ride into the
+    context of anyone who opens that project.
     """
     from .related import gather_related
 
-    hits: list[Hit] = []
+    candidates = []
     for rel in gather_related(spec, obj)[:RELATED_MAX_ITEMS]:
         rel_spec = searchables.find_spec_for_instance(rel)
         if rel_spec is None:
             continue
         if getattr(rel, "household_id", household.id) != household.id:
             continue
-        hits.append(retrieval.hit_from_instance(rel_spec, rel))
-    return hits
+        candidates.append((rel_spec, rel))
+
+    return [
+        retrieval.hit_from_instance(rel_spec, rel)
+        for rel_spec, rel in retrieval.filter_visible_instances(candidates, viewer)
+    ]

@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import Callable
+from typing import Any, Callable
 
 from django.db.models import Model
 
@@ -44,6 +44,23 @@ class SearchableSpec:
     household has disabled that module, the spec is skipped by retrieval and
     tools — the agent behaves as if the entity type did not exist. None = core,
     never filtered."""
+
+    visibility: Callable[[Any, Any], Any] | None = None
+    """Optional: narrow a queryset to what one **viewer** may read.
+
+    Signature ``(queryset, viewer) -> queryset``. ``None`` (the common case) means
+    every member of the household sees every row — household scoping is the whole
+    rule. A model carrying a privacy flag declares the narrowing here, from its own
+    app, exactly like ``related``: the retrieval layer must never grow a list of
+    which models happen to be private.
+
+    Retrieval applies it on **every** read path — lexical, semantic, ``get_entity``,
+    ``get_related``, ``list_entities`` and the anchored context — so declaring it
+    once closes every door at once. That is the point: the leak it exists to
+    prevent was a door nobody had thought to enumerate.
+
+    Shared implementation for the `is_private` / `created_by` pair:
+    ``core.visibility.visible_to_creator``."""
 
     embed: bool = True
     """Whether this entity is embedded into the vector index (parcours 21). Same
