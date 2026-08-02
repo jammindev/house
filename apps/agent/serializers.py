@@ -95,9 +95,16 @@ class ConversationDetailSerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "last_message_at", "created_at", "web_search_enabled", "messages"]
 
     def get_injected_context(self, obj) -> list[dict]:
+        # The reader is the conversation's owner — conversations are scoped
+        # ``(household, created_by)``. Falling back to it rather than requiring a
+        # request keeps the panel honest when the serializer runs outside a view:
+        # a chip must appear iff the model actually receives that item, and the
+        # model receives it as this user.
+        request = self.context.get("request")
+        viewer = getattr(request, "user", None) or obj.created_by
         return [
             dataclasses.asdict(item)
-            for item in describe_conversation_context(obj, obj.household)
+            for item in describe_conversation_context(obj, obj.household, viewer)
         ]
 
 

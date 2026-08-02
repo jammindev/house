@@ -83,6 +83,52 @@ def _spec_url(spec: SearchableSpec, instance) -> str:
     return spec.url_template.format(id=instance.pk)
 
 
+def apply_visibility(spec: SearchableSpec, queryset, viewer):
+    """Narrow ``queryset`` to what ``viewer`` may read, per the spec's declaration.
+
+    The single application point of ``SearchableSpec.visibility``. Every read path
+    of the agent funnels through here, so a spec that declares a rule is filtered
+    on all of them at once — the alternative (a filter added at each call site) is
+    exactly how the household scope stayed right while privacy was forgotten.
+    """
+    if spec.visibility is None:
+        return queryset
+    return spec.visibility(queryset, viewer)
+
+
+def filter_visible_instances(pairs: list[tuple[SearchableSpec, Any]], viewer):
+    """Keep only the ``(spec, instance)`` pairs ``viewer`` may read.
+
+    The instance-level counterpart of ``apply_visibility``, for the paths that
+    already hold objects rather than a queryset (``get_related`` walks a project's
+    whole neighbourhood through ``spec.related``). Grouped by entity type so the
+    cost is one query per *type* present, never one per item.
+
+    Both helpers read the same ``spec.visibility``: there is no second rule here
+    that could drift from the queryset one.
+    """
+    guarded = [(spec, obj) for spec, obj in pairs if spec.visibility is not None]
+    if not guarded:
+        return list(pairs)
+
+    allowed: dict[str, set] = {}
+    for spec, _ in guarded:
+        if spec.entity_type in allowed:
+            continue
+        pks = [obj.pk for other, obj in guarded if other.entity_type == spec.entity_type]
+        allowed[spec.entity_type] = set(
+            apply_visibility(spec, spec.model.objects.filter(pk__in=pks), viewer).values_list(
+                "pk", flat=True
+            )
+        )
+
+    return [
+        (spec, obj)
+        for spec, obj in pairs
+        if spec.visibility is None or obj.pk in allowed[spec.entity_type]
+    ]
+
+
 def _build_query(query: str) -> SearchQuery:
     """Turn a free-form user query into a tsquery suitable for `simple` config.
 
@@ -108,7 +154,9 @@ def _vector_for_fields(fields: tuple[str, ...]) -> SearchVector:
     return vector
 
 
-def _search_one(spec: SearchableSpec, household_id: UUID, query: str, limit: int) -> list[Hit]:
+def _search_one(
+    spec: SearchableSpec, household_id: UUID, query: str, limit: int, viewer=None
+) -> list[Hit]:
     """Run the search for a single registered model and return hits."""
     if not spec.search_fields:
         return []
@@ -135,7 +183,7 @@ def _search_one(spec: SearchableSpec, household_id: UUID, query: str, limit: int
     }
 
     qs = (
-        spec.model.objects.filter(household_id=household_id)
+        apply_visibility(spec, spec.model.objects.filter(household_id=household_id), viewer)
         .annotate(_search_vector=vector)
         .annotate(
             _rank=SearchRank(
@@ -222,11 +270,18 @@ def search(
     disabled: frozenset[str] | None = None,
     *,
     hybrid: bool | None = None,
+    viewer=None,
 ) -> list[Hit]:
     """Return up to `limit` hits across all registered entities, ranked desc.
 
     Specs of household-disabled modules are skipped. ``disabled`` lets callers
     that loop over several queries (``search_multi``) fetch the set once.
+
+    ``viewer`` is the user asking. The household says *whose* data this is; the
+    viewer says *which of it they may read* — a document one member marked private
+    belongs to the household but is not theirs to see. Omitting it is fail-closed
+    (``core.visibility.visible_to_creator`` then returns public rows only), so a
+    forgotten call site under-reports instead of leaking.
 
     ``hybrid`` overrides ``AGENT_HYBRID_RETRIEVAL_ENABLED`` for this call. The
     global flag is the right default for a *question* asked to the agent, where one
@@ -245,7 +300,7 @@ def search(
     for spec in REGISTRY:
         if spec_disabled(spec, disabled):
             continue
-        all_hits.extend(_search_one(spec, household_id, query, limit))
+        all_hits.extend(_search_one(spec, household_id, query, limit, viewer))
 
     all_hits.sort(key=lambda h: h.rank, reverse=True)
     fulltext_hits = all_hits[:limit]
@@ -253,7 +308,7 @@ def search(
     if not (_hybrid_enabled() if hybrid is None else hybrid):
         return fulltext_hits
 
-    vector_hits = _vector_search(household_id, query, limit, disabled=disabled)
+    vector_hits = _vector_search(household_id, query, limit, disabled=disabled, viewer=viewer)
     if not vector_hits:
         # No semantic leg (embeddings disabled/unavailable/empty index) → behave
         # exactly like pure full-text. Never worse than today.
@@ -271,6 +326,8 @@ def semantic_only(
     query: str,
     limit: int = 20,
     disabled: frozenset[str] | None = None,
+    *,
+    viewer=None,
 ) -> list[Hit]:
     """The semantic leg alone, minus everything the lexical leg already finds.
 
@@ -297,13 +354,15 @@ def semantic_only(
     if disabled is None:
         disabled = disabled_modules_for(household_id)
 
-    vector_hits = _vector_search(household_id, query, limit, disabled=disabled)
+    vector_hits = _vector_search(household_id, query, limit, disabled=disabled, viewer=viewer)
     if not vector_hits:
         return []
 
     already_shown = {
         (hit.entity_type, hit.id)
-        for hit in search(household_id, query, limit=limit, disabled=disabled, hybrid=False)
+        for hit in search(
+            household_id, query, limit=limit, disabled=disabled, hybrid=False, viewer=viewer
+        )
     }
     return [hit for hit in vector_hits if (hit.entity_type, hit.id) not in already_shown]
 
@@ -313,6 +372,8 @@ def _vector_search(
     query: str,
     limit: int,
     disabled: frozenset[str] | None = None,
+    *,
+    viewer=None,
 ) -> list[Hit]:
     """Semantic leg: embed the query, k-NN over `EmbeddingChunk`, dedupe to entities.
 
@@ -351,10 +412,16 @@ def _vector_search(
         spec = find_spec(chunk.entity_type)
         if spec is None or spec_disabled(spec, disabled):
             continue
-        instance = spec.model.objects.filter(
-            household_id=household_id, pk=chunk.object_id
+        instance = apply_visibility(
+            spec,
+            spec.model.objects.filter(household_id=household_id, pk=chunk.object_id),
+            viewer,
         ).first()
-        if instance is None:  # stale chunk (source deleted) — skip
+        if instance is None:
+            # Stale chunk (source deleted) or a row this viewer may not read.
+            # Marked seen either way: the entity is settled, and its remaining
+            # chunks would each re-run the same lookup for the same answer.
+            seen.add(key)
             continue
         seen.add(key)
         hit = hit_from_instance(spec, instance, rank=1.0 - float(chunk.distance))
@@ -395,7 +462,9 @@ def _fuse_rrf(rankings: list[list[Hit]], k: int | None = None) -> list[Hit]:
     return fused
 
 
-def search_multi(household_id: UUID, queries: list[str], limit: int = 20) -> list[Hit]:
+def search_multi(
+    household_id: UUID, queries: list[str], limit: int = 20, *, viewer=None
+) -> list[Hit]:
     """Run `search` for each query string and merge the results.
 
     Used by query expansion: a natural-language question is rewritten into
@@ -411,7 +480,7 @@ def search_multi(household_id: UUID, queries: list[str], limit: int = 20) -> lis
     for query in queries:
         if not query or not query.strip():
             continue
-        for hit in search(household_id, query, limit=limit, disabled=disabled):
+        for hit in search(household_id, query, limit=limit, disabled=disabled, viewer=viewer):
             key = (hit.entity_type, hit.id)
             existing = best.get(key)
             if existing is None or hit.rank > existing.rank:

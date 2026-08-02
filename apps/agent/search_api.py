@@ -80,25 +80,31 @@ def _clamp_limit(raw: str | None) -> int:
     return max(1, min(limit, MAX_LIMIT))
 
 
-def search_household_entities(household_id, query: str, limit: int) -> list[dict]:
+def search_household_entities(household_id, query: str, limit: int, viewer=None) -> list[dict]:
     """Stage one — the lexical search, serialized. One entry point, two URLs.
 
     Strips and gates the query here rather than trusting callers to: this is the
     shared door, and a caller that forgot would send whitespace to the retrieval.
+
+    ``viewer`` is who is asking; it is what keeps this door as narrow as the
+    entity's own list endpoint (a private document belongs to the household but
+    not to every member).
     """
     query = (query or "").strip()
     if len(query) < MIN_QUERY_LENGTH:
         return []
-    hits = retrieval.search(household_id, query, limit=limit, hybrid=False)
+    hits = retrieval.search(household_id, query, limit=limit, hybrid=False, viewer=viewer)
     return serialize_hits(hits)
 
 
-def semantic_household_entities(household_id, query: str, limit: int) -> list[dict]:
+def semantic_household_entities(household_id, query: str, limit: int, viewer=None) -> list[dict]:
     """Stage two — what only the meaning finds, minus stage one's results."""
     query = (query or "").strip()
     if len(query) < MIN_QUERY_LENGTH:
         return []
-    return serialize_hits(retrieval.semantic_only(household_id, query, limit=limit))
+    return serialize_hits(
+        retrieval.semantic_only(household_id, query, limit=limit, viewer=viewer)
+    )
 
 
 def _wants_semantic(request) -> bool:
@@ -130,6 +136,6 @@ class GlobalSearchView(APIView):
         limit = _clamp_limit(request.query_params.get("limit"))
         run = semantic_household_entities if _wants_semantic(request) else search_household_entities
         return Response(
-            {"results": run(household.id, query, limit)},
+            {"results": run(household.id, query, limit, request.user)},
             status=status.HTTP_200_OK,
         )

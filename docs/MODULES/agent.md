@@ -93,6 +93,46 @@ Chaque app déclare ses entités depuis `apps.py::ready()` via
 search_fields, label_attr, url_template, `related` optionnel). L'agent ne connaît
 pas la liste — ajouter un module = ~5 lignes, zéro touche à `apps/agent/`.
 
+### Confidentialité — le foyer dit à qui, le lecteur dit à quoi
+
+`SearchableSpec.visibility` est un `(queryset, viewer) -> queryset` optionnel,
+déclaré par l'app propriétaire au même titre que `related`. `None` (le cas
+courant) = tout membre du foyer voit toute ligne.
+
+- **Le point d'application est unique** : `retrieval.apply_visibility` pour les
+  chemins qui tiennent un queryset (lexical, sémantique, `resolve_entity`,
+  `list_entities`), `retrieval.filter_visible_instances` pour ceux qui tiennent
+  déjà des objets (`get_related`, contexte ancré — groupé par type, donc une
+  requête par type présent, jamais une par item). Les deux lisent le **même**
+  `spec.visibility` : pas de seconde règle qui pourrait dériver.
+- **`viewer` omis est fermé, pas ouvert.** `core.visibility.visible_to_creator`
+  ne renvoie alors que le public. Un appelant qui oublie le lecteur montre moins,
+  jamais plus — un manque se remarque, une fuite non.
+- **Une ligne non lisible est « introuvable », jamais « refusée ».** Répondre
+  « il existe un document privé que je ne peux pas te montrer » est déjà une
+  divulgation ; une ancre non lisible est donc traitée exactement comme une ancre
+  orpheline, et la conversation continue sans contexte.
+- **Le filtre porte sur `created_by`, jamais sur le rôle** : un owner de foyer
+  n'est pas un lecteur privilégié du privé des autres.
+
+**Pourquoi ce mécanisme plutôt qu'un filtre au point d'appel.** La couche de
+retrieval ne connaissait que le **foyer** ; le privé d'un document n'était appliqué
+que dans `documents/views.py`. Trois portes le contournaient — la palette du haut,
+`search_household`, `get_entity` — plus une quatrième que personne n'aurait pensé à
+énumérer : une facture privée attachée à un projet partagé entrait dans le contexte
+ancré de quiconque ouvrait ce projet. C'est « un écart ne se dit jamais deux fois
+avec deux voix » appliqué à la visibilité, avec une asymétrie propre à la sécurité :
+**des deux définitions, c'est toujours la plus permissive qui gagne, et en silence.**
+Régression : `agent/tests/test_private_visibility.py`, dont le test de forme
+`TestTheTwoDoorsAgree` compare l'ensemble trouvable par l'assistant à celui que la
+liste affiche, plutôt que d'énumérer des portes — la prochaine ne serait pas couverte.
+
+> ⚠️ **`Task.is_private` et `Interaction.is_private` ne sont appliqués nulle part**,
+> ni par leur propre API ni par le retrieval. L'assistant n'y est donc pas plus
+> permissif que l'app — il n'y a pas de contournement, il y a une règle absente.
+> Traité à part : l'y appliquer par le seul `visibility` rendrait l'assistant plus
+> strict que la liste, soit le même désaccord à deux voix, dans l'autre sens.
+
 ### Gating par modules du foyer (parcours 15)
 
 Les trois specs (`SearchableSpec`, `ListableSpec`, `WritableSpec`) portent un champ

@@ -184,7 +184,9 @@ def _search_household_handler(
         household_id=household.id,
         user_id=getattr(user, "id", None),
     )
-    hits = retrieval.search_multi(household.id, terms, limit=SEARCH_RETRIEVAL_LIMIT)
+    hits = retrieval.search_multi(
+        household.id, terms, limit=SEARCH_RETRIEVAL_LIMIT, viewer=user
+    )
     return ToolResult(rendered=render_context_block(hits), hits=hits)
 
 
@@ -242,12 +244,16 @@ def _module_disabled_result(entity_type: str) -> "ToolResult":
     )
 
 
-def resolve_entity(entity_type: str, raw_id: str, household):
+def resolve_entity(entity_type: str, raw_id: str, household, viewer=None):
     """Shared (entity_type, id) → instance resolution for get_entity/get_related.
 
     Also reused by ``agent.context`` to resolve a conversation's anchor entity.
     Returns ``((spec, obj), None)`` on success or ``(None, ToolResult)`` with a
     recoverable message the model can read (unknown type, malformed id, no row).
+
+    ``viewer`` applies the spec's visibility rule. A row the viewer may not read
+    is reported as **not found** rather than as refused: « il existe un document
+    privé que je ne peux pas te montrer » is itself a disclosure.
     """
     if not entity_type or not raw_id:
         return None, ToolResult(rendered="(needs both entity_type and id)")
@@ -259,7 +265,9 @@ def resolve_entity(entity_type: str, raw_id: str, household):
         return None, _module_disabled_result(entity_type)
 
     try:
-        obj = spec.model.objects.filter(household_id=household.id, pk=raw_id).first()
+        obj = retrieval.apply_visibility(
+            spec, spec.model.objects.filter(household_id=household.id, pk=raw_id), viewer
+        ).first()
     except (ValueError, TypeError, DjangoValidationError):
         # Malformed id (e.g. not a valid UUID) — recoverable, tell the model.
         return None, ToolResult(rendered=f"(invalid id for {entity_type}: {raw_id})")
@@ -283,7 +291,7 @@ def _get_entity_handler(
     entity_type = (tool_input.get("entity_type") or "").strip()
     raw_id = (tool_input.get("id") or "").strip()
 
-    resolved, error = resolve_entity(entity_type, raw_id, household)
+    resolved, error = resolve_entity(entity_type, raw_id, household, user)
     if error is not None:
         return error
     spec, obj = resolved
@@ -359,14 +367,14 @@ def _get_related_handler(
     entity_type = (tool_input.get("entity_type") or "").strip()
     raw_id = (tool_input.get("id") or "").strip()
 
-    resolved, error = resolve_entity(entity_type, raw_id, household)
+    resolved, error = resolve_entity(entity_type, raw_id, household, user)
     if error is not None:
         return error
     spec, obj = resolved
 
     from .related import gather_related
 
-    hits: list[Hit] = []
+    candidates: list[tuple[searchables.SearchableSpec, Any]] = []
     for rel in gather_related(spec, obj)[:RELATED_MAX_ITEMS]:
         rel_spec = searchables.find_spec_for_instance(rel)
         if rel_spec is None:
@@ -374,7 +382,12 @@ def _get_related_handler(
         # Defensive scope guard: never surface an item from another household.
         if getattr(rel, "household_id", household.id) != household.id:
             continue
-        hits.append(retrieval.hit_from_instance(rel_spec, rel))
+        candidates.append((rel_spec, rel))
+
+    hits: list[Hit] = [
+        retrieval.hit_from_instance(rel_spec, rel)
+        for rel_spec, rel in retrieval.filter_visible_instances(candidates, user)
+    ]
 
     if not hits:
         return ToolResult(rendered=f"(no items linked to {entity_type} {raw_id})")
@@ -722,6 +735,11 @@ def _list_entities_handler(
         return ToolResult(rendered="(filters must be an object)")
 
     qs = spec.model.objects.filter(household_id=household.id)
+    # A listable type may also be searchable; when it is, the same visibility rule
+    # applies — enumerating an entity must not reveal what searching it hides.
+    search_spec = searchables.find_spec(entity_type)
+    if search_spec is not None:
+        qs = retrieval.apply_visibility(search_spec, qs, user)
     known = {f.name: f for f in spec.filters}
     ignored: list[str] = []
     for name, value in raw_filters.items():

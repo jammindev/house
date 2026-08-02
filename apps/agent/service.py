@@ -146,8 +146,8 @@ def ask_stream(
     # Resolve the anchor + any pinned contexts before building the conversation
     # so they lead the messages and their hits are citable from the first answer.
     # The anchor comes first; each pinned entity is injected just like it.
-    anchor_context = _resolve_context(context_entity, household)
-    pinned_contexts = _resolve_contexts(pinned_entities, household)
+    anchor_context = _resolve_context(context_entity, household, user)
+    pinned_contexts = _resolve_contexts(pinned_entities, household, user)
     entity_contexts = ([anchor_context] if anchor_context else []) + pinned_contexts
     anchored = bool(entity_contexts)
     for ctx in entity_contexts:
@@ -355,21 +355,22 @@ def _is_duplicate_write(name: str, tool_input: dict, seen: set) -> bool:
     return False
 
 
-def _resolve_context(context_entity, household):
+def _resolve_context(context_entity, household, viewer=None):
     """Resolve an ``(entity_type, object_id)`` anchor into an EntityContext or None.
 
-    Never raises into ``ask``: an unknown/malformed/orphaned anchor just yields
-    ``None`` and the conversation proceeds unanchored.
+    Never raises into ``ask``: an unknown/malformed/orphaned anchor — or one
+    ``viewer`` may not read — just yields ``None`` and the conversation proceeds
+    unanchored.
     """
     if not context_entity:
         return None
     entity_type, object_id = context_entity
     if not entity_type or not object_id:
         return None
-    return context_builder.build_entity_context(entity_type, object_id, household)
+    return context_builder.build_entity_context(entity_type, object_id, household, viewer)
 
 
-def _resolve_contexts(entities, household):
+def _resolve_contexts(entities, household, viewer=None):
     """Resolve a list of ``(entity_type, object_id)`` into EntityContexts.
 
     Unresolvable entries (unknown type, orphaned pin) are silently dropped, same
@@ -377,7 +378,7 @@ def _resolve_contexts(entities, household):
     """
     contexts = []
     for entity in entities or []:
-        ctx = _resolve_context(entity, household)
+        ctx = _resolve_context(entity, household, viewer)
         if ctx is not None:
             contexts.append(ctx)
     return contexts
