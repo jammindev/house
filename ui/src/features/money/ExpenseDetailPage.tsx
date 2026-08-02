@@ -403,9 +403,11 @@ export default function ExpenseDetailPage() {
       <DocumentUploadDialog
         open={uploadOpen}
         onOpenChange={setUploadOpen}
+        // Ne pas refermer ici : le dialogue le fait lui-même quand **tout** le lot
+        // est passé. Refermer au premier fichier arrivé escamotait la progression
+        // et l'échec des suivants d'un ticket photographié en plusieurs pages.
         onSaved={(created) => {
           if (created) attachDocument.mutate(created.id);
-          setUploadOpen(false);
         }}
       />
 

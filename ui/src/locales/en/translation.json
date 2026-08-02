@@ -1560,7 +1560,7 @@
         "steps": {
           "upload": {
             "title": "Upload a file",
-            "body": "Import a PDF or an image and give it a meaningful title."
+            "body": "Upload a PDF or an image — several files at once if you have a whole batch. A file uploaded on its own can be given a clear title; in a batch, each keeps its own."
           },
           "link": {
             "title": "Link to the right object",
@@ -1582,7 +1582,7 @@
           },
           "add": {
             "title": "Add photos",
-            "body": "Upload photos like any image document. From a project, a piece of equipment or a zone, the Photos tab sorts them into Before / During / After and can compare them."
+            "body": "Pick a whole series at once: the field accepts several photos, sent one after another. From a project, a piece of equipment or a zone, the Photos tab sorts them into Before / During / After and can compare them."
           },
           "file": {
             "title": "File a photo into a zone",
@@ -1818,7 +1818,7 @@
     "addedOn": "Added {{date}}",
     "view": "View",
     "download": "Download",
-    "upload_title": "Add a photo",
+    "upload_title": "Add photos",
     "phase": {
       "before": "Before",
       "during": "During",
@@ -1830,7 +1830,7 @@
       "compare": "Compare",
       "compareTitle": "Before / after",
       "compareSlider": "Comparison slider",
-      "upload": "Upload a photo",
+      "upload": "Upload photos",
       "addToPhase": "Add here",
       "moveTo": "Move to {{phase}}",
       "remove": "Remove",
@@ -1960,11 +1960,16 @@
       "groupBy_date": "Date"
     },
     "upload": {
-      "title": "Upload document",
+      "title": "Upload documents",
       "submit": "Upload",
       "zone": "Zone",
       "noZone": "No zone",
-      "namePlaceholder": "Document name (optional)"
+      "namePlaceholder": "Document name (optional)",
+      "progress": "Uploading {{current}} / {{total}}…",
+      "fileDone": "Sent",
+      "fileFailed": "Failed",
+      "someFailed_one": "1 file could not be uploaded. Try again — the ones already sent won't be sent twice.",
+      "someFailed_other": "{{count}} files could not be uploaded. Try again — the ones already sent won't be sent twice."
     },
     "type": {
       "document": "Document",
@@ -1997,7 +2002,8 @@
       "selectFile": "Select file",
       "selectedFile": "Selected file",
       "submit": "Upload document",
-      "submitting": "Uploading…"
+      "submitting": "Uploading…",
+      "selectFiles": "Select files"
     },
     "detail": {
       "title": "Document details",

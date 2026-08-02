@@ -5,8 +5,8 @@
  *   1. Onglets adaptatifs (TabShell) : un projet vide n'affiche que "Aperçu" ;
  *      le menu « + » expose les onglets masqués ; après création d'une tâche liée
  *      l'onglet "Tâches" apparaît dans la barre.
- *   2. Photos avant/après (EntityPhotosTab) : upload, déplacement de phase,
- *      bouton "Comparer" conditionnel.
+ *   2. Photos avant/après (EntityPhotosTab) : upload (à l'unité et en lot),
+ *      déplacement de phase, bouton "Comparer" conditionnel.
  *
  * Pré-requis :
  *   - seed_demo_data peuple le projet "Rénovation salle de bain" (avec tab_counts
@@ -21,6 +21,7 @@ import { test, expect } from './fixtures';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const FIXTURE_PHOTO = path.resolve(__dirname, 'fixtures/test-photo.jpg');
+const FIXTURE_PHOTO_2 = path.resolve(__dirname, 'fixtures/test-photo-2.jpg');
 
 // ---------------------------------------------------------------------------
 // API helper — creates a blank project via REST (no UI noise)
@@ -123,7 +124,7 @@ test.describe('Onglets adaptatifs (TabShell)', () => {
     await page.getByRole('menuitem', { name: 'Photos' }).click();
 
     // Photos tab is now active: its upload button should appear in the content
-    await expect(page.getByRole('button', { name: 'Ajouter une photo' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Ajouter des photos' })).toBeVisible();
   });
 
   test('l\'onglet "Tâches" apparaît dans la barre après création d\'une tâche liée', async ({
@@ -164,7 +165,7 @@ test.describe('Photos avant/après (EntityPhotosTab)', () => {
     await page.getByRole('menuitem', { name: 'Photos' }).click();
 
     // Confirm we are on the Photos tab
-    await expect(page.getByRole('button', { name: 'Ajouter une photo' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Ajouter des photos' })).toBeVisible();
   });
 
   test.afterEach(async ({ page }) => {
@@ -180,7 +181,7 @@ test.describe('Photos avant/après (EntityPhotosTab)', () => {
   });
 
   test('uploade une photo et la voit dans la section "Non classées"', async ({ page }) => {
-    await page.getByRole('button', { name: 'Ajouter une photo' }).click();
+    await page.getByRole('button', { name: 'Ajouter des photos' }).click();
 
     const dialog = page.getByRole('dialog');
     await expect(dialog).toBeVisible();
@@ -196,11 +197,35 @@ test.describe('Photos avant/après (EntityPhotosTab)', () => {
     await expect(page.locator('main img').first()).toBeVisible();
   });
 
+  /**
+   * Le lot, dans un vrai navigateur. En jsdom, `input.files` est posé à la main :
+   * seul un moteur réel atteste qu'un `multiple` accepte plusieurs fichiers d'un
+   * geste et que les deux documents arrivent bien dans le foyer.
+   */
+  test('uploade deux photos en une seule fois', async ({ page }) => {
+    await page.getByRole('button', { name: 'Ajouter des photos' }).click();
+
+    const dialog = page.getByRole('dialog');
+    await expect(dialog).toBeVisible();
+
+    await dialog.locator('#upload-file').setInputFiles([FIXTURE_PHOTO, FIXTURE_PHOTO_2]);
+    // Le champ « nom » disparaît dès qu'il y a un lot : chaque photo garde le sien.
+    await expect(dialog.locator('#upload-name')).toHaveCount(0);
+
+    await dialog.getByRole('button', { name: 'Téléverser' }).click();
+    await expect(dialog).toBeHidden();
+
+    // Compté dans la section, pas dans `main` : une image de coque (avatar,
+    // illustration) rendrait le total faux sans rien dire du lot.
+    const section = page.locator('section').filter({ hasText: 'Non classées' });
+    await expect(section.locator('img')).toHaveCount(2);
+  });
+
   test('déplace une photo vers la section "Après" via le menu de la vignette', async ({
     page,
   }) => {
     // Upload a photo first
-    await page.getByRole('button', { name: 'Ajouter une photo' }).click();
+    await page.getByRole('button', { name: 'Ajouter des photos' }).click();
     const dialog = page.getByRole('dialog');
     await dialog.locator('#upload-file').setInputFiles(FIXTURE_PHOTO);
     await dialog.getByRole('button', { name: 'Téléverser' }).click();
@@ -225,7 +250,7 @@ test.describe('Photos avant/après (EntityPhotosTab)', () => {
 
   test('le bouton "Comparer" n\'apparaît pas avec une seule phase remplie', async ({ page }) => {
     // Upload a photo and move it to "Avant"
-    await page.getByRole('button', { name: 'Ajouter une photo' }).click();
+    await page.getByRole('button', { name: 'Ajouter des photos' }).click();
     let dialog = page.getByRole('dialog');
     await dialog.locator('#upload-file').setInputFiles(FIXTURE_PHOTO);
     await dialog.getByRole('button', { name: 'Téléverser' }).click();
@@ -246,7 +271,7 @@ test.describe('Photos avant/après (EntityPhotosTab)', () => {
     page,
   }) => {
     // --- Photo 1 → "Avant" ---
-    await page.getByRole('button', { name: 'Ajouter une photo' }).click();
+    await page.getByRole('button', { name: 'Ajouter des photos' }).click();
     let dialog = page.getByRole('dialog');
     await dialog.locator('#upload-file').setInputFiles(FIXTURE_PHOTO);
     await dialog.getByRole('button', { name: 'Téléverser' }).click();
@@ -260,7 +285,7 @@ test.describe('Photos avant/après (EntityPhotosTab)', () => {
     await expect(page.getByText('Avant')).toBeVisible();
 
     // --- Photo 2 → "Après" ---
-    await page.getByRole('button', { name: 'Ajouter une photo' }).click();
+    await page.getByRole('button', { name: 'Ajouter des photos' }).click();
     dialog = page.getByRole('dialog');
     await dialog.locator('#upload-file').setInputFiles(FIXTURE_PHOTO);
     await dialog.getByRole('button', { name: 'Téléverser' }).click();
