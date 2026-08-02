@@ -89,6 +89,10 @@ export default function DocumentUploadDialog({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    // Le bouton est `disabled` pendant l'envoi, mais il n'est pas le seul chemin :
+    // Entrée depuis un champ texte soumet aussi, et un second passage relirait un
+    // `done` d'avant la première réponse — donc renverrait des fichiers en double.
+    if (uploading) return;
     if (files.length === 0) {
       setError(t('documents.new.selectFile'));
       return;

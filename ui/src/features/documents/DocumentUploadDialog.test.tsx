@@ -157,6 +157,26 @@ describe('téléverser plusieurs fichiers en une fois', () => {
     await waitFor(() => expect(onOpenChange).toHaveBeenCalledWith(false));
   });
 
+  it('ignore une seconde soumission pendant que le lot part', async () => {
+    render(
+      <DocumentUploadDialog open onOpenChange={vi.fn()} onSaved={vi.fn()} forcedType="photo" />,
+    );
+
+    await pick(photo('a.jpg'), photo('b.jpg'), photo('c.jpg'));
+    // Deux soumissions coup sur coup : la seconde relirait un `done` d'avant la
+    // première réponse, et renverrait donc les mêmes fichiers. Le formulaire est
+    // saisi une fois pour toutes — le bouton, lui, change de libellé dès le
+    // premier envoi.
+    const form = screen
+      .getByRole('button', { name: 'documents.upload.submit' })
+      .closest('form') as HTMLFormElement;
+    fireEvent.submit(form);
+    fireEvent.submit(form);
+
+    await waitFor(() => expect(uploadDocument).toHaveBeenCalledTimes(3));
+    expect(uploadDocument).toHaveBeenCalledTimes(3);
+  });
+
   it('applique le nom saisi à un fichier seul, jamais à un lot', async () => {
     const { rerender } = render(
       <DocumentUploadDialog open onOpenChange={vi.fn()} onSaved={vi.fn()} forcedType="photo" />,

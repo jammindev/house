@@ -215,8 +215,10 @@ test.describe('Photos avant/après (EntityPhotosTab)', () => {
     await dialog.getByRole('button', { name: 'Téléverser' }).click();
     await expect(dialog).toBeHidden();
 
-    await expect(page.getByText('Non classées')).toBeVisible();
-    await expect(page.locator('main img')).toHaveCount(2);
+    // Compté dans la section, pas dans `main` : une image de coque (avatar,
+    // illustration) rendrait le total faux sans rien dire du lot.
+    const section = page.locator('section').filter({ hasText: 'Non classées' });
+    await expect(section.locator('img')).toHaveCount(2);
   });
 
   test('déplace une photo vers la section "Après" via le menu de la vignette', async ({
