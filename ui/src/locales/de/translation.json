@@ -1022,7 +1022,8 @@
         "weather_alert": "Wetterwarnung",
         "daily_digest": "Tägliche Zusammenfassung",
         "recurring_due": "Fällige wiederkehrende Ausgabe",
-        "monthly_budget_report": "Monatlicher Budgetbericht"
+        "monthly_budget_report": "Monatlicher Budgetbericht",
+        "chicken_chore": "Erinnerung an Stallaufgaben"
       }
     },
     "theme": "Design",
@@ -1406,6 +1407,10 @@
           "events": {
             "title": "Ereignisse festhalten",
             "body": "Pflege, Brut, Mauser, Tod: der Eintrag jeder Henne behält ihre Chronik."
+          },
+          "chores": {
+            "title": "Nie mehr überlegen, wann zuletzt gemistet wurde",
+            "body": "Trag die wiederkehrenden Arbeiten ein — Stall ausmisten, Futtertrog reinigen — mit dem Abstand in Tagen. Häkchen bei « Erledigt » setzen, und House zählt ab da neu; aktiviere die Erinnerung unter Einstellungen › Proaktive Nachrichten, dann meldet sie sich morgens, wenn etwas liegen bleibt."
           },
           "stats": {
             "title": "Legeleistung und Kosten verfolgen",
@@ -2758,7 +2763,8 @@
     "type": {
       "stock_low": "Geringer Bestand",
       "stock_out": "Nicht mehr vorrätig",
-      "weather_alert": "Wetterwarnung"
+      "weather_alert": "Wetterwarnung",
+      "chicken_chore_due": "Stallaufgabe fällig"
     }
   },
   "invitations": {
@@ -2948,6 +2954,39 @@
       "assistant": "Assistent",
       "documents": "Dokumente",
       "photos": "Fotos"
+    },
+    "chores": {
+      "title": "Aufgaben",
+      "empty": "Noch keine wiederkehrende Aufgabe. Trag ein, was du regelmäßig machst — Stall ausmisten, Futtertrog reinigen — und House sagt dir, wenn es liegen bleibt.",
+      "created": "Aufgabe hinzugefügt",
+      "updated": "Aufgabe geändert",
+      "deleted": "Aufgabe gelöscht",
+      "done": "Aufgabe erledigt",
+      "paused": "Pausiert",
+      "never_done": "Nie erledigt",
+      "last_done": "Erledigt am {{date}}",
+      "cadence_one": "täglich",
+      "cadence_other": "alle {{count}} Tage",
+      "due_today": "Heute fällig",
+      "overdue_one": "{{count}} Tag überfällig",
+      "overdue_other": "{{count}} Tage überfällig",
+      "new_title": "Neue Aufgabe",
+      "edit_title": "Aufgabe bearbeiten",
+      "actions": {
+        "new": "Neue Aufgabe",
+        "done": "Erledigt",
+        "pause": "Pausieren",
+        "resume": "Fortsetzen"
+      },
+      "fields": {
+        "name": "Name",
+        "name_placeholder": "Stall ausmisten",
+        "emoji": "Emoji",
+        "interval_days": "Alle wie viele Tage",
+        "starts_on": "Gezählt ab",
+        "starts_on_help": "Dient als Startpunkt, solange die Aufgabe noch nie erledigt wurde. Trag den Tag ein, an dem du es zuletzt gemacht hast, dann kommt die erste Erinnerung zur richtigen Zeit.",
+        "notes": "Notizen"
+      }
     }
   },
   "alerts": {
@@ -2968,7 +3007,8 @@
       "maintenances": "Anstehende Wartungen",
       "stock": "Vorrat auffüllen",
       "weather": "Wetter",
-      "eggDrop": "Rückgang der Legeleistung"
+      "eggDrop": "Rückgang der Legeleistung",
+      "chores": "Stallaufgaben"
     },
     "severity": {
       "critical": "Dringend",
@@ -3000,7 +3040,12 @@
         "weather": "Kürzlich extremes Wetter · {{recent}} statt {{baseline}} Eier/Tag",
         "unknown": "Unklare Ursache, beobachten · {{recent}} statt {{baseline}} Eier/Tag"
       }
-    }
+    },
+    "choreNeverDone_one": "Nie erledigt — täglich vorgesehen",
+    "choreNeverDone_other": "Nie erledigt — alle {{count}} Tage vorgesehen",
+    "choreDueToday": "Heute fällig",
+    "choreOverdue_one": "{{count}} Tag überfällig — fällig am {{date}}",
+    "choreOverdue_other": "{{count}} Tage überfällig — fällig am {{date}}"
   },
   "search": {
     "title": "Suche",
@@ -3027,7 +3072,8 @@
       "chicken_event": "Hühnerstall-Journal",
       "meter": "Zähler",
       "tracker": "Tracker",
-      "shopping_item": "Einkaufsliste"
+      "shopping_item": "Einkaufsliste",
+      "chicken_chore": "Stallaufgaben"
     }
   },
   "agent": {

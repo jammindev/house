@@ -12,7 +12,14 @@ import {
   updateTracker,
   updateTrackerEntry,
 } from '@/lib/api/trackers';
-import { deleteChicken, deleteEggLog, updateChicken } from '@/lib/api/chickens';
+import {
+  deleteChicken,
+  deleteChickenEvent,
+  deleteChore,
+  deleteEggLog,
+  updateChicken,
+  updateChore,
+} from '@/lib/api/chickens';
 import { deleteStockItem, undoStockPurchase } from '@/lib/api/stock';
 import { deleteBudget, deleteRecurringExpense, updateBudget } from '@/lib/api/budget';
 import { deleteShoppingItem } from '@/lib/api/shopping';
@@ -250,6 +257,17 @@ const UNDO_HANDLERS: Record<
     remove: (id) => deleteChicken(id),
     keys: [chickenKeys.all as unknown as unknown[]],
   },
+  chicken_chore: {
+    remove: (id) => deleteChore(id),
+    keys: [chickenKeys.all as unknown as unknown[]],
+  },
+  chicken_chore_done: {
+    // "j'ai nettoyé le poulailler" created a journal entry — undoing it removes
+    // that entry, and the chore's due date rolls back on its own because it was
+    // never stored. Also touches the alerts badge, hence the extra key.
+    remove: (id) => deleteChickenEvent(id),
+    keys: [chickenKeys.all as unknown as unknown[], ['alerts']],
+  },
   egg_log: {
     // one row per day (upserted) — undo removes the whole day's log
     remove: (id) => deleteEggLog(id),
@@ -353,6 +371,11 @@ const UPDATE_UNDO_HANDLERS: Record<
   chicken: {
     restore: (id, previous) =>
       updateChicken(id, previous as Parameters<typeof updateChicken>[1]),
+    keys: [chickenKeys.all as unknown as unknown[]],
+  },
+  chicken_chore: {
+    restore: (id, previous) =>
+      updateChore(id, previous as Parameters<typeof updateChore>[1]),
     keys: [chickenKeys.all as unknown as unknown[]],
   },
   budget: {

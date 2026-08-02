@@ -94,8 +94,13 @@ const MONEY_ROOTS = ['banking', 'interactions', 'expenses', 'budget', 'complianc
 const DERIVED_FROM: Partial<Record<QueryRoot, readonly QueryRoot[]>> = {
   /** « Ma semaine », l'activité récente, les projets actifs. */
   dashboard: ['tasks', 'interactions', 'projects'],
-  /** Retards, garanties, entretiens, seuils de stock — `apps/alerts/services.py`. */
-  alerts: ['tasks', 'equipment', 'stock'],
+  /**
+   * Retards, garanties, entretiens, seuils de stock — `apps/alerts/services.py`.
+   * `chickens` y entre avec les corvées récurrentes : cocher « nettoyé » repousse
+   * l'échéance, donc retire l'alerte. Sans cette ligne, la pastille reste rouge
+   * jusqu'à l'expiration du `staleTime`, et le foyer apprend à ne plus la croire.
+   */
+  alerts: ['tasks', 'equipment', 'stock', 'chickens'],
   /** `actual_cost` = somme des dépenses ; `tab_counts` compte les tâches. */
   projects: ['interactions', 'tasks'],
   /** Le carnet de rénovation *est* une liste d'`Interaction` (kind=renovation). */

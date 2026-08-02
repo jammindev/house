@@ -64,6 +64,27 @@ async function acceptAgentPrivacy(page: import('@playwright/test').Page): Promis
   );
 }
 
+
+/**
+ * Deletes all recurring chores for the household via the API.
+ */
+async function deleteAllChores(page: import('@playwright/test').Page): Promise<void> {
+  const token = await getAccessToken(page);
+  const resp = await page.request.get('/api/chickens/chores/?active=false', {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!resp.ok()) return;
+  const body = (await resp.json()) as unknown;
+  const items: Array<{ id: string }> = Array.isArray(body)
+    ? (body as Array<{ id: string }>)
+    : ((body as { results?: Array<{ id: string }> }).results ?? []);
+  for (const item of items) {
+    await page.request.delete(`/api/chickens/chores/${item.id}/`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
@@ -75,6 +96,7 @@ test.describe('Poulailler', () => {
     await expect(page).toHaveURL(/\/app\/chickens/);
     await deleteAllChickens(page);
     await deleteAllEggLogs(page);
+    await deleteAllChores(page);
     // Pre-accept agent privacy so the consent dialog doesn't block detail pages.
     await acceptAgentPrivacy(page);
     // Reload to reflect the clean state.
@@ -294,5 +316,62 @@ test.describe('Poulailler', () => {
 
     // Event reappears after undo
     await expect(page.getByText(eventTitle)).toBeVisible();
+  });
+  // ── 7. Corvées récurrentes ────────────────────────────────────────────────
+
+  test('crée une corvée en retard, la coche, et le badge disparaît', async ({ page }) => {
+    const choreName = `Nettoyer E2E ${Date.now()}`;
+
+    await page.getByRole('button', { name: 'Nouvelle corvée' }).first().click();
+
+    const dialog = page.getByRole('dialog');
+    await expect(dialog).toBeVisible();
+    await expect(dialog).toContainText('Nouvelle corvée');
+
+    await dialog.locator('#chore-name').fill(choreName);
+    await dialog.locator('#chore-interval').fill('7');
+    // Une date d'ancrage dans le passé rend la corvée immédiatement en retard —
+    // c'est l'état que le rappel vise, donc celui qu'il faut voir à l'écran.
+    await dialog.locator('#chore-starts').fill('2024-01-01');
+
+    await dialog.getByRole('button', { name: 'Enregistrer' }).click();
+    await expect(dialog).toBeHidden();
+    await expect(page.getByText('Corvée ajoutée', { exact: true })).toBeVisible();
+
+    const row = page.getByText(choreName).locator('xpath=ancestor::*[4]');
+    await expect(row).toContainText('En retard de');
+
+    await row.getByRole('button', { name: 'Fait' }).click();
+    await expect(page.getByText('Corvée faite', { exact: true })).toBeVisible();
+
+    // Le verdict vient du serveur : cocher repousse l'échéance, donc le badge
+    // tombe. Un badge calculé côté client resterait affiché jusqu'au rechargement.
+    await expect(row).not.toContainText('En retard de');
+  });
+
+  test('met une corvée en pause : elle cesse d\'être annoncée en retard', async ({ page }) => {
+    const choreName = `Pause E2E ${Date.now()}`;
+
+    await page.getByRole('button', { name: 'Nouvelle corvée' }).first().click();
+    const dialog = page.getByRole('dialog');
+    await dialog.locator('#chore-name').fill(choreName);
+    await dialog.locator('#chore-interval').fill('7');
+    await dialog.locator('#chore-starts').fill('2024-01-01');
+    await dialog.getByRole('button', { name: 'Enregistrer' }).click();
+    await expect(dialog).toBeHidden();
+
+    const row = page.getByText(choreName).locator('xpath=ancestor::*[4]');
+    await expect(row).toContainText('En retard de');
+
+    await row.locator('button').last().click();
+    await page.getByRole('menuitem', { name: 'Mettre en pause' }).click();
+
+    // Elle reste visible, marquée « En pause » et sans verdict de retard :
+    // la masquer ferait de la pause une porte sans retour.
+    await expect(row).toContainText('En pause');
+    await expect(row).not.toContainText('En retard de');
+
+    await row.locator('button').last().click();
+    await expect(page.getByRole('menuitem', { name: 'Reprendre' })).toBeVisible();
   });
 });

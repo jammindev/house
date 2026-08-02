@@ -1,7 +1,7 @@
 import {
   FileText, Notebook, Wrench, ListTodo, FolderKanban, MapPin,
   Box, ShieldCheck, User, Building2, ExternalLink,
-  Bird, Egg, Gauge, PiggyBank, Repeat, LineChart, ShoppingCart,
+  Bird, Brush, Egg, Gauge, PiggyBank, Repeat, LineChart, ShoppingCart,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
@@ -31,6 +31,7 @@ export const ENTITY_ICONS: Record<string, LucideIcon> = {
   recurring_expense: Repeat,
   chicken: Bird,
   chicken_event: Egg,
+  chicken_chore: Brush,
   meter: Gauge,
   tracker: LineChart,
   shopping_item: ShoppingCart,

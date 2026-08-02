@@ -227,6 +227,12 @@ describe('le graphe des caches', () => {
     expect(rootsInvalidatedBy('stock')).toContain('alerts');
   });
 
+  it('la pastille d’alertes se rafraîchit après une corvée du poulailler', () => {
+    // Cocher « nettoyé » repousse l'échéance, donc retire l'alerte de retard.
+    // Sans cette arête, la pastille reste rouge sur une corvée déjà faite.
+    expect(rootsInvalidatedBy('chickens')).toContain('alerts');
+  });
+
   it('le coût d’un projet se rafraîchit après une dépense', () => {
     expect(rootsInvalidatedBy('interactions')).toContain('projects');
   });

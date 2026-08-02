@@ -75,7 +75,7 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
   { key: 'weather', moduleKey: 'weather', to: '/app/weather', stepIds: ['location', 'forecast', 'dashboard', 'alerts'] },
   { key: 'stock', moduleKey: 'stock', to: '/app/stock', stepIds: ['add', 'quantities', 'expiry'] },
   { key: 'shopping', moduleKey: 'shopping', to: '/app/shopping-list', stepIds: ['quickAdd', 'fromStock', 'suggestions', 'check', 'commit', 'agent'] },
-  { key: 'chickens', moduleKey: 'chickens', to: '/app/chickens', stepIds: ['flock', 'eggs', 'events', 'stats', 'media'] },
+  { key: 'chickens', moduleKey: 'chickens', to: '/app/chickens', stepIds: ['flock', 'eggs', 'events', 'chores', 'stats', 'media'] },
   { key: 'insurance', moduleKey: 'insurance', to: '/app/insurance', stepIds: ['contracts', 'documents'] },
   { key: 'tasks', moduleKey: 'tasks', to: '/app/tasks', stepIds: ['create', 'organize', 'weather', 'complete'] },
   { key: 'projects', moduleKey: 'projects', to: '/app/projects', stepIds: ['create', 'plan', 'photos', 'budget'] },

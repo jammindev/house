@@ -22,6 +22,7 @@ import {
 import ChickenCard from './ChickenCard';
 import ChickenDialog from './ChickenDialog';
 import ChickenEventDialog from './ChickenEventDialog';
+import ChoresPanel from './ChoresPanel';
 import EggLogBanner from './EggLogBanner';
 import EggStatsSection from './EggStatsSection';
 import EventTimeline from './EventTimeline';
@@ -133,6 +134,8 @@ export default function ChickensPage() {
             </Card>
           ) : null}
         </div>
+
+        <ChoresPanel />
 
         <div className="flex flex-wrap gap-1.5 pb-1">
           {FILTERS.map((filter) => (

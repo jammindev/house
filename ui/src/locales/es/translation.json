@@ -1022,7 +1022,8 @@
         "weather_alert": "Alerta meteorológica",
         "daily_digest": "Resumen diario",
         "recurring_due": "Vencimiento de gasto recurrente",
-        "monthly_budget_report": "Balance mensual del presupuesto"
+        "monthly_budget_report": "Balance mensual del presupuesto",
+        "chicken_chore": "Recordatorio de tareas del gallinero"
       }
     },
     "theme": "Tema",
@@ -1406,6 +1407,10 @@
           "events": {
             "title": "Registrar los eventos",
             "body": "Cuidados, incubación, muda, muerte: la ficha de cada gallina guarda su cronología."
+          },
+          "chores": {
+            "title": "No volver a dudar de cuándo limpiaste",
+            "body": "Añade las tareas que repites — limpiar el gallinero, lavar el comedero — con cuántos días de separación. Marca « Hecha » cada vez y House cuenta desde ahí; activa el recordatorio en Ajustes › Mensajes proactivos y te avisa por la mañana cuando alguna se retrasa."
           },
           "stats": {
             "title": "Seguir la puesta y el coste",
@@ -2758,7 +2763,8 @@
     "type": {
       "stock_low": "Existencias bajas",
       "stock_out": "Sin existencias",
-      "weather_alert": "Alerta meteorológica"
+      "weather_alert": "Alerta meteorológica",
+      "chicken_chore_due": "Tarea del gallinero pendiente"
     }
   },
   "invitations": {
@@ -2948,6 +2954,39 @@
       "assistant": "Asistente",
       "documents": "Documentos",
       "photos": "Fotos"
+    },
+    "chores": {
+      "title": "Tareas",
+      "empty": "Aún no hay tareas recurrentes. Añade las que repites — limpiar el gallinero, lavar el comedero — y House te avisará cuando se retrasen.",
+      "created": "Tarea añadida",
+      "updated": "Tarea actualizada",
+      "deleted": "Tarea eliminada",
+      "done": "Tarea hecha",
+      "paused": "En pausa",
+      "never_done": "Nunca hecha",
+      "last_done": "Hecha el {{date}}",
+      "cadence_one": "todos los días",
+      "cadence_other": "cada {{count}} días",
+      "due_today": "Para hoy",
+      "overdue_one": "{{count}} día de retraso",
+      "overdue_other": "{{count}} días de retraso",
+      "new_title": "Nueva tarea",
+      "edit_title": "Editar tarea",
+      "actions": {
+        "new": "Nueva tarea",
+        "done": "Hecha",
+        "pause": "Pausar",
+        "resume": "Reanudar"
+      },
+      "fields": {
+        "name": "Nombre",
+        "name_placeholder": "Limpiar el gallinero",
+        "emoji": "Emoji",
+        "interval_days": "Cada cuántos días",
+        "starts_on": "Contando desde",
+        "starts_on_help": "Sirve de punto de partida mientras la tarea no se haya hecho nunca. Pon la fecha de la última vez y el primer recordatorio llegará en el momento justo.",
+        "notes": "Notas"
+      }
     }
   },
   "alerts": {
@@ -2968,7 +3007,8 @@
       "maintenances": "Mantenimientos a planificar",
       "stock": "Stock por reponer",
       "weather": "Tiempo",
-      "eggDrop": "Caída de puesta"
+      "eggDrop": "Caída de puesta",
+      "chores": "Tareas del gallinero"
     },
     "severity": {
       "critical": "Urgente",
@@ -3000,7 +3040,12 @@
         "weather": "Clima extremo reciente · {{recent}} vs {{baseline}} huevos/día",
         "unknown": "Causa desconocida, vigilar · {{recent}} vs {{baseline}} huevos/día"
       }
-    }
+    },
+    "choreNeverDone_one": "Nunca hecha — prevista todos los días",
+    "choreNeverDone_other": "Nunca hecha — prevista cada {{count}} días",
+    "choreDueToday": "Para hoy",
+    "choreOverdue_one": "{{count}} día de retraso — prevista el {{date}}",
+    "choreOverdue_other": "{{count}} días de retraso — prevista el {{date}}"
   },
   "search": {
     "title": "Búsqueda",
@@ -3027,7 +3072,8 @@
       "chicken_event": "Diario del gallinero",
       "meter": "Contadores",
       "tracker": "Trackers",
-      "shopping_item": "Lista de la compra"
+      "shopping_item": "Lista de la compra",
+      "chicken_chore": "Tareas del gallinero"
     }
   },
   "agent": {

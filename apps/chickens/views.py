@@ -4,6 +4,7 @@ Chicken coop REST API views.
 All business writes delegate to ``chickens.services`` — the same functions the
 agent writables call — so REST and agent behave identically.
 """
+from django.db.models import Max
 from django.utils import timezone
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
@@ -12,12 +13,15 @@ from rest_framework.views import APIView
 from django_filters.rest_framework import DjangoFilterBackend
 
 from core.permissions import IsHouseholdMember
+from core.timezones import household_today
 from documents.mixins import DocumentLinkActionsMixin
 from interactions.services import create_expense_interaction, validate_expense_budget
 
 from . import services
-from .models import Chicken, ChickenEvent, EggLog
+from .models import Chicken, ChickenChore, ChickenEvent, EggLog
 from .serializers import (
+    ChickenChoreCompletionSerializer,
+    ChickenChoreSerializer,
     ChickenEventSerializer,
     ChickenPurchaseSerializer,
     ChickenSerializer,
@@ -193,6 +197,80 @@ class ChickenEventViewSet(viewsets.ModelViewSet):
 
     def perform_destroy(self, instance):
         services.delete_event(self.request.household, self.request.user, instance)
+
+
+class ChickenChoreViewSet(viewsets.ModelViewSet):
+    """Recurring coop chores — CRUD plus the one action that matters: "done"."""
+
+    permission_classes = [IsHouseholdMember]
+    serializer_class = ChickenChoreSerializer
+
+    def get_queryset(self):
+        qs = ChickenChore.objects.for_user_households(self.request.user)
+        if self.request.household:
+            qs = qs.filter(household=self.request.household)
+        # ?active=false lists the paused ones too (the panel shows active only).
+        if self.request.query_params.get('active') != 'false':
+            qs = qs.filter(is_active=True)
+        # Annotate the last completion here so listing N chores stays one query —
+        # the serializer reads this instead of hitting the journal per row.
+        return qs.annotate(last_done_on=Max('completions__occurred_on')).order_by('name')
+
+    def get_serializer_context(self):
+        ctx = super().get_serializer_context()
+        if self.request.household:
+            ctx['household_id'] = self.request.household.id
+            ctx['today'] = household_today(self.request.household)
+        return ctx
+
+    def perform_create(self, serializer):
+        data = serializer.validated_data
+        serializer.instance = services.create_chore(
+            self.request.household,
+            self.request.user,
+            name=data.get('name', ''),
+            interval_days=data.get('interval_days'),
+            emoji=data.get('emoji', ''),
+            starts_on=data.get('starts_on'),
+            notes=data.get('notes', ''),
+            is_active=data.get('is_active'),
+        )
+
+    def perform_update(self, serializer):
+        serializer.instance = services.update_chore(
+            self.request.household,
+            self.request.user,
+            serializer.instance,
+            fields=dict(serializer.validated_data),
+        )
+
+    def perform_destroy(self, instance):
+        services.delete_chore(self.request.household, self.request.user, instance)
+
+    @action(detail=True, methods=['post'])
+    def complete(self, request, pk=None):
+        """Mark the chore done today (or on a given day) — writes the journal entry."""
+        chore = self.get_object()
+        payload = ChickenChoreCompletionSerializer(data=request.data)
+        payload.is_valid(raise_exception=True)
+
+        event = services.complete_chore(
+            request.household,
+            request.user,
+            chore,
+            occurred_on=payload.validated_data.get('occurred_on'),
+            notes=payload.validated_data.get('notes', ''),
+        )
+        # Re-read through the queryset so the response carries the refreshed
+        # derived status — the caller's next due date changed by construction.
+        refreshed = self.get_queryset().get(pk=chore.pk)
+        return Response(
+            {
+                'chore': self.get_serializer(refreshed).data,
+                'event': ChickenEventSerializer(event).data,
+            },
+            status=status.HTTP_201_CREATED,
+        )
 
 
 class ChickenSettingsView(APIView):

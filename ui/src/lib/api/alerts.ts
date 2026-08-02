@@ -52,6 +52,25 @@ export interface EggDropAlert {
   entity_url: string;
 }
 
+/**
+ * A recurring coop chore whose due date has passed.
+ *
+ * `days_overdue` and the verdict behind it come from
+ * `chickens.services.chore_status` — the same function the reminder ping reads.
+ * Never re-derive "late" from `next_due_on` here.
+ */
+export interface DueChoreAlert {
+  id: string;
+  title: string;
+  emoji: string;
+  interval_days: number;
+  next_due_on: string;
+  days_overdue: number;
+  never_done: boolean;
+  entity_url: string;
+  severity: AlertSeverity;
+}
+
 export interface AlertsSummary {
   overdue_tasks: OverdueTaskAlert[];
   expiring_warranties: ExpiringWarrantyAlert[];
@@ -59,6 +78,7 @@ export interface AlertsSummary {
   low_stock: LowStockAlert[];
   weather_alerts: WeatherAlert[];
   egg_drop_alerts: EggDropAlert[];
+  due_chores: DueChoreAlert[];
   total: number;
 }
 

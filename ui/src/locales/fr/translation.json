@@ -1022,7 +1022,8 @@
         "weather_alert": "Alerte météo",
         "daily_digest": "Résumé quotidien",
         "recurring_due": "Échéance de dépense récurrente",
-        "monthly_budget_report": "Bilan mensuel du budget"
+        "monthly_budget_report": "Bilan mensuel du budget",
+        "chicken_chore": "Rappel des corvées du poulailler"
       }
     },
     "theme": "Thème",
@@ -1406,6 +1407,10 @@
           "events": {
             "title": "Consigner les événements",
             "body": "Soins, couvaison, mue, décès : la fiche de chaque poule garde sa chronologie."
+          },
+          "chores": {
+            "title": "Ne plus se demander quand tu as nettoyé",
+            "body": "Ajoute les gestes que tu refais — nettoyer le poulailler, laver le mangeoir — avec le nombre de jours entre deux fois. Coche « Fait » à chaque fois et House repart de là ; active le rappel des corvées dans Réglages › Messages proactifs et il te prévient le matin quand l'une traîne."
           },
           "stats": {
             "title": "Suivre la ponte et le coût",
@@ -2758,7 +2763,8 @@
     "type": {
       "stock_low": "Stock bas",
       "stock_out": "Stock épuisé",
-      "weather_alert": "Alerte météo"
+      "weather_alert": "Alerte météo",
+      "chicken_chore_due": "Corvée du poulailler à faire"
     }
   },
   "invitations": {
@@ -2948,6 +2954,39 @@
       "assistant": "Assistant",
       "documents": "Documents",
       "photos": "Photos"
+    },
+    "chores": {
+      "title": "Corvées",
+      "empty": "Aucune corvée récurrente. Ajoute les gestes que tu refais — nettoyer le poulailler, laver le mangeoir — et House te dira quand ils traînent.",
+      "created": "Corvée ajoutée",
+      "updated": "Corvée modifiée",
+      "deleted": "Corvée supprimée",
+      "done": "Corvée faite",
+      "paused": "En pause",
+      "never_done": "Jamais faite",
+      "last_done": "Fait le {{date}}",
+      "cadence_one": "tous les jours",
+      "cadence_other": "tous les {{count}} jours",
+      "due_today": "À faire aujourd'hui",
+      "overdue_one": "En retard d'un jour",
+      "overdue_other": "En retard de {{count}} jours",
+      "new_title": "Nouvelle corvée",
+      "edit_title": "Modifier la corvée",
+      "actions": {
+        "new": "Nouvelle corvée",
+        "done": "Fait",
+        "pause": "Mettre en pause",
+        "resume": "Reprendre"
+      },
+      "fields": {
+        "name": "Nom",
+        "name_placeholder": "Nettoyer le poulailler",
+        "emoji": "Emoji",
+        "interval_days": "Tous les combien de jours",
+        "starts_on": "À compter du",
+        "starts_on_help": "Sert de point de départ tant que la corvée n'a jamais été faite. Mets la date de la dernière fois et le premier rappel tombera juste.",
+        "notes": "Notes"
+      }
     }
   },
   "alerts": {
@@ -2968,7 +3007,8 @@
       "maintenances": "Maintenances à planifier",
       "stock": "Stock à réapprovisionner",
       "weather": "Météo",
-      "eggDrop": "Chute de ponte"
+      "eggDrop": "Chute de ponte",
+      "chores": "Corvées du poulailler"
     },
     "severity": {
       "critical": "Urgent",
@@ -3000,7 +3040,12 @@
         "weather": "Météo extrême récente · {{recent}} vs {{baseline}} œufs/jour",
         "unknown": "Cause inconnue, à surveiller · {{recent}} vs {{baseline}} œufs/jour"
       }
-    }
+    },
+    "choreNeverDone_one": "Jamais faite — prévue tous les jours",
+    "choreNeverDone_other": "Jamais faite — prévue tous les {{count}} jours",
+    "choreDueToday": "À faire aujourd'hui",
+    "choreOverdue_one": "En retard d'un jour — attendue le {{date}}",
+    "choreOverdue_other": "En retard de {{count}} jours — attendue le {{date}}"
   },
   "search": {
     "title": "Recherche",
@@ -3027,7 +3072,8 @@
       "chicken_event": "Journal du poulailler",
       "meter": "Compteurs",
       "tracker": "Trackers",
-      "shopping_item": "Liste de courses"
+      "shopping_item": "Liste de courses",
+      "chicken_chore": "Corvées du poulailler"
     }
   },
   "agent": {
