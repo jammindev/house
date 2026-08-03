@@ -12,7 +12,7 @@
 | 4 | Le traitement en tâche de fond | ⬜ À faire | #530 |
 | 5 | Le quota de stockage du foyer | ⬜ À faire | #531 |
 | 6 | L'import massif | ⬜ À faire | #532 |
-| 7 | La synchro iPhone — raccourci + géofence | ⬜ À faire | #533 |
+| 7 | Le géofence — n'envoyer que ce qui a été pris à la maison | ⬜ À faire | #533 |
 
 **Issue parente** : #526 · **Issue annexe (V2 différés)** : #534
 
@@ -40,7 +40,8 @@
 4. les nouvelles photos arrivent dans « À trier », regroupées par **session** ;
    une intention s'attribue à la grappe entière ;
 5. le compteur de stockage du foyer se met à jour, visible avant de mordre ;
-6. depuis l'iPhone, un raccourci propose les photos du jour prises à la maison.
+6. depuis le téléphone, la feuille de partage envoie une sélection à House ; une
+   automatisation ne propose que ce qui a été pris à la maison.
 
 ## Décisions de cadrage
 
@@ -268,22 +269,31 @@ Deux cents photos en un geste, sans modale, sans perdre le travail en route.
 4. Le dialogue existant garde son comportement pour un petit lot (tests du
    lot livré en #525 toujours verts).
 
-## Lot 7 — La synchro iPhone : raccourci + géofence (#533)
+## Lot 7 — Le géofence : n'envoyer que ce qui a été pris à la maison (#533)
+
+> **Le partage depuis le téléphone a été sorti de ce parcours** le 2026-08-03, pour
+> être livré tout de suite sur le mécanisme d'upload existant. Raison : il ne
+> dépend d'aucun des lots 1 à 6, et il tient déjà debout — `ActiveHouseholdMiddleware`
+> résout le foyer depuis `user.active_household_id` et non depuis un en-tête, donc
+> un client authentifié n'a rien d'autre à fournir que son jeton. Ce qui reste ici
+> est le seul morceau qui a besoin du reste du parcours : **filtrer ce qu'on
+> envoie**, et savoir à l'arrivée si une photo a été prise à la maison.
 
 ### But
 
-Enlever le geste d'import pour les photos prises à la maison.
+Enlever le tri manuel des photos rapportées d'ailleurs, sans jamais décider à la
+place de l'utilisateur.
 
 ### Fichiers
 
-- `apps/accounts/models.py` — jeton d'appareil, révocable, distinct du JWT de
-  session.
-- `apps/documents/views.py` — ingestion authentifiée par ce jeton.
 - `apps/documents/exif.py` — lecture des coordonnées **avant** normalisation,
   jamais réécrites dans le fichier stocké.
 - `apps/documents/models.py` — `taken_at_home` : booléen **nullable** (inconnu
   n'est pas « non »).
-- Documentation du raccourci iOS *(anglais)*.
+- `apps/documents/queries.py` — le filtre correspondant dans la file « À trier ».
+- Documentation de l'automatisation iOS *(anglais)* : *Rechercher des photos* où
+  le lieu est proche du domicile, déclenchée à l'arrivée, avec un album iOS dédié
+  pour la déduplication.
 
 ### Critères
 
@@ -291,8 +301,12 @@ Enlever le geste d'import pour les photos prises à la maison.
    ailleurs reste importable, une photo prise à la maison n'est pas `technical`
    pour autant.
 2. Les coordonnées ne sont jamais réécrites dans le fichier stocké.
-3. Un jeton se révoque, et l'ingestion s'arrête aussitôt.
-4. `taken_at_home` distingue les trois états inconnu / oui / non.
+3. `taken_at_home` distingue les trois états inconnu / oui / non — **test de
+   régression nommé** (une capture d'écran n'a pas de lieu, et ça n'est pas
+   « pas à la maison »).
+4. Le filtre du géofence est vérifié sur un vrai iPhone : le comportement des
+   Raccourcis sur l'EXIF n'est pas supposé, il est constaté (voir le piège déjà
+   payé sur `taken_at`).
 
 ## Ordre recommandé
 

@@ -129,7 +129,7 @@ photos portent déjà une intention ne se réassigne pas en bloc sans le dire.
 | « Qu'est-ce qui traîne sans être rangé ? » | Rien ne le dit | La file « À trier », avec son compte |
 | « J'ai 200 photos à importer » | Dix ouvertures d'un dialogue, une modale bloquée 40 min | Une page d'import, une file qui survit à la navigation |
 | « Combien de place j'occupe ? » | Rien ne le dit | Un compteur, visible avant de mordre |
-| « Je viens de rentrer, j'ai pris 15 photos » | On les retrouve, on les sélectionne, on les envoie | Un raccourci iOS les propose déjà |
+| « Je viens de rentrer, j'ai pris 15 photos » | On ouvre House, on retrouve les fichiers, on les envoie | Feuille de partage du téléphone, puis une automatisation qui ne propose que ce qui vient de la maison |
 
 ## Ce qu'on ne fait pas en V1
 
