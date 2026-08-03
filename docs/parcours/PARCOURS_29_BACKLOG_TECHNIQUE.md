@@ -15,6 +15,7 @@
 | 7 | Le géofence — n'envoyer que ce qui a été pris à la maison | ⬜ À faire | #533 |
 
 **Issue parente** : #526 · **Issue annexe (V2 différés)** : #534
+**Extraits du parcours** (ne dépendent d'aucun lot) : #535 (partage iOS) · #537 (partage Android)
 
 ## Doc associée
 
@@ -307,6 +308,70 @@ place de l'utilisateur.
 4. Le filtre du géofence est vérifié sur un vrai iPhone : le comportement des
    Raccourcis sur l'EXIF n'est pas supposé, il est constaté (voir le piège déjà
    payé sur `taken_at`).
+
+## Envoyer depuis le téléphone — extrait du parcours, et l'asymétrie à assumer
+
+Le geste « je viens de prendre des photos, je les envoie à House » a été **sorti des
+lots** le 2026-08-03 : il ne dépend d'aucun des lots 1 à 6, et il tient déjà debout
+sur l'API existante. Il est documenté ici parce que c'est le parcours qui en porte
+le raisonnement — le travail, lui, vit dans #535 et #537.
+
+Le socle qui le rend possible sans rien ajouter : **`ActiveHouseholdMiddleware`
+résout le foyer depuis `user.active_household_id`, jamais depuis un en-tête.** Un
+client authentifié n'a donc rien d'autre à fournir que son jeton pour que
+`POST /upload/` sache dans quel foyer écrire.
+
+### Les deux plateformes ne coûtent pas la même chose
+
+| | iOS (#535) | Android (#537) |
+|---|---|---|
+| Mécanisme | Raccourci Shortcuts | `share_target` de la PWA |
+| Authentification | **Jeton d'appareil** à construire | La session existante |
+| Installation par l'utilisateur | Importer un raccourci, coller un jeton | Installer la PWA, rien d'autre |
+| Serveur | Modèle, classe d'authentification, **middleware** | **Aucune modification** |
+
+**L'asymétrie vient de Safari, qui ne prend pas en charge le *Web Share Target*** —
+pas de House. Une PWA installée sur iPhone ne peut pas recevoir de contenu partagé,
+et c'est structurel. D'où le détour par un raccourci, et par un jeton, puisqu'un
+raccourci ne peut pas emprunter la session du navigateur.
+
+### Trois pièges constatés en montant le raccourci à la main
+
+Le montage a été fait de bout en bout le 2026-08-03, contre la prod. Il **marche** —
+et il a confirmé le seul point qu'aucun test serveur ne pouvait trancher : **l'app
+Raccourcis préserve l'EXIF**, `taken_at` arrive renseigné sur une vraie photo
+iPhone. Ce qu'il a aussi montré :
+
+- **Une URL réduite à son domaine ne rend pas une erreur, elle rend le front.**
+  `https://<domaine>` sert la page HTML de l'application ; Shortcuts l'appelle
+  « Rich Text » et échoue à en extraire un dictionnaire. Le message d'erreur
+  désigne alors l'action de parsing, jamais l'URL — trois quarts d'heure de
+  recherche au mauvais endroit.
+- **Oublier `type=photo` n'est pas cosmétique** : le fichier atterrit en `document`,
+  donc le serveur prend la branche OCR au lieu des vignettes et **envoie la photo à
+  un modèle de vision**. Un appel payant pour décrire une image sans texte, et rien
+  dans la galerie. Sur un lot de deux cents, deux cents appels pour rien.
+- **La réponse d'upload embarque `recent_interaction_candidates`** — les cinq
+  dernières entrées du journal du foyer, sujets compris. C'est voulu pour
+  l'interface web (parcours 02), mais un raccourci qui envoie une photo reçoit en
+  retour les libellés des dernières dépenses bancaires. Pas une fuite, mais ça
+  précise le périmètre d'un jeton : « ne donner accès qu'à l'envoi » doit porter sur
+  **ce qui revient** autant que sur ce qu'on peut appeler.
+
+### Le piège d'Android, symétrique et tout aussi peu évident
+
+**Un service worker ne peut pas lire `localStorage`**, où vit le jeton du SPA. Il ne
+peut donc pas fabriquer l'en-tête `Authorization`, et ne doit **pas** tenter l'envoi
+lui-même. Il intercepte le POST de partage, met les fichiers de côté, redirige vers
+une route de l'application — et c'est **la page** qui téléverse.
+
+### Ce qui reste irréductible
+
+Sur iOS : importer un raccourci et coller un jeton, une fois. Deux minutes. C'est le
+prix d'entrée sans application native, et il est acceptable — **à condition que le
+raccourci soit distribué déjà construit**, avec ses *Import Questions* pour
+l'adresse de l'instance et le jeton. Le monter à la main, comme il a fallu le faire
+pour le valider, prend quarante minutes et cinq erreurs : personne ne le refera.
 
 ## Ordre recommandé
 

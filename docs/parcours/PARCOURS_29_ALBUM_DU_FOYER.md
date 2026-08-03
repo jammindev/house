@@ -131,6 +131,35 @@ photos portent déjà une intention ne se réassigne pas en bloc sans le dire.
 | « Combien de place j'occupe ? » | Rien ne le dit | Un compteur, visible avant de mordre |
 | « Je viens de rentrer, j'ai pris 15 photos » | On ouvre House, on retrouve les fichiers, on les envoie | Feuille de partage du téléphone, puis une automatisation qui ne propose que ce qui vient de la maison |
 
+## Envoyer depuis son téléphone, sans ouvrir House
+
+Le geste le plus fréquent n'est pas « j'ouvre House pour importer », c'est « je viens
+de photographier quelque chose ». Il doit donc partir de l'app Photos, pas de House :
+on sélectionne, on partage, c'est fini. Ce chemin ne dépend d'aucun lot de ce
+parcours et se livre à part (#535 pour iOS, #537 pour Android).
+
+Il faut assumer que **les deux plateformes ne coûtent pas la même chose à
+l'utilisateur** :
+
+- **Android** — il installe House sur son écran d'accueil, et « Maisonnée » apparaît
+  dans le menu de partage du système. Rien d'autre à faire, jamais.
+- **iOS** — il importe un raccourci et y colle un jeton, une fois. Deux minutes.
+
+L'écart ne vient pas de House : Safari ne permet pas à une application web de
+recevoir du contenu partagé, là où Android le permet. Le raccourci est le
+contournement, et il n'y en a pas d'autre sans publier une application native — ce
+qu'on ne fera pas.
+
+Deux conséquences produit à tenir :
+
+- **Le raccourci se distribue déjà construit.** Le monter à la main demande une
+  quarantaine de minutes et se trompe cinq fois ; personne ne le fera. L'utilisateur
+  ouvre un lien, répond à deux questions posées par le raccourci lui-même, et c'est
+  tout.
+- **Ce qui part du téléphone n'est jamais classé au départ.** Le raccourci envoie,
+  House range. Mettre l'intelligence dans le téléphone la met dans un endroit qu'on
+  ne peut ni corriger ni tester sans la réinstaller chez chaque membre du foyer.
+
 ## Ce qu'on ne fait pas en V1
 
 Explicitement différé, et pour la plupart **définitivement écarté** :
