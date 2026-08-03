@@ -2,14 +2,15 @@
 ``PingSpec`` entry point for the monthly household recap (parcours 27 lot 6).
 
 Registered from ``recap.apps.ready``. Reuses the pings machinery (opt-in, local send
-time, idempotent tick, timezone + language, Telegram delivery). Fires only on the 1st.
+time, idempotent tick, timezone + language, Telegram delivery). Fires on the day the
+month actually closes — the 5th business day of the next one (``core.month_close``).
 
 **The ping is a teaser plus a link, never the recap itself.** A story is meant to be
 *looked at*, one card per screen; flattened into a chat thread it becomes the grey
 paragraph this whole parcours exists to replace.
 
 Assumed consequence: a user who enabled both this and the monthly budget report gets
-two messages on the 1st. Hence ``monthly_recap`` ships **off by default**, and the
+two messages that morning. Hence ``monthly_recap`` ships **off by default**, and the
 settings page says so.
 """
 from __future__ import annotations
@@ -21,15 +22,23 @@ from django.conf import settings
 from django.utils.translation import gettext as _
 from django.utils.translation import ngettext
 
-from .service import get_or_generate_recap, last_closed_month, render_recap
+from core.month_close import closing_date, last_closed_month
+
+from .service import get_or_generate_recap, render_recap
 
 
 def build_monthly_recap_message(household, user, *, today: date) -> str | None:
-    """Build the recap teaser (or ``None`` when not the 1st / nothing to tell)."""
-    if today.day != 1:
+    """Build the recap teaser (or ``None`` on any other day / nothing to tell).
+
+    The month is derived from ``today`` and the guard asks the derived month when
+    *it* closes: the day and the story it announces cannot drift apart. The check
+    comes before ``get_or_generate_recap`` — the tick runs every day, and a silent
+    day must not freeze a month early.
+    """
+    month = last_closed_month(household, today=today)
+    if today != closing_date(month):
         return None
 
-    month = last_closed_month(household)
     recap = get_or_generate_recap(household, month)
 
     # Below the threshold the snapshot still exists and stays browsable from the

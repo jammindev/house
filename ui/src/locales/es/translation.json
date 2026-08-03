@@ -1706,7 +1706,7 @@
           },
           "report": {
             "title": "Lee tu balance mensual",
-            "body": "Al inicio de cada mes se genera un resumen escrito del mes anterior: total gastado, cómo fue cada presupuesto, mayores gastos, recurrentes pagados y la tendencia frente al mes previo. Lo encuentras en «Balance mensual» en la página de presupuesto — en tu idioma, con las cifras en bruto como alternativa si no hay clave de IA."
+            "body": "El 5.º día hábil del mes se genera un resumen escrito del mes anterior: total gastado, cómo fue cada presupuesto, mayores gastos, recurrentes pagados y la tendencia frente al mes previo. El plazo deja tiempo para introducir los últimos gastos del mes. Lo encuentras en «Balance mensual» en la página de presupuesto — en tu idioma, con las cifras en bruto como alternativa si no hay clave de IA."
           }
         }
       },
@@ -1784,7 +1784,7 @@
         "steps": {
           "what": {
             "title": "Qué es",
-            "body": "El día 1, House cierra el mes pasado y lo cuenta: lo que gastaste, lo que lograste, lo que consumió la casa, lo que fotografiaste. Nada que rellenar — todo se construye con lo que ya registraste."
+            "body": "El 5.º día hábil del mes, House cierra el mes pasado y lo cuenta: lo que gastaste, lo que lograste, lo que consumió la casa, lo que fotografiaste. Los primeros días del mes te dan tiempo para registrar los últimos tickets — después no hay nada que rellenar, todo se construye con lo que ya registraste."
           },
           "story": {
             "title": "Se lee como una story",
@@ -1796,7 +1796,7 @@
           },
           "appointment": {
             "title": "Que te avisen cuando esté listo",
-            "body": "Activa el aviso y House te escribe el día 1 con un enlace. Está desactivado por defecto: si ya recibes el balance mensual, tendrías dos mensajes esa mañana."
+            "body": "Activa el aviso y House te escribe el 5.º día hábil del mes con un enlace. Está desactivado por defecto: si ya recibes el balance mensual, tendrías dos mensajes esa mañana."
           },
           "frozen": {
             "title": "Por qué las cifras ya no cambian",
@@ -4206,7 +4206,7 @@
     "title": "Resumen",
     "description": "El mes de tu hogar, contado en unas pocas tarjetas.",
     "empty": "Aún no hay resumen",
-    "emptyDescription": "Tu primer resumen llegará el día 1, una vez cerrado un mes.",
+    "emptyDescription": "Tu primer resumen llegará el 5.º día hábil del mes, una vez cerrado un mes.",
     "history": "Meses anteriores",
     "open": "Ver el resumen",
     "cardCount_one": "{{count}} tarjeta",
@@ -4231,7 +4231,7 @@
       "linkFirst": "Vincula tu cuenta de Telegram para recibir el resumen.",
       "enable": "Avisarme cuando haya un resumen listo",
       "sendAt": "Hora de envío",
-      "hint": "Se envía el día 1, sobre el mes que acaba de cerrarse. Desactivado por defecto: si también recibes el balance mensual, tendrías dos mensajes esa mañana."
+      "hint": "Se envía el 5.º día hábil del mes, sobre el mes que acaba de cerrarse — los primeros días te dan tiempo para registrarlo todo. Desactivado por defecto: si también recibes el balance mensual, tendrías dos mensajes esa mañana."
     },
     "chapters": {
       "title": "Capítulos",

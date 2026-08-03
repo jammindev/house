@@ -29,7 +29,8 @@
     ignoré, une clé absente dégrade.**
   - `polish.py` — `polish_captions` : repolissage LLM des **captions seules**,
     `None` sur toute anomalie, gardé par `RECAP_AI_POLISH_ENABLED`.
-  - `ping.py` — `build_monthly_recap_message` : le 1er, un **teaser + lien**.
+  - `ping.py` — `build_monthly_recap_message` : au **5e jour ouvré du mois**
+    (`core.month_close`), un **teaser + lien**.
   - `views.py` / `serializers.py` / `urls.py` — `/api/recap/` lecture seule.
 - **Enregistrement** : `apps/recap/apps.py::ready()` enregistre le
   `PingSpec(ping_type='monthly_recap', default_send_at=09:00, module=None)`.

@@ -1706,7 +1706,7 @@
           },
           "report": {
             "title": "Lire ton bilan mensuel",
-            "body": "En début de mois, un récap écrit du mois précédent est généré : total dépensé, tenue de chaque budget, plus grosses dépenses, récurrences payées et tendance vs le mois d’avant. Retrouve-le via « Bilan mensuel » sur la page budget — dans ta langue, avec les chiffres bruts en secours si aucune clé IA n’est configurée."
+            "body": "Au 5e jour ouvré du mois, un récap écrit du mois précédent est généré : total dépensé, tenue de chaque budget, plus grosses dépenses, récurrences payées et tendance vs le mois d’avant. Le délai laisse le temps de saisir les dernières dépenses du mois. Retrouve-le via « Bilan mensuel » sur la page budget — dans ta langue, avec les chiffres bruts en secours si aucune clé IA n’est configurée."
           }
         }
       },
@@ -1784,7 +1784,7 @@
         "steps": {
           "what": {
             "title": "Ce que c'est",
-            "body": "Le 1er, House clôt le mois écoulé et le raconte : ce que vous avez dépensé, ce que vous avez accompli, ce que la maison a consommé, ce que vous avez photographié. Rien à saisir — tout est construit depuis ce que vous avez déjà enregistré."
+            "body": "Au 5e jour ouvré du mois, House clôt le mois écoulé et le raconte : ce que vous avez dépensé, ce que vous avez accompli, ce que la maison a consommé, ce que vous avez photographié. Les premiers jours du mois vous laissent le temps d'enregistrer les derniers tickets — rien à saisir ensuite, tout est construit depuis ce que vous avez déjà noté."
           },
           "story": {
             "title": "Se lit comme une story",
@@ -1796,7 +1796,7 @@
           },
           "appointment": {
             "title": "Être prévenu quand il est prêt",
-            "body": "Activez le rappel et House vous écrit le 1er avec un lien. C'est désactivé par défaut : si vous recevez déjà le bilan mensuel, vous auriez sinon deux messages ce matin-là."
+            "body": "Activez le rappel et House vous écrit au 5e jour ouvré du mois avec un lien. C'est désactivé par défaut : si vous recevez déjà le bilan mensuel, vous auriez sinon deux messages ce matin-là."
           },
           "frozen": {
             "title": "Pourquoi les chiffres ne bougent plus",
@@ -4206,7 +4206,7 @@
     "title": "Récap",
     "description": "Le mois de votre foyer, raconté en quelques cartes.",
     "empty": "Pas encore de récap",
-    "emptyDescription": "Votre premier récap arrivera le 1er, une fois un mois clôturé.",
+    "emptyDescription": "Votre premier récap arrivera au 5e jour ouvré du mois, une fois un mois clôturé.",
     "history": "Mois précédents",
     "open": "Voir le récap",
     "cardCount_one": "{{count}} carte",
@@ -4231,7 +4231,7 @@
       "linkFirst": "Reliez votre compte Telegram pour recevoir le récap.",
       "enable": "Me prévenir quand un récap est prêt",
       "sendAt": "Heure d'envoi",
-      "hint": "Envoyé le 1er, sur le mois qui vient de se clore. Désactivé par défaut : si vous recevez aussi le bilan mensuel, vous auriez deux messages ce matin-là."
+      "hint": "Envoyé au 5e jour ouvré du mois, sur le mois qui vient de se clore — les premiers jours vous laissent le temps de tout enregistrer. Désactivé par défaut : si vous recevez aussi le bilan mensuel, vous auriez deux messages ce matin-là."
     },
     "chapters": {
       "title": "Chapitres",

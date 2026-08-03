@@ -8,10 +8,11 @@ Coverage:
   3. TestRecapRetrieve    — lookup by month, isolation
   4. TestRecapIsReadOnly  — a memory does not get edited
   5. TestRecapLanguage    — one snapshot, two languages
+  6. TestAMonthDoesNotFreezeBeforeItCloses — the grace period is what it is for
 """
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import date, datetime
 from decimal import Decimal
 from zoneinfo import ZoneInfo
 
@@ -25,6 +26,21 @@ from recap.models import HouseholdRecap
 from recap.service import get_or_generate_recap, last_closed_month
 
 from .factories import HouseholdFactory, make_owner
+
+
+@pytest.fixture
+def on_day(monkeypatch):
+    """Pin the household-local clock to a calendar day (test households are UTC)."""
+    from core import timezones
+
+    def _pin(day: date):
+        monkeypatch.setattr(
+            timezones.timezone,
+            "now",
+            lambda: datetime(day.year, day.month, day.day, 12, tzinfo=ZoneInfo("UTC")),
+        )
+
+    return _pin
 
 
 def _client_for(user) -> APIClient:
@@ -258,3 +274,70 @@ class TestRecapLanguage:
 
         assert en["id"] == fr["id"]
         assert HouseholdRecap.objects.filter(household=hh, month=month).count() == 1
+
+
+# ===========================================================================
+# 6. TestAMonthDoesNotFreezeBeforeItCloses
+# ===========================================================================
+
+
+@pytest.mark.django_db
+class TestAMonthDoesNotFreezeBeforeItCloses:
+    """A snapshot is frozen once and never recomputed — so *when* it freezes is the
+    whole question. Freezing on the 1st locks the month before the household has
+    finished recording it: the ticket entered on the 3rd never makes the recap.
+
+    July 2026 closes on Friday 7 August (5th business day: Sat 1 and Sun 2 are not
+    business days, so Mon 3 is the first).
+    """
+
+    def _fill(self, household, user, month, *, budget=True):
+        """Two expenses (+ the household's one budget) = three cards, over the bar."""
+        from budget.services import create_budget
+
+        _make_expense(household, user, "120.00", month=month, subject="Plumber")
+        _make_expense(household, user, "40.00", month=month, subject="Cinema")
+        if budget:
+            create_budget(household, user, name="Courses", monthly_amount=Decimal("400"))
+
+    def test_opening_the_dashboard_on_the_first_freezes_nothing(self, on_day):
+        hh = HouseholdFactory()
+        owner = make_owner(hh)
+        self._fill(hh, owner, "2026-07")
+        on_day(date(2026, 8, 1))
+
+        _client_for(owner).get("/api/recap/latest/")
+
+        assert not HouseholdRecap.objects.filter(household=hh, month="2026-07").exists()
+
+    def test_an_expense_recorded_during_the_grace_period_still_counts(self, on_day):
+        hh = HouseholdFactory()
+        owner = make_owner(hh)
+        self._fill(hh, owner, "2026-07")
+
+        on_day(date(2026, 8, 1))
+        _client_for(owner).get("/api/recap/latest/")  # someone opens the dashboard
+        _make_expense(hh, owner, "860.00", month="2026-07", subject="Roof")
+
+        on_day(date(2026, 8, 7))
+        response = _client_for(owner).get("/api/recap/latest/")
+
+        assert response.json()["month"] == "2026-07"
+        recap = HouseholdRecap.objects.get(household=hh, month="2026-07")
+        assert "1020.00" in str(recap.stats)  # 120 + 40 + 860, the late one included
+
+    def test_the_closing_day_is_what_latest_answers(self, on_day):
+        """Before it, ``latest`` is still the month before — a recap the household
+        has already read, not a half-frozen one."""
+        hh = HouseholdFactory()
+        owner = make_owner(hh)
+        self._fill(hh, owner, "2026-06")
+        self._fill(hh, owner, "2026-07", budget=False)
+
+        on_day(date(2026, 8, 6))
+        before = _client_for(owner).get("/api/recap/latest/").json()
+        on_day(date(2026, 8, 7))
+        after = _client_for(owner).get("/api/recap/latest/").json()
+
+        assert before["month"] == "2026-06"
+        assert after["month"] == "2026-07"

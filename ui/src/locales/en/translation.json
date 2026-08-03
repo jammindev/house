@@ -1706,7 +1706,7 @@
           },
           "report": {
             "title": "Read your monthly report",
-            "body": "At the start of each month, a written recap of the previous month is generated: total spent, how each budget did, biggest expenses, recurring bills paid and the trend versus the month before. Find it under “Monthly report” on the budget page — in your language, with the raw figures as a fallback when no AI key is set."
+            "body": "On the 5th working day of the month, a written recap of the previous month is generated: total spent, how each budget did, biggest expenses, recurring bills paid and the trend versus the month before. The delay leaves time to enter the month's last expenses. Find it under “Monthly report” on the budget page — in your language, with the raw figures as a fallback when no AI key is set."
           }
         }
       },
@@ -1784,7 +1784,7 @@
         "steps": {
           "what": {
             "title": "What it is",
-            "body": "On the 1st, House closes the month just gone and tells it: what you spent, what you got done, what the house consumed, what you photographed. Nothing to fill in — it is built from what you already recorded."
+            "body": "On the 5th working day of the month, House closes the month just gone and tells it: what you spent, what you got done, what the house consumed, what you photographed. The first days of the month give you time to record the last receipts — after that there is nothing to fill in, it is built from what you already recorded."
           },
           "story": {
             "title": "Read it like a story",
@@ -1796,7 +1796,7 @@
           },
           "appointment": {
             "title": "Get told when it's ready",
-            "body": "Enable the reminder and House messages you on the 1st with a link. It is off by default: if you already receive the monthly budget report, you would otherwise get two messages that morning."
+            "body": "Enable the reminder and House messages you on the 5th working day of the month with a link. It is off by default: if you already receive the monthly budget report, you would otherwise get two messages that morning."
           },
           "frozen": {
             "title": "Why the figures never move",
@@ -4206,7 +4206,7 @@
     "title": "Recap",
     "description": "Your household's month, told in a few cards.",
     "empty": "No recap yet",
-    "emptyDescription": "Your first recap will arrive on the 1st, once a month has closed.",
+    "emptyDescription": "Your first recap will arrive on the 5th working day of the month, once a month has closed.",
     "history": "Earlier months",
     "open": "See the recap",
     "cardCount_one": "{{count}} card",
@@ -4231,7 +4231,7 @@
       "linkFirst": "Link your Telegram account to get the recap.",
       "enable": "Tell me when a recap is ready",
       "sendAt": "Send time",
-      "hint": "Sent on the 1st, on the month that just closed. Off by default: if you also get the monthly budget report, you would receive two messages that morning."
+      "hint": "Sent on the 5th working day of the month, on the month that just closed — the first days give you time to record everything. Off by default: if you also get the monthly budget report, you would receive two messages that morning."
     },
     "chapters": {
       "title": "Chapters",

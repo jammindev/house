@@ -1706,7 +1706,7 @@
           },
           "report": {
             "title": "Deinen Monatsbericht lesen",
-            "body": "Zu Monatsbeginn wird eine schriftliche Zusammenfassung des Vormonats erstellt: Gesamtausgaben, wie jedes Budget lief, größte Ausgaben, bezahlte wiederkehrende Rechnungen und der Trend zum Vormonat. Zu finden unter „Monatsbericht“ auf der Budgetseite — in deiner Sprache, mit den reinen Zahlen als Rückfall, wenn kein KI-Schlüssel gesetzt ist."
+            "body": "Am 5. Werktag des Monats wird eine schriftliche Zusammenfassung des Vormonats erstellt: Gesamtausgaben, wie jedes Budget lief, größte Ausgaben, bezahlte wiederkehrende Rechnungen und der Trend zum Vormonat. Die Verzögerung lässt Zeit, die letzten Ausgaben des Monats einzutragen. Zu finden unter „Monatsbericht“ auf der Budgetseite — in deiner Sprache, mit den reinen Zahlen als Rückfall, wenn kein KI-Schlüssel gesetzt ist."
           }
         }
       },
@@ -1784,7 +1784,7 @@
         "steps": {
           "what": {
             "title": "Was das ist",
-            "body": "Am 1. schließt House den vergangenen Monat ab und erzählt ihn: was Sie ausgegeben, was Sie geschafft, was das Haus verbraucht und was Sie fotografiert haben. Nichts einzutragen — alles entsteht aus dem, was Sie schon erfasst haben."
+            "body": "Am 5. Werktag des Monats schließt House den vergangenen Monat ab und erzählt ihn: was Sie ausgegeben, was Sie geschafft, was das Haus verbraucht und was Sie fotografiert haben. Die ersten Tage des Monats lassen Ihnen Zeit, die letzten Belege zu erfassen — danach gibt es nichts einzutragen, alles entsteht aus dem, was Sie schon erfasst haben."
           },
           "story": {
             "title": "Liest sich wie eine Story",
@@ -1796,7 +1796,7 @@
           },
           "appointment": {
             "title": "Benachrichtigt werden",
-            "body": "Aktivieren Sie die Erinnerung, und House schreibt Ihnen am 1. mit einem Link. Standardmäßig aus: wenn Sie schon den Monatsbericht erhalten, bekämen Sie sonst zwei Nachrichten an diesem Morgen."
+            "body": "Aktivieren Sie die Erinnerung, und House schreibt Ihnen am 5. Werktag des Monats mit einem Link. Standardmäßig aus: wenn Sie schon den Monatsbericht erhalten, bekämen Sie sonst zwei Nachrichten an diesem Morgen."
           },
           "frozen": {
             "title": "Warum die Zahlen sich nicht mehr ändern",
@@ -4206,7 +4206,7 @@
     "title": "Rückblick",
     "description": "Der Monat Ihres Haushalts, in wenigen Karten erzählt.",
     "empty": "Noch kein Rückblick",
-    "emptyDescription": "Ihr erster Rückblick kommt am 1., sobald ein Monat abgeschlossen ist.",
+    "emptyDescription": "Ihr erster Rückblick kommt am 5. Werktag des Monats, sobald ein Monat abgeschlossen ist.",
     "history": "Frühere Monate",
     "open": "Rückblick ansehen",
     "cardCount_one": "{{count}} Karte",
@@ -4231,7 +4231,7 @@
       "linkFirst": "Verknüpfen Sie Ihr Telegram-Konto, um den Rückblick zu erhalten.",
       "enable": "Mich benachrichtigen, wenn ein Rückblick fertig ist",
       "sendAt": "Sendezeit",
-      "hint": "Wird am 1. für den gerade abgeschlossenen Monat gesendet. Standardmäßig aus: wenn Sie auch den Monatsbericht erhalten, bekämen Sie an diesem Morgen zwei Nachrichten."
+      "hint": "Wird am 5. Werktag des Monats für den gerade abgeschlossenen Monat gesendet — die ersten Tage lassen Ihnen Zeit, alles zu erfassen. Standardmäßig aus: wenn Sie auch den Monatsbericht erhalten, bekämen Sie an diesem Morgen zwei Nachrichten."
     },
     "chapters": {
       "title": "Kapitel",

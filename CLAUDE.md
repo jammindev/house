@@ -864,6 +864,31 @@ deux voix » appliquée à un montant : **un compteur ne peut pas avoir deux
 définitions.** Régression :
 `apps/interactions/tests/test_period_bounds.py::TestTheTwoScreensAgree`.
 
+### La clôture d'un mois — `core.month_close`, et un délai de grâce
+
+Un mois n'est **clos qu'au 5e jour ouvré du suivant** (`CLOSING_BUSINESS_DAY`).
+Tout ce qui demande « quel est le dernier mois clos » passe par
+`core.month_close.last_closed_month` : les deux pings mensuels (récap, bilan
+budget) et les deux endpoints `latest`.
+
+- **Un snapshot gelé ne se recalcule jamais — donc la date du gel est du métier.**
+  Le mois basculait le 1er à minuit, et le premier membre qui ouvrait le dashboard
+  ce matin-là figeait le mois pour toujours : le ticket saisi le 3, le relevé
+  arrivé le 4 n'entraient jamais dans le récap, sans un mot. Le délai de grâce
+  n'existe que pour ça.
+- **Décaler le garde-jour d'un ping ne suffit pas** : `latest` gèle avant lui. Une
+  date de clôture qui ne vaudrait que pour la notification laisserait l'app se
+  contredire elle-même — c'est la même règle qu'au-dessus, appliquée à une date.
+- **Jour ouvré = lundi-vendredi ; les fériés ne comptent pas.** Un foyer déclare un
+  fuseau, pas un pays : un calendrier de fériés serait une devinette, et une
+  devinette sur une date de clôture déplace le rendez-vous sans que personne
+  puisse dire pourquoi.
+- Conséquence assumée : pendant le délai, `latest` renvoie encore le mois d'avant —
+  un récap déjà lu, jamais un récap à moitié gelé.
+
+Régressions : `apps/core/tests/test_month_close.py` et
+`apps/recap/tests/test_api.py::TestAMonthDoesNotFreezeBeforeItCloses`.
+
 ### Fraîcheur des données — une écriture déclare ce qu'elle écrit, jamais ce qu'elle rafraîchit
 
 Le pendant de la règle du dessus dans le temps : un chiffre juste affiché après
