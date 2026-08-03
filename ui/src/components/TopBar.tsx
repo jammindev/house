@@ -11,8 +11,11 @@ export default function TopBar() {
   const { user, logout } = useAuth();
   const { toggleSidebar } = useSidebarToggle();
 
-  const initial = (user?.first_name?.[0] ?? user?.email?.[0] ?? '?').toUpperCase();
-  const displayName = [user?.first_name, user?.last_name].filter(Boolean).join(' ') || user?.email;
+  // `full_name` vient du serveur (`User.full_name`) et couvre déjà les trois cas.
+  // Recomposer la règle ici avait fait retomber tout le monde sur l'email :
+  // `first_name`/`last_name` ne sont éditables nulle part dans l'app (#546).
+  const displayName = user?.full_name || user?.email;
+  const initial = (displayName?.[0] ?? '?').toUpperCase();
 
   return (
     <header className="h-12 shrink-0 bg-sidebar flex items-center gap-3 px-4 z-30">
@@ -49,8 +52,10 @@ export default function TopBar() {
       {/* User */}
       <div className="flex items-center gap-2">
         <div className="hidden sm:flex flex-col items-end">
-          <span className="text-sm font-medium text-foreground leading-none truncate max-w-32">{displayName}</span>
-          <span className="text-xs text-muted-foreground truncate max-w-32">{user?.email}</span>
+          <span data-testid="topbar-display-name" className="text-sm font-medium text-foreground leading-none truncate max-w-32">{displayName}</span>
+          {displayName !== user?.email && (
+            <span data-testid="topbar-email" className="text-xs text-muted-foreground truncate max-w-32">{user?.email}</span>
+          )}
         </div>
         {user?.avatar ? (
           <img
@@ -59,7 +64,7 @@ export default function TopBar() {
             className="h-8 w-8 rounded-full object-cover shrink-0"
           />
         ) : (
-          <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-sm font-semibold shrink-0">
+          <div data-testid="topbar-initial" className="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-sm font-semibold shrink-0">
             {initial}
           </div>
         )}
