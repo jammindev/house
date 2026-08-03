@@ -32,8 +32,16 @@ STOCK_CRITICAL_STATUSES = {StockItem.Status.OUT_OF_STOCK}
 
 
 def _overdue_tasks(household, today: date) -> list[dict]:
+    # Les tâches privées sont exclues **du compte**, pas masquées à l'affichage.
+    #
+    # ``build_alerts_summary`` prend un foyer, jamais un lecteur : le résumé est
+    # calculé une fois et lu par tout le monde, donc rien dont la visibilité varie
+    # selon le lecteur ne peut y entrer. Même raisonnement — et même formulation —
+    # que ``tasks.services.completion_summary`` pour le récap mensuel. Sans cette
+    # ligne le panneau d'alertes affichait le libellé des tâches privées des
+    # autres membres, ce que la liste des tâches, elle, refuse désormais.
     qs = (
-        Task.objects.filter(household=household, due_date__lt=today)
+        Task.objects.filter(household=household, due_date__lt=today, is_private=False)
         .exclude(status__in=[Task.Status.DONE, Task.Status.ARCHIVED])
         .order_by("due_date", "created_at")
     )

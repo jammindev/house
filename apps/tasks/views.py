@@ -5,6 +5,7 @@ from datetime import date
 
 from django.contrib.contenttypes.models import ContentType
 from django.db import IntegrityError
+from django.db.models import Q
 from django.utils import timezone
 from rest_framework import viewsets, filters, status
 from rest_framework.exceptions import ValidationError, PermissionDenied
@@ -34,7 +35,12 @@ class TaskViewSet(DocumentLinkActionsMixin, viewsets.ModelViewSet):
     permission_classes = [IsHouseholdMember]
     serializer_class = TaskSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['status', 'priority', 'assigned_to', 'project', 'is_private']
+    # ⚠️ Pas de ``is_private`` ici. Exposer le drapeau en filtre donne
+    # ``?is_private=true``, c'est-à-dire l'endroit exact où lire les items privés
+    # des autres. Le front n'en a jamais eu besoin : ``TasksPanel`` filtre côté
+    # client sur ce qui est déjà chargé, donc sur ce que le serveur a bien voulu
+    # servir. Un filtre ne doit jamais pouvoir élargir ce que borne le queryset.
+    filterset_fields = ['status', 'priority', 'assigned_to', 'project']
     search_fields = ['subject', 'content']
     ordering_fields = ['due_date', 'created_at', 'priority', 'status']
     ordering = ['due_date', 'created_at']
@@ -56,6 +62,20 @@ class TaskViewSet(DocumentLinkActionsMixin, viewsets.ModelViewSet):
 
         if self.request.household:
             qs = qs.filter(household=self.request.household)
+
+        # Confidentialité — une tâche privée n'appartient qu'à qui l'a écrite.
+        #
+        # Le scope foyer ci-dessus ne dit rien de la confidentialité : ``is_private``
+        # existait depuis l'origine, avec son badge dans l'UI, sa contrainte DB
+        # (« privée ⇒ non assignée ») et son exclusion du récap — mais **aucun
+        # filtre ici**, si bien que la tâche privée d'un membre était servie à tous
+        # les autres. Le drapeau était décoratif partout où il comptait le plus.
+        #
+        # Le filtre vit dans ``get_queryset`` et pas dans une permission objet :
+        # une permission ne se prononce que sur un objet déjà chargé, donc elle
+        # protège le détail et laisse passer la liste — qui est justement là où on
+        # lit les secrets des autres.
+        qs = qs.filter(Q(is_private=False) | Q(created_by=self.request.user))
 
         zone_id = self.request.query_params.get('zone', '').strip()
         if zone_id:

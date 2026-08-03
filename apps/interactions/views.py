@@ -114,7 +114,18 @@ class InteractionViewSet(viewsets.ModelViewSet):
     """
     permission_classes = [IsHouseholdMember]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['type', 'is_private', 'created_by']
+    # ⚠️ Pas de ``is_private`` ici — voir la note jumelle de ``TaskViewSet``.
+    # Le filtre servait à lire les items privés des autres, et le front ne l'a
+    # jamais envoyé.
+    #
+    # Noter que le queryset de cette vue, lui, ne filtre **pas encore** la
+    # confidentialité, contrairement à celui des tâches : une ``Interaction`` de
+    # type ``expense`` alimente ``interactions.queries.expenses()``, point de
+    # vérité unique de sept agrégations, et la masquer en liste sans la retirer
+    # des totaux donnerait deux définitions au même compteur. Retirer le filtre
+    # ferme la porte la plus large sans rien décider de ce que « dépense privée »
+    # devrait vouloir dire.
+    filterset_fields = ['type', 'created_by']
     search_fields = ['subject', 'content', 'enriched_text', 'tags__tag__name']
     ordering_fields = ['occurred_at', 'created_at', 'subject']
     ordering = ['-occurred_at']
