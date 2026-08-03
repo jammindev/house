@@ -232,6 +232,15 @@ CORS_ALLOW_CREDENTIALS = True
 FRONTEND_URL = "http://localhost:5174"
 DEFAULT_FROM_EMAIL = "noreply@house.local"
 
+# Un e-mail part dans les logs par défaut, pas vers un SMTP. Le défaut de Django
+# est `smtp.EmailBackend` sur `localhost:25` : sur une instance sans serveur mail
+# — le cas d'un foyer auto-hébergé — chaque envoi partait en timeout au moment de
+# l'envoi, loin de l'écran qui l'avait promis. Chaque environnement pose le sien
+# (production lit `EMAIL_BACKEND`, les tests `locmem`) ; celui-ci est le filet.
+# La capacité `email` du registre (`app_settings.capabilities`) sait que ce
+# backend ne délivre rien et le **dit** à l'interface, au lieu de le taire.
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+
 # Anthropic API key for the AI layer (Claude Vision OCR, agent, ...).
 # Empty string by default — extraction degrades to a no-op when unset.
 # Overridden per environment in local.py / production.py.

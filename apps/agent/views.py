@@ -14,6 +14,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from app_settings.capabilities import require as require_capability
 from core.permissions import IsHouseholdMember, resolve_request_household
 
 from . import memory as memory_service
@@ -69,6 +70,8 @@ class AskView(APIView):
     throttle_classes = [AgentBurstRateThrottle, AgentSustainedRateThrottle]
 
     def post(self, request):
+        require_capability("assistant")
+
         request_serializer = AskRequestSerializer(data=request.data)
         request_serializer.is_valid(raise_exception=True)
         question = request_serializer.validated_data["question"]
@@ -181,6 +184,7 @@ class ConversationViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=["post"], url_path="messages")
     def messages(self, request, pk=None):
+        require_capability("assistant")
         conversation = self.get_object()
 
         request_serializer = PostMessageSerializer(data=request.data)
@@ -231,6 +235,10 @@ class ConversationViewSet(viewsets.ModelViewSet):
         payload the non-streaming endpoint returns) or ``error``. Persistence is
         identical: both turns are written only once the answer exists.
         """
+        # Avant d'ouvrir le flux : une fois les en-têtes SSE partis, il n'y a
+        # plus de code de statut à envoyer — le refus deviendrait un événement
+        # `error` que le client doit savoir lire.
+        require_capability("assistant")
         conversation = self.get_object()
 
         request_serializer = PostMessageSerializer(data=request.data)

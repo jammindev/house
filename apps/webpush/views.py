@@ -4,6 +4,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from app_settings.capabilities import require as require_capability
+
 from .models import WebPushSubscription
 from .serializers import SubscribeSerializer, UnsubscribeSerializer
 from .service import send_web_push
@@ -15,6 +17,10 @@ class VapidPublicKeyView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
+        # Sans paire VAPID, renvoyer 200 + une clé vide faisait échouer
+        # `pushManager.subscribe()` sur un `InvalidAccessError` illisible, une
+        # fois le clic donné. Le refus se dit ici, où il reste explicable.
+        require_capability("push")
         return Response({"publicKey": getattr(settings, "VAPID_PUBLIC_KEY", "")})
 
 
@@ -22,6 +28,9 @@ class SubscribeView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
+        # Un abonnement que rien ne pourra honorer est pire qu'un refus : il
+        # s'enregistre, l'écran dit « activé », et aucune notification n'arrive.
+        require_capability("push")
         serializer = SubscribeSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         endpoint = serializer.validated_data["endpoint"]
@@ -61,6 +70,7 @@ class TestPushView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
+        require_capability("push")
         sent = send_web_push(
             request.user,
             "House",

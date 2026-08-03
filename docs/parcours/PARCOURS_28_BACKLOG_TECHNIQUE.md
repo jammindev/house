@@ -1,6 +1,6 @@
 # Parcours 28 — Backlog technique : ouvrir Maisonnée
 
-> **État au 2026-07-31** — lots 0, 1, 2 et 4 livrés ; lot 1bis partiel.
+> **État au 2026-08-03** — lots 0, 1, 2, 3 et 4 livrés ; lot 1bis partiel.
 > Chantier technique transverse : rendre le projet publiable, installable par un
 > tiers et défendable une fois exposé. Aucune feature métier.
 
@@ -19,7 +19,7 @@ Issue ombrelle : **#485**
 | 1 | Durcissement multi-tenant + test générique d'isolation (**bloquant**) | ✅ Livré (PR #497) | #487 |
 | 1bis | Isolation **en écriture** : FK de serializer ✅ (PR #499) ; actions custom + 26 `APIView` restants | 🔄 Partiel | #498 |
 | 2 | `docker compose up` — première installation en une commande | ✅ Livré | #488 |
-| 3 | Dégradation propre sans service tiers (IA, SMTP, push, Telegram) | ⬜ À faire | #489 |
+| 3 | Dégradation propre sans service tiers (IA, SMTP, push, Telegram) | ✅ Livré | #489 |
 | 4 | LICENSE AGPL-3.0 + gouvernance (CONTRIBUTING, SECURITY, DCO, templates) | ✅ Livré (PR #496) | #490 |
 | 5 | Exploitation par un tiers : sauvegarde, restauration testée, mises à jour, releases | ⬜ À faire | #491 |
 | 6 | Façade Maisonnée : README bilingue, captures, GIF, identité | ⬜ À faire | #492 |
@@ -388,6 +388,35 @@ produit dont l'unité est le foyer.
 > **est** le BYOK du self-hoster. Une saisie de clé dans l'interface ferait de
 > `get_llm_client()` une décision d'appelant — ce que `apps/agent/llm.py` interdit
 > explicitement — et n'a de sens que le jour où quelqu'un héberge des foyers tiers.
+
+> **Livré — trois écarts au plan, tous assumés.**
+>
+> **① Le point bloquant du lot n'existait déjà plus.** « Sans SMTP, inviter un
+> second membre part dans le vide » a été corrigé le 2026-07-29 par le fix #461 :
+> `create_invitation` produit un `/join/<token>` que `InvitePanel` copie, et
+> `join_with_new_account` fait entrer quelqu'un qui n'a pas de compte. Le lot ne
+> l'a donc pas refait — il l'a **documenté** comme la voie normale
+> (`ai-providers.md`, section e-mail), parce qu'un chemin qui existe mais que
+> personne ne connaît ne rattrape rien.
+>
+> **② Le récap n'est pas gaté, et c'est le sujet du lot.** Le plan listait
+> `features/recap/` parmi les écrans à masquer ; sans clé le récap **sort quand
+> même**, avec ses gabarits. Y poser un bandeau « nécessite une clé » aurait
+> annoncé cassé ce qui marche — exactement le malentendu qu'on supprime. La
+> capacité `recap_ai` se déclare dans la liste des Réglages, là où elle répond à
+> la vraie question (« qu'est-ce qui dort ici ? ») sans en inventer une fausse.
+>
+> **③ Deux définitions trouvées en chemin, ramenées à une.** Telegram avait déjà
+> son 503 « channel is not enabled » écrit à la main, et le front du push
+> déduisait la configuration d'une **clé publique vide** — un 200 portant une
+> réponse que le serveur connaissait déjà, suivi d'un `InvalidAccessError`
+> illisible après le clic. Les deux passent par le registre : un état de
+> configuration ne peut pas avoir deux définitions.
+>
+> Défaut réparé au passage : `EMAIL_BACKEND` n'était posé nulle part dans
+> `base.py`, donc le défaut de Django (`smtp` sur `localhost:25`) s'appliquait à
+> tout module de réglages qui ne le surchargeait pas — un échec au moment de
+> l'envoi, loin de l'écran qui l'avait promis.
 
 **Critères**
 

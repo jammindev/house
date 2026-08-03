@@ -1672,6 +1672,10 @@
           "modules": {
             "title": "Activar los módulos adecuados",
             "body": "Desactiva los módulos que no uses (gallinero, seguros…) para aligerar la navegación."
+          },
+          "capabilities": {
+            "title": "Saber qué puede hacer esta instancia",
+            "body": "Asistente, búsqueda semántica, correo, notificaciones push, Telegram: dependen de claves definidas al instalar la aplicación, no de un ajuste del hogar. La lista indica cuáles están activas, qué se pierde sin las demás y enlaza con cómo activarlas."
           }
         }
       },
@@ -4296,5 +4300,47 @@
     "empty": "Ningún proveedor registrado",
     "willBeAdded": "Nuevo proveedor — se añadirá",
     "fromLabel": "Según el concepto de la operación"
+  },
+  "capabilities": {
+    "title": "Lo que puede hacer esta instancia",
+    "description": "Lo que este servidor sabe hacer, según las claves de que dispone.",
+    "envVars": "Variables que hay que definir:",
+    "howToEnable": "Cómo activarlo",
+    "assistant": {
+      "name": "Asistente",
+      "unavailable": "El asistente no está configurado en esta instancia.",
+      "without": "Sin una clave de proveedor el asistente no puede responder. Todo lo demás de Maisonnée funciona, incluida la búsqueda por palabras clave.",
+      "enabled": "El asistente responde a las preguntas del hogar."
+    },
+    "semantic_search": {
+      "name": "Búsqueda semántica",
+      "unavailable": "La búsqueda semántica no está configurada en esta instancia.",
+      "without": "La búsqueda por palabras clave sigue respondiendo; solo faltan los resultados encontrados por sentido.",
+      "enabled": "La búsqueda también encuentra por sentido, no solo por palabras exactas."
+    },
+    "recap_ai": {
+      "name": "Redacción del resumen",
+      "unavailable": "La reescritura del resumen no está configurada en esta instancia.",
+      "without": "El resumen mensual se publica igualmente, con sus textos por defecto.",
+      "enabled": "Los pies de foto del resumen mensual se reescriben en lenguaje cotidiano."
+    },
+    "email": {
+      "name": "Correo saliente",
+      "unavailable": "No hay ningún servidor de correo configurado en esta instancia.",
+      "without": "Los correos se escriben en el registro del servidor. Aun así puedes añadir miembros: el enlace de invitación se copia a mano.",
+      "enabled": "Esta instancia envía correos."
+    },
+    "push": {
+      "name": "Notificaciones push",
+      "unavailable": "Las notificaciones push no están configuradas en esta instancia.",
+      "without": "Las notificaciones se quedan en la aplicación; nada llega al teléfono cuando está cerrada.",
+      "enabled": "Las notificaciones llegan a los dispositivos suscritos."
+    },
+    "telegram": {
+      "name": "Telegram",
+      "unavailable": "El canal de Telegram no está configurado en esta instancia.",
+      "without": "El canal de Telegram está apagado. Las notificaciones se quedan en la aplicación.",
+      "enabled": "El hogar puede hablar con el asistente desde Telegram."
+    }
   }
 }

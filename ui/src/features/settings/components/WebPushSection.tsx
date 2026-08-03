@@ -10,6 +10,7 @@ import {
   subscribeWebPush,
   unsubscribeWebPush,
 } from '@/lib/api/webpush';
+import { useCapability } from '@/lib/capabilities';
 import { isIos, isPushSupported, isStandalone, urlBase64ToUint8Array } from '@/lib/pwa/platform';
 import { SettingsSection } from './SettingsSection';
 
@@ -114,11 +115,17 @@ function useWebPush(vapidKey: string | undefined) {
  */
 export function WebPushSection() {
   const { t } = useTranslation();
+  // « Le push est-il configuré ? » a désormais **une** définition : le registre
+  // de capacités. La déduire d'une clé publique vide en était une seconde, et
+  // c'est elle qui laissait le serveur répondre 200 à une question dont il
+  // connaissait déjà la réponse. La requête n'est même pas lancée sans la
+  // capacité — sinon chaque visite des Réglages rejouait trois fois un 503.
+  const { available: pushAvailable } = useCapability('push');
   const { data: vapidKey, isLoading } = useQuery({
     queryKey: ['settings', 'webpush', 'vapid'],
     queryFn: fetchVapidPublicKey,
     staleTime: Infinity,
-    enabled: isPushSupported(),
+    enabled: isPushSupported() && pushAvailable,
   });
 
   const configured = Boolean(vapidKey);

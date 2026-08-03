@@ -43,11 +43,43 @@ def _sub_payload(endpoint="https://push.example.com/abc"):
     return {"endpoint": endpoint, "keys": {"p256dh": "p256dh-key", "auth": "auth-key"}}
 
 
+# --- instance sans VAPID ----------------------------------------------------
+
+
+@pytest.mark.django_db
+def test_subscribe_refuses_when_the_instance_has_no_vapid_pair(user, auth_client, settings):
+    """Un abonnement que rien ne pourra honorer est pire qu'un refus.
+
+    Il s'enregistrait, l'écran disait « activé », et aucune notification
+    n'arrivait — la panne la plus silencieuse de la famille. Parcours 28, lot 3.
+    """
+    settings.VAPID_PUBLIC_KEY = ""
+    settings.VAPID_PRIVATE_KEY = ""
+
+    response = auth_client.post("/api/webpush/subscribe/", _sub_payload(), format="json")
+
+    assert response.status_code == status.HTTP_503_SERVICE_UNAVAILABLE
+    assert response.json()["capability"] == "push"
+    assert not WebPushSubscription.objects.filter(user=user).exists()
+
+
+@pytest.mark.django_db
+def test_half_a_pair_is_not_a_configured_instance(user, auth_client, settings):
+    """Avec la publique seule, le navigateur accepte l'abonnement et rien
+    n'arrive jamais."""
+    settings.VAPID_PUBLIC_KEY = "test-public-key"
+    settings.VAPID_PRIVATE_KEY = ""
+
+    response = auth_client.post("/api/webpush/subscribe/", _sub_payload(), format="json")
+
+    assert response.status_code == status.HTTP_503_SERVICE_UNAVAILABLE
+
+
 # --- subscribe / unsubscribe ------------------------------------------------
 
 
 @pytest.mark.django_db
-def test_subscribe_creates_subscription(user, auth_client):
+def test_subscribe_creates_subscription(user, auth_client, vapid):
     response = auth_client.post("/api/webpush/subscribe/", _sub_payload(), format="json")
 
     assert response.status_code == status.HTTP_201_CREATED
@@ -58,7 +90,7 @@ def test_subscribe_creates_subscription(user, auth_client):
 
 
 @pytest.mark.django_db
-def test_subscribe_is_idempotent_by_endpoint(user, auth_client):
+def test_subscribe_is_idempotent_by_endpoint(user, auth_client, vapid):
     auth_client.post("/api/webpush/subscribe/", _sub_payload(), format="json")
     payload = _sub_payload()
     payload["keys"]["p256dh"] = "rotated-key"

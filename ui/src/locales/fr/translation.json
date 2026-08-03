@@ -1672,6 +1672,10 @@
           "modules": {
             "title": "Activer les bons modules",
             "body": "Désactivez les modules inutiles (poulailler, assurance…) pour alléger la navigation."
+          },
+          "capabilities": {
+            "title": "Savoir ce que cette instance sait faire",
+            "body": "Assistant, recherche sémantique, e-mail, notifications push, Telegram : ces capacités dépendent de clés posées à l'installation, pas d'un réglage du foyer. La liste dit lesquelles sont actives, ce qu'on perd sans les autres, et renvoie à la marche à suivre pour les activer."
           }
         }
       },
@@ -4296,5 +4300,47 @@
     "empty": "Aucun fournisseur enregistré",
     "willBeAdded": "Nouveau fournisseur — il sera ajouté",
     "fromLabel": "D'après le libellé de l'opération"
+  },
+  "capabilities": {
+    "title": "Capacités de cette instance",
+    "description": "Ce que ce serveur sait faire, selon les clés dont il dispose.",
+    "envVars": "Variables à poser :",
+    "howToEnable": "Comment l'activer",
+    "assistant": {
+      "name": "Assistant",
+      "unavailable": "L'assistant n'est pas configuré sur cette instance.",
+      "without": "Sans clé de fournisseur, l'assistant ne peut pas répondre. Tout le reste de Maisonnée fonctionne, y compris la recherche par mots-clés.",
+      "enabled": "L'assistant répond aux questions du foyer."
+    },
+    "semantic_search": {
+      "name": "Recherche sémantique",
+      "unavailable": "La recherche sémantique n'est pas configurée sur cette instance.",
+      "without": "La recherche par mots-clés répond toujours ; seuls les résultats trouvés par le sens manquent.",
+      "enabled": "La recherche trouve aussi par le sens, pas seulement par les mots exacts."
+    },
+    "recap_ai": {
+      "name": "Récap raconté",
+      "unavailable": "La réécriture du récap n'est pas configurée sur cette instance.",
+      "without": "Le récap mensuel sort quand même, avec ses phrases par défaut.",
+      "enabled": "Les légendes du récap mensuel sont réécrites en langage courant."
+    },
+    "email": {
+      "name": "E-mail sortant",
+      "unavailable": "Aucun serveur d'envoi n'est configuré sur cette instance.",
+      "without": "Les e-mails s'écrivent dans les journaux du serveur. Inviter un membre reste possible : le lien d'invitation se copie à la main.",
+      "enabled": "Cette instance envoie des e-mails."
+    },
+    "push": {
+      "name": "Notifications push",
+      "unavailable": "Les notifications push ne sont pas configurées sur cette instance.",
+      "without": "Les notifications restent dans l'application ; rien n'arrive sur le téléphone quand elle est fermée.",
+      "enabled": "Les notifications arrivent sur les appareils abonnés."
+    },
+    "telegram": {
+      "name": "Telegram",
+      "unavailable": "Le canal Telegram n'est pas configuré sur cette instance.",
+      "without": "Le canal Telegram est éteint. Les notifications restent dans l'application.",
+      "enabled": "Le foyer peut parler à l'assistant depuis Telegram."
+    }
   }
 }

@@ -20,6 +20,19 @@ class RecapConfig(AppConfig):
             default_send_at=time(9, 0),
         ))
 
+        # Capacité optionnelle (parcours 28, lot 3) : sans clé le récap sort
+        # quand même, avec ses gabarits.
+        from app_settings.capabilities import CapabilitySpec, register as register_capability
+
+        from .capabilities import recap_polish_available
+
+        register_capability(CapabilitySpec(
+            key="recap_ai",
+            available=recap_polish_available,
+            doc_anchor="recap-wording-anthropic",
+            env_vars=("ANTHROPIC_API_KEY", "RECAP_AI_POLISH_ENABLED"),
+        ))
+
 
 def _build_monthly_recap_message(household, user, *, today):
     """Ping body: last month's recap teaser on the 1st (None otherwise/too thin)."""

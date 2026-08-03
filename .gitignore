@@ -92,3 +92,6 @@ scripts/sync_from_prod.sh
 # déjà couverts plus haut.)
 coverage.json
 issues/
+# Cache incrémental de `tsc -b` — le seul mode qui voit les erreurs du tsconfig
+# solution, donc celui qu'on lance pour typer le front.
+*.tsbuildinfo

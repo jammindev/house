@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Sparkles } from 'lucide-react';
 import { SheetDialog } from '@/design-system/sheet-dialog';
+import { useCapability } from '@/lib/capabilities';
 import { cn } from '@/lib/utils';
 import EntityAssistant from './EntityAssistant';
 import HouseholdChat from './HouseholdChat';
@@ -22,6 +23,7 @@ import { resolveEntityContext, type EntityContext } from './entityRoute';
 export default function AgentLauncher() {
   const { t } = useTranslation();
   const location = useLocation();
+  const { available: assistantAvailable } = useCapability('assistant');
 
   const [open, setOpen] = React.useState(false);
   // The entity context, snapshotted when the panel opens. null = household mode.
@@ -53,6 +55,12 @@ export default function AgentLauncher() {
   }, [open, location.key]);
 
   if (onAgentPage) return null;
+
+  // Une bulle flottante sur toutes les pages pour une capacité que l'instance
+  // n'a pas est une promesse permanente qu'on ne tient pas. L'explication
+  // existe, elle vit au bout de l'entrée « Assistant » de la barre latérale et
+  // dans les Réglages — pas en surimpression de chaque écran.
+  if (!assistantAvailable) return null;
 
   return (
     <>

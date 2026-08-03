@@ -135,7 +135,8 @@ _DEFAULTS = {
     "SECURE_HSTS_INCLUDE_SUBDOMAINS": str(_is_public_https),
     "SECURE_HSTS_PRELOAD": "False",
     # Sans clé SMTP, un e-mail part dans les logs du conteneur plutôt que nulle
-    # part. Le lot 3 rendra cette dégradation visible dans l'interface.
+    # part — et la capacité `email` du registre le déclare à l'interface, qui
+    # propose alors le lien d'invitation à copier au lieu d'un envoi muet.
     "EMAIL_BACKEND": "django.core.mail.backends.console.EmailBackend",
 }
 if PUBLIC_URL:

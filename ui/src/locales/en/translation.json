@@ -1672,6 +1672,10 @@
           "modules": {
             "title": "Enable the right modules",
             "body": "Disable modules you don't need (chicken coop, insurance…) to lighten the navigation."
+          },
+          "capabilities": {
+            "title": "See what this instance can do",
+            "body": "Assistant, semantic search, email, push notifications, Telegram: these depend on keys set when the app was installed, not on a household setting. The list shows which ones are on, what you lose without the others, and links to how each is enabled."
           }
         }
       },
@@ -4296,5 +4300,47 @@
     "empty": "No supplier recorded yet",
     "willBeAdded": "New supplier — it will be added",
     "fromLabel": "From the operation label"
+  },
+  "capabilities": {
+    "title": "What this instance can do",
+    "description": "The capabilities this server has, based on the keys it was given.",
+    "envVars": "Variables to set:",
+    "howToEnable": "How to enable it",
+    "assistant": {
+      "name": "Assistant",
+      "unavailable": "The assistant is not configured on this instance.",
+      "without": "Without a provider key the assistant cannot answer. Everything else in Maisonnée works, including keyword search.",
+      "enabled": "The assistant answers questions about your household."
+    },
+    "semantic_search": {
+      "name": "Semantic search",
+      "unavailable": "Semantic search is not configured on this instance.",
+      "without": "Keyword search still answers; only the results found by meaning are missing.",
+      "enabled": "Search also finds things by meaning, not just exact words."
+    },
+    "recap_ai": {
+      "name": "Recap wording",
+      "unavailable": "Recap rewriting is not configured on this instance.",
+      "without": "The monthly recap is still produced, with its built-in wording.",
+      "enabled": "The monthly recap captions are rewritten in everyday language."
+    },
+    "email": {
+      "name": "Outgoing email",
+      "unavailable": "No mail server is configured on this instance.",
+      "without": "Emails are written to the server log. You can still add members: the invitation link is copied by hand.",
+      "enabled": "This instance sends email."
+    },
+    "push": {
+      "name": "Push notifications",
+      "unavailable": "Push notifications are not configured on this instance.",
+      "without": "Notifications stay inside the app; nothing reaches a phone while it is closed.",
+      "enabled": "Notifications reach subscribed devices."
+    },
+    "telegram": {
+      "name": "Telegram",
+      "unavailable": "The Telegram channel is not configured on this instance.",
+      "without": "The Telegram channel is off. Notifications stay inside the app.",
+      "enabled": "Your household can talk to the assistant from Telegram."
+    }
   }
 }
