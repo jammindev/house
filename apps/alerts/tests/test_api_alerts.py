@@ -207,3 +207,44 @@ class TestAlertsSummary:
         client = APIClient()
         response = client.get(self._url())
         assert response.status_code in (status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN)
+
+
+@pytest.mark.django_db
+class TestPrivateTasksNeverEnterTheHouseholdSummary:
+    """Une tâche privée est exclue **du compte**, pas masquée à l'affichage.
+
+    ``build_alerts_summary`` prend un foyer, jamais un lecteur : le résumé est
+    calculé une fois et lu par tout le monde. Rien dont la visibilité varie selon
+    le lecteur ne peut donc y entrer — même règle, et même raison, que
+    ``tasks.services.completion_summary`` pour le récap mensuel.
+
+    Avant ce correctif le panneau d'alertes affichait le **libellé** des tâches
+    privées des autres membres, y compris pour le membre qui ne pouvait pas les
+    ouvrir depuis la liste des tâches.
+    """
+
+    def _url(self):
+        return reverse("alerts-summary")
+
+    def test_private_overdue_task_is_absent_for_everyone(self, owner_client, household, owner):
+        _create_overdue_task(household, owner, days_overdue=5, subject="Visible")
+        private = _create_overdue_task(
+            household, owner, days_overdue=5, subject="Rendez-vous médical",
+        )
+        private.is_private = True
+        private.save(update_fields=["is_private"])
+
+        response = owner_client.get(self._url())
+        titles = [item["title"] for item in response.data["overdue_tasks"]]
+
+        # Absente même pour son autrice : un compteur foyer n'a qu'une valeur.
+        assert titles == ["Visible"]
+
+    def test_the_count_agrees_with_the_list(self, owner_client, household, owner):
+        private = _create_overdue_task(household, owner, days_overdue=5, subject="Privée")
+        private.is_private = True
+        private.save(update_fields=["is_private"])
+
+        response = owner_client.get(self._url())
+        assert response.data["overdue_tasks"] == []
+        assert response.data["total"] == 0
