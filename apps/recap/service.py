@@ -4,7 +4,8 @@ Recap service — freeze the snapshot, render it later (parcours 27).
 - ``get_or_generate_recap`` freezes one month's language-agnostic snapshot once
   (idempotent per household+month) and never recomputes an existing one.
 - ``build_stats`` runs the active chapter collectors and isolates a failing one.
-- ``last_closed_month`` is the previous calendar month in the household timezone.
+- ``last_closed_month`` is re-exported from ``core.month_close``: a month is closed
+  on the 5th business day of the next one, not on the 1st (see that module).
 - ``render_recap`` turns a snapshot into localized cards (see ``render.py``),
   optionally polished by the LLM and memoized per language.
 
@@ -19,19 +20,17 @@ from typing import Any
 from django.db import IntegrityError
 from django.utils import translation
 
-from budget.report.stats import month_bounds, previous_month
-from core.timezones import household_today
+from budget.report.stats import month_bounds
+from core import month_close
 
 from .chapters import active_chapter_specs
 from .models import HouseholdRecap
 
 logger = logging.getLogger(__name__)
 
-
-def last_closed_month(household) -> str:
-    """Return the previous calendar month (``YYYY-MM``) in the household tz."""
-    today = household_today(household)
-    return previous_month(f"{today.year:04d}-{today.month:02d}")
+#: Réexport — la définition (et le pourquoi du délai de grâce) vit dans
+#: ``core.month_close``, partagée avec ``budget.report``.
+last_closed_month = month_close.last_closed_month
 
 
 def build_stats(household, month: str) -> dict[str, Any]:

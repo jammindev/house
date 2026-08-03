@@ -122,13 +122,15 @@ un modèle dédié. Le rattachement dépense→budget est une **vraie colonne** 
     `render_report` (déterministe + polish **mémoïsé par langue** dans
     `stats['_polished'][lang]` → au plus 1 appel LLM par mois+langue),
     `last_closed_month`.
-  - `ping.py` — `build_monthly_report_message` : le 1er du mois, assure le rapport
-    du mois écoulé et le pousse ; `None` sinon / si mois vide.
+  - `ping.py` — `build_monthly_report_message` : au **5e jour ouvré du mois**
+    (`core.month_close`), assure le rapport du mois clos et le pousse ; `None`
+    sinon / si mois vide.
 - **API** (`/api/budget/reports/`, read-only) : `list` (historique, texte
   déterministe), `latest` (lazy-génère le dernier mois clos + narration IA),
   `retrieve` par mois (`/2026-06/`). Texte rendu dans la langue de la requête.
 - **Ping** : `PingSpec('monthly_budget_report')` (le digest est quotidien ; ici
-  mensuel, la cadence est portée par le `build_message` qui ne renvoie qu'au 1er).
+  mensuel, la cadence est portée par le `build_message`, qui ne renvoie qu'au
+  **jour de clôture du mois** — 5e jour ouvré, cf. `core.month_close`).
 - **Frontend** : sous-page `/app/money/reports` (`ReportsPage` : dernier bilan +
   historique) + carte d'accès depuis `BudgetPage`. i18n namespace `report.*` +
   `settings.pings.types.monthly_budget_report`.

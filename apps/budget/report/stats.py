@@ -16,6 +16,7 @@ from typing import Any
 from django.db.models import Sum
 from django.db.models.functions import Coalesce
 
+from core.month_close import previous_month
 from core.timezones import household_tz, month_range
 from interactions.queries import expenses
 
@@ -28,18 +29,14 @@ TOP_EXPENSES_LIMIT = 5
 #: Alias historique — la définition vit dans ``core.timezones``.
 _tz = household_tz
 
+#: Idem pour ``previous_month``, importé de ``core.month_close`` : ce module porte
+#: désormais toute l'arithmétique des mois, dont leur date de clôture.
+
 
 def month_bounds(household, month: str) -> tuple[datetime, datetime]:
     """Return (start, end_exclusive) aware datetimes for a ``YYYY-MM`` month."""
     year, mon = (int(p) for p in month.split("-"))
     return month_range(household, year=year, month=mon)
-
-
-def previous_month(month: str) -> str:
-    year, mon = (int(p) for p in month.split("-"))
-    if mon == 1:
-        return f"{year - 1:04d}-12"
-    return f"{year:04d}-{mon - 1:02d}"
 
 
 def _expense_qs(household_id, start, end):

@@ -6,7 +6,8 @@ Monthly budget report service — generation + rendering.
 - ``render_report`` turns a snapshot into prose in the active language: the
   deterministic template always, optionally rewritten by the LLM (memoized per
   language inside ``stats['_polished']`` so at most one call per month+language).
-- ``last_closed_month`` is the previous calendar month in the household timezone.
+- ``last_closed_month`` is re-exported from ``core.month_close``: a month is closed
+  on the 5th business day of the next one, not on the 1st (see that module).
 
 Mirrors the digest's compose-in-the-recipient-language philosophy while keeping
 history via the persisted snapshot.
@@ -18,18 +19,17 @@ from datetime import datetime
 from django.db import IntegrityError
 from django.utils import translation
 
-from core.timezones import household_today
+from core import month_close
 
 from ..models import BudgetReport
 from .polish import polish_report
 from .render import render_text
-from .stats import compute_month_stats, previous_month
+from .stats import compute_month_stats
 
-
-def last_closed_month(household) -> str:
-    """Return the previous calendar month (``YYYY-MM``) in the household tz."""
-    today = household_today(household)
-    return previous_month(f"{today.year:04d}-{today.month:02d}")
+#: Réexport — la définition (et le pourquoi du délai de grâce) vit dans
+#: ``core.month_close``, partagée avec ``recap`` pour que les deux rendez-vous
+#: mensuels ne puissent pas clore le mois à deux dates différentes.
+last_closed_month = month_close.last_closed_month
 
 
 def get_or_generate_report(household, month: str) -> BudgetReport:

@@ -687,72 +687,70 @@ msgstr ""
 #: apps/budget/report/ping.py:30
 #, python-format
 msgid "Your budget report for %(month)s:"
-msgstr ""
+msgstr "Tu balance mensual de %(month)s:"
 
 #: apps/budget/report/render.py:28
 #, python-format
 msgid "Total spent: %(total)s over %(count)d expense(s)."
-msgstr ""
+msgstr "Total gastado: %(total)s en %(count)d gasto(s)."
 
 #: apps/budget/report/render.py:36
 #, python-format
 msgid "That's %(pct)s%% more than the previous month (%(prev)s)."
-msgstr ""
+msgstr "Es un %(pct)s%% más que el mes anterior (%(prev)s)."
 
 #: apps/budget/report/render.py:39
 #, python-format
 msgid "That's %(pct)s%% less than the previous month (%(prev)s)."
-msgstr ""
+msgstr "Es un %(pct)s%% menos que el mes anterior (%(prev)s)."
 
 #: apps/budget/report/render.py:42
 #, python-format
 msgid "Same as the previous month (%(prev)s)."
-msgstr ""
+msgstr "Igual que el mes anterior (%(prev)s)."
 
 #: apps/budget/report/render.py:47
 msgid "over the global budget"
-msgstr ""
+msgstr "por encima del presupuesto global"
 
 #: apps/budget/report/render.py:48
 msgid "within the global budget"
-msgstr ""
+msgstr "dentro del presupuesto global"
 
 #: apps/budget/report/render.py:50
 #, python-format
 msgid "Global budget: %(spent)s / %(amount)s — %(status)s."
-msgstr ""
+msgstr "Presupuesto global: %(spent)s / %(amount)s — %(status)s."
 
 #: apps/budget/report/render.py:57
 #, python-format
 msgid "%(name)s: %(spent)s."
-msgstr ""
+msgstr "%(name)s: %(spent)s."
 
 #: apps/budget/report/render.py:60
 #, python-format
 msgid "⚠ %(name)s: %(spent)s / %(amount)s — over budget."
-msgstr ""
+msgstr "⚠ %(name)s: %(spent)s / %(amount)s — presupuesto superado."
 
 #: apps/budget/report/render.py:63
-#, fuzzy, python-format
-#| msgid "%(name)s — low (%(qty)s %(unit)s)"
+#, python-format
 msgid "%(name)s: %(spent)s / %(amount)s."
-msgstr "%(name)s — bajo (%(qty)s %(unit)s)"
+msgstr "%(name)s: %(spent)s / %(amount)s."
 
 #: apps/budget/report/render.py:68
-#, fuzzy, python-format
-#| msgid "Pinned: %(count)s"
+#, python-format
 msgid "Unbudgeted: %(amount)s."
-msgstr "Fijados: %(count)s"
+msgstr "Sin presupuesto: %(amount)s."
 
 #: apps/budget/report/render.py:72
 #, python-format
 msgid "Recurring bills paid: %(count)d for %(total)s."
-msgstr ""
+msgstr "Recurrentes pagados: %(count)d por %(total)s."
 
 #: apps/budget/report/render.py:78
 #, python-format
 msgid "Biggest expense: %(subject)s (%(amount)s)."
-msgstr ""
+msgstr "Mayor gasto: %(subject)s (%(amount)s)."
 
 #: apps/chickens/pings.py:32
 msgid "🥚 How many eggs did you collect today?"

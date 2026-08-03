@@ -2,9 +2,10 @@
 """
 Tests for the monthly recap appointment (parcours 27 lot 6).
 
-What matters here: the ping fires **only on the 1st**, stays silent when the month
-has too little to tell, is a **teaser plus a link** rather than the recap itself, and
-escapes everything a user could have typed.
+What matters here: the ping fires **on the day the month closes** — the 5th business
+day, not the 1st (issue #541) — stays silent when the month has too little to tell,
+is a **teaser plus a link** rather than the recap itself, and escapes everything a
+user could have typed.
 """
 from __future__ import annotations
 
@@ -24,6 +25,20 @@ from recap.service import last_closed_month
 from .factories import HouseholdFactory, UserFactory, make_owner
 
 
+def _closing_day(household) -> date:
+    """The day, this month, on which the month just gone closes."""
+    from core.month_close import nth_business_day
+    from core.timezones import household_today
+
+    today = household_today(household)
+    return nth_business_day(today.year, today.month)
+
+
+def _closed_month(household) -> str:
+    """The month that ``_closing_day`` closes — independent of the real clock."""
+    return last_closed_month(household, today=_closing_day(household))
+
+
 def _first_of_this_month(household) -> date:
     from core.timezones import household_today
 
@@ -34,7 +49,7 @@ def _fill(household, user, *, subject="Plombier"):
     """Two expenses + a budget = three money cards, enough to clear the threshold."""
     from budget.services import create_budget
 
-    month = last_closed_month(household)
+    month = _closed_month(household)
     tz = ZoneInfo(getattr(household, "timezone", None) or "UTC")
     year, mon = (int(p) for p in month.split("-"))
     for label, amount in ((subject, "180.00"), ("Cinéma", "24.00")):
@@ -50,35 +65,56 @@ def _fill(household, user, *, subject="Plombier"):
 
 
 @pytest.mark.django_db
-class TestItFiresOnlyOnTheFirst:
-    def test_the_second_of_the_month_is_silent(self):
+class TestItFiresOnTheDayTheMonthCloses:
+    def test_the_closing_day_speaks(self):
+        hh = HouseholdFactory()
+        owner = make_owner(hh)
+        _fill(hh, owner)
+
+        message = build_monthly_recap_message(hh, owner, today=_closing_day(hh))
+
+        assert message is not None
+
+    def test_the_day_after_is_silent(self):
         hh = HouseholdFactory()
         owner = make_owner(hh)
         _fill(hh, owner)
 
         message = build_monthly_recap_message(
-            hh, owner, today=_first_of_this_month(hh) + timedelta(days=1)
+            hh, owner, today=_closing_day(hh) + timedelta(days=1)
         )
 
         assert message is None
 
-    def test_the_first_of_the_month_speaks(self):
+    def test_the_first_of_the_month_is_silent_now(self):
+        """It used to be the appointment; it is now the middle of the grace period,
+        when the household is still recording the month's last receipts."""
         hh = HouseholdFactory()
         owner = make_owner(hh)
         _fill(hh, owner)
 
         message = build_monthly_recap_message(hh, owner, today=_first_of_this_month(hh))
 
-        assert message is not None
+        assert message is None
+
+    def test_the_first_of_the_month_freezes_nothing(self):
+        """The tick runs every day; only the closing day may have side effects, or
+        the grace period would buy nothing — a snapshot is never recomputed."""
+        hh = HouseholdFactory()
+        owner = make_owner(hh)
+        month = _fill(hh, owner)
+
+        build_monthly_recap_message(hh, owner, today=_first_of_this_month(hh))
+
+        assert not HouseholdRecap.objects.filter(household=hh, month=month).exists()
 
     def test_a_silent_day_does_not_freeze_a_snapshot(self):
-        """The tick runs every day; only the 1st may have side effects."""
         hh = HouseholdFactory()
         owner = make_owner(hh)
         _fill(hh, owner)
 
         build_monthly_recap_message(
-            hh, owner, today=_first_of_this_month(hh) + timedelta(days=3)
+            hh, owner, today=_closing_day(hh) + timedelta(days=3)
         )
 
         assert not HouseholdRecap.objects.filter(household=hh).exists()
@@ -90,7 +126,7 @@ class TestAThinMonthDoesNotKnock:
         hh = HouseholdFactory()
         owner = make_owner(hh)
 
-        message = build_monthly_recap_message(hh, owner, today=_first_of_this_month(hh))
+        message = build_monthly_recap_message(hh, owner, today=_closing_day(hh))
 
         assert message is None
 
@@ -98,10 +134,10 @@ class TestAThinMonthDoesNotKnock:
         hh = HouseholdFactory()
         owner = make_owner(hh)
 
-        build_monthly_recap_message(hh, owner, today=_first_of_this_month(hh))
+        build_monthly_recap_message(hh, owner, today=_closing_day(hh))
 
         assert HouseholdRecap.objects.filter(
-            household=hh, month=last_closed_month(hh)
+            household=hh, month=_closed_month(hh)
         ).exists()
 
     def test_the_threshold_is_configurable(self):
@@ -110,7 +146,7 @@ class TestAThinMonthDoesNotKnock:
         _fill(hh, owner)
 
         with override_settings(RECAP_MIN_CARDS=99):
-            message = build_monthly_recap_message(hh, owner, today=_first_of_this_month(hh))
+            message = build_monthly_recap_message(hh, owner, today=_closing_day(hh))
 
         assert message is None
 
@@ -121,7 +157,7 @@ class TestAThinMonthDoesNotKnock:
         owner.recap_disabled_chapters = ["money", "achievements", "home", "memories"]
         owner.save(update_fields=["recap_disabled_chapters"])
 
-        message = build_monthly_recap_message(hh, owner, today=_first_of_this_month(hh))
+        message = build_monthly_recap_message(hh, owner, today=_closing_day(hh))
 
         assert message is None
 
@@ -135,7 +171,7 @@ class TestItIsATeaserNotTheRecap:
         owner = make_owner(hh)
         month = _fill(hh, owner)
 
-        message = build_monthly_recap_message(hh, owner, today=_first_of_this_month(hh))
+        message = build_monthly_recap_message(hh, owner, today=_closing_day(hh))
 
         assert f"/app/recap/{month}" in message
 
@@ -144,7 +180,7 @@ class TestItIsATeaserNotTheRecap:
         owner = make_owner(hh)
         _fill(hh, owner)
 
-        message = build_monthly_recap_message(hh, owner, today=_first_of_this_month(hh))
+        message = build_monthly_recap_message(hh, owner, today=_closing_day(hh))
 
         assert message.count("•") == 2
 
@@ -154,7 +190,7 @@ class TestItIsATeaserNotTheRecap:
         owner = make_owner(hh)
         _fill(hh, owner, subject="Cuisine <2026> & co")
 
-        message = build_monthly_recap_message(hh, owner, today=_first_of_this_month(hh))
+        message = build_monthly_recap_message(hh, owner, today=_closing_day(hh))
 
         # The only unescaped markup is the header's own bold tag.
         assert message.count("<b>") == 1
@@ -166,9 +202,9 @@ class TestItIsATeaserNotTheRecap:
         _fill(hh, owner)
 
         with translation.override("fr"):
-            fr = build_monthly_recap_message(hh, owner, today=_first_of_this_month(hh))
+            fr = build_monthly_recap_message(hh, owner, today=_closing_day(hh))
         with translation.override("en"):
-            en = build_monthly_recap_message(hh, owner, today=_first_of_this_month(hh))
+            en = build_monthly_recap_message(hh, owner, today=_closing_day(hh))
 
         assert fr != en
 
