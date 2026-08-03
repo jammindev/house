@@ -1152,7 +1152,22 @@
       "issuedTitle": "Dein Token",
       "issuedOnce": "Kopiere ihn jetzt – er wird nicht erneut angezeigt. Wir speichern nur einen Fingerabdruck, er lässt sich also nicht wiederherstellen.",
       "copy": "Kopieren",
-      "copied": "Token kopiert."
+      "copied": "Token kopiert.",
+      "android": {
+        "title": "Unter Android nichts einzurichten",
+        "installed": "Wähle in deiner Galerie Fotos aus, tippe auf Teilen und wähle Maisonnée. Das Token unten wird nur für ein iPhone gebraucht.",
+        "toInstall": "Installiere Maisonnée zuerst auf deinem Startbildschirm: « Maisonnée » erscheint dann im Teilen-Menü deiner Galerie. Das Token unten wird nur für ein iPhone gebraucht."
+      },
+      "ios": {
+        "title": "Auf dem iPhone in drei Schritten",
+        "step1": "Erstelle unten ein Token und kopiere es.",
+        "step2": "Erstelle in der Kurzbefehle-App einen Kurzbefehl, der im Teilen-Menü erscheint und Bilder annimmt.",
+        "step3": "Füge « Für jedes Objekt wiederholen » über die Kurzbefehl-Eingabe hinzu und darin « Inhalte von URL laden » auf deine Instanz, Methode POST, mit dem Authorization-Header « Device » gefolgt von deinem Token, einem Formular-Body, einem Feld file vom Typ Datei mit dem wiederholten Objekt und einem Feld type mit dem Wert photo.",
+        "warning": "Zwei Fallen: Der Body muss Formular sein und nicht JSON, und das Feld type muss photo lauten – sonst landet das Foto nicht in der Galerie."
+      },
+      "desktop": {
+        "hint": "Dieser Bildschirm dient dazu, ein Telefon zu verbinden. Öffne Maisonnée von deinem aus, um die Anleitung zu sehen."
+      }
     }
   },
   "tutorials": {
@@ -1603,6 +1618,10 @@
           "file": {
             "title": "Ein Foto einem Bereich zuordnen",
             "body": "Die Markierung „Ohne Bereich“ zeigt ein Foto, das nirgends einsortiert ist; der gleichnamige Filter sammelt sie alle. Weisen Sie einen Bereich zu, ohne die Galerie zu verlassen: über das ⋯-Menü der Miniatur oder im Block Bereiche des geöffneten Fotos. Für mehrere auf einmal: „Auswählen“ und ankreuzen — die gewählten Bereiche kommen zu den vorhandenen hinzu."
+          },
+          "phone": {
+            "title": "Vom Telefon aus senden",
+            "body": "Der häufigste Handgriff ist nicht, Maisonnée zum Importieren zu öffnen, sondern gerade etwas fotografiert zu haben. Unter Android installierst du die App auf dem Startbildschirm, und « Maisonnée » erscheint im Teilen-Menü – mehr nicht. Auf dem iPhone erstellst du unter Einstellungen → Geräte ein Token und dann einen Kurzbefehl, der die Fotos sendet – die Anleitung steht auf diesem Bildschirm, wenn du ihn vom Telefon aus öffnest."
           }
         }
       },

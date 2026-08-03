@@ -1152,7 +1152,22 @@
       "issuedTitle": "Tu token",
       "issuedOnce": "Cópialo ahora: no se volverá a mostrar. Solo guardamos una huella, así que no se puede recuperar.",
       "copy": "Copiar",
-      "copied": "Token copiado."
+      "copied": "Token copiado.",
+      "android": {
+        "title": "En Android no hay nada que configurar",
+        "installed": "En tu galería, selecciona fotos, toca Compartir y elige Maisonnée. El token de abajo solo sirve para un iPhone.",
+        "toInstall": "Instala primero Maisonnée en tu pantalla de inicio: « Maisonnée » aparecerá entonces en el menú Compartir de tu galería. El token de abajo solo sirve para un iPhone."
+      },
+      "ios": {
+        "title": "En iPhone, en tres pasos",
+        "step1": "Crea un token abajo y cópialo.",
+        "step2": "En la app Atajos, crea un atajo que aparezca en la hoja de compartir y acepte imágenes.",
+        "step3": "Añade « Repetir con cada » sobre la entrada del atajo y, dentro, « Obtener contenido de URL » apuntando a tu instancia, método POST, con la cabecera Authorization « Device » seguida de tu token, un cuerpo de tipo Formulario, un campo file de tipo Archivo con el elemento repetido y un campo type con el valor photo.",
+        "warning": "Dos trampas: el cuerpo debe ser Formulario y no JSON, y el campo type debe valer photo — sin él la foto no llega a la galería."
+      },
+      "desktop": {
+        "hint": "Esta pantalla sirve para conectar un teléfono. Abre Maisonnée desde el tuyo para ver cómo hacerlo."
+      }
     }
   },
   "tutorials": {
@@ -1603,6 +1618,10 @@
           "file": {
             "title": "Clasificar una foto en una zona",
             "body": "La etiqueta «Sin zona» señala una foto que no está clasificada en ninguna parte, y el filtro del mismo nombre las reúne. Asígnale una zona sin salir de la galería: desde el menú ⋯ de la miniatura o en el bloque Zonas de la foto abierta. Para clasificar varias a la vez, pulsa «Seleccionar» y márcalas: las zonas elegidas se añaden a las ya presentes."
+          },
+          "phone": {
+            "title": "Enviar desde tu teléfono",
+            "body": "El gesto más frecuente no es abrir Maisonnée para importar, sino acabar de fotografiar algo. En Android, instala la app en tu pantalla de inicio y « Maisonnée » aparece en el menú Compartir: nada más que hacer. En iPhone, crea un token en Ajustes → Dispositivos y luego un atajo que envíe las fotos — los pasos se muestran en esa pantalla cuando la abres desde tu teléfono."
           }
         }
       },

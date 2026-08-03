@@ -189,6 +189,25 @@ Le cache de partage est **consommé** à la lecture (`features/photos/sharedFile
 sans ça un simple rechargement renverrait le même lot, en doublons. Régression :
 `sharedFiles.test.ts`.
 
+#### L'aide vit dans l'app, pas seulement dans le dépôt
+
+L'écran *Réglages → Appareils* explique la marche à suivre **selon l'appareil qui le
+lit** (`devicePlatform()`), et le guide Photos des tutoriels porte la même étape.
+
+Sans ça, l'écran livrait un jeton sans dire quoi en faire, et la seule explication
+vivait dans `docs/` — que personne d'autre que nous n'ouvre. La fonctionnalité
+existait sans être trouvable. Trois publics, trois réponses différentes, et aucun
+moyen pour l'utilisateur de deviner laquelle est la sienne :
+
+| Lecteur | Ce qu'on lui dit |
+|---|---|
+| Android | Rien à configurer — installer l'app suffit, le jeton ne le concerne pas |
+| iOS | Les trois étapes, et les deux pièges (corps `Form`, champ `type`) |
+| Ordinateur | Cet écran sert à connecter un téléphone, ouvrez-le depuis le vôtre |
+
+Afficher les trois reviendrait à n'en afficher aucune. Régression :
+`ui/src/features/settings/components/DevicesSection.test.tsx`.
+
 #### Le raccourci iOS, avec un jeton
 
 Deux actions, contre quatre avec l'authentification par mot de passe — et surtout

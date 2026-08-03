@@ -6,8 +6,57 @@ import { Button } from '@/design-system/button';
 import { Input } from '@/design-system/input';
 import { formatDateTime } from '@/lib/format';
 import { useToast } from '@/lib/toast';
+import { devicePlatform, isStandalone } from '@/lib/pwa/platform';
 import { useCreateDeviceToken, useDeviceTokens, useRevokeDeviceToken } from '../hooks';
 import { SettingsSection } from './SettingsSection';
+
+/**
+ * Ce que l'écran explique dépend de **l'appareil qui le lit**, et l'utilisateur n'a
+ * aucun moyen de le deviner : sur Android le jeton ne sert à rien (le partage
+ * système suffit), sur iOS il ne sert que dans un raccourci qu'il faut construire,
+ * et sur un ordinateur la question ne se pose pas.
+ *
+ * Sans ça, l'écran livrait une chaîne de caractères sans dire quoi en faire — la
+ * fonctionnalité existait sans être trouvable, et seule la documentation du dépôt
+ * la rendait utilisable. Un utilisateur hébergé ne lit jamais le dépôt.
+ */
+function PlatformHint() {
+  const { t } = useTranslation();
+  const platform = devicePlatform();
+
+  if (platform === 'android') {
+    return (
+      <div className="rounded-lg bg-muted p-3 text-sm text-muted-foreground">
+        <p className="font-medium text-foreground">{t('settings.devices.android.title')}</p>
+        <p className="mt-1">
+          {isStandalone()
+            ? t('settings.devices.android.installed')
+            : t('settings.devices.android.toInstall')}
+        </p>
+      </div>
+    );
+  }
+
+  if (platform === 'ios') {
+    return (
+      <div className="rounded-lg bg-muted p-3 text-sm text-muted-foreground">
+        <p className="font-medium text-foreground">{t('settings.devices.ios.title')}</p>
+        <ol className="mt-1 list-decimal space-y-1 pl-4">
+          <li>{t('settings.devices.ios.step1')}</li>
+          <li>{t('settings.devices.ios.step2')}</li>
+          <li>{t('settings.devices.ios.step3')}</li>
+        </ol>
+        <p className="mt-2">{t('settings.devices.ios.warning')}</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="rounded-lg bg-muted p-3 text-sm text-muted-foreground">
+      {t('settings.devices.desktop.hint')}
+    </div>
+  );
+}
 
 /**
  * Les appareils autorisés à envoyer des photos sans mot de passe.
@@ -55,6 +104,8 @@ export function DevicesSection() {
   return (
     <SettingsSection title={t('settings.devices.title')} description={t('settings.devices.subtitle')}>
       <div className="space-y-4">
+        <PlatformHint />
+
         {issued ? (
           <div className="space-y-2 rounded-lg border border-primary/30 bg-primary/10 p-3">
             <p className="text-sm font-medium text-foreground">
