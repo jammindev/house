@@ -20,28 +20,44 @@ personne ne l'a vu, parce que le défaut est invisible deux fois :
 D'où la forme : le test ne vérifie pas trois vues, il vérifie **la règle**, et
 refuse qu'un cinquième modèle privatisable arrive sans se déclarer.
 
-Les deux moitiés sont nécessaires
----------------------------------
+Les trois parties sont nécessaires
+----------------------------------
 
 1. **Structurelle** — aucune vue n'expose ``is_private`` en filtre. Sans ce
-   contrôle, la moitié n°2 se laisse contourner : le queryset a beau borner, un
+   contrôle, la partie n°2 se laisse contourner : le queryset a beau borner, un
    ``?is_private=true`` ré-ouvre exactement ce qu'il bornait. C'est le même
    rapport que la clé i18n et son ``defaultValue``.
 2. **Comportementale** — un second membre ne voit pas l'item privé du premier.
    C'est le seul contrôle qui compare le *code* à ce que l'API sert vraiment.
+3. **Complétude** — un modèle portant le drapeau doit être couvert ou exempté.
+   Sans elle, les deux premières restent vertes en ignorant le nouveau venu.
+
+Limite connue : la partie n°1 lit ``filterset_fields``, pas un éventuel
+``filterset_class`` (le dépôt n'en utilise aucun). Le jour où l'un apparaît, il
+faudra l'inspecter ici aussi — un filtre déclaré autrement reste un filtre.
 """
-import inspect
 import importlib
+import inspect
+from pathlib import Path
 
 import pytest
 from django.apps import apps as django_apps
+from django.conf import settings
 from django.urls import reverse
-from django.utils import timezone
 from rest_framework.test import APIClient
 from rest_framework.viewsets import GenericViewSet
 
 from accounts.tests.factories import UserFactory
 from households.models import Household, HouseholdMember
+
+#: Racine des apps du projet. Sert à ne parcourir que **notre** code : sans ce
+#: bornage on inspecterait aussi Django et DRF, dont les modèles et les vues ne
+#: nous regardent pas et feraient échouer la partie n°3 sur un faux positif.
+_PROJECT_APPS_DIR = Path(settings.BASE_DIR) / "apps"
+
+
+def _is_project_app(app_config) -> bool:
+    return Path(app_config.path).is_relative_to(_PROJECT_APPS_DIR)
 
 
 # ── Ce qui n'est pas encore filtré, et pourquoi ──────────────────────────────
@@ -67,7 +83,7 @@ def _models_with_is_private():
     """Tous les modèles du projet portant un champ ``is_private``."""
     found = []
     for model in django_apps.get_models():
-        if not model._meta.app_config.name.startswith(("apps.", "")):
+        if not _is_project_app(model._meta.app_config):
             continue
         if any(f.name == "is_private" for f in model._meta.get_fields()):
             found.append(model)
@@ -79,17 +95,27 @@ def _label(model) -> str:
 
 
 def _all_viewsets():
-    """Toutes les classes de viewset déclarées dans les modules ``views`` du projet."""
+    """Toutes les classes de viewset déclarées dans les modules ``views`` du projet.
+
+    ``startswith`` et non ``==`` sur ``__module__`` : ``accounts.views`` est un
+    **package**, et ses viewsets vivent dans ``accounts.views.api``. Une égalité
+    stricte les écartait — c'est-à-dire qu'elle ouvrait un angle mort exactement là
+    où le dépôt s'écarte déjà de la convention, et un garde-fou aveugle sur
+    l'exception est un garde-fou qui rassure à tort.
+    """
     found = {}
     for config in django_apps.get_app_configs():
-        for module_name in (f"{config.name}.views", f"{config.name}.views_media"):
+        if not _is_project_app(config):
+            continue
+        for suffix in ("views", "views_media"):
+            module_name = f"{config.name}.{suffix}"
             try:
                 module = importlib.import_module(module_name)
             except ModuleNotFoundError:
                 continue
             for name, obj in inspect.getmembers(module, inspect.isclass):
-                if issubclass(obj, GenericViewSet) and obj.__module__ == module_name:
-                    found[f"{module_name}.{name}"] = obj
+                if issubclass(obj, GenericViewSet) and obj.__module__.startswith(module_name):
+                    found[f"{obj.__module__}.{name}"] = obj
     return found
 
 
