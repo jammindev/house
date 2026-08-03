@@ -1,5 +1,39 @@
 # Next steps
 
+> **Cadré au 2026-08-03 — Parcours 29 : l'album du foyer.** Chantier cadré ce
+> jour (doc produit, fiche concept, backlog en 7 lots, issues #526 → #534) ;
+> aucun lot démarré.
+>
+> Déclencheur : la livraison du téléversement multiple (#524) le matin même, et la
+> friction apparue à la première utilisation réelle — « les photos techniques sont
+> mélangées avec les photos souvenirs, les photos observation ». Une photo porte
+> trois axes (zone, entité liée, phase avant/après) et aucun ne dit **pourquoi
+> elle existe**. Le parcours ajoute cet axe, l'**intention**, et en fait la
+> première question de la galerie.
+>
+> **Arbitrage assumé** : l'ambition retenue est **l'album complet** — House vise à
+> devenir le point d'entrée photo, souvenirs inclus — contre l'alternative « le
+> classeur du foyer », qui était la recommandation. Les trois coûts sont nommés
+> dans la doc produit : changement d'ordre de grandeur du volume, quota qui devient
+> une contrainte réelle, comparaison frontale avec la pellicule du téléphone.
+>
+> Ordre : **1** (dettes : pagination curseur + `size_bytes` en colonne — prérequis
+> dur de tous les autres) → **2** (l'intention et la file « À trier », qui résout
+> la friction sans dépendre de l'infrastructure) → **3** (stockage objet) et
+> **4** (tâches de fond), indépendants entre eux mais prérequis du **6** (import
+> massif) → **5** (quota, dès que 1 est livré) → **7** (synchro iPhone).
+>
+> **⚠️ Ce cadrage ne tranche pas la priorité relative avec le parcours 28.** Les
+> lots 0 et 4 de celui-ci corrigent des écarts *ouverts aujourd'hui* (runner
+> exposé, dépôt public sans licence) et restent hors séquence, avant tout le reste.
+>
+> - Doc produit : [`PARCOURS_29_ALBUM_DU_FOYER.md`](./parcours/PARCOURS_29_ALBUM_DU_FOYER.md)
+> - Backlog : [`PARCOURS_29_BACKLOG_TECHNIQUE.md`](./parcours/PARCOURS_29_BACKLOG_TECHNIQUE.md)
+> - Fiche concept : [`PIPELINE_MEDIA.md`](./fiches/PIPELINE_MEDIA.md)
+> - Journal : [`2026-08-03_parcours-29_cadrage_initial.md`](./journal/2026-08-03_parcours-29_cadrage_initial.md)
+
+---
+
 > **Priorité au 2026-07-31 — Parcours 28 : ouvrir Maisonnée (open source,
 > auto-hébergeable).** Chantier cadré ce jour (doc produit, fiche concept, backlog
 > en 8 lots, issues #485 → #493) ; aucun lot démarré.
