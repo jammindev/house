@@ -19,7 +19,8 @@ enough to be worth the detour — this repository documents *why* far more than
 | **`docs/parcours/`** | One set of documents per body of work ("parcours"): a product document (what problem, for whom, what is deliberately excluded) and a technical backlog split into independently shippable lots. | What is planned, what is out of scope on purpose, and where the current work sits. |
 | **`docs/MODULES/`** | Status of each Django app: what to fix, what to build, what to improve. | Where to start on a given module. |
 | **`docs/journal/`** | Dated notes from working sessions — decisions as they were made, including the ones that were later reversed. | Archaeology: why a given choice was made on a given day. |
-| **`DEPLOYMENT.md`** (root) | The maintainer's own VPS deployment, including a networking primer. | The only deployment guide that exists today. A self-hosting guide in English (`docs/self-hosting/`) is being written; until then, this is it — and it is written for one specific server, so read it as an example rather than as instructions. |
+| **`docs/self-hosting/`** | **In English.** The operator's manual: install, optional keys, backup **and restore**, upgrades, releases, troubleshooting. | Start here if you want to run Maisonnée. It assumes Docker and nothing else. |
+| **`DEPLOYMENT.md`** (root) | The maintainer's own VPS deployment, including a networking primer. | Not an install guide — it assumes one specific server, Traefik, and a self-hosted CI runner. Worth reading for the deploy invariants it documents (why the proxy doesn't fall with the app, why migrations run before traffic switches). |
 | **Commit messages & issues** | French, conventional commits (`type(scope): description`). | The changelog is generated from them. |
 
 ## What is already in English

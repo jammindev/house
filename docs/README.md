@@ -46,9 +46,10 @@ Parcours 01→06 livrés. Voir `JOURNAL_PRODUIT.md` pour le détail.
   auto-hébergeable (AGPL-3.0, `docker compose up`, foyers pilotes)
 - `./fiches/AUTO_HEBERGEMENT.md` — le cours : d'un déploiement à un produit
   installable (modèle de menace, capacités optionnelles, licence, sauvegarde)
-- `./self-hosting/` — *(à créer, lot 5)* installation, sauvegarde/restauration,
-  mises à jour et dépannage pour une machine quelconque. `../DEPLOYMENT.md` reste
-  le déploiement de l'auteur.
+- `./self-hosting/` — **en anglais**, le manuel de l'exploitant : installation,
+  clés optionnelles, sauvegarde **et restauration**, mises à jour, releases,
+  dépannage. `../DEPLOYMENT.md` reste le déploiement de l'auteur et le dit
+  désormais dès sa première ligne.
 
 ## RFC et notes thématiques
 

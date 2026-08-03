@@ -1,4 +1,21 @@
-# Déploiement — House App
+# Déploiement — **le déploiement de l'auteur**
+
+> ⚠️ **Ce document décrit une installation précise : celle de l'auteur.** Un VPS,
+> Traefik en frontal, un runner de CI auto-hébergé, une image construite sur la
+> machine, un domaine. Il suppose tout ça et ne s'en excuse pas.
+>
+> **Pour héberger Maisonnée chez vous, ce n'est pas ici** : c'est
+> [`docs/self-hosting/`](docs/self-hosting/README.md) — trois lignes, une image
+> déjà construite, aucune de ces hypothèses.
+>
+> Ce fichier reste pour deux raisons. Il porte les **invariants du §3.4**
+> (résolveur nginx, montage par répertoire, `--no-deps`, migrer avant de
+> basculer), que la pile auto-hébergée hérite ou contourne explicitement — et
+> `nginx/test-resilience.sh` les tient. Et il documente le seul déploiement qui
+> tourne réellement en production aujourd'hui.
+>
+> Les deux piles partagent le même code et la même image ; elles ne partagent
+> pas leurs hypothèses, et c'est pour ça qu'elles restent deux fichiers.
 
 ## Table des matières
 
@@ -497,6 +514,17 @@ docker compose -f docker-compose.prod.yml down -v
 ---
 
 ## 8. Backups
+
+> ⚠️ **Ce qui suit sauvegarde la base, et rien d'autre.** Les fichiers téléversés
+> et la clé secrète vivent à côté ; une base restaurée seule donne une instance
+> dont chaque document est référencé et absent. Le raisonnement complet et la
+> **procédure de restauration** — la partie que personne ne répète avant d'en
+> avoir besoin — sont dans
+> [`docs/self-hosting/backup-restore.md`](docs/self-hosting/backup-restore.md).
+>
+> `backup_db.sh` prend désormais `--state-dir`, et `restore_db.sh` est son
+> pendant en lecture. Le cycle complet est rejoué par la CI
+> (`scripts/test-backup-restore.sh`) sur une base neuve à chaque PR.
 
 ### Backup de la base de données
 
