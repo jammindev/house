@@ -17,7 +17,14 @@ vi.mock('@/lib/auth/useAuth', () => ({
   useAuth: () => ({ user: currentUser.value, logout: vi.fn() }),
 }));
 
-/** Un `/accounts/me/` tel que le sert `UserSerializer` — `full_name` compris. */
+/** Un `/accounts/me/` tel que le sert l'endpoint — `full_name` compris.
+ *
+ * ⚠️ Cette fixture *suppose* le payload, elle ne le prouve pas : le premier
+ * correctif de #546 est passé au vert ici alors que l'endpoint ne servait pas
+ * `full_name`, et le header montrait toujours l'email en prod. Que la clé
+ * existe pour de vrai est tenu côté serveur, par
+ * `apps/accounts/tests/test_me_contract.py`.
+ */
 function renderTopBarFor(user: Partial<AuthUser>) {
   currentUser.value = {
     id: 'u1',

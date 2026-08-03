@@ -380,7 +380,14 @@ class TokenObtainPairWithSessionView(TokenObtainPairView):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def me_view(request):
-    """Lightweight me endpoint for SPA auth context."""
+    """Lightweight me endpoint for SPA auth context.
+
+    Écrit à la main plutôt que via `UserSerializer` — donc rien ne signale
+    qu'un champ manque, et un champ manquant arrive `undefined` au front sans
+    la moindre erreur. Toute clé ajoutée ici doit l'être dans `AuthUser`
+    (`ui/src/lib/auth/authContext.ts`), et réciproquement : c'est ce que tient
+    `tests/test_me_contract.py`.
+    """
     user = request.user
     avatar_url = None
     if user.avatar:
@@ -391,6 +398,9 @@ def me_view(request):
         'first_name': user.first_name,
         'last_name': user.last_name,
         'display_name': user.display_name,
+        # Le nom d'affichage canonique, calculé par le modèle. Le front le lit
+        # tel quel : recomposer la règle là-bas l'avait amputée (#546).
+        'full_name': user.full_name,
         'active_household': str(user.active_household_id) if user.active_household_id else None,
         'is_staff': user.is_staff,
         'locale': user.locale or '',
