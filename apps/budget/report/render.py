@@ -13,12 +13,28 @@ from typing import Any
 
 from django.utils.translation import gettext as _
 
+from core.money import format_money
 
-def _money(value: str) -> str:
+#: Alias — la définition (et le pourquoi du formatage localisé) vit dans
+#: ``core.money``. Un ``f"{Decimal:.2f} €"`` local écrivait « 1240.50 € » à un
+#: lecteur français, dans le même écran qu'un `formatAmount` disant « 1 240,50 € ».
+_money = format_money
+
+
+def _percent(value) -> str:
+    """La tendance, dans la convention du lecteur : « 13,8 » et non « 13.8 ».
+
+    Même défaut que ``_money``, sur la même phrase — le corriger à moitié
+    laisserait « 1 240,50 € » et « 13.8% » côte à côte. Reste local : c'est le
+    seul pourcentage que le serveur écrive en toutes lettres. L'espace avant le
+    ``%`` appartient à la langue, donc au ``msgstr``, pas à ce helper.
+    """
+    from django.utils import formats
+
     try:
-        return f"{Decimal(value):.2f} €"
-    except Exception:  # pragma: no cover - defensive
-        return f"{value} €"
+        return formats.number_format(round(float(value), 1), decimal_pos=1)
+    except (TypeError, ValueError):  # pragma: no cover - défensif
+        return str(value)
 
 
 def render_lines(stats: dict[str, Any]) -> list[str]:
@@ -34,10 +50,10 @@ def render_lines(stats: dict[str, Any]) -> list[str]:
         prev = _money(stats["prev_total"])
         if trend_pct > 0:
             lines.append(_("That's %(pct)s%% more than the previous month (%(prev)s).") % {
-                "pct": abs(trend_pct), "prev": prev})
+                "pct": _percent(abs(trend_pct)), "prev": prev})
         elif trend_pct < 0:
             lines.append(_("That's %(pct)s%% less than the previous month (%(prev)s).") % {
-                "pct": abs(trend_pct), "prev": prev})
+                "pct": _percent(abs(trend_pct)), "prev": prev})
         else:
             lines.append(_("Same as the previous month (%(prev)s).") % {"prev": prev})
 
