@@ -168,6 +168,38 @@ describe('PhotoLightbox', () => {
     expect(screen.queryByText(/photos\.addedOn/)).not.toBeInTheDocument();
   });
 
+  /**
+   * Le geste central de la refonte plein écran : la photo occupe tout l'écran, et
+   * ce qui la commente se retire au tap. Le chrome est **démonté du calque
+   * d'accessibilité** (`aria-hidden`), jamais seulement transparent — sinon la
+   * tabulation continuerait d'atteindre des boutons invisibles.
+   */
+  it('retire le chrome au tap sur la photo, et le ramène au suivant', () => {
+    open('b');
+
+    expect(screen.getByRole('button', { name: 'common.close' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'photos.next' })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'photos.toggleInfo' }));
+
+    expect(screen.queryByRole('button', { name: 'common.close' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'photos.next' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'common.delete' })).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'photos.toggleInfo' }));
+
+    expect(screen.getByRole('button', { name: 'common.close' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'common.delete' })).toBeInTheDocument();
+  });
+
+  it('garde le clavier et la fermeture opérants quand le chrome est retiré', () => {
+    open('b');
+    fireEvent.click(screen.getByRole('button', { name: 'photos.toggleInfo' }));
+
+    fireEvent.keyDown(window, { key: 'ArrowRight' });
+    expect(onOpenChange).toHaveBeenCalledWith('c');
+  });
+
   it('affiche un repli explicite quand l’image ne charge pas', () => {
     open('a');
 

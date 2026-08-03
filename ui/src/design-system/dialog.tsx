@@ -27,7 +27,7 @@ DialogOverlay.displayName = DialogPrimitive.Overlay.displayName
 
 type DialogContentProps = React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content> & {
   hideDefaultCloseButton?: boolean
-  variant?: "default" | "mobileSheet"
+  variant?: "default" | "mobileSheet" | "fullscreen"
 }
 
 const DialogContent = React.forwardRef<
@@ -39,7 +39,13 @@ const DialogContent = React.forwardRef<
     <DialogPrimitive.Content
       ref={ref}
       className={cn(
-        variant === "mobileSheet"
+        // `fullscreen` : une toile immersive, pas une carte. Le fond est noir dans
+        // les deux thèmes — c'est le seul cas où un token ne convient pas, parce
+        // que ce qu'on regarde est une image, et qu'un cadre clair en fausse les
+        // couleurs. Le contenu posé par-dessus, lui, garde les surfaces de l'app.
+        variant === "fullscreen"
+          ? "fixed inset-0 z-[60] flex h-[100dvh] w-screen max-w-none flex-col gap-0 overflow-hidden rounded-none border-0 bg-black p-0 shadow-none duration-300 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95"
+          : variant === "mobileSheet"
           ? "fixed inset-x-0 bottom-0 top-auto z-[60] m-0 grid w-full max-h-[95vh] translate-x-0 gap-0 border bg-background p-0 shadow-2xl transform-gpu will-change-transform motion-reduce:animate-none data-[state=open]:[animation:sheet-slide-in_520ms_cubic-bezier(0.22,1,0.36,1)_forwards] data-[state=closed]:[animation:sheet-slide-out_320ms_cubic-bezier(0.4,0,1,1)_forwards]"
           : "fixed left-[50%] top-[50%] z-[60] grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg duration-400 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] max-h-[90vh] overflow-y-auto sm:rounded-lg",
         className

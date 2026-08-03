@@ -156,6 +156,19 @@ Agent privacy pré-acceptée via localStorage pour les tests de page détail.
 
 ---
 
+## Visionneuse photo (`photos-lightbox.spec.ts`)
+
+Le geste de la visionneuse plein écran ne se prouve que dans un vrai navigateur :
+jsdom ne fait pas de hit-testing, donc un calque qui avale le tap y passe au vert.
+
+| Parcours | Statut |
+|---|---|
+| Un tap sur la photo retire le chrome, un second le ramène | ✅ |
+| La visionneuse occupe tout l'écran, sans cadre | ✅ |
+| La fermeture reste atteignable au doigt (mobile) | ✅ |
+
+---
+
 ## Interactions
 
 | Parcours | Statut |

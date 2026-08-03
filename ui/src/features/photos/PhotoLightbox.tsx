@@ -41,19 +41,29 @@ interface Props {
 /** Distance horizontale minimale, en px, pour qu'un glissement compte comme un swipe. */
 const SWIPE_THRESHOLD = 50;
 
+/** Style commun des surfaces posées sur la photo : celles de l'app, en verre. */
+const GLASS = 'border border-border/60 bg-background/85 shadow-lg backdrop-blur-md';
+
 /**
- * Visionneuse plein cadre d'une collection de photos.
+ * Visionneuse plein écran d'une collection de photos.
  *
- * Remplace `PhotoDetailPanel`, qui souffrait de trois défauts visibles :
+ * Ce que la version « carte » (`max-w-4xl`, image à gauche, panneau à droite)
+ * coûtait, et que le plein écran corrige :
  *
- * - **Deux croix de fermeture** : `DialogContent` rend la sienne en `absolute
- *   right-4 top-4`, et le panneau en ajoutait une seconde dans l'en-tête. Sur
- *   mobile (image en haut) celle de Radix tombait *sur* l'image sombre en
- *   `text-foreground` — invisible. D'où `hideDefaultCloseButton` ici : une seule
- *   croix, posée là où on la voit, sur un fond qui la porte.
- * - **Aucune navigation** : parcourir dix photos demandait dix fermetures. Flèches,
- *   clavier ← →, et swipe tactile.
- * - Couleurs `slate`/`black` codées en dur → thème sombre cassé.
+ * - **La photo n'était jamais le sujet.** Sur mobile elle occupait 45 % de la
+ *   hauteur, le reste allant à des métadonnées qu'on ne lit qu'une fois ; sur
+ *   desktop elle était cernée de blanc, qui fausse les couleurs de ce qu'on
+ *   regarde. D'où la toile noire, identique dans les deux thèmes.
+ * - **Le chrome ne se retirait pas.** Un tap sur la photo le fait disparaître,
+ *   un second le ramène — le geste d'Apple Photos, et rien de plus.
+ *
+ * Le chrome retiré est `aria-hidden` **et** `inert`, pas seulement transparent :
+ * un bouton invisible qu'on atteint encore à la tabulation est un piège, et
+ * l'opacité seule n'a jamais retiré personne du calque d'accessibilité.
+ *
+ * Trois acquis de la version précédente restent tenus par les tests : une seule
+ * croix de fermeture (celle de Radix est masquée), la navigation sans fermer
+ * (flèches, clavier, swipe), et un repli explicite quand l'image ne charge pas.
  */
 export default function PhotoLightbox({
   photos,
@@ -66,6 +76,7 @@ export default function PhotoLightbox({
 }: Props) {
   const { t } = useTranslation();
   const [failed, setFailed] = React.useState(false);
+  const [chromeVisible, setChromeVisible] = React.useState(true);
 
   const index = openId === null ? -1 : photos.findIndex((p) => p.id === openId);
   const photo = index >= 0 ? photos[index] : null;
@@ -86,6 +97,13 @@ export default function PhotoLightbox({
   // cassée condamnait toutes les suivantes au message d'échec.
   React.useEffect(() => setFailed(false), [openId]);
 
+  // Le retrait du chrome est un geste, pas un réglage : il ne survit pas à la
+  // fermeture. Il survit en revanche au passage à la photo suivante — on parcourt
+  // une collection sans avoir à re-tapoter à chaque image.
+  React.useEffect(() => {
+    if (!open) setChromeVisible(true);
+  }, [open]);
+
   React.useEffect(() => {
     if (!open) return;
     const onKeyDown = (event: KeyboardEvent) => {
@@ -99,8 +117,10 @@ export default function PhotoLightbox({
   }, [open, goPrev, goNext]);
 
   const touchStartX = React.useRef<number | null>(null);
+  const swiped = React.useRef(false);
   const handleTouchStart = (event: React.TouchEvent) => {
     touchStartX.current = event.touches[0]?.clientX ?? null;
+    swiped.current = false;
   };
   const handleTouchEnd = (event: React.TouchEvent) => {
     const start = touchStartX.current;
@@ -108,6 +128,9 @@ export default function PhotoLightbox({
     if (start === null) return;
     const delta = (event.changedTouches[0]?.clientX ?? start) - start;
     if (Math.abs(delta) < SWIPE_THRESHOLD) return;
+    // Un swipe change de photo ; le clic que le navigateur émet dans sa foulée ne
+    // doit pas, en plus, retirer le chrome.
+    swiped.current = true;
     if (delta > 0) goPrev();
     else goNext();
   };
@@ -149,17 +172,20 @@ export default function PhotoLightbox({
 
   return (
     <Dialog open={open} onOpenChange={(next) => { if (!next) onOpenChange(null); }}>
-      <DialogContent
-        className="max-w-4xl overflow-hidden p-0"
-        aria-describedby={undefined}
-        hideDefaultCloseButton
-      >
-        <div className="flex flex-col lg:flex-row lg:items-stretch">
-          {/* Image + navigation */}
-          <div
-            className="relative flex min-h-[45vh] w-full items-center justify-center bg-foreground/[0.06] lg:min-h-[70vh] lg:flex-1 dark:bg-background/60"
+      <DialogContent variant="fullscreen" aria-describedby={undefined} hideDefaultCloseButton>
+        <div className="relative h-full w-full">
+          {/* La photo, et le tap qui commande le chrome. Toute la toile est le
+              bouton : au doigt, viser une zone sensible est une exigence de plus. */}
+          <button
+            type="button"
+            aria-label={t('photos.toggleInfo')}
+            onClick={() => {
+              if (swiped.current) { swiped.current = false; return; }
+              setChromeVisible((v) => !v);
+            }}
             onTouchStart={handleTouchStart}
             onTouchEnd={handleTouchEnd}
+            className="absolute inset-0 flex cursor-default items-center justify-center focus:outline-none"
           >
             {src && !failed ? (
               <img
@@ -167,17 +193,50 @@ export default function PhotoLightbox({
                 alt={label}
                 decoding="async"
                 onError={() => setFailed(true)}
-                className="max-h-[45vh] w-full object-contain lg:max-h-[70vh]"
+                className="h-full w-full object-contain"
               />
             ) : (
-              <div className="flex flex-col items-center gap-2 text-muted-foreground">
+              <span className="flex flex-col items-center gap-2 text-white/70">
                 {failed ? <ImageOff className="h-10 w-10" aria-hidden /> : <Camera className="h-10 w-10" aria-hidden />}
                 <span className="text-xs">
                   {failed ? t('photos.thumbFailed') : t('photos.noPreview')}
                 </span>
-              </div>
+              </span>
             )}
+          </button>
 
+          <Chrome visible={chromeVisible}>
+            {/* Barre haute — fermer, se situer, phase */}
+            <div className="pointer-events-none absolute inset-x-0 top-0 flex items-center gap-2 p-3 sm:p-4">
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={() => onOpenChange(null)}
+                aria-label={t('common.close')}
+                className={cn(GLASS, 'pointer-events-auto h-9 w-9 shrink-0 rounded-full hover:bg-background')}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+
+              <div className="flex flex-1 items-center justify-center">
+                {photos.length > 1 ? (
+                  <span className={cn(GLASS, 'rounded-full px-3 py-1 text-xs font-medium text-muted-foreground')}>
+                    {t('photos.position', { current: index + 1, total: photos.length })}
+                  </span>
+                ) : null}
+              </div>
+
+              <div className="flex w-9 shrink-0 justify-end">
+                {phaseKey ? (
+                  <span className={cn(GLASS, 'whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium text-primary')}>
+                    {t(`photos.phase.${phaseKey}`)}
+                  </span>
+                ) : null}
+              </div>
+            </div>
+
+            {/* Navigation */}
             {hasPrev ? (
               <NavButton side="left" label={t('photos.previous')} onClick={goPrev} icon={ChevronLeft} />
             ) : null}
@@ -185,88 +244,101 @@ export default function PhotoLightbox({
               <NavButton side="right" label={t('photos.next')} onClick={goNext} icon={ChevronRight} />
             ) : null}
 
-            {photos.length > 1 ? (
-              <span className="absolute bottom-2 left-1/2 -translate-x-1/2 rounded-full bg-background/85 px-2 py-0.5 text-[11px] font-medium text-muted-foreground shadow-sm backdrop-blur-sm">
-                {t('photos.position', { current: index + 1, total: photos.length })}
-              </span>
-            ) : null}
-          </div>
+            {/* Barre basse — ce que la photo est, et ce qu'on peut en faire */}
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 p-3 sm:p-4">
+              <div
+                className={cn(
+                  GLASS,
+                  'pointer-events-auto mx-auto flex w-full max-w-2xl flex-col gap-3 rounded-2xl p-4',
+                )}
+              >
+                <div className="min-w-0 space-y-1">
+                  <DialogTitle className="break-words text-base font-semibold leading-snug text-foreground">
+                    {label}
+                  </DialogTitle>
+                  <p className="text-xs text-muted-foreground">{facts.join(' · ')}</p>
+                  {showImportDate ? (
+                    <p className="text-xs text-muted-foreground/70">
+                      {t('photos.addedOn', { date: formatDate(photo.created_at) })}
+                    </p>
+                  ) : null}
+                </div>
 
-          {/* Métadonnées */}
-          <div className="flex w-full flex-col gap-4 border-border p-5 lg:w-80 lg:border-l">
-            <div className="flex items-start justify-between gap-2">
-              <div className="min-w-0 space-y-1">
-                <DialogTitle className="break-words text-base font-semibold leading-snug text-foreground">
-                  {label}
-                </DialogTitle>
-                <p className="text-xs text-muted-foreground">{facts.join(' · ')}</p>
-                {showImportDate ? (
-                  <p className="text-xs text-muted-foreground/70">
-                    {t('photos.addedOn', { date: formatDate(photo.created_at) })}
+                {photo.notes?.trim() ? (
+                  <p className="max-h-24 overflow-y-auto whitespace-pre-line text-sm leading-relaxed text-foreground">
+                    {photo.notes}
                   </p>
                 ) : null}
+
+                {renderZones?.(photo)}
+
+                <div className="flex flex-wrap items-center gap-2">
+                  {photo.file_url ? (
+                    <>
+                      <a
+                        href={photo.file_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'flex-1 justify-center sm:flex-none')}
+                      >
+                        <ExternalLink className="mr-2 h-4 w-4" aria-hidden />
+                        {t('photos.view')}
+                      </a>
+                      <a
+                        href={photo.file_url}
+                        download
+                        className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'flex-1 justify-center sm:flex-none')}
+                      >
+                        <Download className="mr-2 h-4 w-4" aria-hidden />
+                        {t('photos.download')}
+                      </a>
+                    </>
+                  ) : null}
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="ml-auto text-destructive hover:bg-destructive/10 hover:text-destructive"
+                    onClick={() => onRemove(photo)}
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" aria-hidden />
+                    {removeLabel}
+                  </Button>
+                </div>
               </div>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="h-7 w-7 shrink-0 text-muted-foreground hover:text-foreground"
-                onClick={() => onOpenChange(null)}
-                aria-label={t('common.close')}
-              >
-                <X className="h-4 w-4" />
-              </Button>
             </div>
-
-            {phaseKey ? (
-              <span className="w-fit rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
-                {t(`photos.phase.${phaseKey}`)}
-              </span>
-            ) : null}
-
-            {photo.notes?.trim() ? (
-              <p className="whitespace-pre-line text-sm leading-relaxed text-foreground">{photo.notes}</p>
-            ) : null}
-
-            {renderZones?.(photo)}
-
-            <div className="mt-auto flex flex-col gap-2 pt-4">
-              {photo.file_url ? (
-                <>
-                  <a
-                    href={photo.file_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'w-full justify-center')}
-                  >
-                    <ExternalLink className="mr-2 h-4 w-4" aria-hidden />
-                    {t('photos.view')}
-                  </a>
-                  <a
-                    href={photo.file_url}
-                    download
-                    className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'w-full justify-center')}
-                  >
-                    <Download className="mr-2 h-4 w-4" aria-hidden />
-                    {t('photos.download')}
-                  </a>
-                </>
-              ) : null}
-              <Button
-                type="button"
-                variant="destructive"
-                size="sm"
-                className="w-full"
-                onClick={() => onRemove(photo)}
-              >
-                <Trash2 className="mr-2 h-4 w-4" aria-hidden />
-                {removeLabel}
-              </Button>
-            </div>
-          </div>
+          </Chrome>
         </div>
       </DialogContent>
     </Dialog>
+  );
+}
+
+/**
+ * Le calque des commandes. Deux choses s'y jouent, et les deux ont été payées :
+ *
+ * - **`inert` + `aria-hidden`** plutôt qu'un démontage : le retrait devient une
+ *   transition et non un clignement, sans laisser derrière lui des boutons
+ *   transparents mais tabulables — l'opacité seule n'a jamais retiré personne du
+ *   calque d'accessibilité.
+ * - **`pointer-events-none` en permanence**, chaque commande rétablissant le sien.
+ *   Ce calque couvre tout l'écran : ne le neutraliser que lorsqu'il est *caché*
+ *   revenait à ce qu'il avale le tap sur la photo tant qu'il est visible — donc à
+ *   ne jamais pouvoir le retirer. Invisible en jsdom, qui ne fait pas de
+ *   hit-testing ; vu du premier coup dans un vrai navigateur.
+ */
+function Chrome({ visible, children }: { visible: boolean; children: React.ReactNode }) {
+  return (
+    <div
+      inert={!visible}
+      aria-hidden={!visible}
+      className={cn(
+        'pointer-events-none absolute inset-0 transition-opacity duration-300 motion-reduce:transition-none',
+        visible ? 'opacity-100' : 'opacity-0',
+      )}
+    >
+      {children}
+    </div>
   );
 }
 
@@ -282,16 +354,19 @@ function NavButton({
   icon: React.ComponentType<{ className?: string }>;
 }) {
   return (
-    <button
+    <Button
       type="button"
+      variant="ghost"
+      size="icon"
       onClick={onClick}
       aria-label={label}
       className={cn(
-        'absolute top-1/2 -translate-y-1/2 rounded-full bg-background/85 p-2 text-foreground shadow-sm backdrop-blur-sm transition hover:bg-background focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary',
-        side === 'left' ? 'left-2' : 'right-2',
+        GLASS,
+        'pointer-events-auto absolute top-1/2 h-10 w-10 -translate-y-1/2 rounded-full hover:bg-background',
+        side === 'left' ? 'left-3 sm:left-4' : 'right-3 sm:right-4',
       )}
     >
       <Icon className="h-5 w-5" />
-    </button>
+    </Button>
   );
 }

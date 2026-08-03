@@ -1879,6 +1879,7 @@
     },
     "thumbFailed": "Aperçu indisponible",
     "noPreview": "Pas d'aperçu",
+    "toggleInfo": "Afficher ou masquer les informations",
     "previous": "Photo précédente",
     "next": "Photo suivante",
     "position": "{{current}} sur {{total}}",
