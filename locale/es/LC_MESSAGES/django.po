@@ -697,12 +697,12 @@ msgstr "Total gastado: %(total)s en %(count)d gasto(s)."
 #: apps/budget/report/render.py:36
 #, python-format
 msgid "That's %(pct)s%% more than the previous month (%(prev)s)."
-msgstr "Es un %(pct)s%% más que el mes anterior (%(prev)s)."
+msgstr "Es un %(pct)s %% más que el mes anterior (%(prev)s)."
 
 #: apps/budget/report/render.py:39
 #, python-format
 msgid "That's %(pct)s%% less than the previous month (%(prev)s)."
-msgstr "Es un %(pct)s%% menos que el mes anterior (%(prev)s)."
+msgstr "Es un %(pct)s %% menos que el mes anterior (%(prev)s)."
 
 #: apps/budget/report/render.py:42
 #, python-format
