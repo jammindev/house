@@ -625,6 +625,31 @@ comptent dans le chantier **et** dans l'enveloppe « Bricolage ».
 > été contourné. **Ne pas traduire les strings tierces** — Django fournit les
 > siennes.
 
+### `gettext` a le même garde-fou que i18next — `test_prose_is_translated.py`
+
+Toute prose que le foyer **lit** (bilan mensuel, récap, pings) voit ses littéraux
+`_("…")` vérifiés dans les catalogues **compilés** de `fr`/`de`/`es`. Ajouter un
+module qui écrit une phrase à l'utilisateur = l'ajouter à `PROSE_MODULES`.
+
+- **Un `msgstr` vide ne casse rien, il traduit en anglais.** Le bilan mensuel a
+  vécu en prod en anglais dans les quatre langues : ses quatorze chaînes étaient
+  vides dans les trois `.po`. Rien de rouge, un texte parfaitement valide —
+  simplement pas dans la bonne langue. C'est exactement ce que produisaient les
+  `defaultValue` côté front, et ça se corrige avec le même outil : un test.
+- **Une entrée `#, fuzzy` est absente du `.mo`**, donc invisible au runtime mais
+  bien présente dans le `.po` — et `msgmerge` la remplit en devinant depuis une
+  chaîne voisine. Deux entrées du bilan portaient ainsi les placeholders d'un
+  message de stock (`%(qty)s`, `%(unit)s`) : les « défuzzifier » sans relire
+  aurait levé un `KeyError` au rendu. Une traduction devinée se relit avant de
+  se garder.
+- **Le test lit le catalogue compilé, jamais le rendu.** Une traduction a le droit
+  d'être identique à l'original (`%(name)s: %(spent)s.` en allemand) : comparer
+  deux rendus ne prouverait rien, alors que `msgfmt` n'écrit que les entrées non
+  vides et non fuzzy.
+- **Portée : la prose, pas les `help_text`.** ~180 chaînes d'admin et de
+  validation restent non traduites ; c'est un autre chantier, et l'y inclure
+  rendrait le garde-fou rouge en permanence, donc inutile.
+
 ### Frontend — formulaire partagé
 
 Pour la partie UI, `ui/src/features/interactions/PurchaseForm.tsx` est le composant partagé (champs prix/fournisseur/date/notes + delta optionnel). Chaque feature wrappe ce form dans son propre dialog (`StockPurchaseDialog`, `EquipmentPurchaseDialog`, etc.) qui gère :
