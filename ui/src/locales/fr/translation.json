@@ -1137,6 +1137,22 @@
       "license": "Maisonnée est un logiciel libre, sous licence GNU Affero General Public License v3.0. Vous pouvez l'utiliser, l'étudier, le modifier et le partager.",
       "sourceCode": "Code source",
       "licenseLink": "Lire la licence"
+    },
+    "devices": {
+      "title": "Appareils",
+      "subtitle": "Envoyer des photos depuis un téléphone sans y stocker votre mot de passe.",
+      "nameLabel": "Nom de l'appareil",
+      "namePlaceholder": "iPhone de Ben",
+      "create": "Créer un jeton",
+      "empty": "Aucun appareil connecté pour l'instant.",
+      "revoke": "Révoquer",
+      "revoked": "Appareil révoqué. Il ne peut plus rien envoyer.",
+      "lastUsed": "Dernier envoi le {{date}}",
+      "neverUsed": "Jamais utilisé",
+      "issuedTitle": "Votre jeton",
+      "issuedOnce": "Copiez-le maintenant : il ne s'affichera plus. Nous n'en gardons qu'une empreinte, il est donc impossible de le retrouver.",
+      "copy": "Copier",
+      "copied": "Jeton copié."
     }
   },
   "tutorials": {
@@ -1866,6 +1882,18 @@
       "bulkHint": "Les zones choisies s'ajoutent à celles déjà présentes ; retirer une zone se fait photo par photo.",
       "bulkSaved": "{{count}} photo rangée.",
       "bulkSaved_other": "{{count}} photos rangées."
+    },
+    "share": {
+      "title": "Photos partagées",
+      "progress": "Envoi {{current}} / {{total}}…",
+      "finished_one": "1 photo envoyée.",
+      "finished_other": "{{count}} photos envoyées.",
+      "sent": "Envoyée",
+      "failed": "Échec",
+      "pending": "En attente",
+      "seeGallery": "Voir la galerie",
+      "empty": "Rien à envoyer",
+      "empty_hint": "Partagez des photos depuis votre galerie pour les retrouver ici."
     }
   },
   "directory": {

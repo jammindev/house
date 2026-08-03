@@ -1,3 +1,5 @@
+import hashlib
+import secrets
 import uuid
 from django.contrib.auth.models import BaseUserManager, PermissionsMixin
 from django.db import models
@@ -192,3 +194,87 @@ class User(AbstractBaseUser, PermissionsMixin):
         if self.display_name:
             return self.display_name
         return f"{self.first_name} {self.last_name}".strip() or self.email
+
+
+class DeviceToken(models.Model):
+    """Un jeton d'appareil — le droit d'**envoyer**, et rien d'autre.
+
+    Il existe parce qu'un raccourci iOS ne peut pas emprunter la session du
+    navigateur : sans lui, le seul moyen d'envoyer une photo depuis un téléphone est
+    d'y stocker l'email et le mot de passe du compte, en clair, dans un objet qui se
+    partage d'un geste. Un jeton, lui, ne vaut que ce qu'il permet, et se révoque
+    sans toucher au compte.
+
+    ⚠️ **Le secret n'est jamais stocké.** Seule son empreinte l'est ; le clair n'est
+    rendu qu'une fois, à l'émission. Un jeton qu'on peut relire en base a exactement
+    la même valeur qu'un mot de passe, donc n'a plus de raison d'exister.
+    """
+
+    #: Préfixe du secret — le rend reconnaissable dans un journal ou un presse-papier.
+    PREFIX = "mzn_"
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(
+        "accounts.User",
+        on_delete=models.CASCADE,
+        related_name="device_tokens",
+    )
+    name = models.CharField(
+        max_length=100,
+        help_text=_("Device name, chosen by the user (« iPhone de Ben »)."),
+    )
+    token_hash = models.CharField(max_length=64, unique=True, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    last_used_at = models.DateTimeField(null=True, blank=True)
+    revoked_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = _("device token")
+        verbose_name_plural = _("device tokens")
+
+    def __str__(self) -> str:
+        return f"{self.name} ({self.user_id})"
+
+    @staticmethod
+    def hash_secret(raw: str) -> str:
+        """L'empreinte d'un secret. SHA-256 suffit : le secret est déjà à haute
+        entropie, donc les attaques par dictionnaire qui justifient un hachage lent
+        pour un mot de passe n'ont pas de prise ici."""
+        return hashlib.sha256(raw.encode("utf-8")).hexdigest()
+
+    @classmethod
+    def issue(cls, *, user, name: str) -> tuple["DeviceToken", str]:
+        """Émet un jeton et renvoie ``(instance, secret en clair)``.
+
+        Le second élément est la **seule** occasion de lire le secret.
+        """
+        raw = cls.PREFIX + secrets.token_urlsafe(32)
+        token = cls.objects.create(user=user, name=name, token_hash=cls.hash_secret(raw))
+        return token, raw
+
+    @classmethod
+    def resolve(cls, raw: str) -> "DeviceToken | None":
+        """Le jeton **vivant** correspondant à ce secret, ou ``None``."""
+        if not raw:
+            return None
+        return (
+            cls.objects.select_related("user")
+            .filter(token_hash=cls.hash_secret(raw), revoked_at__isnull=True)
+            .first()
+        )
+
+    @property
+    def is_revoked(self) -> bool:
+        return self.revoked_at is not None
+
+    def revoke(self) -> None:
+        """Révoquer coupe à la requête suivante — pas au prochain déploiement."""
+        if self.revoked_at is None:
+            self.revoked_at = timezone.now()
+            self.save(update_fields=["revoked_at"])
+
+    def touch(self) -> None:
+        """Trace du dernier usage, pour qu'un jeton oublié se repère."""
+        self.last_used_at = timezone.now()
+        self.save(update_fields=["last_used_at"])

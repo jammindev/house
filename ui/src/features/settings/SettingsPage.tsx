@@ -7,6 +7,7 @@ import { ProactiveSection } from './components/ProactiveSection';
 import { ProfileSection } from './components/ProfileSection';
 import { TelegramSection } from './components/TelegramSection';
 import { WebPushSection } from './components/WebPushSection';
+import { DevicesSection } from './components/DevicesSection';
 import { ThemeSection } from './components/ThemeSection';
 import { AgentMemorySection } from './components/AgentMemorySection';
 import { ChangePasswordSection } from './components/ChangePasswordSection';
@@ -44,6 +45,7 @@ export default function SettingsPage() {
       <ProfileSection />
       <TelegramSection />
       <WebPushSection />
+      <DevicesSection />
       <NotificationsSection />
       <ProactiveSection />
       <ThemeSection />

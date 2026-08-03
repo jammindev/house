@@ -163,6 +163,65 @@ date du déclenchement, lue dans l'EXIF.
 
 ---
 
+### Envoyer des photos depuis un téléphone
+
+Deux chemins, et ils ne coûtent pas la même chose — l'asymétrie vient de Safari, qui
+ne prend pas en charge le *Web Share Target*, pas de House.
+
+| | iOS | Android |
+|---|---|---|
+| Mécanisme | Raccourci Shortcuts | `share_target` du manifeste PWA |
+| Authentification | Jeton d'appareil (`docs/MODULES/accounts.md`) | La session existante |
+| Installation | Importer un raccourci, coller un jeton | Installer la PWA |
+| Serveur | — | — (aucun code spécifique) |
+
+**Android — pourquoi la page téléverse et pas le service worker.** Le partage
+système envoie un POST multipart sur `/app/photos/share`. Le service worker
+l'intercepte (`templates/sw.js`), car sans interception la requête part au réseau
+comme un chargement de page et le SPA ne voit rien. Mais **un service worker ne peut
+pas lire `localStorage`**, où vit le jeton du SPA : il ne peut donc pas fabriquer
+l'en-tête `Authorization` et ne doit **pas** tenter l'envoi. Il met les fichiers
+dans un cache, redirige en 303, et `features/photos/SharePage.tsx` — qui, elle, lit
+`localStorage` — téléverse. Tenter l'envoi depuis le worker donne des 401 qu'on
+cherche longtemps.
+
+Le cache de partage est **consommé** à la lecture (`features/photos/sharedFiles.ts`) :
+sans ça un simple rechargement renverrait le même lot, en doublons. Régression :
+`sharedFiles.test.ts`.
+
+#### Le raccourci iOS, avec un jeton
+
+Deux actions, contre quatre avec l'authentification par mot de passe — et surtout
+**plus aucun parsing JSON**, qui est ce qui cassait le plus souvent au montage
+manuel :
+
+1. `Repeat with Each` sur **Shortcut Input**
+2. `Get Contents of URL` → `https://<instance>/api/documents/documents/upload/`
+   - `Method` : `POST`
+   - `Headers` : `Authorization` = `Device <jeton>`
+   - `Request Body` : **Form** (jamais JSON — c'est lui qui transporte le fichier)
+     - `file` → type **File** → *Repeat Item*
+     - `type` → **Text** → `photo`
+
+**Le raccourci se distribue déjà construit.** Le monter à la main prend une
+quarantaine de minutes et se trompe cinq fois : personne ne le refera. Il se publie
+par lien iCloud et pose ses **Import Questions** à l'installation — l'adresse de
+l'instance et le jeton. Le domaine ne doit **pas** être codé en dur : il change d'un
+foyer auto-hébergé à l'autre.
+
+⚠️ **Le lien iCloud se crée depuis un iPhone**, il ne peut pas être produit par le
+dépôt. C'est le seul livrable de ce mécanisme qui vit hors du code — et c'est
+précisément pourquoi il ne doit être qu'un **confort, jamais un prérequis** : un
+lien iCloud est attaché à un compte personnel, et une installation auto-hébergée ne
+peut pas dépendre du compte de l'auteur. La recette complète vit donc en anglais
+dans `docs/self-hosting/sending-photos-from-your-phone.md` ; celui qui a le lien
+gagne deux minutes, celui qui ne l'a pas reconstruit le raccourci en cinq.
+
+**`type=photo` n'est pas cosmétique.** Il décide de la branche serveur : vignettes
+pour une photo, **OCR de vision** pour un document. L'oublier fait décrire par un
+modèle payant une image sans texte, et la photo n'apparaît pas dans la galerie.
+Constaté en production le 2026-08-03 en montant le raccourci iOS à la main.
+
 ## Notes / décisions produit
 
 - **Architecture "double relation" interaction → document** : la FK `Document.interaction` est une relation legacy (migration Supabase). Le vrai lien M2M est `InteractionDocument`. Les deux coexistent — `legacy_interaction` est exposé dans le sérialiseur pour ne pas casser les clients. Ne pas supprimer la FK sans migration de données (`apps/documents/models.py:69-76`).

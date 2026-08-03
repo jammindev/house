@@ -4,6 +4,12 @@ import { useTranslation } from 'react-i18next';
 import { useToast } from '@/lib/toast';
 import { fetchMe, patchMe, uploadAvatar, deleteAvatar, changePassword, type UserProfile, type UpdateProfileInput } from '@/lib/api/users';
 import {
+  createDeviceToken,
+  fetchDeviceTokens,
+  revokeDeviceToken,
+  type DeviceToken,
+} from '@/lib/api/devices';
+import {
   createTelegramLinkToken,
   fetchTelegramStatus,
   unlinkTelegram,
@@ -364,3 +370,49 @@ export function useDeclineInvitation() {
     onError: () => toast({ description: t('settings.requestFailed'), variant: 'destructive' }),
   });
 }
+
+// --- Jetons d'appareil ------------------------------------------------------
+//
+// Un jeton sert à envoyer des photos depuis un téléphone sans y stocker le mot de
+// passe du compte. Le secret n'existe qu'à la création : la liste ne le contient
+// jamais, et le serveur n'en garde que l'empreinte.
+
+const deviceKeys = {
+  all: ['settings', 'devices'] as const,
+};
+
+export function useDeviceTokens() {
+  return useQuery({
+    queryKey: deviceKeys.all,
+    queryFn: fetchDeviceTokens,
+  });
+}
+
+export function useCreateDeviceToken() {
+  const qc = useQueryClient();
+  const { t } = useTranslation();
+  const { toast } = useToast();
+  return useMutation({
+    mutationFn: (name: string) => createDeviceToken(name),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: deviceKeys.all });
+    },
+    onError: () => toast({ description: t('settings.requestFailed'), variant: 'destructive' }),
+  });
+}
+
+export function useRevokeDeviceToken() {
+  const qc = useQueryClient();
+  const { t } = useTranslation();
+  const { toast } = useToast();
+  return useMutation({
+    mutationFn: (id: string) => revokeDeviceToken(id),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: deviceKeys.all });
+      toast({ description: t('settings.devices.revoked'), variant: 'default' });
+    },
+    onError: () => toast({ description: t('settings.requestFailed'), variant: 'destructive' }),
+  });
+}
+
+export type { DeviceToken };

@@ -1137,6 +1137,22 @@
       "license": "Maisonnée is free software, licensed under the GNU Affero General Public License v3.0. You may run, study, modify and share it.",
       "sourceCode": "Source code",
       "licenseLink": "Read the licence"
+    },
+    "devices": {
+      "title": "Devices",
+      "subtitle": "Send photos from a phone without storing your password on it.",
+      "nameLabel": "Device name",
+      "namePlaceholder": "Ben's iPhone",
+      "create": "Create token",
+      "empty": "No connected device yet.",
+      "revoke": "Revoke",
+      "revoked": "Device revoked. It can no longer send anything.",
+      "lastUsed": "Last sent on {{date}}",
+      "neverUsed": "Never used",
+      "issuedTitle": "Your token",
+      "issuedOnce": "Copy it now — it will not be shown again. We only keep a fingerprint of it, so it cannot be recovered.",
+      "copy": "Copy",
+      "copied": "Token copied."
     }
   },
   "tutorials": {
@@ -1866,6 +1882,18 @@
       "bulkHint": "The zones you pick are added to those already set; removing a zone is done photo by photo.",
       "bulkSaved": "{{count}} photo filed.",
       "bulkSaved_other": "{{count}} photos filed."
+    },
+    "share": {
+      "title": "Shared photos",
+      "progress": "Sending {{current}} / {{total}}…",
+      "finished_one": "1 photo sent.",
+      "finished_other": "{{count}} photos sent.",
+      "sent": "Sent",
+      "failed": "Failed",
+      "pending": "Pending",
+      "seeGallery": "View gallery",
+      "empty": "Nothing to send",
+      "empty_hint": "Share photos from your gallery to find them here."
     }
   },
   "directory": {

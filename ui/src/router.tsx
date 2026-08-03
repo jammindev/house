@@ -38,6 +38,7 @@ const TrackerDetailPage = lazyWithReload(() => import('./features/trackers/Track
 const TrackerEntryRedirect = lazyWithReload(() => import('./features/trackers/TrackerEntryRedirect'));
 const InsurancePage = lazyWithReload(() => import('./features/insurance/InsurancePage'));
 const PhotosPage = lazyWithReload(() => import('./features/photos/PhotosPage'));
+const PhotoSharePage = lazyWithReload(() => import('./features/photos/SharePage'));
 const SettingsPage = lazyWithReload(() => import('./features/settings/SettingsPage'));
 const DashboardPage = lazyWithReload(() => import('./features/dashboard/DashboardPage'));
 const AlertsPage = lazyWithReload(() => import('./features/alerts/AlertsPage'));
@@ -146,6 +147,9 @@ export const router = createBrowserRouter([
       { path: 'tracker-entries/:id', element: <ModuleRoute moduleKey="trackers"><TrackerEntryRedirect /></ModuleRoute> },
       { path: 'insurance', element: <ModuleRoute moduleKey="insurance"><InsurancePage /></ModuleRoute> },
       { path: 'photos', element: <ModuleRoute moduleKey="photos"><PhotosPage /></ModuleRoute> },
+      // Cible du partage système Android — le service worker y redirige après avoir
+      // mis les fichiers de côté (voir templates/sw.js et features/photos/sharedFiles.ts).
+      { path: 'photos/share', element: <ModuleRoute moduleKey="photos"><PhotoSharePage /></ModuleRoute> },
       { path: 'alerts', element: <AlertsPage /> },
       { path: 'notifications', element: <NotificationsPage /> },
       { path: 'settings', element: <SettingsPage /> },
