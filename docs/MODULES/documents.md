@@ -189,6 +189,29 @@ Le cache de partage est **consommé** à la lecture (`features/photos/sharedFile
 sans ça un simple rechargement renverrait le même lot, en doublons. Régression :
 `sharedFiles.test.ts`.
 
+#### Le raccourci iOS, avec un jeton
+
+Deux actions, contre quatre avec l'authentification par mot de passe — et surtout
+**plus aucun parsing JSON**, qui est ce qui cassait le plus souvent au montage
+manuel :
+
+1. `Repeat with Each` sur **Shortcut Input**
+2. `Get Contents of URL` → `https://<instance>/api/documents/documents/upload/`
+   - `Method` : `POST`
+   - `Headers` : `Authorization` = `Device <jeton>`
+   - `Request Body` : **Form** (jamais JSON — c'est lui qui transporte le fichier)
+     - `file` → type **File** → *Repeat Item*
+     - `type` → **Text** → `photo`
+
+**Le raccourci se distribue déjà construit.** Le monter à la main prend une
+quarantaine de minutes et se trompe cinq fois : personne ne le refera. Il se publie
+par lien iCloud et pose ses **Import Questions** à l'installation — l'adresse de
+l'instance et le jeton. Le domaine ne doit **pas** être codé en dur : il change d'un
+foyer auto-hébergé à l'autre.
+
+⚠️ **Le lien iCloud se crée depuis un iPhone**, il ne peut pas être produit par le
+dépôt. C'est le seul livrable de ce mécanisme qui vit hors du code.
+
 **`type=photo` n'est pas cosmétique.** Il décide de la branche serveur : vignettes
 pour une photo, **OCR de vision** pour un document. L'oublier fait décrire par un
 modèle payant une image sans texte, et la photo n'apparaît pas dans la galerie.
