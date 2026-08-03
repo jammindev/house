@@ -5,6 +5,28 @@ export function isIos(): boolean {
   return /iphone|ipad|ipod/i.test(navigator.userAgent);
 }
 
+export function isAndroid(): boolean {
+  if (typeof navigator === 'undefined') return false;
+  return /android/i.test(navigator.userAgent);
+}
+
+/**
+ * La plateforme, du point de vue de **ce qu'on peut y faire** — pas de la marque.
+ *
+ * L'envoi de photos depuis un téléphone n'a pas le même parcours partout, et
+ * l'utilisateur n'a aucun moyen de le deviner : Android reçoit le partage système
+ * sans rien configurer, iOS impose un raccourci et un jeton, et sur un ordinateur
+ * la question ne se pose pas. Un écran qui ne fait pas cette distinction affiche à
+ * chacun les instructions des deux autres.
+ */
+export type DevicePlatform = 'ios' | 'android' | 'desktop';
+
+export function devicePlatform(): DevicePlatform {
+  if (isIos()) return 'ios';
+  if (isAndroid()) return 'android';
+  return 'desktop';
+}
+
 /** True quand l'app tourne installée (écran d'accueil / fenêtre standalone). */
 export function isStandalone(): boolean {
   if (typeof window === 'undefined') return false;

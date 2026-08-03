@@ -1152,7 +1152,22 @@
       "issuedTitle": "Votre jeton",
       "issuedOnce": "Copiez-le maintenant : il ne s'affichera plus. Nous n'en gardons qu'une empreinte, il est donc impossible de le retrouver.",
       "copy": "Copier",
-      "copied": "Jeton copié."
+      "copied": "Jeton copié.",
+      "android": {
+        "title": "Sur Android, rien à configurer",
+        "installed": "Dans votre galerie, sélectionnez des photos, touchez Partager, puis choisissez Maisonnée. Le jeton ci-dessous n'est utile que pour un iPhone.",
+        "toInstall": "Installez d'abord Maisonnée sur votre écran d'accueil : « Maisonnée » apparaîtra alors dans le menu Partager de votre galerie. Le jeton ci-dessous n'est utile que pour un iPhone."
+      },
+      "ios": {
+        "title": "Sur iPhone, en trois étapes",
+        "step1": "Créez un jeton ci-dessous et copiez-le.",
+        "step2": "Dans l'app Raccourcis, créez un raccourci affiché dans la feuille de partage, qui accepte les images.",
+        "step3": "Ajoutez « Répéter pour chaque » sur l'entrée du raccourci, et dedans « Obtenir le contenu de » votre instance, en POST, avec l'en-tête Authorization « Device » suivi de votre jeton, un corps de type Formulaire, un champ file de type Fichier valant l'élément répété, et un champ type valant photo.",
+        "warning": "Deux pièges : le corps doit être Formulaire et non JSON, et le champ type doit valoir photo — sans lui la photo n'arrive pas dans la galerie."
+      },
+      "desktop": {
+        "hint": "Cet écran sert à connecter un téléphone. Ouvrez Maisonnée depuis le vôtre pour voir la marche à suivre."
+      }
     }
   },
   "tutorials": {
@@ -1603,6 +1618,10 @@
           "file": {
             "title": "Ranger une photo dans une zone",
             "body": "La pastille « Sans zone » signale une photo rangée nulle part, et le filtre du même nom les regroupe. Attribuez-lui une zone sans quitter la galerie : par le menu ⋯ de la vignette, ou dans le bloc Zones de la photo ouverte. Pour en ranger plusieurs d'un coup, « Sélectionner » puis cochez : les zones choisies s'ajoutent à celles déjà présentes."
+          },
+          "phone": {
+            "title": "Envoyer depuis votre téléphone",
+            "body": "Le geste le plus fréquent n'est pas d'ouvrir Maisonnée pour importer, c'est de venir de photographier quelque chose. Sur Android, installez l'app sur votre écran d'accueil et « Maisonnée » apparaît dans le menu Partager : rien d'autre à faire. Sur iPhone, créez un jeton dans Réglages → Appareils, puis un raccourci qui l'envoie — la marche à suivre s'affiche sur cet écran depuis votre téléphone."
           }
         }
       },

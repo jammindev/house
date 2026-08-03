@@ -1152,7 +1152,22 @@
       "issuedTitle": "Your token",
       "issuedOnce": "Copy it now — it will not be shown again. We only keep a fingerprint of it, so it cannot be recovered.",
       "copy": "Copy",
-      "copied": "Token copied."
+      "copied": "Token copied.",
+      "android": {
+        "title": "On Android, nothing to configure",
+        "installed": "In your gallery, select photos, tap Share, then choose Maisonnée. The token below is only useful for an iPhone.",
+        "toInstall": "First install Maisonnée on your home screen: « Maisonnée » will then appear in your gallery’s Share menu. The token below is only useful for an iPhone."
+      },
+      "ios": {
+        "title": "On iPhone, in three steps",
+        "step1": "Create a token below and copy it.",
+        "step2": "In the Shortcuts app, create a shortcut shown in the share sheet, accepting images.",
+        "step3": "Add « Repeat with Each » over the shortcut input, and inside it « Get Contents of URL » pointing at your instance, method POST, with the Authorization header set to « Device » followed by your token, a Form request body, a file field of type File set to the repeat item, and a type field set to photo.",
+        "warning": "Two pitfalls: the request body must be Form and not JSON, and the type field must be photo — without it the picture never reaches the gallery."
+      },
+      "desktop": {
+        "hint": "This screen is for connecting a phone. Open Maisonnée from yours to see how."
+      }
     }
   },
   "tutorials": {
@@ -1603,6 +1618,10 @@
           "file": {
             "title": "File a photo into a zone",
             "body": "The “No zone” badge flags a photo filed nowhere, and the filter of the same name gathers them all. Assign a zone without leaving the gallery: from the ⋯ menu on the thumbnail, or in the Zones block of the open photo. To file several at once, hit “Select” and tick them: the zones you pick are added to those already set."
+          },
+          "phone": {
+            "title": "Send from your phone",
+            "body": "The most common move is not opening Maisonnée to import, it is having just taken a picture. On Android, install the app on your home screen and « Maisonnée » appears in the Share menu: nothing else to do. On iPhone, create a token under Settings → Devices, then a shortcut that sends the photos — the steps are shown on that screen when you open it from your phone."
           }
         }
       },
