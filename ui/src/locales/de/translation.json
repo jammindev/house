@@ -1672,6 +1672,10 @@
           "modules": {
             "title": "Die richtigen Module aktivieren",
             "body": "Deaktivieren Sie unnötige Module (Hühnerstall, Versicherung…), um die Navigation zu entlasten."
+          },
+          "capabilities": {
+            "title": "Sehen, was diese Instanz kann",
+            "body": "Assistent, semantische Suche, E-Mail, Push-Benachrichtigungen, Telegram: Diese Funktionen hängen von Schlüsseln ab, die bei der Installation hinterlegt wurden, nicht von einer Haushaltseinstellung. Die Liste zeigt, was aktiv ist, was ohne die übrigen fehlt, und verweist auf die Anleitung zur Aktivierung."
           }
         }
       },
@@ -4296,5 +4300,47 @@
     "empty": "Noch kein Lieferant erfasst",
     "willBeAdded": "Neuer Lieferant — wird hinzugefügt",
     "fromLabel": "Aus der Bezeichnung des Vorgangs"
+  },
+  "capabilities": {
+    "title": "Was diese Instanz kann",
+    "description": "Was dieser Server leisten kann, abhängig von den hinterlegten Schlüsseln.",
+    "envVars": "Zu setzende Variablen:",
+    "howToEnable": "So wird es aktiviert",
+    "assistant": {
+      "name": "Assistent",
+      "unavailable": "Der Assistent ist auf dieser Instanz nicht eingerichtet.",
+      "without": "Ohne Anbieterschlüssel kann der Assistent nicht antworten. Alles andere in Maisonnée funktioniert, einschließlich der Stichwortsuche.",
+      "enabled": "Der Assistent beantwortet Fragen zum Haushalt."
+    },
+    "semantic_search": {
+      "name": "Semantische Suche",
+      "unavailable": "Die semantische Suche ist auf dieser Instanz nicht eingerichtet.",
+      "without": "Die Stichwortsuche antwortet weiterhin; es fehlen nur die sinngemäß gefundenen Treffer.",
+      "enabled": "Die Suche findet auch dem Sinn nach, nicht nur nach exakten Wörtern."
+    },
+    "recap_ai": {
+      "name": "Rückblick-Formulierung",
+      "unavailable": "Das Umformulieren des Rückblicks ist auf dieser Instanz nicht eingerichtet.",
+      "without": "Der Monatsrückblick erscheint trotzdem, mit seinen Standardtexten.",
+      "enabled": "Die Bildunterschriften des Monatsrückblicks werden in Alltagssprache umgeschrieben."
+    },
+    "email": {
+      "name": "Ausgehende E-Mail",
+      "unavailable": "Auf dieser Instanz ist kein Mailserver eingerichtet.",
+      "without": "E-Mails werden ins Serverprotokoll geschrieben. Mitglieder lassen sich trotzdem hinzufügen: Der Einladungslink wird von Hand kopiert.",
+      "enabled": "Diese Instanz versendet E-Mails."
+    },
+    "push": {
+      "name": "Push-Benachrichtigungen",
+      "unavailable": "Push-Benachrichtigungen sind auf dieser Instanz nicht eingerichtet.",
+      "without": "Benachrichtigungen bleiben in der App; bei geschlossener App erreicht nichts das Telefon.",
+      "enabled": "Benachrichtigungen erreichen die angemeldeten Geräte."
+    },
+    "telegram": {
+      "name": "Telegram",
+      "unavailable": "Der Telegram-Kanal ist auf dieser Instanz nicht eingerichtet.",
+      "without": "Der Telegram-Kanal ist aus. Benachrichtigungen bleiben in der App.",
+      "enabled": "Der Haushalt kann über Telegram mit dem Assistenten sprechen."
+    }
   }
 }

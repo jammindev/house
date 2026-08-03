@@ -11,6 +11,9 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from app_settings.capabilities import is_available as capability_available
+from app_settings.capabilities import require as require_capability
+
 from . import service
 from .linking import make_link_token
 from .models import TelegramAccount
@@ -50,11 +53,11 @@ class LinkTokenView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        if not settings.TELEGRAM_BOT_TOKEN or not settings.TELEGRAM_BOT_USERNAME:
-            return Response(
-                {"detail": "Telegram channel is not enabled."},
-                status=status.HTTP_503_SERVICE_UNAVAILABLE,
-            )
+        # Le 503 était déjà là, écrit à la main. Il passe par le registre pour
+        # que « le canal est-il configuré ? » n'ait qu'une seule définition —
+        # celle que l'écran lit aussi. Deux formulations du même test finissent
+        # par diverger, et c'est l'utilisateur qui arbitre.
+        require_capability("telegram")
         token = make_link_token(request.user)
         return Response(
             {
@@ -77,9 +80,7 @@ class TelegramAccountView(APIView):
         account = TelegramAccount.objects.filter(user=request.user).first()
         return Response(
             {
-                "enabled": bool(
-                    settings.TELEGRAM_BOT_TOKEN and settings.TELEGRAM_BOT_USERNAME
-                ),
+                "enabled": capability_available("telegram"),
                 "linked": account is not None,
                 "username": account.username if account else "",
                 "linked_at": account.linked_at if account else None,

@@ -50,3 +50,23 @@ class AgentConfig(AppConfig):
         # post_save/post_delete receivers; they self-gate on
         # settings.EMBEDDING_INDEXING_ENABLED (off by default).
         from . import signals  # noqa: F401
+
+        # Capacités optionnelles (parcours 28, lot 3) — ce que l'instance sait
+        # faire selon les clés dont elle dispose. L'écran lit le registre, il ne
+        # relit pas les settings.
+        from app_settings.capabilities import CapabilitySpec, register as register_capability
+
+        from .capabilities import assistant_available, semantic_search_available
+
+        register_capability(CapabilitySpec(
+            key="assistant",
+            available=assistant_available,
+            doc_anchor="assistant-anthropic",
+            env_vars=("ANTHROPIC_API_KEY",),
+        ))
+        register_capability(CapabilitySpec(
+            key="semantic_search",
+            available=semantic_search_available,
+            doc_anchor="semantic-search-embeddings",
+            env_vars=("VOYAGE_API_KEY", "AGENT_HYBRID_RETRIEVAL_ENABLED"),
+        ))

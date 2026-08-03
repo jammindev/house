@@ -15,6 +15,13 @@ vi.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string) => key }),
 }));
 
+// La bulle n'existe que sur une instance qui a l'assistant (parcours 28, lot 3).
+// Ce fichier teste la fermeture du panneau, pas la dégradation : on se place sur
+// une instance configurée, sans monter le client react-query pour autant.
+vi.mock('@/lib/capabilities', () => ({
+  useCapability: () => ({ available: true, isLoading: false, capability: undefined }),
+}));
+
 function CurrentPath() {
   const location = useLocation();
   return <span data-testid="path">{location.pathname}</span>;

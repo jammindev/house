@@ -3,7 +3,9 @@ import { Send, Sparkles, AlertTriangle, RotateCcw, Globe } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/design-system/button';
 import { Textarea } from '@/design-system/textarea';
+import CapabilityNotice from '@/components/CapabilityNotice';
 import { useCurrentUser } from '@/features/settings/hooks';
+import { useCapability } from '@/lib/capabilities';
 import { cn } from '@/lib/utils';
 import ChatBubble from './ChatBubble';
 import PrivacyNotice from './PrivacyNotice';
@@ -125,6 +127,9 @@ export default function ChatPanel({
   // web search (implies a Sonnet 4.6+ model) — never an inert control otherwise.
   const { data: currentUser } = useCurrentUser();
   const webSearchAvailable = Boolean(currentUser?.agent_web_search_available);
+  // L'assistant lui-même est une capacité de l'instance (clé du fournisseur).
+  const { available: assistantAvailable, isLoading: assistantLoading } =
+    useCapability('assistant');
 
   const [messages, setMessages] = React.useState<Message[]>([]);
   const [draft, setDraft] = React.useState('');
@@ -272,6 +277,22 @@ export default function ChatPanel({
 
   const isEmpty = messages.length === 0 && !isBusy;
   const disabled = needsPrivacy || isBusy || (!conversationId && !ensureConversation);
+
+  // Sans clé, le serveur refuse en 503 nommé plutôt que d'inventer un « je ne
+  // sais pas » — inutile d'offrir un champ de saisie qui ne peut que décevoir.
+  // Le gate est **ici**, dans le panneau partagé : la page, le tiroir flottant
+  // et l'onglet d'une entité passent tous les trois par lui.
+  //
+  // `assistantLoading` n'est pas `false` : afficher « il manque une clé » à un
+  // foyer qui en a une, le temps d'un aller-retour, est le même mensonge dans
+  // l'autre sens.
+  if (!assistantLoading && !assistantAvailable) {
+    return (
+      <div className={cn('flex min-h-0 flex-col gap-4', className)}>
+        <CapabilityNotice capability="assistant" />
+      </div>
+    );
+  }
 
   return (
     <div className={cn('flex min-h-0 flex-col gap-4', className)}>

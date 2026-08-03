@@ -52,6 +52,21 @@ SECURE_PROXY_SSL_HEADER = None
 # Email backend for tests
 EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
 
+# La suite tourne sur une instance **configurée** : les endpoints de l'agent
+# refusent désormais en 503 nommé quand la capacité `assistant` manque
+# (parcours 28, lot 3), et sans cette clé chaque test de vue mesurerait ce refus
+# au lieu du comportement qu'il vient vérifier.
+#
+# La valeur est volontairement inutilisable : aucun test n'appelle le
+# fournisseur pour de vrai — ils passent tous un client de test à `service.ask`
+# ou remplacent la fonction. Un test qui atteindrait le réseau échouerait
+# bruyamment sur l'authentification, jamais en silence.
+#
+# L'absence de clé reste testée, explicitement, là où c'est le sujet :
+# `app_settings/tests/test_capabilities.py` et
+# `agent/tests/test_service.py::test_missing_api_key_returns_idk_...`.
+ANTHROPIC_API_KEY = "sk-ant-test-not-a-real-key"
+
 # Password hashers (faster for tests)
 PASSWORD_HASHERS = [
     "django.contrib.auth.hashers.MD5PasswordHasher",

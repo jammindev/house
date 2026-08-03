@@ -54,6 +54,42 @@ class TestAuth:
         assert resp.status_code in (status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN)
 
 
+class TestAnUnconfiguredInstanceSaysSo:
+    """Sans clé, l'endpoint refuse en 503 nommé — il n'invente pas une réponse.
+
+    `service.ask` renvoie proprement « je ne sais pas » quand la clé manque, et
+    c'est le bon comportement pour ses appelants non-HTTP (le digest, les
+    pings). Servi à travers l'API, ce même « je ne sais pas » est un mensonge
+    utile à personne : l'utilisateur en conclut que l'assistant est mauvais
+    plutôt qu'il manque une clé à l'instance. D'où la garde dans la vue, et pas
+    dans le service. Parcours 28, lot 3.
+    """
+
+    def test_ask_refuses_and_names_the_way_out(self, owner_client, household, settings):
+        settings.ANTHROPIC_API_KEY = ""
+
+        resp = owner_client.post(URL, {"question": "engie?"}, format="json")
+
+        assert resp.status_code == status.HTTP_503_SERVICE_UNAVAILABLE
+        body = resp.json()
+        assert body["code"] == "capability_unavailable"
+        assert body["capability"] == "assistant"
+        assert "ANTHROPIC_API_KEY" in body["env_vars"]
+        assert body["docs_url"].endswith("ai-providers.md#assistant-anthropic")
+
+    def test_nothing_is_persisted_by_a_refused_turn(
+        self, owner_client, household, settings, monkeypatch
+    ):
+        """La garde passe **avant** l'effet de bord : un tour refusé ne laisse
+        ni conversation, ni message, ni appel au fournisseur."""
+        settings.ANTHROPIC_API_KEY = ""
+        ask = _patch_ask(monkeypatch)
+
+        owner_client.post(URL, {"question": "engie?"}, format="json")
+
+        assert ask.call_count == 0
+
+
 class TestValidation:
     def test_empty_body_rejected(self, owner_client, household):
         resp = owner_client.post(URL, {}, format="json")

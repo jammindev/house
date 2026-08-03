@@ -15,6 +15,7 @@ import { HouseholdManagement } from './components/HouseholdManagement';
 import { ModulesSection } from './components/ModulesSection';
 import { PendingInvitations } from './components/PendingInvitations';
 import { AboutSection } from './components/AboutSection';
+import { CapabilitiesSection } from './components/CapabilitiesSection';
 
 export default function SettingsPage() {
   const { t } = useTranslation();
@@ -51,6 +52,7 @@ export default function SettingsPage() {
       <ThemeSection />
       <AgentMemorySection />
       <ChangePasswordSection />
+      <CapabilitiesSection />
       <AboutSection />
     </div>
   );

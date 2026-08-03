@@ -1216,6 +1216,54 @@ globale ».
 
 ---
 
+## Capacités optionnelles — une absence se déclare, elle ne se devine pas
+
+Un foyer qui s'auto-héberge n'a ni clé Anthropic, ni Voyage, ni SMTP, ni VAPID,
+ni bot Telegram. Rien ne plantait pour autant — l'agent répondait « je ne sais
+pas », la jambe sémantique renvoyait `[]`, l'e-mail partait dans les logs. Le
+défaut était ailleurs : **l'interface promettait quand même**, et l'utilisateur
+en concluait que le produit était mauvais plutôt qu'il lui manquait une clé.
+D'où le registre `app_settings.capabilities`. Doc : `docs/MODULES/app_settings.md`
++ `docs/self-hosting/ai-providers.md`.
+
+- **Ajouter une capacité optionnelle = une entrée au registre + ses clés i18n**,
+  aucune modification d'écran. Le `CapabilitySpec` s'enregistre depuis
+  l'`apps.py::ready()` de **l'app qui possède le réglage** — même modèle que
+  `agent.searchables` et `banking.compliance.REGISTRY`.
+- **`available` est un callable, jamais une valeur figée à l'import.** Un
+  booléen calculé au chargement gèlerait l'état du premier démarrage, et aucun
+  test ne pourrait le simuler par `override_settings`.
+- **L'inconnu vaut indisponible** (fournisseur non implémenté, moitié d'une paire
+  de clés) — même défaut sûr que `guess_internal`. Une devinette optimiste fait
+  promettre à l'écran ce que le premier clic dément.
+- **Chaque capacité porte l'ancre d'une section existante** de
+  `docs/self-hosting/ai-providers.md`, vérifiée par test : sans ce contrôle le
+  lien meurt le jour où il est écrit, et « nécessite une clé Anthropic »
+  redevient le mur qu'on voulait supprimer. Le libellé, lui, vit dans le
+  namespace i18n `capabilities` du **front** — ajouter une capacité ne doit pas
+  imposer un passage dans quatre `.po`. Sa couverture est vérifiée **depuis
+  Python**, seul côté qui connaît la liste.
+- **Les clés se posent par instance, jamais par foyer** : le `.env` *est* le BYOK
+  de l'auto-hébergeur, et l'endpoint `/api/capabilities/` est donc **global**.
+  Une saisie de clé dans l'interface ferait de `get_llm_client()` une décision
+  d'appelant, ce que `apps/agent/llm.py` interdit. Le payload ne transporte
+  jamais une valeur, seulement le nom de la variable.
+- **Refuser se dit en 503 nommé** (`capabilities.require`), posé **avant tout
+  effet de bord** : un abonnement push ou un tour de conversation que rien ne
+  pourra honorer coûte plus cher qu'un refus immédiat. La garde est dans la
+  **vue**, pas dans le service — `service.ask` doit continuer à répondre « je ne
+  sais pas » à ses appelants non-HTTP (digest, pings), mais servi à travers
+  l'API ce même « je ne sais pas » est un mensonge.
+- **Une capacité n'a qu'une définition.** Telegram avait déjà son 503 écrit à la
+  main, et le front du push déduisait la configuration d'une clé publique vide :
+  deux définitions du même test finissent par diverger, et c'est l'utilisateur
+  qui arbitre. Tout passe par le registre.
+
+Régressions : `apps/app_settings/tests/test_capabilities.py`,
+`agent/tests/test_views.py::TestAnUnconfiguredInstanceSaysSo`.
+
+---
+
 ## Notifications — prévenir un foyer passe par `notify_household`
 
 Toute notification de la famille « **un membre a fait quelque chose** » (tâche

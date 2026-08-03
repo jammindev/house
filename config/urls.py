@@ -53,6 +53,9 @@ urlpatterns = [
     path("api/shopping/", include("shopping.urls")),
     path("api/briefings/", include("briefings.urls")),
     path("api/webpush/", include("webpush.urls")),
+    # Capacités optionnelles de l'instance (parcours 28, lot 3) — pas de
+    # household dans l'URL : les clés se posent par instance, jamais par foyer.
+    path("api/capabilities/", include("app_settings.urls")),
     path("i18n/", include("django.conf.urls.i18n")),
 ]
 
