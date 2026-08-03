@@ -15,7 +15,12 @@
 | 7 | Le géofence — n'envoyer que ce qui a été pris à la maison | ⬜ À faire | #533 |
 
 **Issue parente** : #526 · **Issue annexe (V2 différés)** : #534
-**Extraits du parcours** (ne dépendent d'aucun lot) : #535 (partage iOS) · #537 (partage Android)
+**⚠️ Prérequis, livré AVANT ce parcours** : #535 (partage iOS + jeton d'appareil) ·
+#537 (partage Android). Arbitré le 2026-08-03 : le mécanisme d'envoi depuis le
+téléphone est construit **complètement et mis en prod d'abord**, les lots ci-dessous
+viennent s'y greffer ensuite. Raison : c'est le geste le plus fréquent, il ne dépend
+d'aucun lot, et il alimente en photos réelles la file « À trier » que le lot 2
+construira.
 
 ## Doc associée
 
