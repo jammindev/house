@@ -83,6 +83,7 @@ MIDDLEWARE = [
     # Langue : après AuthenticationMiddleware pour avoir accès à request.user
     "core.middleware.UserLocaleMiddleware",
     "core.middleware.ActiveHouseholdMiddleware",
+    "core.middleware.DeviceTokenScopeMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
@@ -184,6 +185,7 @@ AUTH_USER_MODEL = "accounts.User"
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework_simplejwt.authentication.JWTAuthentication",
+        "accounts.authentication.DeviceTokenAuthentication",
         "rest_framework.authentication.SessionAuthentication",
     ],
     "DEFAULT_PERMISSION_CLASSES": [

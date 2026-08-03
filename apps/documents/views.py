@@ -151,6 +151,10 @@ class DocumentViewSet(viewsets.ModelViewSet):
     Document CRUD with filtering by type, interaction, and search.
     """
     permission_classes = [IsHouseholdMember]
+    #: Le seul geste qu'un jeton d'appareil peut atteindre — envoyer. Tout le reste
+    #: du viewset (liste, détail, suppression) lui est refusé par défaut, voir
+    #: ``core.middleware.DeviceTokenScopeMiddleware``.
+    allows_device_token = ('upload',)
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['type', 'interaction', 'created_by']
     search_fields = ['name', 'notes', 'ocr_text']
@@ -341,7 +345,12 @@ class DocumentViewSet(viewsets.ModelViewSet):
         else:
             _run_extraction(document, feature="ocr_upload", user=request.user)
 
-        recent_candidates = get_recent_interaction_candidates(request, household)
+        # Ce qui revient est borné comme ce qu'on peut appeler : les candidats du
+        # journal servent à l'interface web (parcours 02), pas à un appareil. Les
+        # renvoyer à un raccourci lui livrerait les libellés des dernières dépenses
+        # bancaires en réponse à un envoi de photo.
+        from_device = getattr(request, 'device_token', None) is not None
+        recent_candidates = [] if from_device else get_recent_interaction_candidates(request, household)
         response_payload = {
             'document': DocumentDetailSerializer(
                 document,

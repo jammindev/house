@@ -62,8 +62,16 @@ class ActiveHouseholdMiddleware:
 
     Priorité de résolution de l'utilisateur :
       1. Bearer JWT (Authorization header) — couvre l'impersonation et les appels API
-      2. DRF force_authenticate (_force_auth_user) — tests unitaires
-      3. Session Django — navigation web classique
+      2. Jeton d'appareil (``Authorization: Device …``) — raccourci iOS
+      3. DRF force_authenticate (_force_auth_user) — tests unitaires
+      4. Session Django — navigation web classique
+
+    ⚠️ **Le n°2 doit vivre ici, et pas seulement dans une classe d'authentification
+    DRF.** Ce middleware tourne **avant** DRF : une classe d'authentification seule
+    authentifierait bien l'utilisateur au niveau de la vue, mais ``request.household``
+    aurait déjà été fixé à ``None`` — et tout envoi depuis un téléphone répondrait
+    « A valid household context is required », sans que rien ne désigne le middleware.
+    Régression : ``accounts/tests/test_device_tokens.py::TestTheTokenResolvesTheHousehold``.
     """
 
     def __init__(self, get_response):
@@ -88,6 +96,31 @@ class ActiveHouseholdMiddleware:
         except Exception:
             return None
 
+    @staticmethod
+    def _user_from_device_token(request):
+        """L'utilisateur porteur d'un jeton d'appareil, sans lever d'exception.
+
+        Le format de l'en-tête n'est pas réécrit ici : il vient de
+        ``accounts.authentication``, seule définition, pour que le middleware et la
+        classe DRF ne puissent pas diverger.
+        """
+        try:
+            from accounts.authentication import raw_token_from_request
+            from accounts.models import DeviceToken
+
+            raw = raw_token_from_request(request)
+            if not raw:
+                return None
+            token = DeviceToken.resolve(raw)
+            if token is None or not token.user.is_active:
+                return None
+            # Gardé pour DeviceTokenScopeMiddleware, qui décide juste après ce que
+            # ce jeton a le droit d'atteindre — sans refaire la requête.
+            request.device_token = token
+            return token.user
+        except Exception:
+            return None
+
     def __call__(self, request):
         request.household = None
 
@@ -95,7 +128,11 @@ class ActiveHouseholdMiddleware:
         user = self._user_from_jwt(request)
 
         if not (user and user.is_authenticated):
-            # 2. DRF force_authenticate sets _force_auth_user on the raw Django request
+            # 2. Jeton d'appareil — voir l'avertissement du docstring
+            user = self._user_from_device_token(request)
+
+        if not (user and user.is_authenticated):
+            # 3. DRF force_authenticate sets _force_auth_user on the raw Django request
             # before middleware runs, but AuthenticationMiddleware still sets
             # request.user = AnonymousUser from session. Fall back to it for tests.
             force_user = getattr(request, '_force_auth_user', None)
@@ -103,7 +140,7 @@ class ActiveHouseholdMiddleware:
                 user = force_user
 
         if not (user and user.is_authenticated):
-            # 3. Session Django (navigation web classique)
+            # 4. Session Django (navigation web classique)
             user = getattr(request, 'user', None)
 
         if user and user.is_authenticated:
@@ -177,3 +214,58 @@ class AcceptLanguageRedirectMiddleware:
             return HttpResponseRedirect(redirect_url)
 
         return self.get_response(request)
+
+
+class DeviceTokenScopeMiddleware:
+    """Un jeton d'appareil n'atteint que ce qui l'a explicitement accepté.
+
+    **Le refus est le défaut.** Une vue ajoutée demain sans y penser refuse les
+    jetons ; elle ne les accepte qu'en le déclarant :
+
+        class DocumentViewSet(...):
+            allows_device_token = ('upload',)   # ou True pour toute la vue
+
+    C'est la règle de ``core/views_media.py`` (« ce qui n'est pas explicitement
+    autorisé est refusé ») portée à l'authentification. Un jeton qui vaudrait pour
+    toute l'API ne serait plus un jeton d'appareil mais un mot de passe sous un autre
+    nom : il lirait le journal du foyer, les comptes bancaires et les documents
+    privés depuis un raccourci recopié sur un téléphone.
+
+    ⚠️ **Pourquoi un middleware et pas une permission DRF.** Une permission déclarée
+    dans ``DEFAULT_PERMISSION_CLASSES`` est **remplacée**, pas complétée, dès qu'une
+    vue définit son propre ``permission_classes`` — ce que fait la quasi-totalité des
+    viewsets du projet, ``DocumentViewSet`` compris. Le refus par défaut n'aurait
+    donc protégé que les vues qui n'ont rien déclaré, c'est-à-dire l'inverse de ce
+    qu'on cherche. ``process_view`` s'exécute après la résolution d'URL et avant la
+    vue : il voit la classe, et rien ne peut le contourner.
+    """
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        return self.get_response(request)
+
+    def process_view(self, request, view_func, view_args, view_kwargs):
+        from django.http import JsonResponse
+
+        if getattr(request, 'device_token', None) is None:
+            return None  # pas un jeton d'appareil : rien à dire
+
+        view_class = getattr(view_func, 'cls', None) or getattr(view_func, 'view_class', None)
+        allowed = getattr(view_class, 'allows_device_token', False)
+
+        if allowed is True:
+            return None
+        if allowed:
+            # DRF pose le mappage méthode → action sur la **vue** (`ViewSetMixin.as_view`),
+            # pas dans `initkwargs`. Le lire au mauvais endroit rend `allowed` toujours
+            # faux, donc refuse l'envoi que la vue avait pourtant déclaré accepter.
+            actions = getattr(view_func, 'actions', None) or {}
+            if actions.get(request.method.lower()) in allowed:
+                return None
+
+        return JsonResponse(
+            {'detail': "This device token is not allowed on this endpoint."},
+            status=403,
+        )
