@@ -96,7 +96,7 @@ def create_invitation(*, household: Household, invited_by, email: str = "", role
 def _notify_invited_user(invitation):
     """In-app notification — only possible when the invitee already has an account."""
     inviter = invitation.invited_by
-    inviter_name = (inviter.display_name or inviter.email) if inviter else ""
+    inviter_name = inviter.full_name if inviter else ""
     user_locale = getattr(invitation.invited_user, "locale", "en") or "en"
     household = invitation.household
 

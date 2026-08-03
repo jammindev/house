@@ -365,7 +365,9 @@ class TestPreviewInvitationLink:
         response = api_client.get(join_url(link))
         assert response.status_code == status.HTTP_200_OK
         assert response.data["household_name"] == household.name
-        assert response.data["invited_by_name"] == (owner.display_name or owner.email)
+        # `full_name`, la règle du modèle — la recomposer ici revenait à figer
+        # la copie amputée que #546 a supprimée.
+        assert response.data["invited_by_name"] == owner.full_name
         assert response.data["is_expired"] is False
 
     def test_preview_never_leaks_the_token(self, api_client, link):

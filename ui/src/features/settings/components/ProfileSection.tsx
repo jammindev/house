@@ -42,7 +42,7 @@ export function ProfileSection() {
 
   if (!user) return null;
 
-  const initials = (user.display_name || user.email).slice(0, 2).toUpperCase();
+  const initials = (user.full_name || user.email).slice(0, 2).toUpperCase();
   const localeLabel = LOCALE_OPTIONS.find((opt) => opt.value === locale)?.label;
 
   async function handleSave(e: React.FormEvent) {
@@ -168,7 +168,7 @@ export function ProfileSection() {
         {!isEditing && (
           <div className="space-y-3">
             <div>
-              <p className="text-base font-medium">{user.display_name || user.email}</p>
+              <p className="text-base font-medium">{user.full_name || user.email}</p>
               <p className="text-sm text-muted-foreground">{user.email}</p>
             </div>
             <div>

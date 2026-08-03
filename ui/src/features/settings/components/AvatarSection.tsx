@@ -26,7 +26,7 @@ export function AvatarSection({ user, onUserUpdate }: AvatarSectionProps) {
   const saving = uploadMutation.isPending || deleteMutation.isPending;
 
   const currentAvatarUrl = user.avatar;
-  const initials = (user.display_name || user.email).slice(0, 2).toUpperCase();
+  const initials = (user.full_name || user.email).slice(0, 2).toUpperCase();
 
   function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];

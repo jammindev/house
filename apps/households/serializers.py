@@ -11,7 +11,10 @@ from .modules import OPTIONAL_MODULES
 class HouseholdMemberSerializer(serializers.ModelSerializer):
     """Serializer for household members."""
     user_email = serializers.EmailField(source='user.email', read_only=True)
-    user_display_name = serializers.CharField(source='user.display_name', read_only=True)
+    # `full_name`, pas `display_name` : ce champ nomme un membre dans le
+    # sélecteur d'assignation des tâches, qui le rend sans repli. Lu sur
+    # `display_name`, un membre qui n'en a pas devenait une option vide (#546).
+    user_display_name = serializers.CharField(source='user.full_name', read_only=True)
 
     class Meta:
         model = HouseholdMember
@@ -75,8 +78,11 @@ class HouseholdDetailSerializer(HouseholdSerializer):
 
 
 def _inviter_name(invitation):
+    # `full_name` porte déjà le repli sur l'email — le recomposer ici sautait
+    # la branche prénom+nom, et un invitant nommé depuis l'admin Django se
+    # présentait par son adresse mail (#546).
     if invitation.invited_by:
-        return invitation.invited_by.display_name or invitation.invited_by.email
+        return invitation.invited_by.full_name
     return None
 
 
