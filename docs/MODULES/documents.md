@@ -189,6 +189,47 @@ date du déclenchement, lue dans l'EXIF.
 - **Upload multipart via action custom** : l'endpoint `POST /upload/` est une action custom séparée du `POST documents/` classique. Le `POST documents/` accepte un `file_path` manuel (cas import legacy). Les deux coexistent — ne pas confondre dans les tests ou le client.
 - Parcours 02 cadré dans `docs/parcours/PARCOURS_02_TRAITER_UN_DOCUMENT_ENTRANT_ET_LE_RELIER_AU_BON_CONTEXTE.md` et `PARCOURS_02_BACKLOG_TECHNIQUE.md`.
 
+### Envoyer des photos depuis un iPhone (feuille de partage)
+
+**Aucun code ne le permet — c'est déjà possible**, et c'est utile de savoir
+pourquoi : `ActiveHouseholdMiddleware` résout le foyer depuis
+`user.active_household_id`, **jamais depuis un en-tête**. Un client authentifié
+n'a donc rien d'autre à fournir que son jeton pour que `POST /upload/` sache dans
+quel foyer écrire. Sur iOS, la seule route est un raccourci Shortcuts : Safari ne
+prend pas en charge le *Web Share Target*, donc une PWA installée sur iPhone ne
+peut pas recevoir de contenu partagé (sur Android, un `share_target` dans le
+manifeste suffirait, sans jeton, la session étant déjà là).
+
+Le raccourci, dans l'ordre : `POST /api/auth/token/` en JSON (`email` +
+`password` — `USERNAME_FIELD` est l'email), on en tire la clé `access`, puis pour
+chaque image de l'entrée un `POST /api/documents/documents/upload/` avec
+`Authorization: Bearer …`, **corps de type Formulaire** (multipart), champs
+`file` et `type=photo`. Pas de champ `name` : chaque photo garde le nom de son
+fichier, même règle que le lot multiple.
+
+Deux points à ne pas perdre :
+
+- **`type=photo` n'est pas cosmétique** : `fetchDocuments` filtre les photos hors
+  de la page Documents et `fetchPhotoDocuments` les isole dans la galerie. Sans
+  lui, la photo atterrit dans les documents.
+- **L'access token vit 15 minutes**, donc le raccourci se réauthentifie à chaque
+  exécution et stocke les identifiants en clair. C'est la faiblesse assumée de
+  cette version, et la seule raison d'être du jeton d'appareil qui doit la
+  remplacer — un jeton révocable, sans mot de passe sur le téléphone.
+- **⚠️ Le piège du jeton d'appareil, à connaître avant de l'implémenter** :
+  `ActiveHouseholdMiddleware` s'exécute **avant** l'authentification DRF et ne
+  connaît que le JWT, la session Django et le `_force_auth_user` des tests. Une
+  simple classe d'authentification supplémentaire authentifierait l'utilisateur
+  au niveau de la vue, mais le middleware aurait déjà posé `request.household =
+  None` — et l'upload répondrait « A valid household context is required ». Le
+  jeton d'appareil se pose donc **aux deux endroits**, pas seulement dans
+  `DEFAULT_AUTHENTICATION_CLASSES`.
+- **À vérifier sur un vrai iPhone, jamais à supposer** : que les Raccourcis
+  préservent l'EXIF. Si `taken_at` revient vide, la galerie se range par date
+  d'import et non par date de prise de vue, et la date devra voyager comme champ
+  à part. Le contrôle se fait à l'œil : une photo envoyée doit afficher « Prise
+  le … », pas seulement « Ajoutée le … ».
+
 ---
 
 ## Violations CLAUDE.md identifiées (code en place)
