@@ -163,6 +163,37 @@ date du déclenchement, lue dans l'EXIF.
 
 ---
 
+### Envoyer des photos depuis un téléphone
+
+Deux chemins, et ils ne coûtent pas la même chose — l'asymétrie vient de Safari, qui
+ne prend pas en charge le *Web Share Target*, pas de House.
+
+| | iOS | Android |
+|---|---|---|
+| Mécanisme | Raccourci Shortcuts | `share_target` du manifeste PWA |
+| Authentification | Jeton d'appareil (`docs/MODULES/accounts.md`) | La session existante |
+| Installation | Importer un raccourci, coller un jeton | Installer la PWA |
+| Serveur | — | — (aucun code spécifique) |
+
+**Android — pourquoi la page téléverse et pas le service worker.** Le partage
+système envoie un POST multipart sur `/app/photos/share`. Le service worker
+l'intercepte (`templates/sw.js`), car sans interception la requête part au réseau
+comme un chargement de page et le SPA ne voit rien. Mais **un service worker ne peut
+pas lire `localStorage`**, où vit le jeton du SPA : il ne peut donc pas fabriquer
+l'en-tête `Authorization` et ne doit **pas** tenter l'envoi. Il met les fichiers
+dans un cache, redirige en 303, et `features/photos/SharePage.tsx` — qui, elle, lit
+`localStorage` — téléverse. Tenter l'envoi depuis le worker donne des 401 qu'on
+cherche longtemps.
+
+Le cache de partage est **consommé** à la lecture (`features/photos/sharedFiles.ts`) :
+sans ça un simple rechargement renverrait le même lot, en doublons. Régression :
+`sharedFiles.test.ts`.
+
+**`type=photo` n'est pas cosmétique.** Il décide de la branche serveur : vignettes
+pour une photo, **OCR de vision** pour un document. L'oublier fait décrire par un
+modèle payant une image sans texte, et la photo n'apparaît pas dans la galerie.
+Constaté en production le 2026-08-03 en montant le raccourci iOS à la main.
+
 ## Notes / décisions produit
 
 - **Architecture "double relation" interaction → document** : la FK `Document.interaction` est une relation legacy (migration Supabase). Le vrai lien M2M est `InteractionDocument`. Les deux coexistent — `legacy_interaction` est exposé dans le sérialiseur pour ne pas casser les clients. Ne pas supprimer la FK sans migration de données (`apps/documents/models.py:69-76`).

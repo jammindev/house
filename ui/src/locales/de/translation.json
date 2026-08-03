@@ -1137,6 +1137,22 @@
       "license": "Maisonnée ist freie Software unter der GNU Affero General Public License v3.0. Sie dürfen sie nutzen, untersuchen, verändern und weitergeben.",
       "sourceCode": "Quellcode",
       "licenseLink": "Lizenz lesen"
+    },
+    "devices": {
+      "title": "Geräte",
+      "subtitle": "Fotos von einem Telefon senden, ohne dein Passwort darauf zu speichern.",
+      "nameLabel": "Gerätename",
+      "namePlaceholder": "Bens iPhone",
+      "create": "Token erstellen",
+      "empty": "Noch kein verbundenes Gerät.",
+      "revoke": "Widerrufen",
+      "revoked": "Gerät widerrufen. Es kann nichts mehr senden.",
+      "lastUsed": "Zuletzt gesendet am {{date}}",
+      "neverUsed": "Nie verwendet",
+      "issuedTitle": "Dein Token",
+      "issuedOnce": "Kopiere ihn jetzt – er wird nicht erneut angezeigt. Wir speichern nur einen Fingerabdruck, er lässt sich also nicht wiederherstellen.",
+      "copy": "Kopieren",
+      "copied": "Token kopiert."
     }
   },
   "tutorials": {
@@ -1866,6 +1882,18 @@
       "bulkHint": "Die gewählten Bereiche kommen zu den bereits vorhandenen hinzu; einen Bereich entfernen geht Foto für Foto.",
       "bulkSaved": "{{count}} Foto eingeordnet.",
       "bulkSaved_other": "{{count}} Fotos eingeordnet."
+    },
+    "share": {
+      "title": "Geteilte Fotos",
+      "progress": "Wird gesendet {{current}} / {{total}}…",
+      "finished_one": "1 Foto gesendet.",
+      "finished_other": "{{count}} Fotos gesendet.",
+      "sent": "Gesendet",
+      "failed": "Fehlgeschlagen",
+      "pending": "Ausstehend",
+      "seeGallery": "Galerie ansehen",
+      "empty": "Nichts zu senden",
+      "empty_hint": "Teile Fotos aus deiner Galerie, um sie hier wiederzufinden."
     }
   },
   "directory": {

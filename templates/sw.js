@@ -70,8 +70,56 @@ async function networkFirstShell(request) {
   }
 }
 
+// --- Cible de partage (Android) --------------------------------------------
+//
+// ⚠️ Un service worker **ne peut pas lire localStorage**, où vit le jeton du SPA.
+// Il ne peut donc pas fabriquer l'en-tête Authorization, et ne doit surtout pas
+// tenter l'envoi lui-même : on obtiendrait des 401 et on chercherait longtemps.
+//
+// Il met donc les fichiers de côté, répond par une redirection, et c'est **la
+// page** — qui, elle, lit localStorage — qui téléverse.
+const SHARE_PATH = '/app/photos/share';
+const SHARE_CACHE = 'shared-files-v1';
+const SHARE_KEY = '/__shared__';
+
+async function stashSharedFiles(request) {
+  try {
+    const form = await request.formData();
+    const files = form.getAll('photos').filter((f) => f && f.size > 0);
+    if (files.length) {
+      const cache = await caches.open(SHARE_CACHE);
+      // Les Response ne se sérialisent pas en lot : une entrée de cache par
+      // fichier, indexée, et un index qui dit combien il y en a.
+      await cache.put(SHARE_KEY, new Response(String(files.length)));
+      await Promise.all(
+        files.map((file, i) =>
+          cache.put(
+            `${SHARE_KEY}/${i}`,
+            new Response(file, {
+              headers: {
+                'content-type': file.type || 'application/octet-stream',
+                'x-file-name': encodeURIComponent(file.name || `photo-${i}.jpg`),
+              },
+            }),
+          ),
+        ),
+      );
+    }
+  } catch (err) {
+    // Un partage qui échoue ici ne doit pas bloquer la navigation : la page
+    // s'ouvrira vide et le dira.
+  }
+  return Response.redirect(SHARE_PATH, 303);
+}
+
 self.addEventListener('fetch', (event) => {
   const request = event.request;
+
+  if (request.method === 'POST' && new URL(request.url).pathname === SHARE_PATH) {
+    event.respondWith(stashSharedFiles(request));
+    return;
+  }
+
   if (request.method !== 'GET') return;
 
   const url = new URL(request.url);

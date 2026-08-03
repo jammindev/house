@@ -3,6 +3,8 @@ from django.contrib.auth import get_user_model
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
+from accounts.models import DeviceToken
+
 from households.modules import PINNABLE_MODULES
 
 User = get_user_model()
@@ -151,3 +153,27 @@ class UserSerializer(serializers.ModelSerializer):
             instance.set_password(password)
         instance.save()
         return instance
+
+
+class DeviceTokenSerializer(serializers.ModelSerializer):
+    """Un jeton d'appareil, **sans son secret** — il n'existe qu'à l'émission."""
+
+    is_revoked = serializers.BooleanField(read_only=True)
+
+    class Meta:
+        model = DeviceToken
+        fields = ["id", "name", "created_at", "last_used_at", "revoked_at", "is_revoked"]
+        read_only_fields = ["id", "created_at", "last_used_at", "revoked_at", "is_revoked"]
+
+
+class DeviceTokenIssuedSerializer(DeviceTokenSerializer):
+    """La réponse de création — la **seule** occasion de lire le secret.
+
+    Il n'est pas stocké en clair : ne pas le copier ici revient à devoir en émettre
+    un autre. Le dire à l'écran fait partie du mécanisme.
+    """
+
+    token = serializers.CharField(read_only=True)
+
+    class Meta(DeviceTokenSerializer.Meta):
+        fields = DeviceTokenSerializer.Meta.fields + ["token"]

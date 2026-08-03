@@ -185,3 +185,87 @@ class TestTheResponseIsBoundedToo:
 
         assert response.status_code == status.HTTP_201_CREATED, response.data
         assert "recent_interaction_candidates" in response.data["document"]
+
+
+@pytest.mark.django_db
+class TestManagingTokensFromTheApp:
+    """L'API de gestion — créer, lister, révoquer.
+
+    Ce qu'elle tient : le secret ne se relit pas dans la liste, un jeton est
+    personnel, et **un appareil ne peut pas s'auto-administrer** — un raccourci volé
+    ne doit pouvoir ni s'en émettre un autre ni révoquer celui qui le gêne.
+    """
+
+    def _session(self, user) -> APIClient:
+        client = APIClient()
+        client.force_authenticate(user=user)
+        return client
+
+    def test_creating_returns_the_secret_exactly_once(self, household_and_user):
+        _, user = household_and_user
+        client = self._session(user)
+
+        created = client.post(
+            reverse("device-token-list"), {"name": "iPhone de Ben"}, format="json"
+        )
+        assert created.status_code == status.HTTP_201_CREATED, created.data
+        raw = created.data["token"]
+        assert raw.startswith(DeviceToken.PREFIX)
+
+        listed = client.get(reverse("device-token-list"))
+        assert listed.status_code == status.HTTP_200_OK
+        rows = listed.data["results"] if isinstance(listed.data, dict) else listed.data
+        assert len(rows) == 1
+        assert "token" not in rows[0]
+
+    def test_a_name_is_required(self, household_and_user):
+        _, user = household_and_user
+
+        response = self._session(user).post(
+            reverse("device-token-list"), {"name": "  "}, format="json"
+        )
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_a_token_belongs_to_its_user_alone(self, issued, household_and_user):
+        household, _ = household_and_user
+        other = UserFactory(email="someone-else@example.com")
+        HouseholdMember.objects.create(
+            user=other, household=household, role=HouseholdMember.Role.MEMBER
+        )
+
+        listed = self._session(other).get(reverse("device-token-list"))
+
+        rows = listed.data["results"] if isinstance(listed.data, dict) else listed.data
+        assert rows == []
+
+    def test_revoking_from_the_app_cuts_the_device(self, issued, household_and_user):
+        _, user = household_and_user
+        token, raw = issued
+        assert _upload(_client(raw)).status_code == status.HTTP_201_CREATED
+
+        response = self._session(user).post(
+            reverse("device-token-revoke", args=[token.id])
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["is_revoked"] is True
+        assert _upload(_client(raw)).status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_revoking_twice_is_not_an_error(self, issued, household_and_user):
+        _, user = household_and_user
+        token, _raw = issued
+        url = reverse("device-token-revoke", args=[token.id])
+
+        assert self._session(user).post(url).status_code == status.HTTP_200_OK
+        assert self._session(user).post(url).status_code == status.HTTP_200_OK
+
+    def test_a_device_cannot_administer_itself(self, issued):
+        """Le refus par défaut, appliqué à la vue qui compte le plus."""
+        _, raw = issued
+        device = _client(raw)
+
+        assert device.get(reverse("device-token-list")).status_code == status.HTTP_403_FORBIDDEN
+        assert device.post(
+            reverse("device-token-list"), {"name": "un autre"}, format="json"
+        ).status_code == status.HTTP_403_FORBIDDEN
