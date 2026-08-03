@@ -1216,6 +1216,45 @@ globale ».
 
 ---
 
+## Sauvegarde — ce qui n'a jamais été restauré n'est pas sauvegardé
+
+Doc : `docs/self-hosting/backup-restore.md`. Régression :
+`scripts/test-backup-restore.sh`, rejoué par la CI sur chaque PR et **bloquant
+pour une release** (`.github/workflows/backup-restore.yml`, appelé par `ci.yml`
+et `release.yml` — un seul texte pour les deux).
+
+- **Une sauvegarde, c'est une paire.** La base **et** le répertoire d'état, qui
+  porte la clé secrète et les fichiers téléversés. Les deux archives partagent un
+  **horodatage**, et c'est fonctionnel : `restore_db.sh` retrouve la seconde
+  toute seule et **refuse** une restauration à moitié tant qu'on n'a pas dit
+  `--db-only`. Une base restaurée seule donne une instance dont chaque document
+  est référencé et absent, et dont la clé neuve déconnecte tout le monde — le
+  tout avec un tableau de bord parfaitement normal.
+- **`ON_ERROR_STOP=1` sur tout `psql` de restauration.** Sans lui, `psql`
+  continue après une erreur et **sort 0** : une restauration qui se déclare
+  réussie en ayant perdu une table est le seul résultat pire qu'un échec.
+- **Un refus vaut mieux qu'une restauration partielle.** Le dump contient
+  `CREATE EXTENSION vector` ; sur un Postgres nu il échoue à mi-parcours en
+  laissant une base à moitié peuplée. `restore_db.sh` vérifie
+  `pg_available_extensions` **avant** de vider quoi que ce soit.
+- **Le test tient le format, pas la prose.** Une procédure de restauration écrite
+  est vraie le jour où on l'écrit ; ce qui la périme (une extension ajoutée au
+  schéma, une option de `pg_dump` qui change de sens) ne se voit dans aucune
+  relecture. Le test migre un schéma **réel**, sauvegarde, restaure sur une base
+  **neuve**, et vérifie le compte de tables, une ligne témoin, l'extension, la
+  clé et un fichier. La ligne témoin vit dans une table à elle : l'accrocher à un
+  modèle métier ferait rougir le test le jour où ce modèle gagne une colonne
+  obligatoire — un rouge qui n'apprendrait rien sur la restauration.
+- **Non bloquant pour le deploy, bloquant pour la release.** La prod de l'auteur
+  a ses sauvegardes ; bloquer un correctif urgent sur un round-trip ferait payer
+  à la production un risque qui pèse sur les instances tierces. Au moment de
+  distribuer une image, l'arbitrage s'inverse.
+- **Une migration destructive se livre en deux fois** — règle interne du deploy,
+  devenue **promesse publique** dès qu'on distribue une image : plus personne ne
+  contrôle quand les instances mettent à jour.
+
+---
+
 ## Capacités optionnelles — une absence se déclare, elle ne se devine pas
 
 Un foyer qui s'auto-héberge n'a ni clé Anthropic, ni Voyage, ni SMTP, ni VAPID,

@@ -111,6 +111,18 @@ jobs:
       - name: Test de résilience nginx
         run: ./nginx/test-resilience.sh
 
+  # Une sauvegarde jamais restaurée n'est pas une sauvegarde. Ce job rejoue le
+  # cycle complet sur une base neuve à chaque PR — voir `backup-restore.yml`.
+  #
+  # ⚠️ Il ne garde PAS le deploy, et c'est délibéré : la prod de l'auteur a ses
+  # sauvegardes et son historique, et bloquer une correction urgente sur un round
+  # trip de restauration ferait payer à la production un risque qui pèse sur les
+  # instances tierces. C'est `release.yml` qui le rend bloquant, là où il compte
+  # — au moment où on distribue une image que des inconnus installeront.
+  backup:
+    name: Backup & restore
+    uses: ./.github/workflows/backup-restore.yml
+
   deploy:
     name: Deploy to Production
     # ⚠️ SEUL job de ce dépôt PUBIC à tourner sur le runner self-hosted, donc sur

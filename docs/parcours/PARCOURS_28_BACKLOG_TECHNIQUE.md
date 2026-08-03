@@ -21,7 +21,7 @@ Issue ombrelle : **#485**
 | 2 | `docker compose up` — première installation en une commande | ✅ Livré | #488 |
 | 3 | Dégradation propre sans service tiers (IA, SMTP, push, Telegram) | ✅ Livré | #489 |
 | 4 | LICENSE AGPL-3.0 + gouvernance (CONTRIBUTING, SECURITY, DCO, templates) | ✅ Livré (PR #496) | #490 |
-| 5 | Exploitation par un tiers : sauvegarde, restauration testée, mises à jour, releases | ⬜ À faire | #491 |
+| 5 | Exploitation par un tiers : sauvegarde, restauration testée, mises à jour, releases | 🔄 Partiel — doc, scripts et CI livrés ; **reste le premier tag** | #491 |
 | 6 | Façade Maisonnée : README bilingue, captures, GIF, identité | ⬜ À faire | #492 |
 | 7 | Recette pilote (5-10 foyers) puis annonce et mesure de la rétention | ⬜ À faire | #493 |
 | 8 | Identité visuelle : logo, palette de marque, icônes, aperçu social | ⬜ À faire | #494 |
@@ -567,6 +567,36 @@ une sauvegarde.
 > `ghcr` naît **privé**, même sur un dépôt public : sans un passage manuel en
 > public, le `docker compose up` d'un inconnu échoue sur `denied` — ce qui
 > ressemble à un bug et n'en est pas un.
+
+> **Partiellement livré — tout sauf le tag.**
+>
+> **Livré** : `docs/self-hosting/` (README, install, backup-restore, upgrade,
+> releases, troubleshooting — en anglais, sans OVH ni domaine ni chemin
+> personnel) ; `backup_db.sh --state-dir` ; `restore_db.sh` ;
+> `scripts/test-backup-restore.sh` **exécuté pour de vrai** (89 tables, ligne
+> témoin, extension `vector`, clé secrète et fichier téléversé restaurés sur une
+> base neuve) ; workflow réutilisable `backup-restore.yml` appelé par `ci.yml`
+> (informatif) **et** `release.yml` (bloquant, `image` en `needs`) ;
+> `DEPLOYMENT.md` annonce en première ligne qu'il décrit le déploiement de
+> l'auteur et renvoie vers `docs/self-hosting/`.
+>
+> **Reste, et ce sont deux décisions, pas du code** : supprimer `v1.0.0` et
+> poser `v0.1.0` (critère 3), puis basculer le paquet `ghcr` en public. Le
+> premier tag prouve ou casse le build arm64 — critère 4 du lot 2, en attente
+> depuis le lot 2.
+>
+> **Trois écarts au plan.** ① `backup_db.sh` **n'archive pas** `media/` en
+> propre : il archive le **répertoire d'état**, qui porte les fichiers *et* la
+> clé secrète. Le volume `maisonnee-state` les réunit exprès (lot 2) — ce qu'une
+> sauvegarde doit prendre en plus de la base est ainsi un nom à retenir, pas deux
+> à oublier. ② Le job de CI est un **workflow réutilisable**, pas un job copié
+> dans `ci.yml` et `release.yml` : deux copies auraient divergé au premier
+> changement de format de dump, c'est-à-dire exactement ce que ce job existe pour
+> attraper. ③ La doc donne des commandes **`docker compose` autonomes** plutôt
+> que d'exiger un clone du dépôt : un auto-hébergeur a téléchargé un fichier, pas
+> une arborescence. Les scripts restent l'implémentation testée de la même
+> procédure, pour l'auteur et pour la CI ; la convention d'horodatage est
+> commune aux deux chemins.
 
 **Critères**
 

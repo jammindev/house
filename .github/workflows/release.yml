@@ -28,8 +28,17 @@ permissions:
   contents: read
 
 jobs:
+  # Bloquant ici, informatif dans `ci.yml`. Une image qu'on publie sera installée
+  # par des gens qui y mettront leurs relevés bancaires : leur distribuer une
+  # version dont on n'a pas vérifié qu'elle sait se restaurer, c'est leur
+  # promettre une sauvegarde qui n'en est pas une.
+  backup:
+    name: Backup & restore
+    uses: ./.github/workflows/backup-restore.yml
+
   image:
     name: Publier l'image multi-architecture
+    needs: [backup]
     runs-on: ubuntu-latest
     permissions:
       contents: read
