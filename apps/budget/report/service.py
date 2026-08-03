@@ -19,7 +19,7 @@ from datetime import datetime
 from django.db import IntegrityError
 from django.utils import translation
 
-from core.month_close import last_closed_month
+from core import month_close
 
 from ..models import BudgetReport
 from .polish import polish_report
@@ -29,7 +29,7 @@ from .stats import compute_month_stats
 #: Réexport — la définition (et le pourquoi du délai de grâce) vit dans
 #: ``core.month_close``, partagée avec ``recap`` pour que les deux rendez-vous
 #: mensuels ne puissent pas clore le mois à deux dates différentes.
-__all__ = ["last_closed_month", "get_or_generate_report", "render_report"]
+last_closed_month = month_close.last_closed_month
 
 
 def get_or_generate_report(household, month: str) -> BudgetReport:

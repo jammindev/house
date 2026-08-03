@@ -21,7 +21,7 @@ from django.db import IntegrityError
 from django.utils import translation
 
 from budget.report.stats import month_bounds
-from core.month_close import last_closed_month
+from core import month_close
 
 from .chapters import active_chapter_specs
 from .models import HouseholdRecap
@@ -30,7 +30,7 @@ logger = logging.getLogger(__name__)
 
 #: Réexport — la définition (et le pourquoi du délai de grâce) vit dans
 #: ``core.month_close``, partagée avec ``budget.report``.
-__all__ = ["last_closed_month", "build_stats", "get_or_generate_recap", "render_recap"]
+last_closed_month = month_close.last_closed_month
 
 
 def build_stats(household, month: str) -> dict[str, Any]:

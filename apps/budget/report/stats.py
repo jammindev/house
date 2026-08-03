@@ -29,9 +29,8 @@ TOP_EXPENSES_LIMIT = 5
 #: Alias historique — la définition vit dans ``core.timezones``.
 _tz = household_tz
 
-#: Idem : ``previous_month`` est réexporté depuis ``core.month_close``, qui
-#: porte désormais toute l'arithmétique des mois (et leur date de clôture).
-__all__ = ["month_bounds", "previous_month", "compute_month_stats"]
+#: Idem pour ``previous_month``, importé de ``core.month_close`` : ce module porte
+#: désormais toute l'arithmétique des mois, dont leur date de clôture.
 
 
 def month_bounds(household, month: str) -> tuple[datetime, datetime]:
