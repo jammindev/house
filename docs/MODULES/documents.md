@@ -210,7 +210,12 @@ l'instance et le jeton. Le domaine ne doit **pas** être codé en dur : il chang
 foyer auto-hébergé à l'autre.
 
 ⚠️ **Le lien iCloud se crée depuis un iPhone**, il ne peut pas être produit par le
-dépôt. C'est le seul livrable de ce mécanisme qui vit hors du code.
+dépôt. C'est le seul livrable de ce mécanisme qui vit hors du code — et c'est
+précisément pourquoi il ne doit être qu'un **confort, jamais un prérequis** : un
+lien iCloud est attaché à un compte personnel, et une installation auto-hébergée ne
+peut pas dépendre du compte de l'auteur. La recette complète vit donc en anglais
+dans `docs/self-hosting/sending-photos-from-your-phone.md` ; celui qui a le lien
+gagne deux minutes, celui qui ne l'a pas reconstruit le raccourci en cinq.
 
 **`type=photo` n'est pas cosmétique.** Il décide de la branche serveur : vignettes
 pour une photo, **OCR de vision** pour un document. L'oublier fait décrire par un
