@@ -5,7 +5,7 @@ import { Droplets, ListPlus, MessageCircle, Receipt, StickyNote, Zap } from 'luc
 import { Button } from '@/design-system/button';
 import { useToast } from '@/lib/toast';
 import { pushBack } from '@/lib/backNavigation';
-import ExpenseAdHocDialog from '@/features/expenses/ExpenseAdHocDialog';
+import ExpenseDialog from '@/features/money/ExpenseDialog';
 import NewTaskDialog from '@/features/tasks/NewTaskDialog';
 import WaterReadingDialog from '@/features/water/WaterReadingDialog';
 import ReadingDialog from '@/features/electricity/ReadingDialog';
@@ -66,7 +66,7 @@ export default function QuickActions() {
         {t('dashboard.quickActions.askAgent')}
       </Button>
 
-      <ExpenseAdHocDialog open={expenseOpen} onOpenChange={setExpenseOpen} />
+      <ExpenseDialog open={expenseOpen} onOpenChange={setExpenseOpen} />
       <NewTaskDialog
         open={taskOpen}
         onOpenChange={setTaskOpen}

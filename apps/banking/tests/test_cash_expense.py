@@ -377,3 +377,98 @@ class TestNegativeCashDetector:
         """No motive makes physically impossible money acceptable — there is an
         operation missing, not a judgement call to record."""
         assert get_detector(ACCOUNT_CASH_NEGATIVE).waivable is False
+
+
+@pytest.mark.django_db
+class TestOnlyCashGoesThroughTheCashDoor:
+    """La porte « espèces » n'accepte que des espèces — et c'est le serveur qui le dit.
+
+    `record_cash_deposit` refuse un compte non-espèces depuis toujours ; l'expense,
+    son symétrique, ne le refusait pas. Le seul garde-fou vivait **dans le dialog**
+    (`CashExpenseDialog` filtre `kind === 'cash'` avant de peupler son sélecteur),
+    donc l'API acceptait n'importe quel compte du foyer et y écrivait une ligne
+    manuelle.
+
+    Ce que ça coûte est écrit dans le docstring de `create_manual_transaction` :
+    le `dedup_hash` d'une ligne manuelle vaut `manual:{uuid4}` et « ne peut jamais
+    entrer en collision avec une ligne importée ». Sur un compte espèces c'est le
+    comportement voulu — rien n'y sera jamais importé. Sur un compte bancaire, la
+    même propriété garantit que **le vrai relevé ajoutera une seconde ligne pour la
+    même dépense**, et que l'argent sera compté deux fois. Sans un mot.
+    """
+
+    def test_the_service_refuses_a_bank_account(self, ctx):
+        household, user, _, budget = ctx
+        bank = BankAccountFactory(
+            household=household,
+            name="Courant",
+            opening_balance=Decimal("1000.00"),
+            opening_balance_date=date(2026, 1, 1),
+        )
+
+        with pytest.raises(ValidationError):
+            record_cash_expense(
+                household=household,
+                user=user,
+                account=bank,
+                booked_on=date(2026, 3, 10),
+                label="Courses par carte",
+                amount=Decimal("42.00"),
+                budget_id=str(budget.id),
+            )
+
+        assert not BankTransaction.objects.filter(account=bank).exists()
+        assert not Interaction.objects.filter(household=household).exists(), (
+            "un refus ne laisse ni ligne ni dépense derrière lui"
+        )
+
+    def test_the_api_refuses_it_too(self, ctx):
+        """Le refus doit être serveur : le filtre du dialog n'engage que le client."""
+        from rest_framework.test import APIClient
+
+        from households.models import HouseholdMember
+
+        household, user, _, budget = ctx
+        HouseholdMember.objects.create(
+            user=user, household=household, role=HouseholdMember.Role.OWNER
+        )
+        user.active_household = household
+        user.save(update_fields=["active_household"])
+        bank = BankAccountFactory(
+            household=household,
+            name="Courant",
+            opening_balance=Decimal("1000.00"),
+            opening_balance_date=date(2026, 1, 1),
+        )
+
+        client = APIClient()
+        client.force_authenticate(user=user)
+        response = client.post(
+            "/api/banking/transactions/cash-expense/",
+            {
+                "account": str(bank.id),
+                "label": "Courses par carte",
+                "amount": "42.00",
+                "booked_on": "2026-03-10",
+                "budget_id": str(budget.id),
+            },
+            format="json",
+        )
+
+        assert response.status_code == 400, response.data
+        assert not BankTransaction.objects.filter(account=bank).exists()
+
+    def test_a_cash_account_still_works(self, ctx):
+        """Le garde-fou ne doit rien retirer au chemin légitime."""
+        household, user, cash, budget = ctx
+        txn, allocations = record_cash_expense(
+            household=household,
+            user=user,
+            account=cash,
+            booked_on=date(2026, 3, 10),
+            label="Marché",
+            amount=Decimal("18.50"),
+            budget_id=str(budget.id),
+        )
+        assert txn.amount == Decimal("-18.50")
+        assert len(allocations) == 1

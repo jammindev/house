@@ -723,6 +723,51 @@ du liquide »).
   versement est partiel » n'apprend rien ; c'est le montant orphelin qui dit s'il
   faut corriger une faute de frappe ou arbitrer un choix.
 
+### Une seule porte pour saisir une dépense, et le moyen de paiement la partage
+
+`money/ExpenseDialog.tsx` remplace les deux dialogues qui portaient le même nom en
+écrivant des choses opposées : celui du tableau de bord créait une `Interaction`
+nue, celui de l'onglet Dépenses **forçait un compte espèces**. Une dépense par
+carte n'avait donc aucun chemin juste — la passer par l'onglet Dépenses la comptait
+en liquide et **faussait le solde des espèces**, jusqu'à déclencher
+`account_cash_negative`, un écart qui ne s'arbitre pas.
+
+Les deux branches sont légitimes, et c'est le moyen de paiement qui les sépare :
+
+- **espèces** → `record_cash_expense` : une vraie opération de compte. Rien ne sera
+  jamais importé sur un compte espèces, donc la ligne saisie *est* la vérité et
+  l'orphelin disparaît par construction (parcours 26, lot 4, inchangé).
+- **carte, virement, prélèvement** → `create_manual_expense_interaction`, et
+  **aucune ligne bancaire**. En fabriquer une est le vrai danger : son `dedup_hash`
+  vaut `manual:{uuid4}` et ne peut **par construction** jamais coïncider avec une
+  ligne importée — le relevé ajouterait donc une seconde ligne pour la même
+  dépense, et l'argent serait compté deux fois.
+
+⚠️ **Le garde-fou est serveur, plus seulement dans le dialogue.**
+`record_cash_deposit` refusait un compte non-espèces depuis toujours ;
+`record_cash_expense`, son symétrique, ne le refusait pas — le seul filtre vivait
+côté client (`kind === 'cash'` avant de peupler le sélecteur), et
+`POST /api/banking/transactions/cash-expense/` acceptait n'importe quel compte du
+foyer. Régression : `banking/tests/test_cash_expense.py::TestOnlyCashGoesThroughTheCashDoor`
+(service **et** API).
+
+**On ne demande jamais *quel* compte bancaire a payé**, et c'est volontaire : la
+fenêtre de conformité d'une dépense se calcule à l'échelle du **foyer**
+(`coverage.household_covered_period`), dont le commentaire dit pourquoi — la
+restreindre par compte « demanderait de deviner quel compte a payé, ce qui est
+exactement le fait qui manque ». Collecter cette information n'aurait aucun
+consommateur, et un champ obligatoire sans consommateur est du travail inventé.
+
+**Une dépense par carte en attente n'est pas un écart.** `_unreconciled_qs` borne
+son horizon au dernier relevé connu, et son docstring l'énonce : une dépense
+postérieure « attend simplement le prochain import ». C'est ce qui rend cette
+branche tenable sans rien ajouter au modèle — pas de colonne, pas de migration, pas
+d'état intermédiaire à inventer.
+
+Depuis la fiche d'un compte espèces, le dialogue est **pré-verrouillé** sur ce
+compte (`cashAccount`) : la question « payé avec quoi ? » y est déjà répondue par le
+contexte. Régressions front : `money/ExpenseDialog.test.tsx`.
+
 ### Un compte a sa propre fiche
 
 `/app/money/accounts/:id` (`money/AccountDetailPage.tsx`), atteinte en touchant le

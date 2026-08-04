@@ -1517,7 +1517,7 @@
         "steps": {
           "record": {
             "title": "Enter an expense",
-            "body": "Restaurant, gift, groceries: add a one-off expense with amount and supplier."
+            "body": "Restaurant, gift, groceries: the « New expense » button opens the same form from the dashboard and from the Expenses tab. There are no longer two of them writing different things.\n\nThe only question that changes anything is: how did you pay?\n\nIn cash, the expense becomes a real operation on your cash account. Nothing is ever imported onto a cash account, so what you type is the truth — there is no discrepancy to wait for.\n\nBy card, transfer or direct debit, no account line is created. The expense waits for the statement, which will match it on import. That is normal, and the Control tab does not hold it against you until that period's statement has arrived."
           },
           "supplier": {
             "title": "Pick a supplier, never retype one",
@@ -3197,10 +3197,6 @@
       "noAmount": "No amount"
     },
     "adhoc": {
-      "title": "Record an ad-hoc expense",
-      "subject": "Subject",
-      "subjectPlaceholder": "e.g. Restaurant Le Bistrot",
-      "subjectRequired": "A subject is required",
       "created": "Expense recorded",
       "actions": {
         "add": "New expense"
@@ -3637,7 +3633,6 @@
     "cash": {
       "title": "Cash expense",
       "label": "Label",
-      "labelPlaceholder": "E.g. market, bakery",
       "labelRequired": "A label is required.",
       "account": "Cash account",
       "accountRequired": "Pick a cash account.",
@@ -4136,7 +4131,17 @@
       "addReceipt": "Add",
       "noReceipt": "No receipt attached.",
       "deleteConfirm": "Delete this expense? It will disappear from the journal and from budget totals.",
-      "deleteSplitConfirm": "Delete this expense? The bank transaction is untouched: its amount goes back to the queue."
+      "deleteSplitConfirm": "Delete this expense? The bank transaction is untouched: its amount goes back to the queue.",
+      "new": {
+        "title": "Record an expense",
+        "label": "Label",
+        "labelPlaceholder": "e.g. restaurant, groceries, gift",
+        "labelRequired": "A label is required.",
+        "paidWith": "Paid with",
+        "paidWithCash": "Cash",
+        "paidWithOther": "Card, transfer or direct debit",
+        "pendingHint": "No account line is created: the expense will be matched when you import the next statement."
+      }
     },
     "refundExpense": {
       "action": "Refunded to me",

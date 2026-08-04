@@ -1063,7 +1063,22 @@ def record_cash_expense(
 
     ``amount`` is given positive (what the user spent) and stored **signed**, like
     every outflow.
+
+    **Cash only, and the server is what says so.** The symmetry with
+    ``record_cash_deposit`` is not cosmetic: a manual line carries a
+    ``manual:{uuid4}`` discriminant that, by design, « can never collide with an
+    imported line ». On a cash account nothing will ever be imported, so that is
+    the wanted behaviour. On a bank account the very same property guarantees that
+    the real statement will add a **second** line for the same spend — the money
+    counted twice, silently. The only guard used to live in the dialog, which
+    filters `kind === 'cash'` before populating its picker; the API took any
+    account of the household.
     """
+    from .models import BankAccount
+
+    if account.kind != BankAccount.Kind.CASH:
+        raise ValidationError({"account": "Target account must be a cash account."})
+
     value = abs(Decimal(str(amount)))
     if value <= 0:
         raise ValidationError({"amount": "Amount must be positive."})

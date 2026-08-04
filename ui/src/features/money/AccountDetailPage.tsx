@@ -45,7 +45,7 @@ import BalanceAnchorDialog from '@/features/banking/BalanceAnchorDialog';
 import ChainGapAlert from '@/features/banking/ChainGapAlert';
 import ImportHistoryCard from '@/features/banking/ImportHistoryCard';
 import StatementImportDialog from '@/features/banking/StatementImportDialog';
-import CashExpenseDialog from './CashExpenseDialog';
+import ExpenseDialog from './ExpenseDialog';
 import {
   BalanceWindowPills,
   DEFAULT_BALANCE_WINDOW,
@@ -482,7 +482,7 @@ export default function AccountDetailPage() {
         />
       ) : null}
 
-      <CashExpenseDialog open={cashOpen} onOpenChange={setCashOpen} />
+      <ExpenseDialog open={cashOpen} onOpenChange={setCashOpen} cashAccount={account} />
     </>
   );
 }
