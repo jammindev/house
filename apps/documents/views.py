@@ -22,6 +22,14 @@ from .extraction import extract_text
 from .exif import read_taken_at
 from .image_processing import normalize_image
 from .models import Document, DocumentLink
+from .queries import (
+    TRIAGE_CLUSTERS,
+    TRIAGE_WINDOW,
+    UNTRIAGED,
+    cluster_sessions,
+    untriaged,
+)
+from .queries import purpose_counts as compute_purpose_counts
 from .serializers import (
     DocumentSerializer,
     DocumentDetailSerializer,
@@ -100,6 +108,24 @@ def get_documents_queryset_for_request(request):
     if without_zone in {'1', 'true', 'yes'}:
         zone_ct = ContentType.objects.get_for_model(Zone)
         queryset = queryset.exclude(links__content_type=zone_ct)
+
+    # L'intention d'une photo. `untriaged` est un **marqueur explicite** : un paramètre
+    # vide ou inconnu est refusé, jamais dégradé en « toutes ». Laisser un vide vouloir
+    # dire « tous » est ce qui rend un compteur aveugle — l'écran annoncerait « rien à
+    # trier » en montrant la galerie entière.
+    if 'purpose' in query_params:
+        purpose = (query_params.get('purpose') or '').strip()
+        if purpose == UNTRIAGED:
+            queryset = untriaged(queryset)
+        elif purpose in {value for value, _label in Document.Purpose.choices}:
+            queryset = queryset.filter(purpose=purpose)
+        else:
+            raise ValidationError({
+                'purpose': (
+                    f'Unknown purpose: {purpose!r}. '
+                    f'Expected one of technical, observation, memory, {UNTRIAGED}.'
+                )
+            })
 
     # Legacy per-entity params (?zone= / ?project= / ?equipment=) + generic
     # ?linked_to=<entity_type>:<uuid> all resolve to a DocumentLink filter.
@@ -471,6 +497,135 @@ class DocumentViewSet(viewsets.ModelViewSet):
             )
 
         return Response({'updated': updated}, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['get'], url_path='purpose_counts')
+    def purpose_counts(self, request):
+        """Combien de photos par intention, dont « à trier ».
+
+        Un endpoint à part, et pas un bloc de la réponse de `triage/` : la galerie
+        affiche ces compteurs en permanence, et les obtenir en chargeant une fenêtre de
+        photos ferait payer un écran de lecture au prix d'un écran de tri. C'est la
+        même exigence que les badges du Contrôle — un compteur reste un `COUNT(*)`.
+        """
+        return Response(
+            compute_purpose_counts(self.get_queryset()), status=status.HTTP_200_OK
+        )
+
+    @action(detail=False, methods=['get'])
+    def triage(self, request):
+        """Les photos que personne n'a rangées, **par grappes de session**.
+
+        Trente photos rapportées d'un week-end forment une session, pas trente
+        décisions : une file qui demande trente gestes ne se vide jamais, et une file
+        qu'on ne vide jamais cesse d'être lue au bout d'une semaine.
+
+        La fenêtre est bornée (`TRIAGE_WINDOW`) parce que `DocumentViewSet` n'est pas
+        encore paginé : sans elle, ce panneau chargerait toute la photothèque du foyer
+        — l'intégralité, puisque l'introduction du champ n'a rien backfillé.
+        """
+        queryset = untriaged(self.get_queryset()).order_by('-effective_date', '-id')
+        total = queryset.count()
+
+        window = list(queryset[:TRIAGE_WINDOW])
+        clusters = cluster_sessions(
+            window,
+            limit=TRIAGE_CLUSTERS,
+            window_was_full=len(window) >= TRIAGE_WINDOW,
+        )
+
+        serializer_context = {'request': request}
+        return Response(
+            {
+                'total': total,
+                'clusters': [
+                    {
+                        # La photo la plus récente de la grappe : une clé stable d'un
+                        # rechargement à l'autre, qui disparaît avec la grappe.
+                        'key': str(cluster['photos'][0].id),
+                        'start': cluster['oldest'],
+                        'end': cluster['newest'],
+                        'count': len(cluster['photos']),
+                        'photos': DocumentSerializer(
+                            cluster['photos'], many=True, context=serializer_context
+                        ).data,
+                    }
+                    for cluster in clusters
+                ],
+            },
+            status=status.HTTP_200_OK,
+        )
+
+    @action(detail=False, methods=['post'], url_path='set_purpose')
+    def set_purpose(self, request):
+        """Pose une intention sur un lot de photos : `{document_ids, purpose, overwrite}`.
+
+        **Le lot n'écrase jamais un choix déjà fait.** Une grappe dont certaines photos
+        portent déjà une intention est le cas normal, pas l'exception : elle se range
+        sans toucher au travail déjà fait, et la réponse dit combien ont été laissées.
+        Écraser reste possible, mais c'est un geste explicite (`overwrite: true`) — même
+        règle que l'éditeur de ventilation, qui ne détache jamais par effet de bord.
+
+        Une intention vide est **refusée** : « détrier » trente photos d'un coup serait
+        une destruction de masse déguisée en raccourci, et le geste unitaire existe pour
+        ça (PATCH sur la photo).
+
+        **Tout ou rien** sur les identifiants, comme `bulk_add_zones` : en ranger la
+        moitié sans le dire laisserait l'utilisateur croire son tri fait.
+        """
+        raw_documents = request.data.get('document_ids', None)
+        if raw_documents is None:
+            raise ValidationError({'document_ids': 'document_ids is required.'})
+        if isinstance(raw_documents, str) or not isinstance(raw_documents, (list, tuple)):
+            raise ValidationError({'document_ids': 'document_ids must be a list.'})
+
+        purpose = (request.data.get('purpose') or '').strip()
+        if not purpose:
+            raise ValidationError({'purpose': 'purpose is required and cannot be empty.'})
+        if purpose not in {value for value, _label in Document.Purpose.choices}:
+            raise ValidationError({'purpose': f'Unknown purpose: {purpose!r}.'})
+
+        document_ids = []
+        for value in raw_documents:
+            text = str(value).strip()
+            if not text:
+                continue
+            if not text.isdigit():
+                raise ValidationError({'document_ids': f'Invalid document id: {text}'})
+            document_ids.append(int(text))
+        document_ids = list(dict.fromkeys(document_ids))
+        if not document_ids:
+            raise ValidationError({'document_ids': 'document_ids cannot be empty.'})
+
+        # `get_queryset()` porte déjà le scope foyer **et** la confidentialité : on ne
+        # refait pas ce filtrage ici, sous peine de le voir dériver.
+        documents = list(self.get_queryset().filter(pk__in=document_ids))
+        if len(documents) != len(document_ids):
+            raise ValidationError({'document_ids': 'Invalid document or access denied.'})
+
+        not_photos = [document for document in documents if document.type != 'photo']
+        if not_photos:
+            raise ValidationError({'document_ids': 'Only a photo can carry a purpose.'})
+
+        overwrite = bool(request.data.get('overwrite', False))
+        # Reposer la même intention n'est pas un conflit : c'est sans effet, et le dire
+        # « ignoré » ferait passer un lot idempotent pour un lot à moitié appliqué.
+        to_update = [
+            document for document in documents
+            if overwrite or not document.purpose or document.purpose == purpose
+        ]
+        skipped = len(documents) - len(to_update)
+
+        if to_update:
+            with transaction.atomic():
+                Document.objects.filter(pk__in=[d.pk for d in to_update]).update(
+                    purpose=purpose,
+                    updated_at=timezone.now(),
+                )
+
+        return Response(
+            {'updated': len(to_update), 'skipped': skipped},
+            status=status.HTTP_200_OK,
+        )
 
     @action(detail=True, methods=['post'])
     def reprocess_ocr(self, request, pk=None):

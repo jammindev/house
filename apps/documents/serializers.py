@@ -73,7 +73,7 @@ class DocumentSerializer(serializers.ModelSerializer):
             'file_url', 'thumbnail_url', 'medium_url',
             'qualification', 'linked_interactions',
             'legacy_interaction', 'legacy_interaction_subject',
-            'phase', 'taken_at', 'zone_links', 'entity_links',
+            'phase', 'taken_at', 'purpose', 'zone_links', 'entity_links',
         ]
         # `taken_at` est lu dans l'EXIF, jamais saisi : l'exposer en écriture
         # permettrait de le contredire par un PATCH, et le tri de la galerie
@@ -215,6 +215,24 @@ class DocumentSerializer(serializers.ModelSerializer):
             if str(link.object_id) == str(entity_id):
                 return link.phase or ''
         return None
+
+    def validate(self, attrs):
+        """Une intention ne se pose que sur une photo.
+
+        Contrairement à `taken_at`, `purpose` est **saisi** : il est donc ouvert en
+        écriture. Mais le champ est propre aux photos — accepter une intention sur une
+        facture peuplerait la file « À trier » de choses qu'elle ne sait pas montrer,
+        et personne ne verrait d'où elles viennent.
+        """
+        attrs = super().validate(attrs)
+        purpose = attrs.get('purpose')
+        if purpose:
+            doc_type = attrs.get('type') or getattr(self.instance, 'type', None)
+            if doc_type != 'photo':
+                raise serializers.ValidationError(
+                    {'purpose': 'Only a photo can carry a purpose.'}
+                )
+        return attrs
 
 
 class DocumentDetailSerializer(DocumentSerializer):

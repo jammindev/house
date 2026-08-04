@@ -1611,6 +1611,10 @@
             "title": "Galerie durchsehen",
             "body": "In Dokumente hochgeladene Bilder erscheinen hier, nach Monat gruppiert. Filtern Sie nach Bereich, um nur einen Raum zu sehen; bei geöffnetem Foto führen die Pfeile (oder ← →) zum nächsten, ohne zu schließen."
           },
+          "sort": {
+            "title": "Sagen, warum ein Foto existiert",
+            "body": "Ein Foto einer Seriennummer und ein Geburtstagsfoto gehören nicht an denselben Ort. Geben Sie jedem seinen Zweck: Technisch (ein Beleg, den man wieder liest), Beobachtung (eine datierte Feststellung — ein Riss, ein Leck) oder Erinnerung. Die Galerie filtert dann nach einem davon. Ein Foto, das niemand sortiert hat, bleibt unter « Zu sortieren » — das ist ein Zustand, keine Erinnerung als Standard."
+          },
           "add": {
             "title": "Fotos hinzufügen",
             "body": "Wähle gleich eine ganze Serie aus: Das Feld nimmt mehrere Fotos an, die nacheinander gesendet werden. Aus einem Projekt, einem Gerät oder einer Zone heraus sortiert der Reiter Fotos sie in Vorher / Während / Nachher und kann sie vergleichen."
@@ -1918,6 +1922,34 @@
       "seeGallery": "Galerie ansehen",
       "empty": "Nichts zu senden",
       "empty_hint": "Teile Fotos aus deiner Galerie, um sie hier wiederzufinden."
+    },
+    "purpose": {
+      "label": "Zweck",
+      "all": "Alle",
+      "none": "Dieses Foto hat noch niemand einsortiert.",
+      "untriaged": "Zu sortieren",
+      "technical": "Technisch",
+      "technicalHint": "Ein Beleg: Seriennummer, Zählerstand, Plan, Typenschild.",
+      "observation": "Beobachtung",
+      "observationHint": "Eine datierte Feststellung: ein Riss, ein Leck, ein keimender Setzling.",
+      "memory": "Erinnerung",
+      "memoryHint": "Eine Erinnerung des Haushalts: ein Essen, ein Geburtstag, der Garten im Schnee.",
+      "saved": "{{count}} Foto sortiert.",
+      "saved_other": "{{count}} Fotos sortiert.",
+      "savedWithSkipped": "{{count}} Foto sortiert; {{skipped}} behielt seinen Zweck.",
+      "savedWithSkipped_other": "{{count}} Fotos sortiert; {{skipped}} behielten ihren Zweck.",
+      "savedOne": "Zweck gespeichert."
+    },
+    "triage": {
+      "empty": "Alles ist sortiert",
+      "empty_description": "Jedes Foto sagt, warum es existiert. Neue erscheinen hier.",
+      "remaining": "{{count}} Foto zu sortieren.",
+      "remaining_other": "{{count}} Fotos zu sortieren.",
+      "remainingPartial": "{{count}} Foto zu sortieren, davon {{shown}} hier gezeigt.",
+      "remainingPartial_other": "{{count}} Fotos zu sortieren, davon {{shown}} hier gezeigt.",
+      "range": "Vom {{from}} bis {{to}}",
+      "count": "{{count}} Foto",
+      "count_other": "{{count}} Fotos"
     }
   },
   "directory": {

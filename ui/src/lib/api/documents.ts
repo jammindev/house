@@ -3,6 +3,40 @@ import { api } from '@/lib/axios';
 /** Renovation phase of a photo relative to a linked entity. Empty = unclassified. */
 export type PhotoPhase = 'before' | 'during' | 'after';
 
+/**
+ * L'intention d'une photo : **pourquoi elle existe**.
+ *
+ * ⚠️ `''` n'est pas `'memory'` : le vide dit que personne n'a trié, `'memory'` dit
+ * qu'on a choisi. Ne jamais traiter l'absence comme un souvenir, ni ici ni dans un
+ * compteur — c'est ce qui rendrait la file « À trier » aveugle.
+ */
+export type PhotoPurpose = 'technical' | 'observation' | 'memory';
+
+/** Le marqueur qui demande « ce que personne n'a trié ». Jamais un paramètre vide. */
+export const UNTRIAGED = 'untriaged';
+
+export interface PurposeCounts {
+  technical: number;
+  observation: number;
+  memory: number;
+  untriaged: number;
+}
+
+export interface TriageCluster {
+  /** Clé stable d'un rechargement à l'autre, servie par le serveur. */
+  key: string;
+  start: string;
+  end: string;
+  count: number;
+  photos: DocumentItem[];
+}
+
+export interface TriageQueue {
+  /** Tout ce qui reste à trier — pas seulement ce que les grappes montrent. */
+  total: number;
+  clusters: TriageCluster[];
+}
+
 export interface LinkedInteractionSummary {
   id: string;
   subject: string;
@@ -64,6 +98,11 @@ export interface DocumentItem {
    * dire « prise le » plutôt que « ajoutée le ».
    */
   taken_at?: string | null;
+  /**
+   * Pourquoi cette photo existe — preuve, observation ou souvenir. `''` = personne
+   * ne l'a encore triée, et c'est un état à part entière (voir `PhotoPurpose`).
+   */
+  purpose?: PhotoPurpose | '' | null;
   /**
    * Zones où la photo est rangée — servi **dès la liste**, pas seulement sur le
    * détail : c'est ce qui permet à la galerie de dire où est une photo et de
@@ -177,7 +216,9 @@ export async function uploadDocument(input: UploadDocumentInput): Promise<Docume
 
 export async function updateDocument(
   id: string,
-  payload: { name?: string; notes?: string; type?: string },
+  // `purpose: ''` est admis **ici seulement** : détrier une photo qu'on a regardée
+  // est un geste unitaire légitime. Le lot, lui, le refuse.
+  payload: { name?: string; notes?: string; type?: string; purpose?: PhotoPurpose | '' },
 ): Promise<DocumentItem> {
   const { data } = await api.patch(`/documents/documents/${id}/`, payload);
   return normalizeId(data as DocumentItem & { id: string | number });
@@ -214,6 +255,44 @@ export async function bulkAddDocumentZones(
     zone_ids: zoneIds,
   });
   return data as { updated: number };
+}
+
+/** Ce qui reste à trier, par grappes de session — le serveur groupe, pas le client. */
+export async function fetchTriageQueue(): Promise<TriageQueue> {
+  const { data } = await api.get('/documents/documents/triage/');
+  const payload = data as TriageQueue;
+  return {
+    ...payload,
+    clusters: payload.clusters.map((cluster) => ({
+      ...cluster,
+      photos: cluster.photos.map(normalizeId),
+    })),
+  };
+}
+
+/** Les compteurs des pastilles — un `COUNT(*)`, jamais une liste qu'on mesure. */
+export async function fetchPurposeCounts(): Promise<PurposeCounts> {
+  const { data } = await api.get('/documents/documents/purpose_counts/');
+  return data as PurposeCounts;
+}
+
+/**
+ * Pose une intention sur un lot de photos.
+ *
+ * `overwrite` est un geste explicite : sans lui, le serveur laisse intactes les
+ * photos qui portent déjà une autre intention et les compte dans `skipped`.
+ */
+export async function setPhotosPurpose(
+  documentIds: string[],
+  purpose: PhotoPurpose,
+  options: { overwrite?: boolean } = {},
+): Promise<{ updated: number; skipped: number }> {
+  const { data } = await api.post('/documents/documents/set_purpose/', {
+    document_ids: documentIds,
+    purpose,
+    ...(options.overwrite ? { overwrite: true } : {}),
+  });
+  return data as { updated: number; skipped: number };
 }
 
 /**

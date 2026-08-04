@@ -1,5 +1,14 @@
 import * as React from 'react';
-import { Camera, CheckSquare, MapPin, MapPinOff, SearchX, Trash2, Upload } from 'lucide-react';
+import {
+  Camera,
+  CheckSquare,
+  Inbox,
+  MapPin,
+  MapPinOff,
+  SearchX,
+  Trash2,
+  Upload,
+} from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
 import ListPage from '@/components/ListPage';
@@ -19,13 +28,23 @@ import { useDeleteWithUndo } from '@/lib/useDeleteWithUndo';
 import { useMultiSelect } from '@/lib/useMultiSelect';
 import { useSessionState } from '@/lib/useSessionState';
 import { formatMonthYear } from '@/lib/format';
-import type { DocumentItem } from '@/lib/api/documents';
-import { usePhotos, useDeletePhoto, photoKeys } from './hooks';
+import { UNTRIAGED, type DocumentItem, type PhotoPurpose } from '@/lib/api/documents';
+import {
+  usePhotos,
+  useDeletePhoto,
+  usePurposeCounts,
+  useSetPhotosPurpose,
+  useTriageQueue,
+  photoKeys,
+} from './hooks';
 import PhotoGrid, { PhotoGridSkeleton } from './PhotoGrid';
 import PhotoLightbox from './PhotoLightbox';
 import PhotoZonesEditor from './PhotoZonesEditor';
 import PhotoZonesDialog from './PhotoZonesDialog';
 import PhotoZonesBulkDialog from './PhotoZonesBulkDialog';
+import PhotoPurposeEditor from './PhotoPurposeEditor';
+import TriagePanel from './TriagePanel';
+import { PURPOSES } from './purposes';
 import { groupPhotosByMonth } from './grouping';
 
 export default function PhotosPage() {
@@ -35,6 +54,10 @@ export default function PhotosPage() {
   const [search, setSearch] = React.useState('');
   const [zone, setZone] = useSessionState<string>('photos.zone', '');
   const [withoutZone, setWithoutZone] = useSessionState<boolean>('photos.withoutZone', false);
+  // '' = toutes les intentions. On **omet** la clé côté requête plutôt que d'envoyer
+  // un vide : le serveur refuse `?purpose=`, pour qu'un paramètre oublié ne puisse
+  // jamais se lire comme un filtre.
+  const [purpose, setPurpose] = useSessionState<string>('photos.purpose', '');
   const [openId, setOpenId] = React.useState<string | null>(null);
   const [uploadOpen, setUploadOpen] = React.useState(false);
   const [zonesFor, setZonesFor] = React.useState<DocumentItem | null>(null);
@@ -42,22 +65,37 @@ export default function PhotosPage() {
   // Une frappe ne vaut pas une requête : la recherche partait à chaque caractère.
   const debouncedSearch = useDebouncedValue(search.trim(), 300);
   const hasFilters = debouncedSearch !== '' || zone !== '' || withoutZone;
+  const isTriage = purpose === UNTRIAGED;
 
   const filters = React.useMemo(
     () => ({
       ...(debouncedSearch ? { search: debouncedSearch } : {}),
       ...(zone ? { zone } : {}),
       ...(withoutZone ? { without_zone: '1' } : {}),
+      ...(purpose ? { purpose } : {}),
     }),
-    [debouncedSearch, zone, withoutZone],
+    [debouncedSearch, zone, withoutZone, purpose],
   );
 
-  const { data: photos = [], isLoading, error } = usePhotos(filters);
+  // En mode tri, la galerie à plat ne se charge pas : elle ramènerait toute la
+  // photothèque (rien n'a été backfillé, donc tout est « à trier » au premier jour),
+  // et la file du serveur est déjà bornée.
+  const { data: photos = [], isLoading, error } = usePhotos(filters, !isTriage);
+  const { data: counts } = usePurposeCounts();
+  // Même clé que dans `TriagePanel` : react-query dédoublonne, la file n'est chargée
+  // qu'une fois. C'est elle qui donne au visualiseur de quoi naviguer.
+  const { data: triage } = useTriageQueue(isTriage);
   const deletePhotoMutation = useDeletePhoto();
+  const setPhotosPurpose = useSetPhotosPurpose();
+
+  const visiblePhotos = React.useMemo(
+    () => (isTriage ? (triage?.clusters.flatMap((cluster) => cluster.photos) ?? []) : photos),
+    [isTriage, triage, photos],
+  );
 
   // La portée de la sélection, ce sont les filtres : les changer vide les cases
   // cochées, sinon le lot suivant porterait sur des photos plus à l'écran.
-  const photoIds = React.useMemo(() => photos.map((p) => p.id), [photos]);
+  const photoIds = React.useMemo(() => visiblePhotos.map((p) => p.id), [visiblePhotos]);
   const selection = useMultiSelect(photoIds, { scopeKey: JSON.stringify(filters) });
   const [bulkZonesOpen, setBulkZonesOpen] = React.useState(false);
 
@@ -85,6 +123,16 @@ export default function PhotosPage() {
     setZone('');
     setWithoutZone(false);
   }, [setZone, setWithoutZone]);
+
+  // Changer d'intention change ce qu'on regarde : la sélection en cours ne porte plus
+  // sur rien de visible, et la garder ferait ranger des photos sorties de l'écran.
+  const handlePurposeChange = React.useCallback(
+    (next: string) => {
+      setPurpose(next === purpose ? '' : next);
+      selection.exit();
+    },
+    [purpose, setPurpose, selection],
+  );
 
   // « Dans le salon » et « dans aucune zone » ne peuvent pas être vrais ensemble :
   // les cumuler ne rendrait jamais qu'une liste vide, sans dire pourquoi.
@@ -123,14 +171,19 @@ export default function PhotosPage() {
   );
 
   const groups = React.useMemo(() => groupPhotosByMonth(photos), [photos]);
-  const showSkeleton = useDelayedLoading(isLoading);
+  const showSkeleton = useDelayedLoading(isLoading && !isTriage);
 
   // `ListPage` masque ses enfants quand la liste est vide — donc la barre de
   // filtres avec. On ne lui déclare « vide » que la galerie réellement vide :
   // sinon une recherche sans résultat effaçait le champ qui l'a produite, et il
   // devenait impossible de revenir en arrière.
-  const isTrulyEmpty = !isLoading && !error && photos.length === 0 && !hasFilters;
-  const isNoResults = !isLoading && !error && photos.length === 0 && hasFilters;
+  // En mode tri, le panneau porte son propre état vide (« tout est trié »), qui n'est
+  // pas le même message : une galerie vide et une file vide ne disent pas la même
+  // chose, et `ListPage` masquerait la barre d'intentions avec le reste.
+  const isTrulyEmpty =
+    !isTriage && !isLoading && !error && photos.length === 0 && !hasFilters && !purpose;
+  const isNoResults =
+    !isTriage && !isLoading && !error && photos.length === 0 && (hasFilters || Boolean(purpose));
 
   return (
     <>
@@ -145,8 +198,10 @@ export default function PhotosPage() {
         }}
         actions={
           <>
-            {/* Rien à cocher = pas de mode sélection à proposer. */}
-            {photos.length > 0 ? (
+            {/* Rien à cocher = pas de mode sélection à proposer. En mode tri, le
+                panneau range par grappe : une seconde sélection à la main ferait
+                deux gestes concurrents pour le même travail. */}
+            {!isTriage && photos.length > 0 ? (
               <Button
                 type="button"
                 variant="outline"
@@ -164,6 +219,45 @@ export default function PhotosPage() {
           </>
         }
       >
+        {/* L'intention d'abord : c'est elle qui sépare la preuve du souvenir, et le
+            reste des filtres (zone, recherche) ne dit que *où* et *quoi*. */}
+        <div className="mb-3 flex flex-wrap items-center gap-1.5">
+          <FilterPill active={purpose === ''} onClick={() => handlePurposeChange('')}>
+            {t('photos.purpose.all')}
+          </FilterPill>
+          {PURPOSES.map((spec) => {
+            const Icon = spec.icon;
+            return (
+              <FilterPill
+                key={spec.key}
+                active={purpose === spec.key}
+                onClick={() => handlePurposeChange(spec.key)}
+                title={t(spec.hintKey)}
+              >
+                <Icon className="h-3 w-3" aria-hidden />
+                {t(spec.labelKey)}
+                {counts ? <span className="tabular-nums">{counts[spec.key]}</span> : null}
+              </FilterPill>
+            );
+          })}
+          {/* « À trier » n'est pas une quatrième intention : c'est l'absence de choix.
+              Elle se montre à part, et son compteur se lit même à zéro — « rien à
+              trier » et « rien de trié » ne sont pas la même nouvelle. */}
+          <FilterPill
+            active={isTriage}
+            onClick={() => handlePurposeChange(UNTRIAGED)}
+            className={
+              !isTriage && counts?.untriaged
+                ? 'border-primary/40 text-foreground'
+                : undefined
+            }
+          >
+            <Inbox className="h-3 w-3" aria-hidden />
+            {t('photos.purpose.untriaged')}
+            {counts ? <span className="tabular-nums">{counts.untriaged}</span> : null}
+          </FilterPill>
+        </div>
+
         <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end">
           <div className="flex-1 space-y-1 sm:max-w-xs">
             <Label htmlFor="photos-search">{t('photos.search')}</Label>
@@ -198,7 +292,9 @@ export default function PhotosPage() {
           </div>
         </div>
 
-        {error ? (
+        {isTriage ? (
+          <TriagePanel onPhotoClick={(photo) => setOpenId(photo.id)} />
+        ) : error ? (
           <LoadError
             message={t('photos.loadFailed')}
             onRetry={() => void qc.invalidateQueries({ queryKey: photoKeys.all })}
@@ -253,6 +349,35 @@ export default function PhotosPage() {
                   <MapPin className="h-4 w-4" aria-hidden />
                   {t('photos.zones.assign')}
                 </Button>
+                {/* Poser une intention sur une sélection quelconque : le serveur
+                    laisse intactes celles qui en portaient déjà une, et le toast dit
+                    combien. Écraser reste possible, mais depuis la photo. */}
+                {PURPOSES.map((spec) => {
+                  const Icon = spec.icon;
+                  return (
+                    <Button
+                      key={spec.key}
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      className="gap-1.5"
+                      title={t(spec.hintKey)}
+                      disabled={selection.count === 0 || setPhotosPurpose.isPending}
+                      onClick={() =>
+                        setPhotosPurpose.mutate(
+                          {
+                            photoIds: selection.selectedIds,
+                            purpose: spec.key as PhotoPurpose,
+                          },
+                          { onSuccess: () => selection.exit() },
+                        )
+                      }
+                    >
+                      <Icon className="h-4 w-4" aria-hidden />
+                      {t(spec.labelKey)}
+                    </Button>
+                  );
+                })}
               </SelectionBar>
             ) : null}
           </div>
@@ -260,11 +385,12 @@ export default function PhotosPage() {
       </ListPage>
 
       <PhotoLightbox
-        photos={photos}
+        photos={visiblePhotos}
         openId={openId}
         onOpenChange={setOpenId}
         onRemove={handleDelete}
         removeLabel={t('common.delete')}
+        renderPurpose={(photo) => <PhotoPurposeEditor photo={photo} />}
         renderZones={(photo) => <PhotoZonesEditor photo={photo} />}
       />
 

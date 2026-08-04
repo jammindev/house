@@ -1,18 +1,42 @@
 # Parcours 29 — Backlog technique
 
-> Cadrage réalisé le 2026-08-03. Aucun code n'a été écrit à ce stade.
+> Cadrage réalisé le 2026-08-03. **Lot 2 livré le 2026-08-04**, hors séquence — voir
+> « Le lot 2 a été livré seul » juste sous le tableau.
 
 ## Tableau de bord
 
 | Lot | Sujet | Statut | Issue |
 |---|---|---|---|
 | 1 | Les dettes qui bloquent le volume — pagination curseur + `size_bytes` en colonne | ⬜ À faire | #527 |
-| 2 | L'intention (`purpose`) et la file « À trier » | ⬜ À faire | #528 |
+| 2 | L'intention (`purpose`) et la file « À trier » | ✅ Livré (2026-08-04) | #528 |
 | 3 | Le stockage objet, optionnel | ⬜ À faire | #529 |
 | 4 | Le traitement en tâche de fond | ⬜ À faire | #530 |
 | 5 | Le quota de stockage du foyer | ⬜ À faire | #531 |
 | 6 | L'import massif | ⬜ À faire | #532 |
 | 7 | Le géofence — n'envoyer que ce qui a été pris à la maison | ⬜ À faire | #533 |
+
+## Le lot 2 a été livré seul, avant le lot 1
+
+Arbitré le 2026-08-04. Le lot 2 est le seul du parcours qui résout la friction réelle
+de l'utilisateur ; les six autres sont de l'infrastructure pour un volume qui n'existe
+pas encore. Attendre le stockage objet et la file de tâches pour dire *pourquoi une
+photo existe* aurait fait payer une gêne quotidienne au prix d'un chantier.
+
+Ce que ça coûte, écrit ici pour que le lot 1 sache ce qu'il vient lever :
+
+- **La file « À trier » est bornée côté serveur** (`TRIAGE_WINDOW = 500`,
+  `TRIAGE_CLUSTERS = 20`) au lieu d'être paginée. `DocumentViewSet` n'a toujours pas de
+  `pagination_class`, et comme la migration ne backfille rien, *toute* la photothèque
+  est « à trier » au premier jour : sans cette borne, le panneau aurait été une seconde
+  liste non paginée, pire que la première. La borne est honnête à l'écran — le panneau
+  affiche `total` (tout ce qui reste) **et** ce qu'il montre, jamais l'un pour l'autre.
+- **La galerie à plat ne se charge pas en mode tri** (`usePhotos(filters, !isTriage)`),
+  pour la même raison. À supprimer quand la pagination curseur existera.
+- **La galerie ne s'ouvre pas encore par défaut sur une intention** (critère 2 de
+  #528). Sans backfill, toutes les intentions sont vides le premier matin : ouvrir sur
+  `technical` afficherait un écran vide sur une photothèque pleine. Les pastilles et
+  l'entrée « À trier » sont livrées ; la bascule du défaut se fera quand la file aura
+  été vidée une fois.
 
 **Issue parente** : #526 · **Issue annexe (V2 différés)** : #534
 **⚠️ Prérequis, livré AVANT ce parcours** : #535 (partage iOS + jeton d'appareil) ·
@@ -118,7 +142,15 @@ ce soit. Aucun changement visible pour l'utilisateur hormis un défilement infin
 4. Le backfill est rejouable et n'écrase pas une valeur déjà juste.
 5. Aucun autre viewset ne change de forme de réponse.
 
-## Lot 2 — L'intention (`purpose`) et la file « À trier » (#528)
+## Lot 2 — L'intention (`purpose`) et la file « À trier » (#528) — ✅ livré
+
+> Livré le 2026-08-04. Écarts assumés par rapport au cadrage ci-dessous : la borne
+> `TRIAGE_WINDOW` remplace la pagination du lot 1, et l'ouverture par défaut de la
+> galerie sur une intention est différée (voir « Le lot 2 a été livré seul »). Trois
+> fichiers de plus que prévu : `queries.py` porte aussi `purpose_counts`, servi par un
+> endpoint à part pour que les pastilles restent un `COUNT(*)` ; `purposes.ts` tient
+> l'unique définition des trois intentions côté front ; `PhotoPurposeEditor.tsx` le
+> geste unitaire, seul endroit d'où l'on peut *détrier*.
 
 ### But
 

@@ -36,6 +36,8 @@ interface Props {
    * `onRemove` et `removeLabel` de son appelant.
    */
   renderZones?: (photo: DocumentItem) => React.ReactNode;
+  /** Bloc « Intention » du panneau de métadonnées — injecté, comme `renderZones`. */
+  renderPurpose?: (photo: DocumentItem) => React.ReactNode;
 }
 
 /** Distance horizontale minimale, en px, pour qu'un glissement compte comme un swipe. */
@@ -84,6 +86,7 @@ export default function PhotoLightbox({
   removeLabel,
   phaseOf,
   renderZones,
+  renderPurpose,
 }: Props) {
   const { t } = useTranslation();
   const [failed, setFailed] = React.useState(false);
@@ -305,6 +308,8 @@ export default function PhotoLightbox({
                     {photo.notes}
                   </p>
                 ) : null}
+
+                {renderPurpose?.(photo)}
 
                 {renderZones?.(photo)}
 
