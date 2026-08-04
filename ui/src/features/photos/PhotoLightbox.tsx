@@ -53,14 +53,24 @@ interface Props {
   flagWithoutZone?: boolean;
 }
 
-/** Distance horizontale minimale, en px, pour qu'un glissement compte comme un swipe. */
-const SWIPE_THRESHOLD = 50;
-
 /** Style commun des surfaces posées sur la photo : celles de l'app, en verre. */
 const GLASS = 'border border-border/60 bg-background/85 shadow-lg backdrop-blur-md';
 
 /** Durée d'immobilité de la souris après laquelle la navigation se retire, en ms. */
 const POINTER_IDLE_MS = 2000;
+
+/**
+ * Délai sans événement de défilement au bout duquel on considère la piste posée.
+ * `scrollend` dirait la même chose sans minuteur, mais il manque encore à Safari.
+ */
+const SETTLE_MS = 100;
+
+/**
+ * Nombre de photos gardées montées de part et d'autre de la courante. À 1, la
+ * suivante est déjà décodée quand le doigt la découvre, et la galerie d'un foyer
+ * (des centaines de photos) ne met jamais plus de trois images dans le DOM.
+ */
+const RENDER_RADIUS = 1;
 
 /**
  * Visionneuse plein écran d'une collection de photos.
@@ -95,9 +105,23 @@ const POINTER_IDLE_MS = 2000;
  * zones : ce qui se lit et ce qui s'édite sont au même endroit, jamais dans deux
  * écrans qui pourraient afficher deux noms du même fichier.
  *
+ * **Changer de photo est un défilement, pas un remplacement.** Les photos sont
+ * posées côte à côte dans une piste à points d'ancrage (`scroll-snap`) : le doigt
+ * ou le trackpad tire l'image suivante, l'élan et le rebond de fin de collection
+ * viennent du moteur, et l'ancrage repose la piste sur une photo entière. Ce que
+ * ça remplace — un `touchstart`/`touchend` maison à seuil de 50 px — n'avait
+ * aucun retour visuel pendant le geste : rien ne bougeait, puis l'image changeait
+ * d'un coup, et un glissement de 49 px ne donnait rien sans qu'on sache pourquoi.
+ * Le seuil, l'inertie et la distinction entre un tap et un glissement sont
+ * exactement ce que la plateforme sait faire mieux que nous.
+ *
+ * La photo courante n'est donc **plus** ce que le défilement affiche, mais ce sur
+ * quoi il s'est **posé** ({@link SETTLE_MS}) : commettre à mi-course ferait
+ * changer le titre de la card sous une image encore à moitié à l'écran.
+ *
  * Trois acquis de la version précédente restent tenus par les tests : une seule
  * croix de fermeture (celle de Radix est masquée), la navigation sans fermer
- * (flèches, clavier, swipe), et un repli explicite quand l'image ne charge pas.
+ * (flèches, clavier, glissement), et un repli explicite quand l'image ne charge pas.
  */
 export default function PhotoLightbox({
   photos,
@@ -112,7 +136,6 @@ export default function PhotoLightbox({
   flagWithoutZone = false,
 }: Props) {
   const { t } = useTranslation();
-  const [failed, setFailed] = React.useState(false);
   const [chromeVisible, setChromeVisible] = React.useState(true);
   const [pointerActive, setPointerActive] = React.useState(false);
   const [expanded, setExpanded] = React.useState(false);
@@ -131,10 +154,6 @@ export default function PhotoLightbox({
   const goNext = React.useCallback(() => {
     if (index >= 0 && index < photos.length - 1) onOpenChange(photos[index + 1].id);
   }, [index, photos, onOpenChange]);
-
-  // Une nouvelle photo repart d'un état d'erreur vierge : sans ça, une miniature
-  // cassée condamnait toutes les suivantes au message d'échec.
-  React.useEffect(() => setFailed(false), [openId]);
 
   // Le retrait du chrome et le pli de la card sont des gestes, pas des réglages :
   // ils ne survivent pas à la fermeture. Ils survivent en revanche au passage à la
@@ -174,28 +193,52 @@ export default function PhotoLightbox({
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [open, goPrev, goNext]);
 
-  const touchStartX = React.useRef<number | null>(null);
-  const swiped = React.useRef(false);
-  const handleTouchStart = (event: React.TouchEvent) => {
-    touchStartX.current = event.touches[0]?.clientX ?? null;
-    swiped.current = false;
-  };
-  const handleTouchEnd = (event: React.TouchEvent) => {
-    const start = touchStartX.current;
-    touchStartX.current = null;
-    if (start === null) return;
-    const delta = (event.changedTouches[0]?.clientX ?? start) - start;
-    if (Math.abs(delta) < SWIPE_THRESHOLD) return;
-    // Un swipe change de photo ; le clic que le navigateur émet dans sa foulée ne
-    // doit pas, en plus, retirer le chrome.
-    swiped.current = true;
-    if (delta > 0) goPrev();
-    else goNext();
+  // La piste et sa position. `positioned` sépare l'ouverture — se rendre d'un
+  // bond sur la photo cliquée, sans traverser la collection — d'un changement en
+  // cours de visite, qui lui s'anime.
+  //
+  // Elle est tenue dans un **état**, jamais dans une `ref` : le contenu du dialog
+  // vit dans un portail que Radix ne remplit qu'au second rendu. Un effet de mise
+  // en page à dépendances fixes s'exécuterait donc une fois sur une piste absente,
+  // et jamais plus — la visionneuse s'ouvrait sur la première photo pendant que le
+  // compteur en annonçait une autre.
+  const [track, setTrack] = React.useState<HTMLDivElement | null>(null);
+  const positioned = React.useRef(false);
+  const settleTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  React.useEffect(() => {
+    if (!open) positioned.current = false;
+  }, [open]);
+
+  React.useEffect(() => () => { if (settleTimer.current) clearTimeout(settleTimer.current); }, []);
+
+  React.useLayoutEffect(() => {
+    // `clientWidth` vaut 0 tant qu'il n'y a pas de mise en page — c'est le cas en
+    // jsdom, où tout ce qui suit est donc inerte : le défilement se prouve dans un
+    // vrai navigateur (`e2e/photos-lightbox.spec.ts`).
+    if (!track || index < 0 || !track.clientWidth) return;
+    // Déjà sur la bonne photo : le doigt vient de l'y amener, on ne lui reprend
+    // pas la main.
+    if (Math.round(track.scrollLeft / track.clientWidth) !== index) {
+      track.scrollTo({
+        left: index * track.clientWidth,
+        behavior: positioned.current && !prefersReducedMotion() ? 'smooth' : 'auto',
+      });
+    }
+    positioned.current = true;
+  }, [track, index, open]);
+
+  const handleScroll = () => {
+    if (!track || !track.clientWidth) return;
+    if (settleTimer.current) clearTimeout(settleTimer.current);
+    settleTimer.current = setTimeout(() => {
+      const settled = photos[Math.round(track.scrollLeft / track.clientWidth)];
+      if (settled && settled.id !== openId) onOpenChange(settled.id);
+    }, SETTLE_MS);
   };
 
   if (!photo) return null;
 
-  const src = photo.medium_url || photo.file_url || photo.thumbnail_url || null;
   const label = photo.name || t('photos.untitled');
   const size = formatFileSize(photo.metadata?.size as number | undefined);
   const dimensions = photo.metadata?.dimensions;
@@ -236,36 +279,45 @@ export default function PhotoLightbox({
     <Dialog open={open} onOpenChange={(next) => { if (!next) onOpenChange(null); }}>
       <DialogContent variant="fullscreen" aria-describedby={undefined} hideDefaultCloseButton>
         <div className="relative h-full w-full" onPointerMove={wakeNavigation}>
-          {/* La photo, et le tap qui commande le chrome. Toute la toile est le
-              bouton : au doigt, viser une zone sensible est une exigence de plus. */}
-          <button
-            type="button"
-            aria-label={t('photos.toggleInfo')}
-            onClick={() => {
-              if (swiped.current) { swiped.current = false; return; }
-              setChromeVisible((v) => !v);
-            }}
-            onTouchStart={handleTouchStart}
-            onTouchEnd={handleTouchEnd}
-            className="absolute inset-0 flex cursor-default items-center justify-center focus:outline-none"
+          {/* La piste : une photo par écran, ancrée. La barre de défilement est
+              masquée — elle dirait sur une photo ce que le compteur dit déjà. */}
+          <div
+            ref={setTrack}
+            onScroll={handleScroll}
+            data-testid="photo-track"
+            className="absolute inset-0 flex snap-x snap-mandatory overflow-x-auto overscroll-x-contain [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           >
-            {src && !failed ? (
-              <img
-                src={src}
-                alt={label}
-                decoding="async"
-                onError={() => setFailed(true)}
-                className="h-full w-full object-contain"
-              />
-            ) : (
-              <span className="flex flex-col items-center gap-2 text-white/70">
-                {failed ? <ImageOff className="h-10 w-10" aria-hidden /> : <Camera className="h-10 w-10" aria-hidden />}
-                <span className="text-xs">
-                  {failed ? t('photos.thumbFailed') : t('photos.noPreview')}
-                </span>
-              </span>
-            )}
-          </button>
+            {photos.map((item, i) => {
+              const current = i === index;
+              const content =
+                Math.abs(i - index) <= RENDER_RADIUS ? (
+                  <PhotoFrame photo={item} label={current ? label : (item.name || t('photos.untitled'))} />
+                ) : null;
+
+              // Seule la photo courante porte le bouton : les voisines sont hors
+              // écran, et un même libellé rendu trois fois ferait de la commande
+              // du chrome une cible ambiguë.
+              return current ? (
+                <button
+                  key={item.id}
+                  type="button"
+                  aria-label={t('photos.toggleInfo')}
+                  onClick={() => setChromeVisible((v) => !v)}
+                  className="flex h-full w-full shrink-0 cursor-default snap-center snap-always items-center justify-center focus:outline-none"
+                >
+                  {content}
+                </button>
+              ) : (
+                <div
+                  key={item.id}
+                  aria-hidden
+                  className="flex h-full w-full shrink-0 snap-center snap-always items-center justify-center"
+                >
+                  {content}
+                </div>
+              );
+            })}
+          </div>
 
           {/* Calque de navigation — se situer, changer de photo, sortir. Il revient
               sous la souris même quand la card info est écartée. */}
@@ -438,6 +490,47 @@ export default function PhotoLightbox({
         </div>
       </DialogContent>
     </Dialog>
+  );
+}
+
+/** Le réglage système, lu à chaque geste : il peut changer pendant la visite. */
+function prefersReducedMotion() {
+  return typeof window !== 'undefined'
+    && typeof window.matchMedia === 'function'
+    && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
+
+/**
+ * Une image de la piste, avec son propre état d'échec.
+ *
+ * L'état vivait auparavant sur la visionneuse, remis à neuf à chaque changement
+ * de photo. Il ne peut plus : trois images sont montées à la fois, et une voisine
+ * qui échoue le dirait pendant que la courante s'affiche très bien. Le porter par
+ * image, c'est aussi ne pas manquer l'échec d'une voisine — son `onError` a déjà
+ * eu lieu quand elle arrive au centre, et un état partagé l'aurait oublié.
+ */
+function PhotoFrame({ photo, label }: { photo: DocumentItem; label: string }) {
+  const { t } = useTranslation();
+  const [failed, setFailed] = React.useState(false);
+  const src = photo.medium_url || photo.file_url || photo.thumbnail_url || null;
+
+  if (!src || failed) {
+    return (
+      <span className="flex flex-col items-center gap-2 text-white/70">
+        {failed ? <ImageOff className="h-10 w-10" aria-hidden /> : <Camera className="h-10 w-10" aria-hidden />}
+        <span className="text-xs">{failed ? t('photos.thumbFailed') : t('photos.noPreview')}</span>
+      </span>
+    );
+  }
+
+  return (
+    <img
+      src={src}
+      alt={label}
+      decoding="async"
+      onError={() => setFailed(true)}
+      className="h-full w-full object-contain"
+    />
   );
 }
 

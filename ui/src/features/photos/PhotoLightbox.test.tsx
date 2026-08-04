@@ -426,6 +426,70 @@ describe('PhotoLightbox', () => {
     });
   });
 
+  /**
+   * Changer de photo est devenu un **défilement ancré**, et non plus un
+   * `touchstart`/`touchend` maison à seuil de 50 px. Ce qui se teste ici est la
+   * **décision** — sur quelle photo la piste s'est posée, et quand on la commet ;
+   * que le geste soit fluide et que l'ancrage tienne relève d'un vrai moteur de
+   * rendu (`e2e/photos-lightbox.spec.ts`).
+   *
+   * jsdom ne fait aucune mise en page : sans largeur simulée, `clientWidth` vaut 0
+   * et toute la logique est court-circuitée — c'est d'ailleurs ce qui la rend
+   * inoffensive dans les autres tests de ce fichier.
+   */
+  describe('la piste se pose avant de commettre', () => {
+    const WIDTH = 800;
+    let scrollTo: Mock;
+
+    beforeEach(() => {
+      vi.useFakeTimers({ shouldAdvanceTime: true });
+      Object.defineProperty(HTMLElement.prototype, 'clientWidth', {
+        configurable: true,
+        value: WIDTH,
+      });
+      scrollTo = vi.fn();
+      HTMLElement.prototype.scrollTo = scrollTo as unknown as HTMLElement['scrollTo'];
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+      // @ts-expect-error — on rend la propriété au prototype tel qu'il était.
+      delete HTMLElement.prototype.clientWidth;
+    });
+
+    function scrollTrack(to: number) {
+      const track = screen.getByTestId('photo-track');
+      Object.defineProperty(track, 'scrollLeft', { configurable: true, value: to });
+      fireEvent.scroll(track);
+    }
+
+    it('ouvre directement sur la photo cliquée, sans traverser la collection', () => {
+      open('c');
+      expect(scrollTo).toHaveBeenCalledWith({ left: 2 * WIDTH, behavior: 'auto' });
+    });
+
+    it('commet la photo sur laquelle le défilement retombe', () => {
+      open('a');
+      scrollTrack(WIDTH);
+
+      // Rien tant que la piste bouge encore : commettre à mi-course changerait le
+      // titre de la card sous une image à moitié à l'écran.
+      expect(onOpenChange).not.toHaveBeenCalled();
+
+      act(() => { vi.advanceTimersByTime(200); });
+      expect(onOpenChange).toHaveBeenCalledWith('b');
+    });
+
+    it('ne commet rien quand le défilement revient là d’où il vient', () => {
+      open('a');
+      scrollTrack(WIDTH * 0.4);   // un début de glissement, puis le rebond
+      scrollTrack(0);
+
+      act(() => { vi.advanceTimersByTime(200); });
+      expect(onOpenChange).not.toHaveBeenCalled();
+    });
+  });
+
   it('affiche un repli explicite quand l’image ne charge pas', () => {
     open('a');
 
