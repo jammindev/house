@@ -61,21 +61,35 @@ export const MODULES: ModuleDef[] = [
 export const OPTIONAL_MODULES = MODULES.filter((m) => m.optional);
 
 /**
- * Household actif de l'utilisateur (fallback : premier de la liste).
- * Partage la query key de useIsHouseholdOwner → un seul fetch.
+ * Les foyers de l'utilisateur, et lequel est actif (fallback : le premier).
+ *
+ * Une seule définition de « quel foyer suis-je en train de lire » : la règle
+ * était recopiée dans trois hooks, et un titre de header qui désigne un autre
+ * foyer que la sidebar est un mensonge qu'on ne voit qu'en production.
  */
-export function useActiveHousehold(): { household: Household | undefined; isLoading: boolean } {
+export function useHouseholdList(): {
+  households: Household[];
+  active: Household | undefined;
+  isLoading: boolean;
+} {
   const { user } = useAuth();
   const query = useQuery({
     queryKey: ['households', 'list'],
     queryFn: fetchHouseholds,
     staleTime: 60_000,
   });
-  const household =
+  const households = query.data ?? [];
+  const active =
     (user?.active_household
-      ? query.data?.find((h) => h.id === user.active_household)
-      : undefined) ?? query.data?.[0];
-  return { household, isLoading: query.isLoading };
+      ? households.find((h) => h.id === user.active_household)
+      : undefined) ?? households[0];
+  return { households, active, isLoading: query.isLoading };
+}
+
+/** Household actif de l'utilisateur (fallback : premier de la liste). */
+export function useActiveHousehold(): { household: Household | undefined; isLoading: boolean } {
+  const { active, isLoading } = useHouseholdList();
+  return { household: active, isLoading };
 }
 
 /**

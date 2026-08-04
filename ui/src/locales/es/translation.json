@@ -1168,7 +1168,8 @@
       "desktop": {
         "hint": "Esta pantalla sirve para conectar un teléfono. Abre Maisonnée desde el tuyo para ver cómo hacerlo."
       }
-    }
+    },
+    "switchHousehold": "Cambiar de hogar"
   },
   "tutorials": {
     "title": "Tutorial",
@@ -1367,7 +1368,7 @@
           },
           "dashboard": {
             "title": "Un vistazo desde el panel",
-            "body": "Un resumen del tiempo aparece en el panel: haz clic en él para abrir la página completa."
+            "body": "Un resumen del tiempo aparece en el panel, y la temperatura actual en la cabecera: haz clic para abrir la página completa."
           },
           "alerts": {
             "title": "Recibir alertas del tiempo",
@@ -1667,7 +1668,7 @@
           },
           "household": {
             "title": "Gestionar el hogar",
-            "body": "Invita a miembros, gestiona los roles, cambia de hogar activo."
+            "body": "Invita a miembros y gestiona los roles; el nombre del hogar, arriba en la pantalla, permite cambiar de hogar."
           },
           "invite": {
             "title": "Invitar al hogar",

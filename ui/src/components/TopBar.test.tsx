@@ -9,6 +9,7 @@ import type { AuthUser } from '@/lib/auth/authContext';
 vi.mock('./HouseholdSwitcher', () => ({ default: () => null }));
 vi.mock('@/features/notifications/NotificationsBell', () => ({ default: () => null }));
 vi.mock('@/features/search/GlobalSearch', () => ({ default: () => null }));
+vi.mock('@/features/weather/WeatherChip', () => ({ default: () => null }));
 vi.mock('./SidebarToggleContext', () => ({ useSidebarToggle: () => ({ toggleSidebar: vi.fn() }) }));
 vi.mock('react-i18next', () => ({ useTranslation: () => ({ t: (key: string) => key }) }));
 

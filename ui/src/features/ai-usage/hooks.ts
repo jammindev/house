@@ -4,8 +4,7 @@ import {
   fetchAIUsageRecent,
   fetchAIUsageSummary,
 } from '@/lib/api/ai-usage';
-import { fetchHouseholds } from '@/lib/api/households';
-import { useAuth } from '@/lib/auth/useAuth';
+import { useHouseholdList } from '@/lib/modules';
 
 export const aiUsageKeys = {
   all: ['ai-usage'] as const,
@@ -41,16 +40,7 @@ export function useAIUsageRecent(feature: string | null) {
  * `undefined` while loading.
  */
 export function useIsHouseholdOwner(): boolean | undefined {
-  const { user } = useAuth();
-  const query = useQuery({
-    queryKey: ['households', 'list'],
-    queryFn: fetchHouseholds,
-    staleTime: 60_000,
-  });
-  if (!query.data) return undefined;
-  const active =
-    (user?.active_household
-      ? query.data.find((h) => h.id === user.active_household)
-      : undefined) ?? query.data[0];
+  const { active, isLoading } = useHouseholdList();
+  if (isLoading) return undefined;
   return active?.current_user_role === 'owner';
 }

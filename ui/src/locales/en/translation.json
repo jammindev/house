@@ -1168,7 +1168,8 @@
       "desktop": {
         "hint": "This screen is for connecting a phone. Open Maisonnée from yours to see how."
       }
-    }
+    },
+    "switchHousehold": "Switch household"
   },
   "tutorials": {
     "title": "Tutorial",
@@ -1367,7 +1368,7 @@
           },
           "dashboard": {
             "title": "A glance from the dashboard",
-            "body": "A weather summary appears on the dashboard — click it to open the full page."
+            "body": "A weather summary shows on the dashboard, and the current temperature in the header: click either to open the full page."
           },
           "alerts": {
             "title": "Get weather alerts",
@@ -1667,7 +1668,7 @@
           },
           "household": {
             "title": "Manage the household",
-            "body": "Invite members, manage roles, switch the active household."
+            "body": "Invite members and manage roles; the household name at the top of the screen switches between them."
           },
           "invite": {
             "title": "Invite the household",

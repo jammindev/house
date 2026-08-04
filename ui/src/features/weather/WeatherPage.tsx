@@ -9,12 +9,8 @@ import { useDelayedLoading } from '@/lib/useDelayedLoading';
 import type { WeatherCondition, WeatherDay, WeatherHour } from '@/lib/api/weather';
 
 import { ConditionIcon } from './conditions';
+import { fmtTemp } from './format';
 import { useWeather } from './hooks';
-
-function fmtTemp(value: number | null | undefined): string {
-  if (value === null || value === undefined) return '—';
-  return `${Math.round(value)}°`;
-}
 
 function conditionLabel(t: (k: string) => string, condition: WeatherCondition): string {
   return t(`weather.condition.${condition}`);

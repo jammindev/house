@@ -229,15 +229,43 @@ test.describe('Dashboard — widget Météo', () => {
 });
 
 // ---------------------------------------------------------------------------
-// 5. Sidebar — entrée Météo
+// 5. Header — chip Météo, et le repli de la sidebar
 // ---------------------------------------------------------------------------
 
-test.describe('Sidebar — module Météo', () => {
-  test('la sidebar affiche un lien "Météo" vers /app/weather', async ({ page }) => {
+test.describe('Header — module Météo', () => {
+  test('le header affiche la température et mène à /app/weather', async ({ page }) => {
+    await stubWeatherConfigured(page);
     await page.goto('/app/dashboard');
-    const sidebar = page.locator('aside');
-    const weatherLink = sidebar.getByRole('link', { name: 'Météo' });
+
+    const chip = page.getByTestId('header-weather');
+    await expect(chip).toBeVisible();
+    await expect(chip).toContainText('18°');
+
+    await chip.click();
+    await expect(page).toHaveURL(/\/app\/weather/);
+  });
+
+  /**
+   * Le repli. Sans localisation le chip se tait — et c'est exactement le moment
+   * où il faut pouvoir ouvrir la page météo pour découvrir qu'il en faut une.
+   * L'entrée de sidebar ne subsiste que là.
+   */
+  test('sans localisation, le chip se tait et la sidebar garde son entrée', async ({ page }) => {
+    await stubWeatherNotConfigured(page);
+    await page.goto('/app/dashboard');
+
+    await expect(page.getByTestId('header-weather')).toHaveCount(0);
+
+    const weatherLink = page.locator('aside').getByRole('link', { name: 'Météo' });
     await expect(weatherLink).toBeVisible();
     await expect(weatherLink).toHaveAttribute('href', '/app/weather');
+  });
+
+  test('quand le header parle, la sidebar ne double pas l’entrée', async ({ page }) => {
+    await stubWeatherConfigured(page);
+    await page.goto('/app/dashboard');
+
+    await expect(page.getByTestId('header-weather')).toBeVisible();
+    await expect(page.locator('aside').getByRole('link', { name: 'Météo' })).toHaveCount(0);
   });
 });

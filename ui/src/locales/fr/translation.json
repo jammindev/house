@@ -1168,7 +1168,8 @@
       "desktop": {
         "hint": "Cet écran sert à connecter un téléphone. Ouvrez Maisonnée depuis le vôtre pour voir la marche à suivre."
       }
-    }
+    },
+    "switchHousehold": "Changer de foyer"
   },
   "tutorials": {
     "title": "Tutoriel",
@@ -1367,7 +1368,7 @@
           },
           "dashboard": {
             "title": "Un coup d'œil au dashboard",
-            "body": "Un résumé météo apparaît sur le tableau de bord : cliquez dessus pour ouvrir la page complète."
+            "body": "Un résumé météo apparaît sur le tableau de bord, et la température du moment dans le header : cliquez dessus pour ouvrir la page complète."
           },
           "alerts": {
             "title": "Recevoir les alertes météo",
@@ -1667,7 +1668,7 @@
           },
           "household": {
             "title": "Gérer le foyer",
-            "body": "Invitez des membres, gérez les rôles, changez de foyer actif."
+            "body": "Invitez des membres, gérez les rôles ; le nom du foyer, en haut de l'écran, permet d'en changer."
           },
           "invite": {
             "title": "Inviter le foyer",

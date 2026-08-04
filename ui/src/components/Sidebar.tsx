@@ -7,8 +7,8 @@ import {
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/lib/auth/useAuth';
 import { useSidebarToggle } from './SidebarToggleContext';
-import HouseholdSwitcher from './HouseholdSwitcher';
 import { useIsHouseholdOwner } from '@/features/ai-usage/hooks';
+import { useHeaderWeather } from '@/features/weather/hooks';
 import {
   MODULES, MODULE_GROUPS, useDisabledModules, usePinnedModules, useSetPinnedModules,
   type ModuleDef,
@@ -80,6 +80,11 @@ export default function Sidebar() {
   const isOwner = useIsHouseholdOwner();
   const { isSidebarOpen, closeSidebar } = useSidebarToggle();
 
+  // L'entrée « Météo » ne double pas le chip du header : elle ne subsiste que
+  // quand celui-ci n'a rien à dire (localisation absente, fournisseur en
+  // erreur) — c'est-à-dire exactement quand il faut pouvoir aller sur la page.
+  const headerWeather = useHeaderWeather();
+
   const { disabled } = useDisabledModules();
   const pinned = usePinnedModules();
   const setPinned = useSetPinnedModules();
@@ -122,11 +127,9 @@ export default function Sidebar() {
         lg:translate-x-0 lg:static lg:z-auto lg:transform-none
       `}>
 
-        {/* Mobile close + HouseholdSwitcher */}
-        <div className="h-12 shrink-0 flex items-center justify-between gap-2 px-3">
-          <div className="flex-1">
-            <HouseholdSwitcher />
-          </div>
+        {/* Fermeture mobile. Le nom du foyer — et son sélecteur — vivent
+            désormais dans le header, où ils sont visibles sans ouvrir ce menu. */}
+        <div className="h-12 shrink-0 flex items-center justify-end gap-2 px-3">
           <button
             onClick={closeSidebar}
             className="lg:hidden p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
@@ -147,7 +150,7 @@ export default function Sidebar() {
                 onNavigate={closeSidebar}
               />
             ))}
-            {weatherModule && (
+            {weatherModule && !headerWeather && (
               <NavItem
                 key={weatherModule.key}
                 to={weatherModule.to}

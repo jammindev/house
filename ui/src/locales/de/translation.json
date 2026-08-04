@@ -1168,7 +1168,8 @@
       "desktop": {
         "hint": "Dieser Bildschirm dient dazu, ein Telefon zu verbinden. Öffne Maisonnée von deinem aus, um die Anleitung zu sehen."
       }
-    }
+    },
+    "switchHousehold": "Haushalt wechseln"
   },
   "tutorials": {
     "title": "Tutorial",
@@ -1367,7 +1368,7 @@
           },
           "dashboard": {
             "title": "Ein Blick aufs Dashboard",
-            "body": "Eine Wetterübersicht erscheint auf dem Dashboard — klicken Sie darauf, um die vollständige Seite zu öffnen."
+            "body": "Eine Wetterübersicht erscheint auf dem Dashboard, die aktuelle Temperatur im Header: klicken Sie darauf, um die vollständige Seite zu öffnen."
           },
           "alerts": {
             "title": "Wetterwarnungen erhalten",
@@ -1667,7 +1668,7 @@
           },
           "household": {
             "title": "Den Haushalt verwalten",
-            "body": "Laden Sie Mitglieder ein, verwalten Sie Rollen, wechseln Sie den aktiven Haushalt."
+            "body": "Mitglieder einladen, Rollen verwalten; über den Haushaltsnamen oben im Bildschirm wechseln Sie den Haushalt."
           },
           "invite": {
             "title": "Den Haushalt einladen",

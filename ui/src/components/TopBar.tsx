@@ -1,10 +1,12 @@
 import { Home, LogOut, Menu } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router-dom';
 import { useAuth } from '@/lib/auth/useAuth';
 import { useSidebarToggle } from './SidebarToggleContext';
 import HouseholdSwitcher from './HouseholdSwitcher';
 import NotificationsBell from '@/features/notifications/NotificationsBell';
 import GlobalSearch from '@/features/search/GlobalSearch';
+import WeatherChip from '@/features/weather/WeatherChip';
 
 export default function TopBar() {
   const { t } = useTranslation();
@@ -18,7 +20,7 @@ export default function TopBar() {
   const initial = (displayName?.[0] ?? '?').toUpperCase();
 
   return (
-    <header className="h-12 shrink-0 bg-sidebar flex items-center gap-3 px-4 z-30">
+    <header className="h-12 shrink-0 bg-sidebar flex items-center gap-2 px-3 sm:gap-3 sm:px-4 z-30">
       {/* Mobile hamburger */}
       <button
         onClick={toggleSidebar}
@@ -28,20 +30,21 @@ export default function TopBar() {
         <Menu className="h-5 w-5" />
       </button>
 
-      {/* Logo */}
-      <div className="flex items-center gap-2 shrink-0">
+      {/* Logo — masqué sur mobile, où le hamburger ancre déjà la gauche et où
+          chaque pixel va au nom du foyer. */}
+      <Link to="/app/dashboard" className="hidden sm:flex shrink-0 items-center" aria-label={t('dashboard.title')}>
         <div className="h-7 w-7 rounded-md bg-primary flex items-center justify-center">
           <Home className="h-4 w-4 text-primary-foreground" />
         </div>
-        <span className="font-semibold text-sm text-foreground hidden sm:block">House</span>
-      </div>
+      </Link>
 
-      {/* Household switcher */}
-      <div className="hidden md:block">
+      {/* Le foyer, pas le nom de l'app */}
+      <div className="min-w-0 flex-1">
         <HouseholdSwitcher />
       </div>
 
-      <div className="flex-1" />
+      {/* Météo du foyer */}
+      <WeatherChip />
 
       {/* App-wide search — box on desktop, magnifier on mobile */}
       <GlobalSearch />
