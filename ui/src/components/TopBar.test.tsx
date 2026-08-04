@@ -56,16 +56,17 @@ describe('TopBar — la zone identité', () => {
     expect(screen.getByTestId('topbar-initial')).toHaveTextContent('B');
   });
 
-  it("ne dit pas l'email deux fois quand il n'y a rien d'autre à dire", () => {
+  it("retombe sur l'email quand le compte n'a aucun nom", () => {
     renderTopBarFor({ display_name: '', full_name: 'foyer@example.com' });
 
     expect(screen.getByTestId('topbar-display-name')).toHaveTextContent('foyer@example.com');
-    expect(screen.queryByTestId('topbar-email')).not.toBeInTheDocument();
   });
 
-  it("garde l'email en seconde ligne dès qu'il complète un nom", () => {
-    renderTopBarFor({ display_name: 'Benjamin', full_name: 'Benjamin' });
+  // Le header nomme, il n'identifie pas : l'email vit dans les réglages. Il
+  // n'apparaît ici que porté par `full_name`, faute de mieux (test ci-dessus).
+  it("n'affiche pas l'email en seconde ligne", () => {
+    const { container } = renderTopBarFor({ display_name: 'Benjamin', full_name: 'Benjamin' });
 
-    expect(screen.getByTestId('topbar-email')).toHaveTextContent('foyer@example.com');
+    expect(container).not.toHaveTextContent('foyer@example.com');
   });
 });

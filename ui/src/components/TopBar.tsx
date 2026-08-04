@@ -51,11 +51,10 @@ export default function TopBar() {
 
       {/* User */}
       <div className="flex items-center gap-2">
+        {/* Le header ne dit que le nom. L'email est une donnée de compte : il se
+            lit dans les réglages, pas en permanence au-dessus de chaque écran. */}
         <div className="hidden sm:flex flex-col items-end">
-          <span data-testid="topbar-display-name" className="text-sm font-medium text-foreground leading-none truncate max-w-32">{displayName}</span>
-          {displayName !== user?.email && (
-            <span data-testid="topbar-email" className="text-xs text-muted-foreground truncate max-w-32">{user?.email}</span>
-          )}
+          <span data-testid="topbar-display-name" className="text-sm font-medium text-foreground truncate max-w-32">{displayName}</span>
         </div>
         {user?.avatar ? (
           <img
