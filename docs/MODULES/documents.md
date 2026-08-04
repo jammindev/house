@@ -25,10 +25,11 @@
 - `ocr_text` : texte extrait (vide si photo ou extraction échouée).
 - `metadata` : JSONField libre — contient `size`, `ocr_method`, `ocr_extracted_at`, `normalized`, `resized`, `dimensions`.
 - `taken_at` : `DateTimeField(null=True, db_index=True)` — date de **prise de vue**, lue dans l'EXIF à l'upload (`apps/documents/exif.py`). Voir « Date de prise de vue » plus bas.
+- `purpose` : `CharField` (`technical` / `observation` / `memory`, vide = **non trié**) — l'**intention** d'une photo. Voir « L'intention d'une photo » plus bas.
 - `is_private` : boolean — filtre appliqué dans le queryset (seul `created_by` voit ses propres privés).
 - `interaction` : FK nullable vers `Interaction` (`on_delete=CASCADE`). FK "legacy" conservée par rétro-compat. La relation principale passe désormais par `InteractionDocument` (M2M).
 - **Pas de soft-delete** — suppression physique + cascade complète.
-- Index : `idx_docs_hh_type` (household+type), `idx_docs_interaction` (interaction), `idx_docs_creator` (created_by).
+- Index : `idx_docs_hh_type` (household+type), `idx_docs_interaction` (interaction), `idx_docs_creator` (created_by), `idx_docs_hh_purpose` (household+purpose).
 
 ### Tables de liaison (autres apps)
 
@@ -52,6 +53,9 @@
 | DELETE | `documents/{id}/` | Suppression (déclenche signal → fichier physique + thumbnails) |
 | POST | `documents/upload/` | Upload multipart (magic bytes, normalization, OCR) |
 | GET | `documents/by_type/` | Comptage par type |
+| GET | `documents/purpose_counts/` | Compte des photos par intention, dont « à trier » |
+| GET | `documents/triage/` | Ce que personne n'a trié, **par grappes de session** |
+| POST | `documents/set_purpose/` | Pose une intention sur un lot ; n'écrase rien sans `overwrite` |
 | POST | `documents/{id}/reprocess_ocr/` | Relancer l'extraction OCR |
 
 Permissions : `IsHouseholdMember` partout. Seul le `created_by` peut changer `is_private` (`views.py:140-144`).
@@ -130,6 +134,74 @@ date du déclenchement, lue dans l'EXIF.
   `ordering=-effective_date`, et `grouping.ts::effectiveDate` applique la même règle
   pour les en-têtes de mois : s'ils divergeaient, une photo apparaîtrait sous un en-tête
   « juillet » entre deux photos de juin.
+
+### L'intention d'une photo (`Document.purpose`, parcours 29 lot 2)
+
+Une photo portait trois axes — la zone dit *où*, le lien d'entité dit *sur quoi*,
+`DocumentLink.phase` dit *quand dans le chantier*. Aucun ne disait **pourquoi elle
+existe**, et c'est la question qui sépare une preuve d'un souvenir : le numéro de série
+d'une chaudière, une fissure inquiétante et l'anniversaire d'une fille finissaient au
+même endroit, dans le même ordre. Même raisonnement que « le budget est la catégorie »
+côté argent : un projet et une zone disent sur quoi porte un euro, jamais de quelle
+nature il est.
+
+- **⚠️ Le vide n'est pas `memory`.** Vide = personne n'a regardé (un écart, qui alimente
+  la file « À trier ») ; `memory` = quelqu'un a choisi. Les confondre rendrait la file
+  aveugle et l'utilisateur croirait avoir rangé. C'est la déclinaison photo de
+  `inflow_nature == ""` qui n'est pas `"other"`, et du principe du parcours 26 : *toute
+  entité est soit résolue, soit flaggée ; rien ne reste dans un entre-deux silencieux*.
+  Régression : `test_photo_purpose.py::TestEmptyIsNotAMemory`.
+- **Le marqueur du filtre s'écrit** : `?purpose=untriaged`, jamais `?purpose=` vide, qui
+  répond **400** — comme une valeur inconnue. Un paramètre vide qui voudrait dire
+  « toutes » ferait afficher la galerie entière sous la pastille « À trier », et le
+  compteur d'à côté dirait autre chose que la liste.
+- **Aucun backfill, jamais.** Marquer `technical` ce qui est lié à un projet écrirait une
+  devinette en base, indistinguable d'un choix de l'utilisateur — ce que `banking.rules`
+  interdit (« des valeurs de départ, jamais des vérités »). Tout l'existant part donc
+  dans « À trier », et c'est le tri **par grappe** qui rend la contrepartie tenable.
+- **Le tri se fait par grappe de session, calculée à la lecture** (`queries.py::
+  cluster_sessions`, `SESSION_GAP = 2 h`). Aucune colonne de groupe : un regroupement
+  stocké devrait être recalculé à chaque correction de date, et une date de prise de vue
+  se corrige. La grappe se calcule sur `effective_date`, **pas** sur la date d'ajout :
+  quinze photos envoyées d'un coup depuis la feuille de partage contiennent la chaudière
+  de mardi *et* l'anniversaire de samedi — les grouper par envoi reformerait exactement
+  le mélange qu'on défait. Régression :
+  `test_triage_clusters.py::TestTheTriageEndpointGroupsByCapture`.
+- **Un lot n'écrase jamais un choix déjà posé.** `set_purpose` laisse intactes les photos
+  qui portent une autre intention et les renvoie dans `skipped` ; écraser est un geste
+  explicite (`overwrite: true`). Reposer la **même** intention n'est pas un conflit — un
+  lot idempotent ne doit pas se dire à moitié appliqué. Une intention **vide** est
+  refusée en lot (« détrier » trente photos serait une destruction de masse déguisée en
+  raccourci) mais admise sur une photo, par PATCH ou en recliquant la pastille dans la
+  visionneuse. Régression : `test_photo_purpose.py::TestABatchNeverOverwritesAChoice`.
+- **Le compteur est un `COUNT(*)`**, servi par `purpose_counts/` — un endpoint à part, et
+  non un bloc de la réponse de `triage/` : la galerie affiche ces compteurs en
+  permanence, et les obtenir en chargeant une fenêtre de photos ferait payer un écran de
+  lecture au prix d'un écran de tri (même exigence que les badges du Contrôle).
+- **La file est bornée, et le dit.** `TRIAGE_WINDOW = 500` photos lues, `TRIAGE_CLUSTERS
+  = 20` grappes rendues, la grappe de queue d'une fenêtre pleine étant abandonnée
+  (peut-être coupée). Le panneau affiche `total` **et** ce qu'il montre : annoncer le
+  compte de l'écran ferait croire la file finie. Cette borne remplace la pagination
+  curseur du lot 1, pas encore livrée — à réviser quand elle le sera.
+- **Propre aux photos** : le serializer et le lot refusent un `purpose` sur un
+  `type != 'photo'`, sinon la file se peuplerait de factures qu'elle ne sait pas montrer.
+  **Et l'intention ne survit pas au reclassement** : passer une photo en `invoice`
+  efface son `purpose` au lieu de bloquer. Les deux chemins diffèrent exprès — *poser*
+  une intention sur autre chose qu'une photo est une erreur du client (400), *reclasser*
+  est un geste légitime. Sans cet effacement, la facture gardait `purpose='technical'`
+  pour toujours : invisible partout (la file et les compteurs filtrent `type='photo'`),
+  donc jamais corrigeable — et un état qu'aucun écran ne montre est celui qu'on ne
+  rattrape jamais. Même règle que le budget d'un remboursement reclassé en salaire.
+  Régression : `test_photo_purpose.py::test_reclassifying_a_photo_drops_the_purpose_it_carried`.
+- **Le retrait optimiste d'une suppression porte sur le cache affiché.** La suppression
+  est différée de cinq secondes (le temps d'annuler) : en mode tri, ne retirer la photo
+  que de `photoKeys.list()` la laissait à l'écran pendant tout ce temps, et un second
+  clic partait supprimer un identifiant déjà condamné. `removeFromTriage` (dans
+  `hooks.ts`, testé à part) met à jour la file, y compris le `total` et la grappe qui se
+  vide.
+- Côté front, les trois intentions ont **une seule définition**
+  (`ui/src/features/photos/purposes.ts`) : icône, libellé, phrase d'aide. « À trier » n'y
+  est délibérément pas — ce n'est pas une quatrième intention, c'est l'absence de choix.
 
 ### Pipeline OCR / extraction (`apps/documents/extraction.py`)
 

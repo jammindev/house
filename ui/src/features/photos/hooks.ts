@@ -3,15 +3,22 @@ import { useTranslation } from 'react-i18next';
 import { useToast } from '@/lib/toast';
 import {
   fetchPhotoDocuments,
+  fetchPurposeCounts,
+  fetchTriageQueue,
   deleteDocument,
+  updateDocument,
   attachEntityDocument,
   detachEntityDocument,
   setDocumentPhase,
   setDocumentZones,
+  setPhotosPurpose,
   bulkAddDocumentZones,
   entityDetailQueryKey,
   type PhotoPhase,
+  type PhotoPurpose,
+  type TriageQueue,
 } from '@/lib/api/documents';
+import { useInvalidate } from '@/lib/invalidate';
 import { documentKeys } from '@/features/documents/hooks';
 import { zoneKeys } from '@/features/zones/hooks';
 
@@ -20,21 +27,138 @@ export interface PhotoFilters {
   zone?: string;
   /** `'1'` = seulement les photos rangées dans aucune zone. */
   without_zone?: string;
+  /**
+   * `technical` | `observation` | `memory` | `untriaged`.
+   *
+   * ⚠️ Ne jamais envoyer la chaîne vide pour dire « toutes » : le serveur refuse en
+   * 400, précisément pour qu'un paramètre oublié ne se lise pas comme un filtre. Pour
+   * « toutes », on **omet** la clé.
+   */
+  purpose?: string;
   [key: string]: string | undefined;
 }
 
 export const photoKeys = {
   all: ['photos'] as const,
   list: (filters?: PhotoFilters) => [...photoKeys.all, 'list', filters ?? {}] as const,
+  /** La file « À trier », par grappes de session. */
+  triage: () => [...photoKeys.all, 'triage'] as const,
+  /** Les compteurs des pastilles d'intention. */
+  purposeCounts: () => [...photoKeys.all, 'purposeCounts'] as const,
   /** Photos linked to one entity (project, equipment…) — the detail Photos tab. */
   entity: (entityType: string, objectId: string) =>
     [...photoKeys.all, 'entity', entityType, objectId] as const,
 };
 
-export function usePhotos(filters?: PhotoFilters) {
+/**
+ * `enabled` sert à **ne pas** charger la galerie à plat quand l'écran affiche la file
+ * de tri : la liste n'est pas paginée, et « à trier » désigne au premier jour toute la
+ * photothèque (rien n'a été backfillé). La file, elle, est bornée par le serveur.
+ */
+export function usePhotos(filters?: PhotoFilters, enabled = true) {
   return useQuery({
     queryKey: photoKeys.list(filters),
     queryFn: () => fetchPhotoDocuments(filters),
+    enabled,
+  });
+}
+
+/**
+ * La file « À trier » — le serveur groupe les photos en sessions, pas le client.
+ *
+ * Le compteur de la pastille et le lot qu'on applique doivent sortir de la même
+ * fonction : une grappe recalculée ici finirait par ne plus désigner les mêmes
+ * photos que celle que le serveur a comptée.
+ */
+export function useTriageQueue(enabled = true) {
+  return useQuery({
+    queryKey: photoKeys.triage(),
+    queryFn: fetchTriageQueue,
+    enabled,
+  });
+}
+
+/**
+ * Retire une photo de la file en cache — le retrait optimiste d'une suppression.
+ *
+ * Une grappe qui se vide disparaît : garder un en-tête « 0 photo » ferait de la file
+ * une liste de fantômes, alors qu'elle est censée mesurer ce qui reste à faire. Et
+ * `total` compte tout ce qui reste, pas seulement l'affiché — il se décrémente donc
+ * uniquement si la photo y était vraiment.
+ */
+export function removeFromTriage(
+  queue: TriageQueue | undefined,
+  photoId: string,
+): TriageQueue | undefined {
+  if (!queue) return queue;
+  const wasThere = queue.clusters.some((cluster) =>
+    cluster.photos.some((photo) => photo.id === photoId),
+  );
+  if (!wasThere) return queue;
+  const clusters = queue.clusters
+    .map((cluster) => {
+      const photos = cluster.photos.filter((photo) => photo.id !== photoId);
+      return { ...cluster, photos, count: photos.length };
+    })
+    .filter((cluster) => cluster.photos.length > 0);
+  return { total: Math.max(0, queue.total - 1), clusters };
+}
+
+/** Les compteurs des pastilles — une requête à part, bon marché, toujours à jour. */
+export function usePurposeCounts() {
+  return useQuery({
+    queryKey: photoKeys.purposeCounts(),
+    queryFn: fetchPurposeCounts,
+  });
+}
+
+/**
+ * Range une grappe : pose une intention sur un lot de photos.
+ *
+ * Le toast dit combien de photos ont bougé **et** combien gardaient leur intention —
+ * sur un lot, « enregistré » sans nombre ne se vérifie pas, l'écran venant justement
+ * de vider ce qu'on regardait.
+ */
+export function useSetPhotosPurpose() {
+  const invalidate = useInvalidate();
+  const { t } = useTranslation();
+  const { toast } = useToast();
+  return useMutation({
+    mutationFn: ({
+      photoIds,
+      purpose,
+      overwrite,
+    }: {
+      photoIds: string[];
+      purpose: PhotoPurpose;
+      overwrite?: boolean;
+    }) => setPhotosPurpose(photoIds, purpose, { overwrite }),
+    onSuccess: ({ updated, skipped }) => {
+      invalidate('photos');
+      toast({
+        description: skipped
+          ? t('photos.purpose.savedWithSkipped', { count: updated, skipped })
+          : t('photos.purpose.saved', { count: updated }),
+        variant: 'success',
+      });
+    },
+    onError: () => toast({ description: t('common.saveFailed'), variant: 'destructive' }),
+  });
+}
+
+/** Pose (ou retire) l'intention d'une seule photo. */
+export function useSetPhotoPurpose() {
+  const invalidate = useInvalidate();
+  const { t } = useTranslation();
+  const { toast } = useToast();
+  return useMutation({
+    mutationFn: ({ photoId, purpose }: { photoId: string; purpose: PhotoPurpose | '' }) =>
+      updateDocument(photoId, { purpose }),
+    onSuccess: () => {
+      invalidate('photos');
+      toast({ description: t('photos.purpose.savedOne'), variant: 'success' });
+    },
+    onError: () => toast({ description: t('common.saveFailed'), variant: 'destructive' }),
   });
 }
 

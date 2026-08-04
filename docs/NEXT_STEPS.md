@@ -1,8 +1,8 @@
 # Next steps
 
 > **Cadré au 2026-08-03 — Parcours 29 : l'album du foyer.** Chantier cadré ce
-> jour (doc produit, fiche concept, backlog en 7 lots, issues #526 → #534) ;
-> aucun lot démarré.
+> jour (doc produit, fiche concept, backlog en 7 lots, issues #526 → #534).
+> **Lot 2 livré le 2026-08-04** (#528) — les six autres restent à faire.
 >
 > Déclencheur : la livraison du téléversement multiple (#524) le matin même, et la
 > friction apparue à la première utilisation réelle — « les photos techniques sont
@@ -17,11 +17,17 @@
 > dans la doc produit : changement d'ordre de grandeur du volume, quota qui devient
 > une contrainte réelle, comparaison frontale avec la pellicule du téléphone.
 >
-> Ordre : **1** (dettes : pagination curseur + `size_bytes` en colonne — prérequis
-> dur de tous les autres) → **2** (l'intention et la file « À trier », qui résout
-> la friction sans dépendre de l'infrastructure) → **3** (stockage objet) et
-> **4** (tâches de fond), indépendants entre eux mais prérequis du **6** (import
+> Ordre initial : **1** (dettes : pagination curseur + `size_bytes` en colonne) →
+> **2** (l'intention et la file « À trier ») → **3** (stockage objet) et **4**
+> (tâches de fond), indépendants entre eux mais prérequis du **6** (import
 > massif) → **5** (quota, dès que 1 est livré) → **7** (synchro iPhone).
+>
+> **Réordonné le 2026-08-04 : le lot 2 est passé devant le lot 1, et il est livré.**
+> C'est le seul lot qui résout la friction réelle ; les six autres sont de
+> l'infrastructure pour un volume qui n'existe pas encore. Le lot 1 n'était pas un
+> prérequis *dur* du 2 — sa dette est contournée par une file bornée côté serveur
+> (`TRIAGE_WINDOW`), et la galerie à plat ne se charge pas en mode tri. Reste donc :
+> **1** (qui lèvera cette borne) → **3** et **4** → **6** → **5** → **7**.
 >
 > **⚠️ Ce cadrage ne tranche pas la priorité relative avec le parcours 28.** Les
 > lots 0 et 4 de celui-ci corrigent des écarts *ouverts aujourd'hui* (runner

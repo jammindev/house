@@ -83,6 +83,11 @@ construira **jamais** de reconnaissance de visages ni d'éditeur d'image.
 
 Une nouvelle valeur portée par le document lui-même, et non par un de ses liens :
 
+> **Livré le 2026-08-04** (lot 2, #528) : le champ, le filtre, la file « À trier » par
+> grappes de session, le lot qui n'écrase rien. Le mot **« intention »** reste celui de
+> l'interface ; le champ s'appelle `purpose` dans le code, où les identifiants sont en
+> anglais. Détail d'implémentation : [documents.md](../MODULES/documents.md).
+
 | Intention | Ce que c'est | Exemple |
 |---|---|---|
 | `technical` | Une **preuve**. On la reprendra pour lire quelque chose dessus. | Numéro de série, index de compteur, plan, plaque signalétique |
@@ -105,6 +110,13 @@ s'ouvre sur une intention. Le mélange dont se plaint l'utilisateur n'est pas un
 problème d'affichage, c'est une donnée absente ; l'ajouter suffit à le résoudre,
 et aucun filtre n'y suffirait sans elle.
 
+> **Ce qui est livré, et ce qui attend.** La galerie porte ses pastilles d'intention et
+> son entrée « À trier », mais elle **s'ouvre encore sur tout**. La raison est la même
+> qui interdit le backfill : au premier matin, aucune photo ne porte d'intention, donc
+> s'ouvrir sur `technical` afficherait un écran vide sur une photothèque pleine. Un
+> défaut qui ment le premier jour coûte plus cher que le mélange qu'il corrige. La
+> bascule se fera quand la file aura été vidée une fois.
+
 ## Le tri se fait par groupe, jamais photo par photo
 
 Trente photos rapportées d'un week-end forment **une session**, pas trente
@@ -122,11 +134,14 @@ photos portent déjà une intention ne se réassigne pas en bloc sans le dire.
 
 ## Ce que l'utilisateur gagne
 
+Les trois premières lignes sont **livrées** (lot 2, 2026-08-04) ; les trois suivantes
+attendent leur lot.
+
 | Question | Aujourd'hui | Après |
 |---|---|---|
-| « Montre-moi les photos du chantier » | Elles sont mêlées aux repas de famille | La galerie s'ouvre sur une intention |
-| « Où est la photo du numéro de série ? » | On fait défiler par mois | Intention `technical` + la zone ou l'équipement |
-| « Qu'est-ce qui traîne sans être rangé ? » | Rien ne le dit | La file « À trier », avec son compte |
+| « Montre-moi les photos du chantier » | ~~Elles sont mêlées aux repas de famille~~ | ✅ Une pastille d'intention filtre la galerie |
+| « Où est la photo du numéro de série ? » | ~~On fait défiler par mois~~ | ✅ Intention `technical` + la zone ou l'équipement |
+| « Qu'est-ce qui traîne sans être rangé ? » | ~~Rien ne le dit~~ | ✅ La file « À trier », par grappes, avec son compte |
 | « J'ai 200 photos à importer » | Dix ouvertures d'un dialogue, une modale bloquée 40 min | Une page d'import, une file qui survit à la navigation |
 | « Combien de place j'occupe ? » | Rien ne le dit | Un compteur, visible avant de mordre |
 | « Je viens de rentrer, j'ai pris 15 photos » | On ouvre House, on retrouve les fichiers, on les envoie | Feuille de partage du téléphone, puis une automatisation qui ne propose que ce qui vient de la maison |

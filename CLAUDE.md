@@ -1341,6 +1341,37 @@ qu'il dit, pas comment il le diffuse. Doc : `docs/MODULES/notifications.md`.
 
 ---
 
+## Photos — l'intention est un axe, et le vide n'en est pas une valeur
+
+`Document.purpose` (`technical` / `observation` / `memory`, vide = **non trié**) dit
+**pourquoi une photo existe**. Les trois autres axes disent autre chose : la zone dit
+*où*, le lien d'entité *sur quoi*, `DocumentLink.phase` *quand dans le chantier* — et
+c'est l'intention qui sépare une preuve d'un souvenir. Doc :
+`docs/MODULES/documents.md` § « L'intention d'une photo ».
+
+- **⚠️ Le vide n'est pas `memory`.** Vide = personne n'a regardé (un écart, qui alimente
+  la file « À trier ») ; `memory` = quelqu'un a choisi. Troisième occurrence du même
+  principe après `inflow_nature == ""` ≠ `"other"` et le parcours 26 : *toute entité est
+  soit résolue, soit flaggée ; rien ne reste dans un entre-deux silencieux.* Un compteur
+  qui les confond annonce « rien à trier » en montrant une photothèque en vrac.
+- **Un marqueur s'écrit** : `?purpose=untriaged`. Un `?purpose=` vide répond **400**,
+  comme une valeur inconnue — jamais « toutes ». Un paramètre oublié ne doit pas pouvoir
+  se lire comme un filtre.
+- **Aucun backfill sur un axe que l'utilisateur pose.** Marquer `technical` ce qui est
+  lié à un projet écrirait une devinette indistinguable d'un choix (`banking.rules` :
+  « des valeurs de départ, jamais des vérités »).
+- **Un lot n'écrase jamais un choix déjà posé** : `set_purpose` renvoie `{updated,
+  skipped}`, et écraser demande `overwrite: true`. Le tri se fait **par grappe de
+  session** calculée à la lecture — une file qui demande trente gestes pour trente
+  photos ne se vide jamais, et une file qu'on ne vide jamais cesse d'être lue.
+- **Une file bornée le dit** : `total` (ce qui reste) **et** ce que l'écran montre,
+  jamais l'un pour l'autre.
+
+Régressions : `documents/tests/test_photo_purpose.py::TestEmptyIsNotAMemory` et
+`::TestABatchNeverOverwritesAChoice`, `test_triage_clusters.py`.
+
+---
+
 ## Page Tutoriel (`ui/src/features/tutorials/`)
 
 Page `/app/tutorial` (sidebar, section Compte) : checklist « Bien démarrer » +

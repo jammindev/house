@@ -1611,6 +1611,10 @@
             "title": "Explorar la galería",
             "body": "Las imágenes subidas a Documentos aparecen aquí, agrupadas por mes. Filtra por zona para ver solo una habitación y, con una foto abierta, las flechas (o ← →) pasan a la siguiente sin cerrarla."
           },
+          "sort": {
+            "title": "Decir por qué existe una foto",
+            "body": "Una foto de un número de serie y una foto de cumpleaños no pintan nada en el mismo sitio. Dé a cada una su intención: Técnica (una prueba que se volverá a leer), Observación (un hecho fechado — una grieta, una fuga) o Recuerdo. La galería se filtra entonces por una de ellas. Una foto que nadie ha clasificado permanece en « Por clasificar » — es un estado, no un recuerdo por defecto."
+          },
           "add": {
             "title": "Añadir fotos",
             "body": "Selecciona toda una serie de una vez: el campo acepta varias fotos, enviadas una tras otra. Desde un proyecto, un equipo o una zona, la pestaña Fotos las clasifica en Antes / Durante / Después y sabe compararlas."
@@ -1918,6 +1922,34 @@
       "seeGallery": "Ver la galería",
       "empty": "Nada que enviar",
       "empty_hint": "Comparte fotos desde tu galería para encontrarlas aquí."
+    },
+    "purpose": {
+      "label": "Intención",
+      "all": "Todas",
+      "none": "Nadie ha clasificado aún esta foto.",
+      "untriaged": "Por clasificar",
+      "technical": "Técnica",
+      "technicalHint": "Una prueba: número de serie, lectura del contador, plano, placa de características.",
+      "observation": "Observación",
+      "observationHint": "Un hecho fechado que se nota: una grieta, una fuga, un brote que sale.",
+      "memory": "Recuerdo",
+      "memoryHint": "Un recuerdo del hogar: una comida, un cumpleaños, el jardín bajo la nieve.",
+      "saved": "{{count}} foto clasificada.",
+      "saved_other": "{{count}} fotos clasificadas.",
+      "savedWithSkipped": "{{count}} foto clasificada; {{skipped}} conservó su intención.",
+      "savedWithSkipped_other": "{{count}} fotos clasificadas; {{skipped}} conservaron su intención.",
+      "savedOne": "Intención guardada."
+    },
+    "triage": {
+      "empty": "Todo está clasificado",
+      "empty_description": "Cada foto dice por qué existe. Las nuevas llegarán aquí.",
+      "remaining": "{{count}} foto por clasificar.",
+      "remaining_other": "{{count}} fotos por clasificar.",
+      "remainingPartial": "{{count}} foto por clasificar, {{shown}} mostrada aquí.",
+      "remainingPartial_other": "{{count}} fotos por clasificar, {{shown}} mostradas aquí.",
+      "range": "Del {{from}} al {{to}}",
+      "count": "{{count}} foto",
+      "count_other": "{{count}} fotos"
     }
   },
   "directory": {

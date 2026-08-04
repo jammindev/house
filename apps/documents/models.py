@@ -74,7 +74,36 @@ class Document(HouseholdScopedModel):
         db_index=True,
         help_text="Capture date read from EXIF. NULL = unknown, never a fallback.",
     )
-    
+
+    class Purpose(models.TextChoices):
+        TECHNICAL = 'technical', _('Technical')
+        OBSERVATION = 'observation', _('Observation')
+        MEMORY = 'memory', _('Memory')
+
+    # L'intention d'une photo : **pourquoi elle existe**.
+    #
+    # La zone dit *où*, le lien d'entité dit *sur quoi*, `DocumentLink.phase` dit
+    # *quand dans le chantier* — aucun des trois ne sépare la preuve du souvenir.
+    # C'est le même mouvement que « le budget est la catégorie » côté argent : un
+    # projet et une zone disent sur quoi porte un euro, jamais de quelle nature il est.
+    #
+    # ⚠️ **Le vide n'est pas `memory`.** Vide signifie que personne n'a encore trié —
+    # c'est un écart, et il alimente la file « À trier » ; `memory` signifie qu'on a
+    # choisi. Les confondre rendrait la file aveugle et l'utilisateur croirait avoir
+    # rangé. Même règle que `inflow_nature == ""` qui n'est pas `"other"`, et même
+    # principe qu'au parcours 26 : toute entité est soit résolue, soit flaggée.
+    #
+    # Conséquence : rien n'écrit jamais de repli ici, et aucun backfill n'a été fait à
+    # l'introduction du champ — marquer `technical` ce qui est lié à un projet aurait
+    # écrit une devinette en base, indistinguable d'un choix de l'utilisateur.
+    purpose = models.CharField(
+        max_length=16,
+        choices=Purpose.choices,
+        blank=True,
+        default='',
+        help_text="Why this photo exists. Empty = nobody sorted it yet, never a fallback.",
+    )
+
     # Privacy
     is_private = models.BooleanField(
         default=False,
@@ -101,6 +130,9 @@ class Document(HouseholdScopedModel):
         ordering = ['-created_at']
         indexes = [
             models.Index(fields=['household', 'type'], name='idx_docs_hh_type'),
+            # Le compteur « À trier » est un `COUNT(*)` indexé, jamais une
+            # matérialisation en Python — même exigence que les badges du Contrôle.
+            models.Index(fields=['household', 'purpose'], name='idx_docs_hh_purpose'),
             models.Index(fields=['interaction'], name='idx_docs_interaction'),
             models.Index(fields=['created_by'], name='idx_docs_creator'),
         ]

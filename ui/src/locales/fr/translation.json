@@ -1611,6 +1611,10 @@
             "title": "Parcourir la galerie",
             "body": "Les images déposées dans Documents apparaissent ici, regroupées par mois. Filtrez par zone pour ne voir qu'une pièce, et ouvrez une photo : les flèches (ou ← →) passent à la suivante sans refermer."
           },
+          "sort": {
+            "title": "Dire pourquoi une photo existe",
+            "body": "Une photo de numéro de série et une photo d'anniversaire n'ont rien à faire au même endroit. Donnez à chacune son intention : Technique (une preuve qu'on relira), Observation (un fait daté, une fissure, une fuite) ou Souvenir. La galerie se filtre alors sur l'une d'elles. Une photo que personne n'a triée reste dans « À trier » — c'est un état, pas un souvenir par défaut."
+          },
           "add": {
             "title": "Ajouter des photos",
             "body": "Sélectionnez toute une série d'un coup : le champ accepte plusieurs photos, envoyées l'une après l'autre. Depuis un projet, un équipement ou une zone, l'onglet Photos les classe en Avant / Pendant / Après et sait les comparer."
@@ -1918,6 +1922,34 @@
       "seeGallery": "Voir la galerie",
       "empty": "Rien à envoyer",
       "empty_hint": "Partagez des photos depuis votre galerie pour les retrouver ici."
+    },
+    "purpose": {
+      "label": "Intention",
+      "all": "Toutes",
+      "none": "Personne n'a encore trié cette photo.",
+      "untriaged": "À trier",
+      "technical": "Technique",
+      "technicalHint": "Une preuve : numéro de série, index de compteur, plan, plaque signalétique.",
+      "observation": "Observation",
+      "observationHint": "Un fait daté qu'on remarque : une fissure, une fuite, la pousse d'un semis.",
+      "memory": "Souvenir",
+      "memoryHint": "Un souvenir du foyer : un repas, un anniversaire, le jardin sous la neige.",
+      "saved": "{{count}} photo rangée.",
+      "saved_other": "{{count}} photos rangées.",
+      "savedWithSkipped": "{{count}} photo rangée ; {{skipped}} gardait son intention.",
+      "savedWithSkipped_other": "{{count}} photos rangées ; {{skipped}} gardaient leur intention.",
+      "savedOne": "Intention enregistrée."
+    },
+    "triage": {
+      "empty": "Tout est trié",
+      "empty_description": "Chaque photo dit pourquoi elle existe. Les nouvelles arriveront ici.",
+      "remaining": "{{count}} photo à trier.",
+      "remaining_other": "{{count}} photos à trier.",
+      "remainingPartial": "{{count}} photo à trier, dont {{shown}} affichée ici.",
+      "remainingPartial_other": "{{count}} photos à trier, dont {{shown}} affichées ici.",
+      "range": "Du {{from}} au {{to}}",
+      "count": "{{count}} photo",
+      "count_other": "{{count}} photos"
     }
   },
   "directory": {

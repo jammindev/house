@@ -91,7 +91,9 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
   { key: 'budget', moduleKey: 'money', Icon: PiggyBank, to: '/app/money?tab=budgets', stepIds: ['create', 'assign', 'track', 'sheet', 'analysis', 'recurring', 'report'] },
   { key: 'banking', moduleKey: 'money', Icon: Landmark, to: '/app/money?tab=accounts', stepIds: ['accounts', 'cash', 'openingBalance', 'import', 'journal', 'balance', 'sheet'] },
   { key: 'documents', moduleKey: 'documents', to: '/app/documents', stepIds: ['upload', 'link', 'find'] },
-  { key: 'photos', moduleKey: 'photos', to: '/app/photos', stepIds: ['browse', 'add', 'phone', 'file'] },
+  // `sort` vient juste après `browse` : l'intention est la première question que
+  // pose désormais la galerie, avant même « où est rangée cette photo ».
+  { key: 'photos', moduleKey: 'photos', to: '/app/photos', stepIds: ['browse', 'sort', 'add', 'phone', 'file'] },
   { key: 'directory', moduleKey: 'directory', to: '/app/directory', stepIds: ['contacts', 'structures'] },
   { key: 'alerts', Icon: AlertCircle, to: '/app/alerts', stepIds: ['review', 'act'] },
   { key: 'settings', Icon: User, to: '/app/settings', stepIds: ['profile', 'household', 'invite', 'modules', 'capabilities'] },

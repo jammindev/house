@@ -73,7 +73,7 @@ class DocumentSerializer(serializers.ModelSerializer):
             'file_url', 'thumbnail_url', 'medium_url',
             'qualification', 'linked_interactions',
             'legacy_interaction', 'legacy_interaction_subject',
-            'phase', 'taken_at', 'zone_links', 'entity_links',
+            'phase', 'taken_at', 'purpose', 'zone_links', 'entity_links',
         ]
         # `taken_at` est lu dans l'EXIF, jamais saisi : l'exposer en écriture
         # permettrait de le contredire par un PATCH, et le tri de la galerie
@@ -215,6 +215,36 @@ class DocumentSerializer(serializers.ModelSerializer):
             if str(link.object_id) == str(entity_id):
                 return link.phase or ''
         return None
+
+    def validate(self, attrs):
+        """Une intention ne se pose que sur une photo — **et n'y survit pas** au reclassement.
+
+        Contrairement à `taken_at`, `purpose` est **saisi** : il est donc ouvert en
+        écriture. Mais le champ est propre aux photos — accepter une intention sur une
+        facture peuplerait la file « À trier » de choses qu'elle ne sait pas montrer,
+        et personne ne verrait d'où elles viennent.
+
+        Les deux chemins ne se traitent pas pareil, et c'est délibéré :
+
+        - **poser** une intention sur autre chose qu'une photo est une erreur du client,
+          donc un 400 ;
+        - **reclasser** en facture une photo qui en portait une est un geste légitime :
+          on efface l'intention devenue sans objet plutôt que de bloquer. Sans ça, une
+          facture gardait `purpose='technical'` pour toujours — invisible partout
+          (`untriaged()` et `purpose_counts` filtrent `type='photo'`), donc jamais
+          corrigeable. C'est la règle du parcours 26 appliquée ici : reclasser un
+          remboursement en salaire efface son budget avec lui.
+        """
+        attrs = super().validate(attrs)
+        doc_type = attrs.get('type') or getattr(self.instance, 'type', None)
+        purpose = attrs.get('purpose', getattr(self.instance, 'purpose', ''))
+        if purpose and doc_type != 'photo':
+            if 'purpose' in attrs:
+                raise serializers.ValidationError(
+                    {'purpose': 'Only a photo can carry a purpose.'}
+                )
+            attrs['purpose'] = ''
+        return attrs
 
 
 class DocumentDetailSerializer(DocumentSerializer):
