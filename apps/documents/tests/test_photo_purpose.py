@@ -280,6 +280,43 @@ class TestOnlyAPhotoCarriesAPurpose:
         photo.refresh_from_db()
         assert photo.purpose == "technical"
 
+    def test_reclassifying_a_photo_drops_the_purpose_it_carried(
+        self, client, household, owner
+    ):
+        """Reclasser est légitime — mais l'intention ne survit pas au reclassement.
+
+        Sans cet effacement, la facture gardait `purpose='technical'` pour toujours :
+        invisible partout (la file et les compteurs filtrent `type='photo'`), donc
+        jamais corrigeable. Un état qu'aucun écran ne montre est celui qu'on ne
+        rattrape jamais. Même règle que le budget d'un remboursement reclassé en
+        salaire.
+        """
+        photo = _photo(household, owner, "Chaudiere", purpose="technical")
+
+        response = client.patch(
+            f"{LIST_URL}{photo.id}/", {"type": "invoice"}, format="json"
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        photo.refresh_from_db()
+        assert photo.type == "invoice"
+        assert photo.purpose == ""
+
+    def test_reclassifying_into_a_photo_keeps_the_purpose_asked_for(
+        self, client, household, owner
+    ):
+        invoice = _photo(household, owner, "Facture", doc_type="invoice")
+
+        response = client.patch(
+            f"{LIST_URL}{invoice.id}/",
+            {"type": "photo", "purpose": "technical"},
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        invoice.refresh_from_db()
+        assert invoice.purpose == "technical"
+
     def test_untriaged_ignores_documents_that_are_not_photos(
         self, client, household, owner
     ):

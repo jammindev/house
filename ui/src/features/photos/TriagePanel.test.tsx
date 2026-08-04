@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import TriagePanel from './TriagePanel';
 import PhotoPurposeEditor from './PhotoPurposeEditor';
+import { removeFromTriage } from './hooks';
 import type { DocumentItem, TriageQueue } from '@/lib/api/documents';
 
 vi.stubGlobal('matchMedia', (query: string) => ({
@@ -106,6 +107,37 @@ describe('TriagePanel', () => {
     render(<TriagePanel onPhotoClick={vi.fn()} />);
 
     expect(screen.getByText('photos.triage.empty')).toBeTruthy();
+  });
+});
+
+/**
+ * Le retrait optimiste d'une suppression doit porter sur le cache **affiché**.
+ *
+ * La suppression est différée de cinq secondes (le temps d'annuler) : si la file n'est
+ * pas mise à jour, la photo reste à l'écran pendant tout ce temps, et un second clic
+ * part supprimer un identifiant déjà condamné.
+ */
+describe('removeFromTriage', () => {
+  it('retire la photo et décrémente ce qui reste', () => {
+    const queue: TriageQueue = { total: 9, clusters: [cluster('c1', ['p1', 'p2'])] };
+
+    const next = removeFromTriage(queue, 'p1');
+
+    expect(next?.total).toBe(8);
+    expect(next?.clusters[0].photos.map((p) => p.id)).toEqual(['p2']);
+    expect(next?.clusters[0].count).toBe(1);
+  });
+
+  it('fait disparaître une grappe qui se vide', () => {
+    const queue: TriageQueue = { total: 1, clusters: [cluster('c1', ['p1'])] };
+
+    expect(removeFromTriage(queue, 'p1')?.clusters).toEqual([]);
+  });
+
+  it('ne décompte pas une photo qui n’était pas dans la file', () => {
+    const queue: TriageQueue = { total: 4, clusters: [cluster('c1', ['p1'])] };
+
+    expect(removeFromTriage(queue, 'inconnue')?.total).toBe(4);
   });
 });
 

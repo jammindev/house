@@ -185,6 +185,20 @@ nature il est.
   curseur du lot 1, pas encore livrée — à réviser quand elle le sera.
 - **Propre aux photos** : le serializer et le lot refusent un `purpose` sur un
   `type != 'photo'`, sinon la file se peuplerait de factures qu'elle ne sait pas montrer.
+  **Et l'intention ne survit pas au reclassement** : passer une photo en `invoice`
+  efface son `purpose` au lieu de bloquer. Les deux chemins diffèrent exprès — *poser*
+  une intention sur autre chose qu'une photo est une erreur du client (400), *reclasser*
+  est un geste légitime. Sans cet effacement, la facture gardait `purpose='technical'`
+  pour toujours : invisible partout (la file et les compteurs filtrent `type='photo'`),
+  donc jamais corrigeable — et un état qu'aucun écran ne montre est celui qu'on ne
+  rattrape jamais. Même règle que le budget d'un remboursement reclassé en salaire.
+  Régression : `test_photo_purpose.py::test_reclassifying_a_photo_drops_the_purpose_it_carried`.
+- **Le retrait optimiste d'une suppression porte sur le cache affiché.** La suppression
+  est différée de cinq secondes (le temps d'annuler) : en mode tri, ne retirer la photo
+  que de `photoKeys.list()` la laissait à l'écran pendant tout ce temps, et un second
+  clic partait supprimer un identifiant déjà condamné. `removeFromTriage` (dans
+  `hooks.ts`, testé à part) met à jour la file, y compris le `total` et la grappe qui se
+  vide.
 - Côté front, les trois intentions ont **une seule définition**
   (`ui/src/features/photos/purposes.ts`) : icône, libellé, phrase d'aide. « À trier » n'y
   est délibérément pas — ce n'est pas une quatrième intention, c'est l'absence de choix.

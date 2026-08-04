@@ -16,6 +16,7 @@ import {
   entityDetailQueryKey,
   type PhotoPhase,
   type PhotoPurpose,
+  type TriageQueue,
 } from '@/lib/api/documents';
 import { useInvalidate } from '@/lib/invalidate';
 import { documentKeys } from '@/features/documents/hooks';
@@ -75,6 +76,32 @@ export function useTriageQueue(enabled = true) {
     queryFn: fetchTriageQueue,
     enabled,
   });
+}
+
+/**
+ * Retire une photo de la file en cache — le retrait optimiste d'une suppression.
+ *
+ * Une grappe qui se vide disparaît : garder un en-tête « 0 photo » ferait de la file
+ * une liste de fantômes, alors qu'elle est censée mesurer ce qui reste à faire. Et
+ * `total` compte tout ce qui reste, pas seulement l'affiché — il se décrémente donc
+ * uniquement si la photo y était vraiment.
+ */
+export function removeFromTriage(
+  queue: TriageQueue | undefined,
+  photoId: string,
+): TriageQueue | undefined {
+  if (!queue) return queue;
+  const wasThere = queue.clusters.some((cluster) =>
+    cluster.photos.some((photo) => photo.id === photoId),
+  );
+  if (!wasThere) return queue;
+  const clusters = queue.clusters
+    .map((cluster) => {
+      const photos = cluster.photos.filter((photo) => photo.id !== photoId);
+      return { ...cluster, photos, count: photos.length };
+    })
+    .filter((cluster) => cluster.photos.length > 0);
+  return { total: Math.max(0, queue.total - 1), clusters };
 }
 
 /** Les compteurs des pastilles — une requête à part, bon marché, toujours à jour. */

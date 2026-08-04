@@ -28,13 +28,19 @@ import { useDeleteWithUndo } from '@/lib/useDeleteWithUndo';
 import { useMultiSelect } from '@/lib/useMultiSelect';
 import { useSessionState } from '@/lib/useSessionState';
 import { formatMonthYear } from '@/lib/format';
-import { UNTRIAGED, type DocumentItem, type PhotoPurpose } from '@/lib/api/documents';
+import {
+  UNTRIAGED,
+  type DocumentItem,
+  type PhotoPurpose,
+  type TriageQueue,
+} from '@/lib/api/documents';
 import {
   usePhotos,
   useDeletePhoto,
   usePurposeCounts,
   useSetPhotosPurpose,
   useTriageQueue,
+  removeFromTriage,
   photoKeys,
 } from './hooks';
 import PhotoGrid, { PhotoGridSkeleton } from './PhotoGrid';
@@ -108,11 +114,24 @@ export default function PhotosPage() {
     (photo: DocumentItem) => {
       setOpenId(null);
       const listKey = photoKeys.list(filters);
+      // La suppression est **différée de cinq secondes** (le temps d'annuler) : seul le
+      // retrait optimiste fait disparaître la photo entre-temps. Il doit donc porter
+      // sur le cache réellement affiché — en mode tri, c'est celui de la file, pas
+      // celui de la galerie à plat. Ne retirer que de la liste laissait la photo à
+      // l'écran pendant cinq secondes, et un second clic partait supprimer un id déjà
+      // condamné.
+      const triageKey = photoKeys.triage();
       deleteWithUndo(photo.id, {
-        onRemove: () =>
-          qc.setQueryData<DocumentItem[]>(listKey, (old) => old?.filter((p) => p.id !== photo.id)),
-        onRestore: () =>
-          qc.setQueryData<DocumentItem[]>(listKey, (old) => (old ? [...old, photo] : [photo])),
+        onRemove: () => {
+          qc.setQueryData<DocumentItem[]>(listKey, (old) =>
+            old?.filter((p) => p.id !== photo.id),
+          );
+          qc.setQueryData<TriageQueue>(triageKey, (old) => removeFromTriage(old, photo.id));
+        },
+        onRestore: () => {
+          qc.setQueryData<DocumentItem[]>(listKey, (old) => (old ? [...old, photo] : [photo]));
+          void qc.invalidateQueries({ queryKey: triageKey });
+        },
       });
     },
     [deleteWithUndo, qc, filters],
