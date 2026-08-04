@@ -92,6 +92,31 @@ function useDismiss(
   }, [open, close, containerRef]);
 }
 
+/**
+ * Hauteur maximale du panneau, en px : la recherche (~52) plus la liste
+ * (`max-h-64` = 256). Sert à décider s'il tient sous le déclencheur.
+ */
+const PANEL_MAX_HEIGHT = 320;
+
+/**
+ * De quel côté déployer le panneau.
+ *
+ * Il se posait toujours vers le bas. Dans la card de la visionneuse photo —
+ * collée au bas de la fenêtre — la recherche et la liste tombaient hors de
+ * l'écran : ranger une photo depuis la visionneuse était impossible, sans qu'un
+ * seul pixel ne le dise. Le champ n'a pas à savoir où il est dans la page ; c'est
+ * au panneau de regarder la place qui lui reste.
+ *
+ * On ne bascule que si le haut fait **mieux** : coupé en haut ne vaut pas mieux
+ * que coupé en bas, et un panneau qui saute d'un côté à l'autre sans y gagner est
+ * plus déroutant que celui qui reste où on l'attend.
+ */
+function placementFor(trigger: DOMRect, viewportHeight: number): 'top' | 'bottom' {
+  const below = viewportHeight - trigger.bottom;
+  if (below >= PANEL_MAX_HEIGHT) return 'bottom';
+  return trigger.top > below ? 'top' : 'bottom';
+}
+
 export default function ZonePicker(props: ZonePickerProps) {
   const { id, disabled, placeholder, disabledIds, className } = props;
   // Le narrowing se fait sur `props.mode` (union discriminée), pas sur une
@@ -119,6 +144,16 @@ export default function ZonePicker(props: ZonePickerProps) {
   // quand on cherche une zone parmi beaucoup.
   React.useEffect(() => {
     if (open) searchRef.current?.focus();
+  }, [open]);
+
+  // Le côté se décide **avant la peinture** (`useLayoutEffect`) : mesuré dans un
+  // `useEffect`, le panneau apparaîtrait un instant vers le bas avant de sauter.
+  const [placement, setPlacement] = React.useState<'top' | 'bottom'>('bottom');
+  React.useLayoutEffect(() => {
+    if (!open) return;
+    const trigger = containerRef.current?.getBoundingClientRect();
+    if (!trigger) return;
+    setPlacement(placementFor(trigger, window.innerHeight));
   }, [open]);
 
   const selectedIds = React.useMemo(
@@ -251,7 +286,11 @@ export default function ZonePicker(props: ZonePickerProps) {
         <div
           role="dialog"
           aria-label={t('zones.pickerLabel')}
-          className="absolute z-50 mt-1 w-full min-w-[16rem] overflow-hidden rounded-md border border-border bg-card shadow-lg"
+          data-placement={placement}
+          className={cn(
+            'absolute z-50 w-full min-w-[16rem] overflow-hidden rounded-md border border-border bg-card shadow-lg',
+            placement === 'top' ? 'bottom-full mb-1' : 'top-full mt-1',
+          )}
         >
           <div className="relative border-b border-border p-2">
             <Search

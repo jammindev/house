@@ -74,6 +74,28 @@ test('la souris rappelle la navigation, sans rappeler la card info', async ({ pa
   await expect(page.getByRole('button', { name: 'Fermer' })).toBeHidden({ timeout: 5_000 });
 });
 
+/**
+ * La card info est collée au bas de la fenêtre : c'est l'endroit du produit où un
+ * panneau flottant qui ne sait s'ouvrir que vers le bas se retrouve hors écran.
+ * Il l'était — ranger une photo depuis la visionneuse était impossible, sans
+ * qu'un pixel ne le dise. L'invariant n'est pas « il s'ouvre vers le haut » mais
+ * **« il tient dans l'écran »**, et ça ne se mesure qu'avec un vrai layout.
+ */
+test('le sélecteur de zones s’ouvre dans l’écran, jamais sous le bord', async ({ page }) => {
+  await openFirstPhoto(page);
+
+  await page.locator('[id^="photo-zones-"]').click();
+
+  const panel = page.getByRole('dialog', { name: 'Sélection de zones' });
+  await expect(panel).toBeVisible();
+
+  const box = (await panel.boundingBox())!;
+  const viewport = page.viewportSize()!;
+
+  expect(box.y).toBeGreaterThanOrEqual(0);
+  expect(box.y + box.height).toBeLessThanOrEqual(viewport.height);
+});
+
 test('la photo occupe tout l’écran, sans cadre', async ({ page }) => {
   await openFirstPhoto(page);
 
