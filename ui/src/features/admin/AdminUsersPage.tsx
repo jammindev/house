@@ -9,8 +9,10 @@ import PageHeader from '@/components/PageHeader';
 interface UserRow {
   id: string;
   email: string;
-  first_name: string;
-  last_name: string;
+  /** Nom canonique calculé par le serveur (`User.full_name`), servi par
+   * `UserSerializer`. Concaténer prénom+nom ici affichait « — » pour un
+   * compte qui n'a qu'un `display_name` — le cas de tout le monde (#546). */
+  full_name: string;
   is_staff: boolean;
 }
 
@@ -57,7 +59,7 @@ export default function AdminUsersPage() {
                 <tr key={u.id} className="hover:bg-muted/30 transition-colors">
                   <td className="px-4 py-3 font-medium">{u.email}</td>
                   <td className="px-4 py-3 text-muted-foreground">
-                    {[u.first_name, u.last_name].filter(Boolean).join(' ') || '—'}
+                    {u.full_name || '—'}
                   </td>
                   <td className="px-4 py-3">
                     {u.is_staff ? (

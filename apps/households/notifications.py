@@ -23,7 +23,7 @@ def notify_member_joined(household, joiner) -> int:
     The fan-out, the actor exclusion and the per-recipient language all come from
     `notify_household` — this function only knows *what* to say.
     """
-    joiner_name = joiner.display_name or joiner.email
+    joiner_name = joiner.full_name
 
     def text():
         return (

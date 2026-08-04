@@ -110,7 +110,10 @@ def notify_household(
     full_payload = dict(payload or {})
     if actor is not None:
         full_payload.setdefault("actor_id", str(actor.id))
-        full_payload.setdefault("actor_name", actor.display_name or actor.email)
+        # `full_name` porte déjà le repli sur l'email. Ce champ nomme l'auteur
+        # de *toutes* les notifications du foyer : une règle recomposée ici se
+        # voit partout à la fois (#546).
+        full_payload.setdefault("actor_name", actor.full_name)
 
     created = []
     for member in recipients:

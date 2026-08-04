@@ -81,6 +81,52 @@ class TestEverySurfaceNamesAMemberTheSameWay:
 
         assert payload["invited_by_name"] == named_user.full_name
 
+    def test_every_household_notification_names_its_actor_the_same_way(self, named_user):
+        """`notify_household` est *le* chemin pour prévenir un foyer.
+
+        `actor_name` y nomme donc l'auteur de **toutes** les notifications du
+        foyer — la copie la plus large de la règle, et la dernière trouvée.
+        """
+        from notifications.models import Notification
+        from notifications.service import notify_household
+
+        household = Household.objects.create(name="Maison")
+        reader = User.objects.create_user(email="lecteur@example.com", password="x")
+        HouseholdMember.objects.create(household=household, user=reader, role="member")
+        HouseholdMember.objects.create(
+            household=household, user=named_user, role="owner"
+        )
+
+        created = notify_household(
+            household,
+            Notification.Type.HOUSEHOLD_MEMBER_JOINED,
+            actor=named_user,
+            text=lambda: ("titre", "corps"),
+        )
+
+        assert created, "le lecteur aurait dû être notifié"
+        assert created[0].payload["actor_name"] == named_user.full_name
+
+    def test_the_member_joined_notification_agrees(self, named_user):
+        """« X a rejoint le foyer » — le nom que lit tout le monde."""
+        from households.notifications import notify_member_joined
+
+        household = Household.objects.create(name="Maison")
+        reader = User.objects.create_user(email="lecteur2@example.com", password="x")
+        HouseholdMember.objects.create(household=household, user=reader, role="owner")
+        HouseholdMember.objects.create(
+            household=household, user=named_user, role="member"
+        )
+
+        notify_member_joined(household, named_user)
+
+        from notifications.models import Notification
+
+        notif = Notification.objects.filter(user=reader).first()
+        assert notif is not None
+        assert notif.payload["member_name"] == named_user.full_name
+        assert named_user.full_name in notif.title
+
     def test_the_auth_context_agrees(self, named_user):
         """`/accounts/me/`, d'où le shell tire le nom du header."""
         client = APIClient()
