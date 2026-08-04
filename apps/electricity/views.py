@@ -135,8 +135,31 @@ class ElectricityBoardViewSet(HouseholdScopedModelViewSet):
 
 
 class ProtectiveDeviceViewSet(HouseholdScopedModelViewSet):
+    """Écritures transactionnelles — le contrôle de chevauchement pose un verrou.
+
+    ``ProtectiveDeviceSerializer.validate()`` fait un ``select_for_update()`` sur
+    les appareils de la même rangée. Deux conséquences, et l'``atomic`` doit
+    couvrir les deux :
+
+    - hors transaction, Django **refuse** ce verrou (``TransactionManagementError``),
+      et comme ``ATOMIC_REQUESTS`` est désactivé, poser un appareil sur une rangée
+      répondait 500 ;
+    - un verrou pris pendant la validation puis relâché avant l'écriture ne protège
+      rien : il doit tenir jusqu'au ``save()``, donc l'``atomic`` enveloppe la
+      requête entière, pas le seul ``perform_create``.
+    """
+
     model = ProtectiveDevice
     serializer_class = ProtectiveDeviceSerializer
+
+    @transaction.atomic
+    def create(self, request, *args, **kwargs):
+        return super().create(request, *args, **kwargs)
+
+    @transaction.atomic
+    def update(self, request, *args, **kwargs):
+        # partial_update délègue à update() : le PATCH est couvert aussi.
+        return super().update(request, *args, **kwargs)
 
 
 class ElectricCircuitViewSet(HouseholdScopedModelViewSet):

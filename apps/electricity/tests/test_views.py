@@ -352,6 +352,74 @@ class TestProtectiveDeviceViewSet:
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
 
+@pytest.mark.django_db(transaction=True)
+class TestPlacingADeviceOnARowOutsideATransaction:
+    """Poser un appareil sur une rangée doit marcher en autocommit — comme en prod.
+
+    Le contrôle de chevauchement de positions pose un ``select_for_update()``.
+    DRF valide **hors** transaction (``ATOMIC_REQUESTS`` est désactivé), donc la
+    vue doit ouvrir l'``atomic`` elle-même, sinon Django lève
+    ``TransactionManagementError`` et le foyer reçoit une 500.
+
+    ``transaction=True`` est indispensable : le mode par défaut de
+    ``django_db`` enveloppe chaque test dans une transaction, ce qui rend le
+    verrou légal et masque entièrement le bug — c'est pourquoi les vingt tests
+    de position existants étaient verts pendant que la prod répondait 500.
+    """
+
+    LIST_URL = staticmethod(lambda: reverse("electricity-protective-device-list"))
+
+    def _placed_payload(self, board_id, **overrides):
+        payload = {
+            "board": str(board_id),
+            "label": f"D-{uuid.uuid4().hex[:4]}",
+            "device_type": "breaker",
+            "rating_amps": 20,
+            "curve_type": "c",
+            "row": 1,
+            "position": 3,
+        }
+        payload.update(overrides)
+        return payload
+
+    def test_create_device_with_row_and_position_returns_201(self):
+        hh = HouseholdFactory()
+        owner = _make_owner(hh)
+        board = ElectricityBoardFactory(household=hh, supply_type="single_phase")
+        response = _client_for(owner).post(
+            self.LIST_URL(), self._placed_payload(board.id), format="json"
+        )
+        assert response.status_code == status.HTTP_201_CREATED, response.data
+        pd = ProtectiveDevice.objects.get(id=response.data["id"])
+        assert (pd.row, pd.position) == (1, 3)
+
+    def test_overlapping_position_still_returns_400(self):
+        """Le verrou ne doit pas se payer en perdant le contrôle qu'il protège."""
+        hh = HouseholdFactory()
+        owner = _make_owner(hh)
+        board = ElectricityBoardFactory(household=hh, supply_type="single_phase")
+        ProtectiveDeviceFactory(board=board, household=hh, row=1, position=3)
+        response = _client_for(owner).post(
+            self.LIST_URL(), self._placed_payload(board.id), format="json"
+        )
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "position" in response.data
+
+    def test_update_device_position_returns_200(self):
+        hh = HouseholdFactory()
+        owner = _make_owner(hh)
+        board = ElectricityBoardFactory(household=hh, supply_type="single_phase")
+        pd = ProtectiveDeviceFactory(board=board, household=hh, row=1, position=3)
+        response = _client_for(owner).patch(
+            reverse("electricity-protective-device-detail", args=[pd.id]),
+            {"row": 2, "position": 5},
+            format="json",
+        )
+        assert response.status_code == status.HTTP_200_OK, response.data
+        pd.refresh_from_db()
+        assert (pd.row, pd.position) == (2, 5)
+
+
 # ---------------------------------------------------------------------------
 # ElectricCircuitViewSet
 # ---------------------------------------------------------------------------
