@@ -1,4 +1,4 @@
-import { Bell } from 'lucide-react';
+import { AlertCircle, Bell } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 
@@ -10,6 +10,8 @@ import {
   DropdownMenuTrigger,
 } from '@/design-system/dropdown-menu';
 import { useAcceptInvitation, useDeclineInvitation } from '@/features/settings/hooks';
+import { useAlertsSummary } from '@/features/alerts/hooks';
+import { EMPTY_ALERTS_SUMMARY, buildAlertSections, flattenAlertRows, type AlertRow } from '@/features/alerts/rows';
 import { Button } from '@/design-system/button';
 import { triggerBellRefresh } from '@/lib/notifications';
 import type { NotificationItem } from '@/lib/api/notifications';
@@ -17,6 +19,7 @@ import type { NotificationItem } from '@/lib/api/notifications';
 import { useMarkAllRead, useMarkRead, useNotifications, useUnreadCount } from './hooks';
 
 const MAX_PREVIEW = 5;
+const MAX_ALERTS_PREVIEW = 3;
 
 function relativeShort(dateStr: string): string {
   const date = new Date(dateStr);
@@ -35,13 +38,23 @@ function relativeShort(dateStr: string): string {
 }
 
 export default function NotificationsBell() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { data: notifications = [] } = useNotifications();
   const { data: unreadCount = 0 } = useUnreadCount();
+  const { data: alertsSummary } = useAlertsSummary();
   const markAllRead = useMarkAllRead();
 
   const preview = notifications.slice(0, MAX_PREVIEW);
   const hasUnread = unreadCount > 0;
+
+  // Une alerte est un état recalculé, pas un événement : elle ne se lit ni ne
+  // s'écarte. L'ajouter au badge chiffré fabriquerait un compteur qui ne
+  // redescend jamais — d'où un point, sans nombre, à côté des non-lus.
+  const alerts = flattenAlertRows(
+    buildAlertSections(alertsSummary ?? EMPTY_ALERTS_SUMMARY, t, i18n.language),
+  );
+  const alertsPreview = alerts.slice(0, MAX_ALERTS_PREVIEW);
+
   const ariaLabel = hasUnread
     ? t('notifications.bellAriaLabelUnread', { count: unreadCount })
     : t('notifications.bellAriaLabel');
@@ -64,9 +77,39 @@ export default function NotificationsBell() {
               {unreadCount > 99 ? '99+' : unreadCount}
             </span>
           ) : null}
+          {alerts.length > 0 ? (
+            <span
+              className="absolute -bottom-0.5 -right-0.5 inline-block h-2 w-2 rounded-full bg-amber-500 ring-2 ring-sidebar"
+              data-testid="notifications-bell-alerts-dot"
+              aria-label={t('alerts.badgeAriaLabel', { count: alerts.length })}
+            />
+          ) : null}
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-80 p-0" data-testid="notifications-dropdown">
+        {alertsPreview.length > 0 ? (
+          <>
+            <div className="flex items-center justify-between px-3 py-2">
+              <DropdownMenuLabel className="flex items-center gap-1.5 px-0 py-0 text-sm">
+                <AlertCircle className="h-4 w-4 text-amber-500" aria-hidden />
+                {t('alerts.title')}
+                <span className="text-muted-foreground">({alerts.length})</span>
+              </DropdownMenuLabel>
+              <Link to="/app/alerts" className="text-xs text-primary hover:underline">
+                {t('alerts.viewAll')}
+              </Link>
+            </div>
+            <ul className="py-1">
+              {alertsPreview.map((row) => (
+                <li key={row.key}>
+                  <AlertDropdownItem row={row} />
+                </li>
+              ))}
+            </ul>
+            <DropdownMenuSeparator className="my-0" />
+          </>
+        ) : null}
+
         <div className="flex items-center justify-between px-3 py-2">
           <DropdownMenuLabel className="px-0 py-0 text-sm">{t('notifications.title')}</DropdownMenuLabel>
           {hasUnread ? (
@@ -107,6 +150,28 @@ export default function NotificationsBell() {
         </div>
       </DropdownMenuContent>
     </DropdownMenu>
+  );
+}
+
+/** Une alerte de l'aperçu : elle annonce, et elle mène. */
+function AlertDropdownItem({ row }: { row: AlertRow }) {
+  return (
+    <Link
+      to={row.to}
+      data-testid="bell-alert-row"
+      className="flex items-start gap-2 px-3 py-2 text-sm transition-colors hover:bg-accent"
+    >
+      <span
+        className={`mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full ${
+          row.severity === 'critical' ? 'bg-destructive' : 'bg-amber-500'
+        }`}
+        aria-hidden
+      />
+      <span className="min-w-0 flex-1">
+        <span className="block truncate font-medium leading-tight text-foreground">{row.title}</span>
+        <span className="block truncate text-xs text-muted-foreground">{row.meta}</span>
+      </span>
+    </Link>
   );
 }
 

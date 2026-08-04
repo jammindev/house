@@ -1235,7 +1235,7 @@
           },
           "alerts": {
             "title": "Vigilar las alertas",
-            "body": "La insignia de la barra lateral indica lo que requiere tu atención; la página de Alertas da el detalle."
+            "body": "La campana de la cabecera señala lo que requiere tu atención; la página de Alertas da el detalle."
           },
           "search": {
             "title": "Buscar en todo a la vez",
@@ -1645,7 +1645,7 @@
         "steps": {
           "review": {
             "title": "Revisarlas",
-            "body": "La insignia de la barra lateral cuenta las alertas activas; la página las lista por tipo."
+            "body": "La campana de la cabecera muestra las alertas en curso; la página las lista por tipo."
           },
           "act": {
             "title": "Actuar sobre una alerta",

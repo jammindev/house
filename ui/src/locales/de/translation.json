@@ -1235,7 +1235,7 @@
           },
           "alerts": {
             "title": "Warnungen im Blick behalten",
-            "body": "Das Badge in der Seitenleiste zeigt, was Ihre Aufmerksamkeit braucht; Details auf der Warnungen-Seite."
+            "body": "Die Glocke im Header zeigt, was Ihre Aufmerksamkeit braucht; Details auf der Warnungen-Seite."
           },
           "search": {
             "title": "Alles auf einmal durchsuchen",
@@ -1645,7 +1645,7 @@
         "steps": {
           "review": {
             "title": "Durchsehen",
-            "body": "Das Badge in der Seitenleiste zählt aktive Warnungen; die Seite listet sie nach Typ."
+            "body": "Die Glocke im Header zeigt die aktuellen Warnungen; die Seite listet sie nach Typ."
           },
           "act": {
             "title": "Auf eine Warnung reagieren",

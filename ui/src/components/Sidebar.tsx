@@ -1,14 +1,13 @@
 import type { ReactNode } from 'react';
 import { NavLink } from 'react-router-dom';
 import {
-  LayoutDashboard, User, ShieldCheck, X, AlertCircle, Sparkles, Activity,
+  LayoutDashboard, User, ShieldCheck, X, Sparkles, Activity,
   Rocket, Pin, PinOff, GraduationCap, Newspaper, Send, PartyPopper, type LucideIcon,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/lib/auth/useAuth';
 import { useSidebarToggle } from './SidebarToggleContext';
 import HouseholdSwitcher from './HouseholdSwitcher';
-import { useAlertsSummary } from '@/features/alerts/hooks';
 import { useIsHouseholdOwner } from '@/features/ai-usage/hooks';
 import {
   MODULES, MODULE_GROUPS, useDisabledModules, usePinnedModules, useSetPinnedModules,
@@ -18,20 +17,17 @@ import {
 const FIXED_TOP = [
   { to: '/app/dashboard', labelKey: 'dashboard.title', Icon: LayoutDashboard },
   { to: '/app/agent', labelKey: 'agent.title', Icon: Sparkles },
-  { to: '/app/alerts', labelKey: 'alerts.title', Icon: AlertCircle, badge: 'alerts' as const },
 ];
 
 interface NavItemProps {
   to: string;
   labelKey: string;
   Icon: LucideIcon;
-  badgeCount?: number;
-  badgeAriaLabel?: string;
   pin?: { pinned: boolean; onToggle: () => void };
   onNavigate: () => void;
 }
 
-function NavItem({ to, labelKey, Icon, badgeCount, badgeAriaLabel, pin, onNavigate }: NavItemProps) {
+function NavItem({ to, labelKey, Icon, pin, onNavigate }: NavItemProps) {
   const { t } = useTranslation();
   return (
     <NavLink
@@ -64,14 +60,6 @@ function NavItem({ to, labelKey, Icon, badgeCount, badgeAriaLabel, pin, onNaviga
               {pin.pinned ? <PinOff className="h-3.5 w-3.5" /> : <Pin className="h-3.5 w-3.5" />}
             </button>
           ) : null}
-          {badgeCount ? (
-            <span
-              className="ml-auto inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-destructive px-1.5 text-[10px] font-semibold text-destructive-foreground"
-              aria-label={badgeAriaLabel}
-            >
-              {badgeCount > 99 ? '99+' : badgeCount}
-            </span>
-          ) : null}
         </>
       )}
     </NavLink>
@@ -91,8 +79,6 @@ export default function Sidebar() {
   const { user } = useAuth();
   const isOwner = useIsHouseholdOwner();
   const { isSidebarOpen, closeSidebar } = useSidebarToggle();
-  const { data: alertsSummary } = useAlertsSummary();
-  const alertsCount = alertsSummary?.total ?? 0;
 
   const { disabled } = useDisabledModules();
   const pinned = usePinnedModules();
@@ -158,8 +144,6 @@ export default function Sidebar() {
                 to={item.to}
                 labelKey={item.labelKey}
                 Icon={item.Icon}
-                badgeCount={item.badge === 'alerts' && alertsCount > 0 ? alertsCount : undefined}
-                badgeAriaLabel={t('alerts.badgeAriaLabel', { count: alertsCount })}
                 onNavigate={closeSidebar}
               />
             ))}

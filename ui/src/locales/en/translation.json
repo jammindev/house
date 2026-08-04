@@ -1235,7 +1235,7 @@
           },
           "alerts": {
             "title": "Keep an eye on alerts",
-            "body": "The sidebar badge shows what needs your attention; the Alerts page has the details."
+            "body": "The header bell flags what needs your attention; the Alerts page has the details."
           },
           "search": {
             "title": "Search everything at once",
@@ -1645,7 +1645,7 @@
         "steps": {
           "review": {
             "title": "Review them",
-            "body": "The sidebar badge counts active alerts; the page lists them by type."
+            "body": "The header bell surfaces current alerts; the page lists them by type."
           },
           "act": {
             "title": "Act on an alert",

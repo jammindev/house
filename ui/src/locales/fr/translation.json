@@ -1235,7 +1235,7 @@
           },
           "alerts": {
             "title": "Garder un œil sur les alertes",
-            "body": "Le badge de la sidebar indique ce qui demande votre attention ; la page Alertes les détaille."
+            "body": "La cloche du header signale ce qui demande votre attention ; la page Alertes les détaille."
           },
           "search": {
             "title": "Tout chercher d'un coup",
@@ -1645,7 +1645,7 @@
         "steps": {
           "review": {
             "title": "Passer en revue",
-            "body": "Le badge de la sidebar compte les alertes actives ; la page les liste par type."
+            "body": "La cloche du header remonte les alertes en cours ; la page les liste par type."
           },
           "act": {
             "title": "Agir sur une alerte",
