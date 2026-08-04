@@ -44,6 +44,9 @@ const SWIPE_THRESHOLD = 50;
 /** Style commun des surfaces posées sur la photo : celles de l'app, en verre. */
 const GLASS = 'border border-border/60 bg-background/85 shadow-lg backdrop-blur-md';
 
+/** Durée d'immobilité de la souris après laquelle la navigation se retire, en ms. */
+const POINTER_IDLE_MS = 2000;
+
 /**
  * Visionneuse plein écran d'une collection de photos.
  *
@@ -61,6 +64,14 @@ const GLASS = 'border border-border/60 bg-background/85 shadow-lg backdrop-blur-
  * un bouton invisible qu'on atteint encore à la tabulation est un piège, et
  * l'opacité seule n'a jamais retiré personne du calque d'accessibilité.
  *
+ * **Deux calques, pas un.** Ce qui *commente* la photo (la card, la phase) et ce
+ * qui permet d'en *changer* (chevrons, compteur, fermeture) ne se retirent pas
+ * ensemble : tout cacher d'un seul tenant laissait la souris bloquée sur la photo
+ * courante, et il fallait rappeler la card qu'on venait d'écarter pour avancer.
+ * Le calque de navigation revient donc au mouvement de la souris, seul, et
+ * s'efface après {@link POINTER_IDLE_MS} d'immobilité — la photo redevient nue
+ * sans avoir à le demander.
+ *
  * Trois acquis de la version précédente restent tenus par les tests : une seule
  * croix de fermeture (celle de Radix est masquée), la navigation sans fermer
  * (flèches, clavier, swipe), et un repli explicite quand l'image ne charge pas.
@@ -77,6 +88,7 @@ export default function PhotoLightbox({
   const { t } = useTranslation();
   const [failed, setFailed] = React.useState(false);
   const [chromeVisible, setChromeVisible] = React.useState(true);
+  const [pointerActive, setPointerActive] = React.useState(false);
 
   const index = openId === null ? -1 : photos.findIndex((p) => p.id === openId);
   const photo = index >= 0 ? photos[index] : null;
@@ -103,6 +115,21 @@ export default function PhotoLightbox({
   React.useEffect(() => {
     if (!open) setChromeVisible(true);
   }, [open]);
+
+  // La souris rappelle la navigation, puis le silence la reprend. Le minuteur vit
+  // dans une ref : le relancer par un `useState` re-rendrait à chaque pixel parcouru.
+  const idleTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+  React.useEffect(() => () => { if (idleTimer.current) clearTimeout(idleTimer.current); }, []);
+
+  const wakeNavigation = (event: React.PointerEvent) => {
+    // Un doigt émet lui aussi un `pointermove` en tapant. S'y fier ferait clignoter
+    // les chevrons juste après le tap qui vient de les retirer — sur mobile, la
+    // navigation est le swipe, pas un survol qui n'existe pas.
+    if (event.pointerType !== 'mouse') return;
+    setPointerActive(true);
+    if (idleTimer.current) clearTimeout(idleTimer.current);
+    idleTimer.current = setTimeout(() => setPointerActive(false), POINTER_IDLE_MS);
+  };
 
   React.useEffect(() => {
     if (!open) return;
@@ -173,7 +200,7 @@ export default function PhotoLightbox({
   return (
     <Dialog open={open} onOpenChange={(next) => { if (!next) onOpenChange(null); }}>
       <DialogContent variant="fullscreen" aria-describedby={undefined} hideDefaultCloseButton>
-        <div className="relative h-full w-full">
+        <div className="relative h-full w-full" onPointerMove={wakeNavigation}>
           {/* La photo, et le tap qui commande le chrome. Toute la toile est le
               bouton : au doigt, viser une zone sensible est une exigence de plus. */}
           <button
@@ -205,9 +232,10 @@ export default function PhotoLightbox({
             )}
           </button>
 
-          <Chrome visible={chromeVisible}>
-            {/* Barre haute — fermer, se situer, phase */}
-            <div className="pointer-events-none absolute inset-x-0 top-0 flex items-center gap-2 p-3 sm:p-4">
+          {/* Calque de navigation — se situer, changer de photo, sortir. Il revient
+              sous la souris même quand la card info est écartée. */}
+          <Layer visible={chromeVisible || pointerActive}>
+            <div className="pointer-events-none absolute inset-x-0 top-0 flex items-center p-3 sm:p-4">
               <Button
                 type="button"
                 variant="ghost"
@@ -219,29 +247,37 @@ export default function PhotoLightbox({
                 <X className="h-4 w-4" />
               </Button>
 
-              <div className="flex flex-1 items-center justify-center">
-                {photos.length > 1 ? (
-                  <span className={cn(GLASS, 'rounded-full px-3 py-1 text-xs font-medium text-muted-foreground')}>
-                    {t('photos.position', { current: index + 1, total: photos.length })}
-                  </span>
-                ) : null}
-              </div>
-
-              <div className="flex w-9 shrink-0 justify-end">
-                {phaseKey ? (
-                  <span className={cn(GLASS, 'whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium text-primary')}>
-                    {t(`photos.phase.${phaseKey}`)}
-                  </span>
-                ) : null}
-              </div>
+              {photos.length > 1 ? (
+                <span
+                  className={cn(
+                    GLASS,
+                    'absolute left-1/2 -translate-x-1/2 rounded-full px-3 py-1 text-xs font-medium text-muted-foreground',
+                  )}
+                >
+                  {t('photos.position', { current: index + 1, total: photos.length })}
+                </span>
+              ) : null}
             </div>
 
-            {/* Navigation */}
             {hasPrev ? (
               <NavButton side="left" label={t('photos.previous')} onClick={goPrev} icon={ChevronLeft} />
             ) : null}
             {hasNext ? (
               <NavButton side="right" label={t('photos.next')} onClick={goNext} icon={ChevronRight} />
+            ) : null}
+          </Layer>
+
+          {/* Calque info — ce que la photo est. Lui seul obéit au tap. */}
+          <Layer visible={chromeVisible}>
+            {phaseKey ? (
+              <span
+                className={cn(
+                  GLASS,
+                  'absolute right-3 top-3 whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium text-primary sm:right-4 sm:top-4',
+                )}
+              >
+                {t(`photos.phase.${phaseKey}`)}
+              </span>
             ) : null}
 
             {/* Barre basse — ce que la photo est, et ce qu'on peut en faire */}
@@ -307,7 +343,7 @@ export default function PhotoLightbox({
                 </div>
               </div>
             </div>
-          </Chrome>
+          </Layer>
         </div>
       </DialogContent>
     </Dialog>
@@ -315,19 +351,20 @@ export default function PhotoLightbox({
 }
 
 /**
- * Le calque des commandes. Deux choses s'y jouent, et les deux ont été payées :
+ * Un calque de commandes posé sur la photo. Deux choses s'y jouent, et les deux
+ * ont été payées :
  *
  * - **`inert` + `aria-hidden`** plutôt qu'un démontage : le retrait devient une
  *   transition et non un clignement, sans laisser derrière lui des boutons
  *   transparents mais tabulables — l'opacité seule n'a jamais retiré personne du
  *   calque d'accessibilité.
  * - **`pointer-events-none` en permanence**, chaque commande rétablissant le sien.
- *   Ce calque couvre tout l'écran : ne le neutraliser que lorsqu'il est *caché*
- *   revenait à ce qu'il avale le tap sur la photo tant qu'il est visible — donc à
- *   ne jamais pouvoir le retirer. Invisible en jsdom, qui ne fait pas de
- *   hit-testing ; vu du premier coup dans un vrai navigateur.
+ *   Ces calques couvrent tout l'écran : ne les neutraliser que lorsqu'ils sont
+ *   *cachés* revenait à ce qu'ils avalent le tap sur la photo tant qu'ils sont
+ *   visibles — donc à ne jamais pouvoir les retirer. Invisible en jsdom, qui ne
+ *   fait pas de hit-testing ; vu du premier coup dans un vrai navigateur.
  */
-function Chrome({ visible, children }: { visible: boolean; children: React.ReactNode }) {
+function Layer({ visible, children }: { visible: boolean; children: React.ReactNode }) {
   return (
     <div
       inert={!visible}

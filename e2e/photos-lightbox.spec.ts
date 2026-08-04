@@ -49,6 +49,31 @@ test('le tap sur la photo retire le chrome, et le second le ramène', async ({ p
   await expect(close).toBeVisible();
 });
 
+/**
+ * Le pendant du test précédent : retirer ce qui *commente* la photo ne doit pas
+ * retirer ce qui permet d'en *changer*. À la souris, tout cacher d'un bloc laissait
+ * bloqué sur la photo courante — il fallait rappeler la card qu'on venait d'écarter.
+ *
+ * Ce comportement tient à `pointerType === 'mouse'` et à un minuteur : deux choses
+ * qu'un vrai navigateur produit, et qu'un test jsdom ne peut que simuler.
+ */
+test('la souris rappelle la navigation, sans rappeler la card info', async ({ page }) => {
+  await openFirstPhoto(page);
+
+  await page.getByRole('button', { name: TOGGLE }).click();
+  await expect(page.getByRole('button', { name: 'Fermer' })).toBeHidden();
+
+  await page.mouse.move(640, 400);
+  await page.mouse.move(660, 420);
+
+  await expect(page.getByRole('button', { name: 'Fermer' })).toBeVisible();
+  // La card info reste écartée : c'est tout l'objet du geste.
+  await expect(page.getByRole('button', { name: 'Supprimer' })).toBeHidden();
+
+  // Puis le silence la reprend.
+  await expect(page.getByRole('button', { name: 'Fermer' })).toBeHidden({ timeout: 5_000 });
+});
+
 test('la photo occupe tout l’écran, sans cadre', async ({ page }) => {
   await openFirstPhoto(page);
 

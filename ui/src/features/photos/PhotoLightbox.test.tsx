@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from 'vitest';
+import { render, screen, fireEvent, act } from '@testing-library/react';
 import PhotoLightbox from './PhotoLightbox';
 import PhotoThumb from './PhotoThumb';
 import type { DocumentItem } from '@/lib/api/documents';
@@ -198,6 +198,60 @@ describe('PhotoLightbox', () => {
 
     fireEvent.keyDown(window, { key: 'ArrowRight' });
     expect(onOpenChange).toHaveBeenCalledWith('c');
+  });
+
+  /**
+   * Le chrome se scinde en deux calques, et c'est tout l'objet de ce bloc : retirer
+   * ce qui *commente* la photo ne doit pas retirer ce qui permet d'en changer.
+   * Sans ça, la souris restait bloquée sur la photo courante — le seul moyen de
+   * passer à la suivante était de rappeler la card qu'on venait justement d'écarter.
+   */
+  describe('la navigation revient sous la souris', () => {
+    beforeEach(() => vi.useFakeTimers({ shouldAdvanceTime: true }));
+    afterEach(() => vi.useRealTimers());
+
+    function hideChrome() {
+      fireEvent.click(screen.getByRole('button', { name: 'photos.toggleInfo' }));
+    }
+
+    it('rappelle les chevrons — et eux seuls — quand la souris bouge', () => {
+      open('b');
+      hideChrome();
+      expect(screen.queryByRole('button', { name: 'photos.next' })).not.toBeInTheDocument();
+
+      fireEvent.pointerMove(screen.getByRole('button', { name: 'photos.toggleInfo' }), {
+        pointerType: 'mouse',
+      });
+
+      expect(screen.getByRole('button', { name: 'photos.next' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'common.close' })).toBeInTheDocument();
+      // La card info, elle, reste écartée : c'est ce que l'utilisateur a demandé.
+      expect(screen.queryByRole('button', { name: 'common.delete' })).not.toBeInTheDocument();
+    });
+
+    it('les efface à nouveau après un moment d’immobilité', () => {
+      open('b');
+      hideChrome();
+      fireEvent.pointerMove(screen.getByRole('button', { name: 'photos.toggleInfo' }), {
+        pointerType: 'mouse',
+      });
+      expect(screen.getByRole('button', { name: 'photos.next' })).toBeInTheDocument();
+
+      act(() => { vi.advanceTimersByTime(2500); });
+
+      expect(screen.queryByRole('button', { name: 'photos.next' })).not.toBeInTheDocument();
+    });
+
+    it('ignore le doigt — un tap ne doit pas faire clignoter les chevrons', () => {
+      open('b');
+      hideChrome();
+
+      fireEvent.pointerMove(screen.getByRole('button', { name: 'photos.toggleInfo' }), {
+        pointerType: 'touch',
+      });
+
+      expect(screen.queryByRole('button', { name: 'photos.next' })).not.toBeInTheDocument();
+    });
   });
 
   it('affiche un repli explicite quand l’image ne charge pas', () => {
