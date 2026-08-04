@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Camera, Check, ImageOff, MapPinOff } from 'lucide-react';
+import { Camera, Check, ImageOff } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import type { DocumentItem, PhotoPhase } from '@/lib/api/documents';
@@ -11,14 +11,6 @@ interface Props {
   phase?: PhotoPhase | '';
   /** Menu d'actions posé en haut à droite (révélé au survol/focus). */
   actions?: React.ReactNode;
-  /** Affiche le nom en bas de la vignette. Défaut : true. */
-  showName?: boolean;
-  /**
-   * Signale la photo rangée dans aucune zone. Réservé à la galerie : sous
-   * l'onglet Photos d'une entité, la question posée est la phase des travaux, et
-   * une pastille de plus sur chaque vignette n'y avertirait de rien.
-   */
-  flagWithoutZone?: boolean;
   /**
    * Fourni = **mode sélection** : la vignette coche au lieu d'ouvrir. C'est la
    * présence du callback qui porte le mode, pas un booléen de plus — les deux
@@ -33,24 +25,30 @@ interface Props {
  * La vignette de photo de toute l'application.
  *
  * Elle remplace deux implémentations qui avaient divergé (`PhotoGrid` et le
- * `PhotoTile` de l'onglet par entité) et partageaient les mêmes trois défauts :
+ * `PhotoTile` de l'onglet par entité) et partageaient les mêmes défauts :
  *
  * 1. **Le fallback n'existait pas.** `onError` mettait `style.display = 'none'`,
  *    et l'icône de repli vivait dans la branche `else` du même ternaire — donc
  *    jamais atteinte. Une miniature cassée laissait un carré vide muet. Ici
  *    l'échec est un **état** (`failed`), pas une manipulation du DOM.
- * 2. **Le nom n'apparaissait qu'au survol** — soit jamais, au doigt. Le dégradé
- *    est maintenant permanent et lisible partout.
- * 3. Les couleurs étaient codées en dur (`bg-slate-100`, `text-slate-400`), donc
+ * 2. Les couleurs étaient codées en dur (`bg-slate-100`, `text-slate-400`), donc
  *    le thème sombre affichait une grille claire.
+ *
+ * **La vignette est la photo.** Elle a porté un temps le nom du fichier sur un
+ * dégradé, et une pastille « Sans zone » : deux surcharges sur *toutes* les cases,
+ * pour un `IMG_4312.jpg` qui n'apprend rien et un manque qu'on ne pouvait pas
+ * corriger de là. Les deux ont déménagé dans la visionneuse — le nom y est
+ * éditable, le manque de zone à un pli du sélecteur qui le règle. Ne rien y
+ * réintroduire sans ce test : la grille se lit d'un coup d'œil ou pas du tout.
+ *
+ * Le nom reste le **nom accessible** du bouton : retiré de l'écran, pas du calque
+ * d'accessibilité, où il est le seul moyen de désigner une vignette.
  */
 export default function PhotoThumb({
   photo,
   onOpen,
   phase,
   actions,
-  showName = true,
-  flagWithoutZone = false,
   onToggleSelected,
   selected = false,
   className,
@@ -61,10 +59,6 @@ export default function PhotoThumb({
   const src = photo.thumbnail_url || photo.file_url || null;
   const label = photo.name || t('photos.untitled');
   const phaseKey = phase === undefined ? null : phase || 'unclassified';
-  // `zone_links` vient de la liste, jamais déduit localement : c'est la même
-  // source que le filtre « Sans zone », sinon la pastille et le filtre
-  // pourraient se contredire sur la même photo.
-  const withoutZone = flagWithoutZone && (photo.zone_links ?? []).length === 0;
 
   const selecting = onToggleSelected !== undefined;
 
@@ -108,28 +102,10 @@ export default function PhotoThumb({
         )}
       </button>
 
-      {showName ? (
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent px-2 pb-1.5 pt-6">
-          <p className="truncate text-xs font-medium text-white">{label}</p>
-        </div>
-      ) : null}
-
-      {/* Les pastilles s'empilent : posées toutes deux en haut à gauche elles se
-          recouvriraient, et le bas de la vignette porte déjà le nom. */}
-      {phaseKey || withoutZone ? (
-        <div className="pointer-events-none absolute left-1.5 top-1.5 flex flex-col items-start gap-1">
-          {phaseKey ? (
-            <span className="rounded-full bg-background/85 px-2 py-0.5 text-[10px] font-medium text-foreground shadow-sm backdrop-blur-sm">
-              {t(`photos.phase.${phaseKey}`)}
-            </span>
-          ) : null}
-          {withoutZone ? (
-            <span className="flex items-center gap-1 rounded-full bg-warning/90 px-2 py-0.5 text-[10px] font-medium text-warning-foreground shadow-sm">
-              <MapPinOff className="h-3 w-3" aria-hidden />
-              {t('photos.withoutZone')}
-            </span>
-          ) : null}
-        </div>
+      {phaseKey ? (
+        <span className="pointer-events-none absolute left-1.5 top-1.5 rounded-full bg-background/85 px-2 py-0.5 text-[10px] font-medium text-foreground shadow-sm backdrop-blur-sm">
+          {t(`photos.phase.${phaseKey}`)}
+        </span>
       ) : null}
 
       {/* La coche est toujours visible en mode sélection, cochée ou non : une case à

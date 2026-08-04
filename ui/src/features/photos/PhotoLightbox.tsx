@@ -1,11 +1,13 @@
 import * as React from 'react';
 import {
   Camera,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
+  ChevronUp,
   Download,
-  ExternalLink,
   ImageOff,
+  MapPinOff,
   Trash2,
   X,
 } from 'lucide-react';
@@ -31,13 +33,24 @@ interface Props {
   /** Phase de la photo courante, si le contexte en porte une. */
   phaseOf?: (photo: DocumentItem) => PhotoPhase | '' | undefined;
   /**
-   * Bloc « Zones » du panneau de métadonnées. Injecté plutôt que câblé ici : la
+   * Bloc « Zones » du panneau déplié. Injecté plutôt que câblé ici : la
    * visionneuse reste sans données propres — elle reçoit déjà `phaseOf`,
    * `onRemove` et `removeLabel` de son appelant.
    */
   renderZones?: (photo: DocumentItem) => React.ReactNode;
-  /** Bloc « Intention » du panneau de métadonnées — injecté, comme `renderZones`. */
+  /** Bloc « Intention » du panneau déplié — injecté, comme `renderZones`. */
   renderPurpose?: (photo: DocumentItem) => React.ReactNode;
+  /** Bloc « Titre » du panneau déplié — injecté, comme `renderZones`. */
+  renderTitle?: (photo: DocumentItem) => React.ReactNode;
+  /**
+   * Signale, sur la card repliée, une photo rangée dans aucune zone.
+   *
+   * Réservé à la galerie, comme le `flagWithoutSupplier` des dépenses : une
+   * pastille n'avertit que là où le manque est **actionnable** — ici, à un pli du
+   * sélecteur de zones. Sous l'onglet Photos d'une entité, la question posée est
+   * la phase des travaux, et rien ne permettrait d'y ranger la photo.
+   */
+  flagWithoutZone?: boolean;
 }
 
 /** Distance horizontale minimale, en px, pour qu'un glissement compte comme un swipe. */
@@ -74,6 +87,14 @@ const POINTER_IDLE_MS = 2000;
  * s'efface après {@link POINTER_IDLE_MS} d'immobilité — la photo redevient nue
  * sans avoir à le demander.
  *
+ * **Et la card elle-même se replie.** Elle disait tout d'un coup — quatre faits,
+ * les notes, l'intention, les zones, trois boutons — devant une photo qu'on ouvre
+ * pour la *regarder*. Repliée, elle ne garde que ce qui situe l'image (titre,
+ * date) et ce qui appelle un geste (le manque de zone, en icône seule). Le reste
+ * est à un clic, et ce clic donne en plus de quoi **corriger** le titre et les
+ * zones : ce qui se lit et ce qui s'édite sont au même endroit, jamais dans deux
+ * écrans qui pourraient afficher deux noms du même fichier.
+ *
  * Trois acquis de la version précédente restent tenus par les tests : une seule
  * croix de fermeture (celle de Radix est masquée), la navigation sans fermer
  * (flèches, clavier, swipe), et un repli explicite quand l'image ne charge pas.
@@ -87,11 +108,14 @@ export default function PhotoLightbox({
   phaseOf,
   renderZones,
   renderPurpose,
+  renderTitle,
+  flagWithoutZone = false,
 }: Props) {
   const { t } = useTranslation();
   const [failed, setFailed] = React.useState(false);
   const [chromeVisible, setChromeVisible] = React.useState(true);
   const [pointerActive, setPointerActive] = React.useState(false);
+  const [expanded, setExpanded] = React.useState(false);
 
   const index = openId === null ? -1 : photos.findIndex((p) => p.id === openId);
   const photo = index >= 0 ? photos[index] : null;
@@ -112,11 +136,15 @@ export default function PhotoLightbox({
   // cassée condamnait toutes les suivantes au message d'échec.
   React.useEffect(() => setFailed(false), [openId]);
 
-  // Le retrait du chrome est un geste, pas un réglage : il ne survit pas à la
-  // fermeture. Il survit en revanche au passage à la photo suivante — on parcourt
-  // une collection sans avoir à re-tapoter à chaque image.
+  // Le retrait du chrome et le pli de la card sont des gestes, pas des réglages :
+  // ils ne survivent pas à la fermeture. Ils survivent en revanche au passage à la
+  // photo suivante — on parcourt (ou on range) une collection sans avoir à
+  // re-tapoter à chaque image.
   React.useEffect(() => {
-    if (!open) setChromeVisible(true);
+    if (!open) {
+      setChromeVisible(true);
+      setExpanded(false);
+    }
   }, [open]);
 
   // La souris rappelle la navigation, puis le silence la reprend. Le minuteur vit
@@ -185,12 +213,16 @@ export default function PhotoLightbox({
     ? t('photos.takenOn', { date: formatDate(photo.taken_at) })
     : t('photos.addedOn', { date: formatDate(photo.created_at) });
 
-  const facts = [
-    dateFact,
-    size || null,
-    dimensionsLabel,
-    photo.created_by_name || null,
-  ].filter(Boolean) as string[];
+  // La date situe la photo : elle reste sur la card repliée. Poids, dimensions et
+  // auteur sont des détails de fichier — personne n'ouvre une photo pour eux.
+  const details = [size || null, dimensionsLabel, photo.created_by_name || null].filter(
+    Boolean,
+  ) as string[];
+
+  // `zone_links` vient de la liste, jamais déduit localement : c'est la même source
+  // que le filtre « Sans zone » de la galerie, sinon l'icône et le filtre pourraient
+  // se contredire sur la même photo.
+  const withoutZone = flagWithoutZone && (photo.zone_links ?? []).length === 0;
 
   // Quand les deux dates s'écartent, l'import est une information à part entière :
   // c'est ce décalage qui explique pourquoi la photo n'est pas là où l'utilisateur
@@ -283,7 +315,15 @@ export default function PhotoLightbox({
               </span>
             ) : null}
 
-            {/* Barre basse — ce que la photo est, et ce qu'on peut en faire */}
+            {/* Barre basse — repliée, ce que la photo est ; dépliée, ce qu'on peut
+                en faire.
+
+                ⚠️ **Pas de `overflow-y-auto` ici.** Le sélecteur de zones ouvre un
+                panneau `absolute`, non portalisé : un conteneur de défilement le
+                rognerait, et ranger une photo depuis la visionneuse redeviendrait
+                impossible sans qu'un pixel ne le dise — le défaut que garde
+                `e2e/photos-lightbox.spec.ts`. Ce qui borne la hauteur, ce sont les
+                blocs eux-mêmes (les notes défilent seules). */}
             <div className="pointer-events-none absolute inset-x-0 bottom-0 p-3 sm:p-4">
               <div
                 className={cn(
@@ -291,61 +331,107 @@ export default function PhotoLightbox({
                   'pointer-events-auto mx-auto flex w-full max-w-2xl flex-col gap-3 rounded-2xl p-4',
                 )}
               >
-                <div className="min-w-0 space-y-1">
-                  <DialogTitle className="break-words text-base font-semibold leading-snug text-foreground">
-                    {label}
-                  </DialogTitle>
-                  <p className="text-xs text-muted-foreground">{facts.join(' · ')}</p>
-                  {showImportDate ? (
-                    <p className="text-xs text-muted-foreground/70">
-                      {t('photos.addedOn', { date: formatDate(photo.created_at) })}
-                    </p>
+                {/* Ligne repliée : le titre, la date, le manque de zone, le pli. */}
+                <div className="flex items-start gap-2">
+                  <div className="min-w-0 flex-1 space-y-0.5">
+                    <DialogTitle className="truncate text-base font-semibold leading-snug text-foreground">
+                      {label}
+                    </DialogTitle>
+                    <p className="text-xs text-muted-foreground">{dateFact}</p>
+                  </div>
+
+                  {/* Le libellé n'est pas peint : c'est le nom accessible de l'icône,
+                      et l'infobulle au survol. Sur une card volontairement réduite,
+                      une phrase de plus est du bruit — l'icône barrée dit le manque,
+                      et le pli juste à côté donne le sélecteur qui le corrige. */}
+                  {withoutZone ? (
+                    <span
+                      role="img"
+                      aria-label={t('photos.withoutZone')}
+                      title={t('photos.withoutZone')}
+                      // `text-warning` sur une teinte, jamais `text-warning-foreground` :
+                      // celui-ci n'est lisible que sur un `bg-warning` plein, et
+                      // disparaissait en thème sombre (brun 14 % sur fond sombre).
+                      className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-warning/15 text-warning"
+                    >
+                      <MapPinOff className="h-4 w-4" aria-hidden />
+                    </span>
                   ) : null}
-                </div>
 
-                {photo.notes?.trim() ? (
-                  <p className="max-h-24 overflow-y-auto whitespace-pre-line text-sm leading-relaxed text-foreground">
-                    {photo.notes}
-                  </p>
-                ) : null}
-
-                {renderPurpose?.(photo)}
-
-                {renderZones?.(photo)}
-
-                <div className="flex flex-wrap items-center gap-2">
-                  {photo.file_url ? (
-                    <>
-                      <a
-                        href={photo.file_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'flex-1 justify-center sm:flex-none')}
-                      >
-                        <ExternalLink className="mr-2 h-4 w-4" aria-hidden />
-                        {t('photos.view')}
-                      </a>
-                      <a
-                        href={photo.file_url}
-                        download
-                        className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'flex-1 justify-center sm:flex-none')}
-                      >
-                        <Download className="mr-2 h-4 w-4" aria-hidden />
-                        {t('photos.download')}
-                      </a>
-                    </>
-                  ) : null}
                   <Button
                     type="button"
                     variant="ghost"
-                    size="sm"
-                    className="ml-auto text-destructive hover:bg-destructive/10 hover:text-destructive"
-                    onClick={() => onRemove(photo)}
+                    size="icon"
+                    onClick={() => setExpanded((v) => !v)}
+                    aria-expanded={expanded}
+                    aria-label={expanded ? t('photos.info.less') : t('photos.info.more')}
+                    className="-mr-1 -mt-1 h-8 w-8 shrink-0 rounded-full"
                   >
-                    <Trash2 className="mr-2 h-4 w-4" aria-hidden />
-                    {removeLabel}
+                    {expanded ? (
+                      <ChevronDown className="h-4 w-4" />
+                    ) : (
+                      <ChevronUp className="h-4 w-4" />
+                    )}
                   </Button>
                 </div>
+
+                {expanded ? (
+                  <>
+                    {details.length || showImportDate ? (
+                      <div className="space-y-0.5">
+                        {details.length ? (
+                          <p className="text-xs text-muted-foreground">{details.join(' · ')}</p>
+                        ) : null}
+                        {showImportDate ? (
+                          <p className="text-xs text-muted-foreground/70">
+                            {t('photos.addedOn', { date: formatDate(photo.created_at) })}
+                          </p>
+                        ) : null}
+                      </div>
+                    ) : null}
+
+                    {photo.notes?.trim() ? (
+                      <p className="max-h-24 overflow-y-auto whitespace-pre-line text-sm leading-relaxed text-foreground">
+                        {photo.notes}
+                      </p>
+                    ) : null}
+
+                    {renderTitle?.(photo)}
+
+                    {renderPurpose?.(photo)}
+
+                    {renderZones?.(photo)}
+
+                    <div className="flex flex-wrap items-center gap-2">
+                      {/* « Voir » a disparu : il ouvrait dans un onglet la photo déjà
+                          affichée en plein écran. Un bouton qui promet ce qui est
+                          déjà là fait douter de ce qu'on regarde. */}
+                      {photo.file_url ? (
+                        <a
+                          href={photo.file_url}
+                          download
+                          className={cn(
+                            buttonVariants({ variant: 'outline', size: 'sm' }),
+                            'flex-1 justify-center sm:flex-none',
+                          )}
+                        >
+                          <Download className="mr-2 h-4 w-4" aria-hidden />
+                          {t('photos.download')}
+                        </a>
+                      ) : null}
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="ml-auto text-destructive hover:bg-destructive/10 hover:text-destructive"
+                        onClick={() => onRemove(photo)}
+                      >
+                        <Trash2 className="mr-2 h-4 w-4" aria-hidden />
+                        {removeLabel}
+                      </Button>
+                    </div>
+                  </>
+                ) : null}
               </div>
             </div>
           </Layer>

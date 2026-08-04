@@ -1622,7 +1622,7 @@
           },
           "file": {
             "title": "Ranger une photo dans une zone",
-            "body": "La pastille « Sans zone » signale une photo rangée nulle part, et le filtre du même nom les regroupe. Attribuez-lui une zone sans quitter la galerie : par le menu ⋯ de la vignette, ou dans le bloc Zones de la photo ouverte. Pour en ranger plusieurs d'un coup, « Sélectionner » puis cochez : les zones choisies s'ajoutent à celles déjà présentes."
+            "body": "L'icône de localisation barrée, sur la photo ouverte, signale une photo rangée nulle part ; le filtre « Sans zone » les regroupe dans la galerie. Attribuez-lui une zone sans quitter la galerie : par le menu ⋯ de la vignette, ou en dépliant la card d'informations de la photo ouverte — le même pli permet de corriger son titre. Pour en ranger plusieurs d'un coup, « Sélectionner » puis cochez : les zones choisies s'ajoutent à celles déjà présentes."
           },
           "phone": {
             "title": "Envoyer depuis votre téléphone",
@@ -1860,7 +1860,6 @@
     "search_placeholder": "Rechercher des photos…",
     "untitled": "Sans titre",
     "addedOn": "Ajoutée le {{date}}",
-    "view": "Voir",
     "download": "Télécharger",
     "upload_title": "Ajouter des photos",
     "phase": {
@@ -1951,6 +1950,14 @@
       "range": "Du {{from}} au {{to}}",
       "count": "{{count}} photo",
       "count_other": "{{count}} photos"
+    },
+    "info": {
+      "more": "Plus d'informations",
+      "less": "Moins d'informations"
+    },
+    "name": {
+      "label": "Titre",
+      "saved": "Titre enregistré."
     }
   },
   "directory": {

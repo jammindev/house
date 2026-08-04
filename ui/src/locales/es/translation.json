@@ -1622,7 +1622,7 @@
           },
           "file": {
             "title": "Clasificar una foto en una zona",
-            "body": "La etiqueta «Sin zona» señala una foto que no está clasificada en ninguna parte, y el filtro del mismo nombre las reúne. Asígnale una zona sin salir de la galería: desde el menú ⋯ de la miniatura o en el bloque Zonas de la foto abierta. Para clasificar varias a la vez, pulsa «Seleccionar» y márcalas: las zonas elegidas se añaden a las ya presentes."
+            "body": "El icono de ubicación tachado, en la foto abierta, señala una foto que no está clasificada en ninguna parte; el filtro «Sin zona» las reúne en la galería. Asígnale una zona sin salir de la galería: desde el menú ⋯ de la miniatura o desplegando la tarjeta de información de la foto abierta — ese mismo pliegue permite corregir su título. Para clasificar varias a la vez, pulsa «Seleccionar» y márcalas: las zonas elegidas se añaden a las ya presentes."
           },
           "phone": {
             "title": "Enviar desde tu teléfono",
@@ -1860,7 +1860,6 @@
     "search_placeholder": "Buscar fotos…",
     "untitled": "Sin título",
     "addedOn": "Añadida el {{date}}",
-    "view": "Ver",
     "download": "Descargar",
     "upload_title": "Añadir fotos",
     "phase": {
@@ -1951,6 +1950,14 @@
       "range": "Del {{from}} al {{to}}",
       "count": "{{count}} foto",
       "count_other": "{{count}} fotos"
+    },
+    "info": {
+      "more": "Más información",
+      "less": "Menos información"
+    },
+    "name": {
+      "label": "Título",
+      "saved": "Título guardado."
     }
   },
   "directory": {

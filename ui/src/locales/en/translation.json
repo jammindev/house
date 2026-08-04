@@ -1622,7 +1622,7 @@
           },
           "file": {
             "title": "File a photo into a zone",
-            "body": "The “No zone” badge flags a photo filed nowhere, and the filter of the same name gathers them all. Assign a zone without leaving the gallery: from the ⋯ menu on the thumbnail, or in the Zones block of the open photo. To file several at once, hit “Select” and tick them: the zones you pick are added to those already set."
+            "body": "The crossed-out location icon on the open photo flags a photo filed nowhere, and the “No zone” filter gathers them all in the gallery. Assign a zone without leaving the gallery: from the ⋯ menu on the thumbnail, or by expanding the info card of the open photo — the same fold lets you fix its title. To file several at once, hit “Select” and tick them: the zones you pick are added to those already set."
           },
           "phone": {
             "title": "Send from your phone",
@@ -1860,7 +1860,6 @@
     "search_placeholder": "Search photos…",
     "untitled": "Untitled",
     "addedOn": "Added {{date}}",
-    "view": "View",
     "download": "Download",
     "upload_title": "Add photos",
     "phase": {
@@ -1951,6 +1950,14 @@
       "range": "{{from}} to {{to}}",
       "count": "{{count}} photo",
       "count_other": "{{count}} photos"
+    },
+    "info": {
+      "more": "More information",
+      "less": "Less information"
+    },
+    "name": {
+      "label": "Title",
+      "saved": "Title saved."
     }
   },
   "directory": {

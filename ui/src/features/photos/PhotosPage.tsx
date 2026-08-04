@@ -49,6 +49,7 @@ import PhotoZonesEditor from './PhotoZonesEditor';
 import PhotoZonesDialog from './PhotoZonesDialog';
 import PhotoZonesBulkDialog from './PhotoZonesBulkDialog';
 import PhotoPurposeEditor from './PhotoPurposeEditor';
+import PhotoTitleEditor from './PhotoTitleEditor';
 import TriagePanel from './TriagePanel';
 import { PURPOSES } from './purposes';
 import { groupPhotosByMonth } from './grouping';
@@ -342,7 +343,6 @@ export default function PhotosPage() {
                   // Pas de menu d'actions en mode sélection : il disputerait le clic
                   // à la coche, sur une cible de la taille du pouce.
                   renderActions={selection.active ? undefined : renderActions}
-                  flagWithoutZone
                   onToggleSelected={
                     selection.active ? (photo) => selection.toggle(photo.id) : undefined
                   }
@@ -409,8 +409,12 @@ export default function PhotosPage() {
         onOpenChange={setOpenId}
         onRemove={handleDelete}
         removeLabel={t('common.delete')}
+        renderTitle={(photo) => <PhotoTitleEditor photo={photo} />}
         renderPurpose={(photo) => <PhotoPurposeEditor photo={photo} />}
         renderZones={(photo) => <PhotoZonesEditor photo={photo} />}
+        // La galerie est le seul écran où ranger une photo est la question posée —
+        // et le seul qui offre le sélecteur qui la range, à un pli de l'icône.
+        flagWithoutZone
       />
 
       <PhotoZonesDialog photo={zonesFor} onOpenChange={(open) => { if (!open) setZonesFor(null); }} />

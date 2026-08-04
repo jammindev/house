@@ -62,6 +62,11 @@ describe('PhotoLightbox', () => {
     );
   }
 
+  /** Déplie la card info — ce qui s'y fait n'est plus visible d'emblée. */
+  function expandInfo() {
+    fireEvent.click(screen.getByRole('button', { name: 'photos.info.more' }));
+  }
+
   it('n’affiche qu’UN seul bouton de fermeture', () => {
     open('a');
     // La croix par défaut de Radix expose « Close » en `sr-only` ; la nôtre porte
@@ -115,6 +120,7 @@ describe('PhotoLightbox', () => {
 
   it('rend le libellé destructif fourni par l’appelant, jamais un « supprimer » deviné', () => {
     open('b', 'photos.entity.remove');
+    expandInfo();
 
     const button = screen.getByRole('button', { name: 'photos.entity.remove' });
     fireEvent.click(button);
@@ -133,8 +139,14 @@ describe('PhotoLightbox', () => {
       />,
     );
 
-    // Les deux dates s'écartent de plus d'un jour : l'import reste dit, mais à part.
+    // La date de la photo est le seul fait de la card repliée : c'est elle qui situe
+    // ce qu'on regarde. L'import, lui, est un détail — il attend qu'on déplie.
     expect(screen.getByText(/photos\.takenOn/)).toBeInTheDocument();
+    expect(screen.queryByText(/photos\.addedOn/)).not.toBeInTheDocument();
+
+    expandInfo();
+
+    // Les deux dates s'écartent de plus d'un jour : l'import reste dit, mais à part.
     expect(screen.getByText(/photos\.addedOn/)).toBeInTheDocument();
   });
 
@@ -163,6 +175,7 @@ describe('PhotoLightbox', () => {
         removeLabel="common.delete"
       />,
     );
+    expandInfo();
 
     expect(screen.getByText(/photos\.takenOn/)).toBeInTheDocument();
     expect(screen.queryByText(/photos\.addedOn/)).not.toBeInTheDocument();
@@ -184,12 +197,12 @@ describe('PhotoLightbox', () => {
 
     expect(screen.queryByRole('button', { name: 'common.close' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'photos.next' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'common.delete' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'photos.info.more' })).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'photos.toggleInfo' }));
 
     expect(screen.getByRole('button', { name: 'common.close' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'common.delete' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'photos.info.more' })).toBeInTheDocument();
   });
 
   it('garde le clavier et la fermeture opérants quand le chrome est retiré', () => {
@@ -226,7 +239,7 @@ describe('PhotoLightbox', () => {
       expect(screen.getByRole('button', { name: 'photos.next' })).toBeInTheDocument();
       expect(screen.getByRole('button', { name: 'common.close' })).toBeInTheDocument();
       // La card info, elle, reste écartée : c'est ce que l'utilisateur a demandé.
-      expect(screen.queryByRole('button', { name: 'common.delete' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'photos.info.more' })).not.toBeInTheDocument();
     });
 
     it('les efface à nouveau après un moment d’immobilité', () => {
@@ -254,6 +267,165 @@ describe('PhotoLightbox', () => {
     });
   });
 
+  /**
+   * La card info se **replie**, et c'est le cœur du changement : on ouvre une photo
+   * pour la regarder, pas pour lire quatre faits, deux éditeurs et trois boutons
+   * qu'on n'a pas demandés. Repliée elle ne dit que ce qui situe la photo — titre,
+   * date, et le manque de zone qui, lui, appelle un geste. Le reste attend le pli.
+   */
+  describe('la card info se déplie', () => {
+    function renderWithEditors(over: Partial<DocumentItem> = {}) {
+      return render(
+        <PhotoLightbox
+          photos={[photo('x', { notes: 'une note', ...over })]}
+          openId="x"
+          onOpenChange={onOpenChange}
+          onRemove={onRemove}
+          removeLabel="common.delete"
+          renderTitle={() => <div>title-editor</div>}
+          renderPurpose={() => <div>purpose-editor</div>}
+          renderZones={() => <div>zones-editor</div>}
+        />,
+      );
+    }
+
+    it('ne dit que l’essentiel une fois repliée', () => {
+      renderWithEditors();
+
+      expect(screen.getByText('photo x')).toBeVisible();
+      expect(screen.getByText(/photos\.addedOn/)).toBeInTheDocument();
+
+      expect(screen.queryByText('title-editor')).not.toBeInTheDocument();
+      expect(screen.queryByText('purpose-editor')).not.toBeInTheDocument();
+      expect(screen.queryByText('zones-editor')).not.toBeInTheDocument();
+      expect(screen.queryByText('une note')).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'common.delete' })).not.toBeInTheDocument();
+      expect(screen.queryByText('photos.download')).not.toBeInTheDocument();
+    });
+
+    it('donne de quoi corriger la zone et le titre une fois dépliée', () => {
+      renderWithEditors();
+      expandInfo();
+
+      expect(screen.getByText('title-editor')).toBeInTheDocument();
+      expect(screen.getByText('zones-editor')).toBeInTheDocument();
+      expect(screen.getByText('purpose-editor')).toBeInTheDocument();
+      expect(screen.getByText('une note')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'common.delete' })).toBeInTheDocument();
+    });
+
+    it('se replie sur un second clic', () => {
+      renderWithEditors();
+      expandInfo();
+
+      fireEvent.click(screen.getByRole('button', { name: 'photos.info.less' }));
+
+      expect(screen.queryByText('zones-editor')).not.toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'photos.info.more' })).toBeInTheDocument();
+    });
+
+    /**
+     * Le pli est un geste, pas un réglage : il survit au passage à la photo suivante
+     * — on corrige plusieurs photos d'affilée sans re-déplier à chaque image, même
+     * raison qu'au retrait du chrome.
+     */
+    it('reste déplié quand on change de photo', () => {
+      const { rerender } = render(
+        <PhotoLightbox
+          photos={photos}
+          openId="a"
+          onOpenChange={onOpenChange}
+          onRemove={onRemove}
+          removeLabel="common.delete"
+          renderZones={() => <div>zones-editor</div>}
+        />,
+      );
+      expandInfo();
+
+      rerender(
+        <PhotoLightbox
+          photos={photos}
+          openId="b"
+          onOpenChange={onOpenChange}
+          onRemove={onRemove}
+          removeLabel="common.delete"
+          renderZones={() => <div>zones-editor</div>}
+        />,
+      );
+
+      expect(screen.getByText('zones-editor')).toBeInTheDocument();
+    });
+
+    /**
+     * « Voir » ouvrait le fichier dans un onglet — la photo qu'on a déjà sous les
+     * yeux, en plein écran. Un bouton qui promet ce qui est déjà là fait douter de
+     * ce qu'on regarde.
+     */
+    it('ne propose plus « Voir » — la photo est déjà là', () => {
+      renderWithEditors();
+      expandInfo();
+
+      expect(screen.queryByText('photos.view')).not.toBeInTheDocument();
+    });
+  });
+
+  /**
+   * La pastille « sans zone » ne disparaît pas de l'app : elle **déménage** de la
+   * vignette (où elle bruitait toute la grille sans rien offrir) vers la card info,
+   * réduite à son icône — à un pli du sélecteur de zones qui la corrige. C'est la
+   * même règle que le `flagWithoutSupplier` des dépenses : une pastille n'avertit
+   * que là où le manque est actionnable.
+   */
+  describe('l’icône « sans zone »', () => {
+    function renderFlagged(over: Partial<DocumentItem> = {}) {
+      return render(
+        <PhotoLightbox
+          photos={[photo('x', { zone_links: [], ...over })]}
+          openId="x"
+          onOpenChange={onOpenChange}
+          onRemove={onRemove}
+          removeLabel="common.delete"
+          flagWithoutZone
+        />,
+      );
+    }
+
+    it('signale, repliée, une photo rangée dans aucune zone', () => {
+      renderFlagged();
+
+      // Le libellé n'est pas peint : il reste le nom accessible de l'icône.
+      expect(screen.getByRole('img', { name: 'photos.withoutZone' })).toBeInTheDocument();
+    });
+
+    it('se tait dès que la photo a une zone', () => {
+      renderFlagged({ zone_links: [{ zone_id: 'z1', zone_name: 'Salon' }] });
+
+      expect(screen.queryByRole('img', { name: 'photos.withoutZone' })).not.toBeInTheDocument();
+    });
+
+    it('reste absente là où ranger n’est pas la question posée', () => {
+      render(
+        <PhotoLightbox
+          photos={[photo('x', { zone_links: [] })]}
+          openId="x"
+          onOpenChange={onOpenChange}
+          onRemove={onRemove}
+          removeLabel="common.delete"
+        />,
+      );
+
+      expect(screen.queryByRole('img', { name: 'photos.withoutZone' })).not.toBeInTheDocument();
+    });
+
+    it('ne suppose pas que le payload porte le champ', () => {
+      // Une entrée encore en cache avant ce changement n'a pas de `zone_links` : la
+      // pastille doit se décider, pas planter.
+      renderFlagged({ zone_links: undefined as unknown as [] });
+
+      expect(screen.getByRole('img', { name: 'photos.withoutZone' })).toBeInTheDocument();
+    });
+  });
+
   it('affiche un repli explicite quand l’image ne charge pas', () => {
     open('a');
 
@@ -276,9 +448,18 @@ describe('PhotoThumb', () => {
     expect(screen.getByText('photos.thumbFailed')).toBeInTheDocument();
   });
 
-  it('affiche le nom sans exiger un survol — au doigt, il n’y en a pas', () => {
+  /**
+   * La vignette est la photo, et rien d'autre. Le nom d'un fichier d'appareil
+   * (`IMG_4312.jpg`) n'apprend rien, et le peindre sur un dégradé le faisait payer
+   * par **toutes** les cases de la grille : on y regarde des images, pas une liste.
+   * Il reste le nom **accessible** du bouton — retiré de l'écran, pas du calque
+   * d'accessibilité, où il est le seul moyen de désigner la vignette.
+   */
+  it('ne peint pas le nom, mais le garde comme nom accessible', () => {
     render(<PhotoThumb photo={photo('a')} onOpen={vi.fn()} />);
-    expect(screen.getByText('photo a')).toBeVisible();
+
+    expect(screen.queryByText('photo a')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'photo a' })).toBeInTheDocument();
   });
 
   it('porte la pastille de phase quand le contexte en fournit une', () => {

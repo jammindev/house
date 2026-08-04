@@ -1622,7 +1622,7 @@
           },
           "file": {
             "title": "Ein Foto einem Bereich zuordnen",
-            "body": "Die Markierung „Ohne Bereich“ zeigt ein Foto, das nirgends einsortiert ist; der gleichnamige Filter sammelt sie alle. Weisen Sie einen Bereich zu, ohne die Galerie zu verlassen: über das ⋯-Menü der Miniatur oder im Block Bereiche des geöffneten Fotos. Für mehrere auf einmal: „Auswählen“ und ankreuzen — die gewählten Bereiche kommen zu den vorhandenen hinzu."
+            "body": "Das durchgestrichene Ortssymbol auf dem geöffneten Foto zeigt ein Foto, das nirgends einsortiert ist; der Filter „Ohne Bereich“ sammelt sie in der Galerie. Weisen Sie einen Bereich zu, ohne die Galerie zu verlassen: über das ⋯-Menü der Miniatur oder indem Sie die Infokarte des geöffneten Fotos ausklappen — dort lässt sich auch der Titel korrigieren. Für mehrere auf einmal: „Auswählen“ und ankreuzen — die gewählten Bereiche kommen zu den vorhandenen hinzu."
           },
           "phone": {
             "title": "Vom Telefon aus senden",
@@ -1860,7 +1860,6 @@
     "search_placeholder": "Fotos suchen…",
     "untitled": "Ohne Titel",
     "addedOn": "Hinzugefügt am {{date}}",
-    "view": "Ansehen",
     "download": "Herunterladen",
     "upload_title": "Fotos hinzufügen",
     "phase": {
@@ -1951,6 +1950,14 @@
       "range": "Vom {{from}} bis {{to}}",
       "count": "{{count}} Foto",
       "count_other": "{{count}} Fotos"
+    },
+    "info": {
+      "more": "Mehr Informationen",
+      "less": "Weniger Informationen"
+    },
+    "name": {
+      "label": "Titel",
+      "saved": "Titel gespeichert."
     }
   },
   "directory": {

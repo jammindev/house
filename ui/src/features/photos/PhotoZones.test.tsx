@@ -50,48 +50,22 @@ function photo(over: Partial<DocumentItem> = {}): DocumentItem {
 /**
  * Ce que ces tests tiennent :
  *
- * 1. **La pastille et le filtre lisent la même source.** « Sans zone » se déduit de
+ * 1. **La grille ne signale rien** — le manque de zone se dit dans la visionneuse,
+ *    où le sélecteur qui le corrige est à un pli (voir `PhotoLightbox.test.tsx`).
+ *    Peinte sur la vignette, la pastille surchargeait 100 % de la grille pour un
+ *    geste qui n'y existait pas.
+ * 2. **La pastille et le filtre lisent la même source.** « Sans zone » se déduit de
  *    `zone_links`, servi par la liste — jamais d'un état local. Deux définitions du
  *    même manque, et un écran finirait par contredire l'autre sur la même photo.
- * 2. **La pastille est réservée à la galerie.** Sous l'onglet Photos d'une entité, la
- *    question posée est la phase des travaux : une pastille de plus sur chaque
- *    vignette n'y avertirait de rien.
  * 3. **L'enregistrement est explicite et complet.** Un remplacement, pas un
  *    `attach` par clic ; et une sélection vidée s'enregistre comme telle — effacer
  *    les zones est un geste, pas un cas oublié.
  */
-describe('la pastille « sans zone »', () => {
-  it('signale une photo rangée dans aucune zone', () => {
-    render(<PhotoThumb photo={photo()} onOpen={vi.fn()} flagWithoutZone />);
-
-    expect(screen.getByText('photos.withoutZone')).toBeInTheDocument();
-  });
-
-  it('se tait dès que la photo a une zone', () => {
-    render(
-      <PhotoThumb
-        photo={photo({ zone_links: [{ zone_id: 'z1', zone_name: 'Salon' }] })}
-        onOpen={vi.fn()}
-        flagWithoutZone
-      />,
-    );
-
-    expect(screen.queryByText('photos.withoutZone')).not.toBeInTheDocument();
-  });
-
-  it('reste absente hors de la galerie, même sans zone', () => {
+describe('la vignette ne signale plus le manque de zone', () => {
+  it('ne peint aucune pastille, même sans zone', () => {
     render(<PhotoThumb photo={photo()} onOpen={vi.fn()} />);
 
     expect(screen.queryByText('photos.withoutZone')).not.toBeInTheDocument();
-  });
-
-  it('ne suppose pas que le payload porte le champ', () => {
-    // Une entrée encore en cache avant ce changement n'a pas de `zone_links` : la
-    // pastille doit se décider, pas planter.
-    const legacy = { ...photo(), zone_links: undefined } as unknown as DocumentItem;
-    render(<PhotoThumb photo={legacy} onOpen={vi.fn()} flagWithoutZone />);
-
-    expect(screen.getByText('photos.withoutZone')).toBeInTheDocument();
   });
 });
 

@@ -162,6 +162,29 @@ export function useSetPhotoPurpose() {
   });
 }
 
+/**
+ * Renomme une photo.
+ *
+ * `invalidate('photos')` suffit et doit rester : le graphe de `lib/invalidate.ts`
+ * fait dériver `documents` de `photos`, donc la liste documents suit — une photo
+ * **est** un `Document`, et deux écrans qui affichent deux noms du même fichier
+ * feraient douter des deux.
+ */
+export function useRenamePhoto() {
+  const invalidate = useInvalidate();
+  const { t } = useTranslation();
+  const { toast } = useToast();
+  return useMutation({
+    mutationFn: ({ photoId, name }: { photoId: string; name: string }) =>
+      updateDocument(photoId, { name }),
+    onSuccess: () => {
+      invalidate('photos');
+      toast({ description: t('photos.name.saved'), variant: 'success' });
+    },
+    onError: () => toast({ description: t('common.saveFailed'), variant: 'destructive' }),
+  });
+}
+
 export function useDeletePhoto() {
   const qc = useQueryClient();
   const { t } = useTranslation();

@@ -7,7 +7,9 @@
 - **Backend** : Absent (pas de modèle propre, app Django minimaliste avec uniquement `apps.py` et templates legacy)
 - **Frontend** : Complet dans `ui/src/features/photos/` (`PhotosPage`, `PhotoGrid`, `PhotoThumb`, `PhotoLightbox`, `grouping.ts`, `hooks.ts`)
 - **Locales (en/fr/de/es)** : ok (namespace `photos` présent dans les 4 locales)
-- **Tests** : `grouping.test.ts` + `PhotoLightbox.test.tsx` (vitest)
+- **Tests** : `grouping.test.ts`, `PhotoLightbox.test.tsx`, `PhotoZones.test.tsx`,
+  `PhotoTitleEditor.test.tsx`, `PhotoSelection.test.tsx`, `TriagePanel.test.tsx`
+  (vitest) + `e2e/photos-lightbox.spec.ts` (Playwright)
 - **Migrations** : 0
 
 ## Modèles & API
@@ -28,7 +30,10 @@ avaient divergé. Trois règles en sortent, à ne pas re-perdre :
   `else` du même ternaire — donc jamais atteinte : une miniature cassée laissait
   un carré vide muet.
 - **Rien d'essentiel derrière un `hover`.** Le nom de la photo n'apparaissait qu'au
-  survol, donc jamais au doigt.
+  survol, donc jamais au doigt. Il a d'abord été peint en permanence sur un
+  dégradé, puis **retiré de la vignette** : voir « La vignette est la photo » plus
+  bas. La règle tient dans les deux sens — ce qui compte ne se cache pas derrière un
+  survol, et ce qui ne compte pas ne s'affiche pas partout.
 - **Une seule croix de fermeture.** `DialogContent` rend la sienne ; la visionneuse
   passe donc `hideDefaultCloseButton` et pose la sienne dans le panneau de
   métadonnées. Avec les deux, celle de Radix tombait sur l'image sombre en
@@ -40,6 +45,49 @@ avaient divergé. Trois règles en sortent, à ne pas re-perdre :
 - **La visionneuse parcourt la collection dans l'ordre affiché**, pas celui de
   l'API : l'onglet par entité lui passe ses photos aplaties par phase, sinon
   « suivant » sautait d'un « Avant » à un « Après » sans raison lisible.
+
+## La vignette est la photo, la card de la visionneuse se replie
+
+Deux surcharges vivaient sur **100 %** des cases de la grille : le nom du fichier
+peint sur un dégradé (`IMG_4312.jpg` — il n'apprend rien) et la pastille « Sans
+zone » avec son libellé. Et en face, la card de la visionneuse disait tout d'un
+coup — quatre faits, les notes, l'intention, les zones, trois boutons — devant une
+photo qu'on ouvre pour la *regarder*. Ce qui en sort :
+
+- **La vignette ne porte plus que l'image** (plus la coche de sélection, le menu
+  d'actions et la pastille de phase, qui répondent à un geste en cours). Le nom
+  reste le **nom accessible** du bouton : retiré de l'écran, pas du calque
+  d'accessibilité, où il est le seul moyen de désigner une vignette. Régression :
+  `PhotoLightbox.test.tsx` (« ne peint pas le nom, mais le garde comme nom
+  accessible ») et `PhotoZones.test.tsx`.
+- **La card de la visionneuse a deux états.** Repliée : le titre, la date, et
+  l'icône « sans zone ». Dépliée : les détails de fichier, les notes, et les trois
+  éditeurs — titre, intention, zones — puis télécharger / supprimer. Le pli est un
+  **geste, pas un réglage** : il ne survit pas à la fermeture, mais survit au
+  passage à la photo suivante (on range plusieurs photos d'affilée), exactement
+  comme le retrait du chrome.
+- **La pastille « sans zone » n'a pas disparu, elle a déménagé** — de la vignette
+  vers la card repliée, réduite à son **icône** (le libellé reste le nom
+  accessible et l'infobulle). Même règle que le `flagWithoutSupplier` des
+  dépenses : *une pastille n'avertit que là où le manque est actionnable*. Sur la
+  grille, elle signalait un manque qu'on ne pouvait pas corriger de là ; sur la
+  card, le sélecteur qui le corrige est à un pli. Elle reste **portée par un
+  `flagWithoutZone` explicite**, passé par la galerie seule.
+- **« Voir » a été supprimé** : il ouvrait dans un onglet la photo déjà affichée en
+  plein écran. La clé `photos.view` a été retirée des quatre catalogues.
+- **Renommer se fait depuis la photo** (`PhotoTitleEditor` + `useRenamePhoto`,
+  injecté via `renderTitle`). Le nom d'un fichier d'appareil est le seul repère
+  qui reste d'une photo dans une recherche ou une citation de l'agent, et le
+  corriger imposait jusque-là de quitter la galerie pour la fiche document — donc
+  personne ne le corrigeait. Même contrat que `PhotoZonesEditor` : brouillon
+  local, enregistrement explicite, réalignement quand la visionneuse change
+  d'image, et un titre vide refusé plutôt qu'un repère effacé. Régressions :
+  `PhotoTitleEditor.test.tsx`.
+- **⚠️ La card ne doit pas devenir un conteneur de défilement.** Le sélecteur de
+  zones ouvre un panneau `absolute` **non portalisé** : un `overflow-y-auto` sur la
+  card le rognerait, et ranger une photo depuis la visionneuse redeviendrait
+  impossible sans qu'un pixel ne le dise. C'est le défaut que garde
+  `e2e/photos-lightbox.spec.ts`, et il ne se mesure qu'avec un vrai layout.
 
 ## Galerie — la date qui compte est celle de la prise de vue
 
@@ -96,17 +144,19 @@ d'aller dans la bonne. Trois pièces le règlent, et chacune a une raison de for
     l'endpoint ne possède que les liens de type zone. Même règle de portée que
     l'éditeur de ventilation côté argent.
 - **La pastille et le filtre lisent la même source.** « Sans zone » se déduit de
-  `zone_links` côté vignette et de `?without_zone=1` côté serveur — jamais d'un état
+  `zone_links` côté client et de `?without_zone=1` côté serveur — jamais d'un état
   local. Deux définitions du même manque, et un écran finirait par contredire l'autre
   sur la même photo (même règle que « un écart ne se dit jamais deux fois avec deux
   voix »). Le filtre zone et « sans zone » s'excluent : les cumuler ne rendrait
   qu'une liste vide, sans dire pourquoi.
-- **La pastille est réservée à la galerie** (`flagWithoutZone`) : sous l'onglet
-  Photos d'une entité la question posée est la phase des travaux, et une pastille de
-  plus sur chaque vignette n'y avertirait de rien.
-- Un seul formulaire pour l'écriture, `PhotoZonesEditor` — posé dans le panneau de
-  la visionneuse (via `renderZones`, injecté : la visionneuse reste sans données
-  propres) et dans `PhotoZonesDialog`, ouvert par le menu de la vignette. Le
+- **La pastille est réservée à la galerie** (`flagWithoutZone`, porté par
+  `PhotoLightbox` depuis qu'elle a quitté la vignette — voir « La vignette est la
+  photo ») : sous l'onglet Photos d'une entité la question posée est la phase des
+  travaux, et rien ne permettrait d'y ranger la photo.
+- Un seul formulaire pour l'écriture, `PhotoZonesEditor` — posé dans la card
+  **dépliée** de la visionneuse (via `renderZones`, injecté : la visionneuse reste
+  sans données propres) et dans `PhotoZonesDialog`, ouvert par le menu de la
+  vignette. Le
   brouillon est local et l'enregistrement explicite : en mode multiple, chaque clic
   déclencherait sinon sa propre requête. Il ne se réaligne sur le serveur que quand
   le **contenu** des zones change, sinon un refetch de fond effacerait une

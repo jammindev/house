@@ -6,6 +6,8 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const FIXTURE_PHOTO = path.resolve(__dirname, 'fixtures/test-photo.jpg');
 
 const TOGGLE = 'Afficher ou masquer les informations';
+/** Le pli de la card info : ce qui s'édite (titre, zones) attend ce clic. */
+const EXPAND = "Plus d'informations";
 
 /**
  * La visionneuse plein écran, et le geste qui la fonde : un tap sur la photo
@@ -67,8 +69,10 @@ test('la souris rappelle la navigation, sans rappeler la card info', async ({ pa
   await page.mouse.move(660, 420);
 
   await expect(page.getByRole('button', { name: 'Fermer' })).toBeVisible();
-  // La card info reste écartée : c'est tout l'objet du geste.
-  await expect(page.getByRole('button', { name: 'Supprimer' })).toBeHidden();
+  // La card info reste écartée : c'est tout l'objet du geste. Le témoin est son
+  // pli, qui n'existe que sur elle — « Supprimer » ne dirait plus rien, la card
+  // repliée ne le portant de toute façon pas.
+  await expect(page.getByRole('button', { name: EXPAND })).toBeHidden();
 
   // Puis le silence la reprend.
   await expect(page.getByRole('button', { name: 'Fermer' })).toBeHidden({ timeout: 5_000 });
@@ -80,10 +84,15 @@ test('la souris rappelle la navigation, sans rappeler la card info', async ({ pa
  * Il l'était — ranger une photo depuis la visionneuse était impossible, sans
  * qu'un pixel ne le dise. L'invariant n'est pas « il s'ouvre vers le haut » mais
  * **« il tient dans l'écran »**, et ça ne se mesure qu'avec un vrai layout.
+ *
+ * Depuis que la card se replie, ce test garde une seconde chose du même défaut :
+ * la card dépliée ne doit pas devenir un conteneur de défilement, sinon elle
+ * rognerait ce panneau `absolute` au lieu de le laisser sortir.
  */
 test('le sélecteur de zones s’ouvre dans l’écran, jamais sous le bord', async ({ page }) => {
   await openFirstPhoto(page);
 
+  await page.getByRole('button', { name: EXPAND }).click();
   await page.locator('[id^="photo-zones-"]').click();
 
   const panel = page.getByRole('dialog', { name: 'Sélection de zones' });
