@@ -1553,7 +1553,7 @@
         "steps": {
           "record": {
             "title": "Introducir un gasto",
-            "body": "Restaurante, regalo, compra: añade un gasto puntual con importe y proveedor."
+            "body": "Restaurante, regalo, compra: el botón « Nuevo gasto » abre el mismo formulario desde el panel y desde la pestaña Gastos. Ya no hay dos que escriban cosas distintas.\n\nLa única pregunta que cambia algo es: ¿cómo has pagado?\n\nEn efectivo, el gasto se convierte en una operación real de tu cuenta de efectivo. En una cuenta de efectivo nunca se importa nada, así que lo que escribes es la verdad: no hay ninguna discrepancia que esperar.\n\nCon tarjeta, transferencia o domiciliación, no se crea ninguna línea de cuenta. El gasto espera el extracto, que lo conciliará solo al importarlo. Es lo normal, y la pestaña Control no te lo reprocha mientras no haya llegado el extracto de ese periodo."
           },
           "supplier": {
             "title": "El proveedor se elige, no se vuelve a escribir",
@@ -3333,10 +3333,6 @@
       "noAmount": "Sin importe"
     },
     "adhoc": {
-      "title": "Registrar un gasto suelto",
-      "subject": "Asunto",
-      "subjectPlaceholder": "p. ej. Restaurante Le Bistrot",
-      "subjectRequired": "Se requiere un asunto",
       "created": "Gasto registrado",
       "actions": {
         "add": "Nuevo gasto"
@@ -3773,7 +3769,6 @@
     "cash": {
       "title": "Gasto en efectivo",
       "label": "Concepto",
-      "labelPlaceholder": "Ej.: mercado, panadería",
       "labelRequired": "El concepto es obligatorio.",
       "account": "Cuenta de efectivo",
       "accountRequired": "Elija una cuenta de efectivo.",
@@ -4272,7 +4267,17 @@
       "addReceipt": "Añadir",
       "noReceipt": "Ningún justificante adjunto.",
       "deleteConfirm": "¿Eliminar este gasto? Desaparecerá del diario y de los totales de presupuesto.",
-      "deleteSplitConfirm": "¿Eliminar este gasto? La operación bancaria no se toca: su importe vuelve a la cola."
+      "deleteSplitConfirm": "¿Eliminar este gasto? La operación bancaria no se toca: su importe vuelve a la cola.",
+      "new": {
+        "title": "Registrar un gasto",
+        "label": "Concepto",
+        "labelPlaceholder": "Ej.: restaurante, compra, regalo",
+        "labelRequired": "El concepto es obligatorio.",
+        "paidWith": "Pagado con",
+        "paidWithCash": "Efectivo",
+        "paidWithOther": "Tarjeta, transferencia o domiciliación",
+        "pendingHint": "No se crea ninguna línea de cuenta: el gasto se conciliará al importar el próximo extracto."
+      }
     },
     "refundExpense": {
       "action": "Reembolsado",

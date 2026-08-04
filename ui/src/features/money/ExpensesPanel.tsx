@@ -24,7 +24,7 @@ import {
 } from '@/features/expenses/period';
 import ExpenseList from '@/features/expenses/ExpenseList';
 import BulkEditDialog from '@/features/expenses/BulkEditDialog';
-import CashExpenseDialog from './CashExpenseDialog';
+import ExpenseDialog from './ExpenseDialog';
 
 /**
  * Onglet « Dépenses » du module Argent (parcours 26, lot 2).
@@ -282,7 +282,7 @@ export default function ExpensesPanel() {
         ) : null}
       </div>
 
-      <CashExpenseDialog open={adhocOpen} onOpenChange={setAdhocOpen} />
+      <ExpenseDialog open={adhocOpen} onOpenChange={setAdhocOpen} />
       <BulkEditDialog
         open={bulkOpen}
         onOpenChange={setBulkOpen}

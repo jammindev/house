@@ -1553,7 +1553,7 @@
         "steps": {
           "record": {
             "title": "Eine Ausgabe erfassen",
-            "body": "Restaurant, Geschenk, Einkauf: fügen Sie eine einmalige Ausgabe mit Betrag und Anbieter hinzu."
+            "body": "Restaurant, Geschenk, Einkauf: Die Schaltfläche « Neue Ausgabe » öffnet dasselbe Formular vom Dashboard und vom Tab Ausgaben. Es gibt nicht mehr zwei, die Unterschiedliches schreiben.\n\nDie einzige Frage, die etwas ändert, ist: Wie hast du bezahlt?\n\nBei Barzahlung wird die Ausgabe zu einer echten Buchung auf deinem Bargeldkonto. Auf ein Bargeldkonto wird nie etwas importiert, deine Eingabe ist also die Wahrheit — es ist keine Abweichung zu erwarten.\n\nBei Karte, Überweisung oder Lastschrift wird keine Kontobuchung erstellt. Die Ausgabe wartet auf den Kontoauszug, der sie beim Import selbst zuordnet. Das ist normal, und die Kontrolle hält es dir nicht vor, solange der Auszug dieses Zeitraums nicht eingetroffen ist."
           },
           "supplier": {
             "title": "Den Lieferanten wählen, nicht neu eintippen",
@@ -3333,10 +3333,6 @@
       "noAmount": "Ohne Betrag"
     },
     "adhoc": {
-      "title": "Ad-hoc Ausgabe erfassen",
-      "subject": "Betreff",
-      "subjectPlaceholder": "z. B. Restaurant Le Bistrot",
-      "subjectRequired": "Ein Betreff ist erforderlich",
       "created": "Ausgabe erfasst",
       "actions": {
         "add": "Neue Ausgabe"
@@ -3773,7 +3769,6 @@
     "cash": {
       "title": "Barausgabe",
       "label": "Bezeichnung",
-      "labelPlaceholder": "z. B. Markt, Bäckerei",
       "labelRequired": "Eine Bezeichnung ist erforderlich.",
       "account": "Barkonto",
       "accountRequired": "Wählen Sie ein Barkonto.",
@@ -4272,7 +4267,17 @@
       "addReceipt": "Hinzufügen",
       "noReceipt": "Kein Beleg angehängt.",
       "deleteConfirm": "Diese Ausgabe löschen? Sie verschwindet aus dem Journal und aus den Budgetsummen.",
-      "deleteSplitConfirm": "Diese Ausgabe löschen? Die Kontobewegung bleibt unberührt: ihr Betrag wandert zurück in die Warteschlange."
+      "deleteSplitConfirm": "Diese Ausgabe löschen? Die Kontobewegung bleibt unberührt: ihr Betrag wandert zurück in die Warteschlange.",
+      "new": {
+        "title": "Ausgabe erfassen",
+        "label": "Bezeichnung",
+        "labelPlaceholder": "z. B. Restaurant, Einkauf, Geschenk",
+        "labelRequired": "Eine Bezeichnung ist erforderlich.",
+        "paidWith": "Bezahlt mit",
+        "paidWithCash": "Bargeld",
+        "paidWithOther": "Karte, Überweisung oder Lastschrift",
+        "pendingHint": "Es wird keine Kontobuchung erstellt: Die Ausgabe wird beim Import des nächsten Kontoauszugs zugeordnet."
+      }
     },
     "refundExpense": {
       "action": "Erstattet",

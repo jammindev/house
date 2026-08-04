@@ -1553,7 +1553,7 @@
         "steps": {
           "record": {
             "title": "Saisir une dépense",
-            "body": "Resto, cadeau, courses : ajoutez une dépense ponctuelle avec montant et fournisseur."
+            "body": "Resto, cadeau, courses : le bouton « Nouvelle dépense » ouvre la même saisie depuis le tableau de bord et depuis l'onglet Dépenses. Il n'y en a plus deux qui n'écrivent pas la même chose.\n\nLa seule question qui change quelque chose est : comment as-tu payé ?\n\nEn espèces, la dépense devient une vraie opération sur ton compte espèces. Rien ne sera jamais importé sur un compte espèces, donc ta saisie est la vérité — il n'y a pas d'écart à attendre.\n\nPar carte, virement ou prélèvement, aucune ligne de compte n'est créée. La dépense attend le relevé, qui la rapprochera tout seul à l'import. C'est normal, et le Contrôle ne te le reproche pas tant que le relevé de cette période n'est pas arrivé."
           },
           "supplier": {
             "title": "Le fournisseur se choisit, il ne se retape pas",
@@ -3333,10 +3333,6 @@
       "noAmount": "Sans montant"
     },
     "adhoc": {
-      "title": "Enregistrer une dépense ad-hoc",
-      "subject": "Sujet",
-      "subjectPlaceholder": "ex : Restaurant Le Bistrot",
-      "subjectRequired": "Un sujet est requis",
       "created": "Dépense enregistrée",
       "actions": {
         "add": "Nouvelle dépense"
@@ -3773,7 +3769,6 @@
     "cash": {
       "title": "Dépense en espèces",
       "label": "Libellé",
-      "labelPlaceholder": "Ex. : marché, boulangerie",
       "labelRequired": "Le libellé est obligatoire.",
       "account": "Compte espèces",
       "accountRequired": "Choisissez un compte espèces.",
@@ -4272,7 +4267,17 @@
       "addReceipt": "Ajouter",
       "noReceipt": "Aucun justificatif joint.",
       "deleteConfirm": "Supprimer cette dépense ? Elle disparaîtra du journal et des totaux de budget.",
-      "deleteSplitConfirm": "Supprimer cette dépense ? L'opération bancaire n'est pas touchée : son montant redevient à ranger."
+      "deleteSplitConfirm": "Supprimer cette dépense ? L'opération bancaire n'est pas touchée : son montant redevient à ranger.",
+      "new": {
+        "title": "Enregistrer une dépense",
+        "label": "Libellé",
+        "labelPlaceholder": "Ex. : restaurant, courses, cadeau",
+        "labelRequired": "Le libellé est obligatoire.",
+        "paidWith": "Payé avec",
+        "paidWithCash": "Espèces",
+        "paidWithOther": "Carte, virement ou prélèvement",
+        "pendingHint": "Aucune ligne de compte n'est créée : la dépense sera rapprochée à l'import du prochain relevé."
+      }
     },
     "refundExpense": {
       "action": "Remboursée",
