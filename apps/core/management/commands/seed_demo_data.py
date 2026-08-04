@@ -4,6 +4,11 @@ Management command to seed demo data for testing.
 Usage:
     python manage.py seed_demo_data           # crée les données (idempotent)
     python manage.py seed_demo_data --flush   # supprime puis recrée tout
+    python manage.py seed_demo_data --password '…'   # obligatoire sur une
+                                              # instance joignable depuis
+                                              # Internet : le mot de passe par
+                                              # défaut est publié (voir
+                                              # DEFAULT_PASSWORD)
 
 Idempotence :
     La commande utilise get_or_create partout — la relancer sans --flush
@@ -49,7 +54,22 @@ Creates:
 - 1 installation électrique complète (tableau, circuits, points d'usage)
 - 1 compte bancaire + un relevé de deux mois importé par le vrai chemin
   d'import, 10 enveloppes de budget, des ventilations, un remboursement,
+  4 récurrences dont deux confirmées par le relevé lui-même,
   et deux opérations laissées « à ranger » exprès
+- 7 équipements (garanties en cours, révisions dues, une machine à l'atelier)
+- 5 catégories de stock et 9 articles, avec courbes de consommation et un achat
+- 1 liste de courses, alimentée en partie depuis le stock bas
+- 1 poulailler : 5 poules, 45 jours de ponte, 3 soins récurrents, un journal
+- 18 relevés du compteur d'eau, 4 contrats d'assurance, 3 suivis chiffrés
+- 5 structures de l'annuaire et leurs contacts
+- 12 entrées de journal (notes, entretiens, carnet de rénovation) et leurs tags
+
+Ce que la seed ne crée pas, et pourquoi : les documents et les photos
+demandent des **fichiers**, donc des binaires générés à l'exécution ou commités
+dans un dépôt qui tient en 9,7 Mio ; la météo vient d'une API tierce ; les
+récaps, bilans et alertes sont **dérivés** — les semer les figerait à une valeur
+que plus rien ne recalcule, ce qui est exactement le défaut que la règle « un
+compteur ne peut pas avoir deux définitions » interdit.
 """
 
 from datetime import date, datetime, timedelta
@@ -60,6 +80,9 @@ from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 from django.utils import timezone
 
+from chickens.models import Chicken, ChickenChore, ChickenEvent, ChickenSettings, EggLog
+from core.timezones import household_today
+from directory.models import Address, Contact, Email, Phone, Structure
 from electricity.models import (
     CircuitUsagePointLink,
     ElectricCircuit,
@@ -67,7 +90,9 @@ from electricity.models import (
     ProtectiveDevice,
     UsagePoint,
 )
+from equipment.models import Equipment, EquipmentInteraction
 from households.models import Household, HouseholdMember
+from insurance.models import InsuranceContract
 from banking.models import (
     BankAccount,
     BankTransaction,
@@ -75,11 +100,15 @@ from banking.models import (
     RefundAllocation,
     StatementImport,
 )
-from budget.models import Budget, BudgetCategory
-from interactions.models import Interaction
+from budget.models import Budget, BudgetCategory, RecurringExpense
+from interactions.models import Interaction, InteractionZone
 from projects.models import Project
+from shopping.models import ShoppingListItem, ShoppingSuggestionDismissal
 from stock.models import StockCategory, StockItem
+from tags.models import Tag, TagLink
 from tasks.models import Task, TaskZone
+from trackers.models import Tracker, TrackerEntry
+from water.models import WaterReading
 from zones.models import Zone
 
 User = get_user_model()
@@ -88,11 +117,28 @@ User = get_user_model()
 class Command(BaseCommand):
     help = "Seed demo data focused on tasks (household, users, zones, projects, tasks)"
 
+    #: Mot de passe des trois comptes de démonstration. Il est **publié** — dans
+    #: ce fichier, dans ``AGENTS.md`` et dans le skill ``/dev``, tous suivis par un
+    #: dépôt public. C'est sans conséquence sur la machine de celui qui évalue le
+    #: produit (``docker compose --profile demo``), et c'est une porte ouverte sur
+    #: toute instance joignable depuis Internet. D'où ``--password``.
+    DEFAULT_PASSWORD = "demo1234"
+
     def add_arguments(self, parser):
         parser.add_argument(
             "--flush",
             action="store_true",
             help="Delete previously created demo data before seeding",
+        )
+        parser.add_argument(
+            "--password",
+            default=None,
+            help=(
+                "Password of the three demo accounts. Defaults to the published "
+                "one — pass a strong value on any instance reachable from the "
+                "internet. Given explicitly, it is also applied to accounts that "
+                "already exist."
+            ),
         )
 
     def handle(self, *args, **options):
@@ -101,12 +147,21 @@ class Command(BaseCommand):
 
         with transaction.atomic():
             household = self._create_household()
-            claire, antoine, lea = self._create_users(household)
+            claire, antoine, lea = self._create_users(household, options["password"])
             zones = self._create_zones(household, claire)
             projects = self._create_projects(household, claire, antoine, zones)
             self._create_tasks(household, claire, antoine, lea, zones, projects)
             self._create_electricity(household, claire, zones)
             self._create_money(household, claire, projects)
+            equipment = self._create_equipment(household, antoine, zones)
+            stock = self._create_stock(household, claire, zones)
+            self._create_shopping(household, lea, stock)
+            self._create_chickens(household, lea, zones, stock)
+            self._create_water(household, claire)
+            self._create_insurance(household, claire)
+            self._create_trackers(household, antoine)
+            self._create_directory(household, claire)
+            self._create_journal(household, claire, antoine, zones, equipment, projects)
 
         self.stdout.write(self.style.SUCCESS("Demo data seeded successfully."))
 
@@ -124,6 +179,31 @@ class Command(BaseCommand):
             ElectricCircuit.objects.filter(board__household_id__in=household_ids).delete()
             ProtectiveDevice.objects.filter(board__household_id__in=household_ids).delete()
             ElectricityBoard.objects.filter(household_id__in=household_ids).delete()
+            # Les modules ajoutés au foyer de démonstration. L'ordre suit les FK
+            # protectrices, comme le bloc bancaire juste en dessous : ce qui pointe
+            # vers un stock (liste de courses, réglages du poulailler) part avant
+            # l'article, et l'article avant sa catégorie (PROTECT).
+            ShoppingSuggestionDismissal.objects.filter(household_id__in=household_ids).delete()
+            ShoppingListItem.objects.filter(household_id__in=household_ids).delete()
+            ChickenSettings.objects.filter(household_id__in=household_ids).delete()
+            ChickenEvent.objects.filter(household_id__in=household_ids).delete()
+            ChickenChore.objects.filter(household_id__in=household_ids).delete()
+            EggLog.objects.filter(household_id__in=household_ids).delete()
+            Chicken.objects.filter(household_id__in=household_ids).delete()
+            TrackerEntry.objects.filter(household_id__in=household_ids).delete()
+            Tracker.objects.filter(household_id__in=household_ids).delete()
+            WaterReading.objects.filter(household_id__in=household_ids).delete()
+            InsuranceContract.objects.filter(household_id__in=household_ids).delete()
+            Phone.objects.filter(household_id__in=household_ids).delete()
+            Email.objects.filter(household_id__in=household_ids).delete()
+            Address.objects.filter(household_id__in=household_ids).delete()
+            Contact.objects.filter(household_id__in=household_ids).delete()
+            Structure.objects.filter(household_id__in=household_ids).delete()
+            TagLink.objects.filter(household_id__in=household_ids).delete()
+            Tag.objects.filter(household_id__in=household_ids).delete()
+            # EquipmentInteraction cascade des deux côtés — l'équipement suffit.
+            Equipment.objects.filter(household_id__in=household_ids).delete()
+            RecurringExpense.objects.filter(household_id__in=household_ids).delete()
             Interaction.objects.filter(household_id__in=household_ids).delete()
             # Refund allocations point at both a transaction and a budget: they go
             # before either, or the FK protecting them refuses the delete.
@@ -172,7 +252,7 @@ class Command(BaseCommand):
     # Users & Members
     # ------------------------------------------------------------------
 
-    def _create_users(self, household):
+    def _create_users(self, household, password=None):
         claire = self._get_or_create_user(
             email="claire.mercier@demo.local",
             first_name="Claire",
@@ -180,6 +260,7 @@ class Command(BaseCommand):
             display_name="Claire",
             locale="fr",
             household=household,
+            password=password,
         )
         antoine = self._get_or_create_user(
             email="antoine.mercier@demo.local",
@@ -188,6 +269,7 @@ class Command(BaseCommand):
             display_name="Antoine",
             locale="fr",
             household=household,
+            password=password,
         )
         lea = self._get_or_create_user(
             email="lea.martin@demo.local",
@@ -196,6 +278,7 @@ class Command(BaseCommand):
             display_name="Léa",
             locale="fr",
             household=household,
+            password=password,
         )
 
         HouseholdMember.objects.get_or_create(
@@ -210,7 +293,9 @@ class Command(BaseCommand):
         self.stdout.write(f"  Members: {claire.first_name}, {antoine.first_name}, {lea.first_name}")
         return claire, antoine, lea
 
-    def _get_or_create_user(self, email, first_name, last_name, display_name, locale, household):
+    def _get_or_create_user(
+        self, email, first_name, last_name, display_name, locale, household, password=None
+    ):
         user, created = User.objects.get_or_create(
             email=email,
             defaults={
@@ -222,8 +307,11 @@ class Command(BaseCommand):
                 "is_active": True,
             },
         )
-        if created:
-            user.set_password("demo1234")
+        # Un ``--password`` explicite s'applique **aussi** à un compte déjà là :
+        # sinon relancer la commande pour corriger un mot de passe ne ferait rien,
+        # sans un mot — et on croirait la porte refermée alors qu'elle est ouverte.
+        if created or password is not None:
+            user.set_password(password or self.DEFAULT_PASSWORD)
             user.save()
         return user
 
@@ -233,18 +321,24 @@ class Command(BaseCommand):
 
     def _create_zones(self, household, created_by):
         def zone(name, parent=None, color="#f4f4f5", note=""):
-            obj, _ = Zone.objects.get_or_create(
+            # La recherche ignore le parent **volontairement** : ``Zone.save()``
+            # rattache une zone sans parent à la racine du foyer, donc un
+            # ``get_or_create(parent=None)`` ne retrouve jamais ce qu'il vient de
+            # créer et repose les neuf zones à chaque relance. Le foyer de
+            # démonstration se retrouvait avec deux « Cuisine », deux « Garage »…
+            # et les tâches accrochées à la première copie.
+            existing = Zone.objects.filter(household=household, name=name).first()
+            if existing is not None:
+                return existing
+            return Zone.objects.create(
                 household=household,
                 name=name,
                 parent=parent,
-                defaults={
-                    "color": color,
-                    "note": note,
-                    "created_by": created_by,
-                    "updated_by": created_by,
-                },
+                color=color,
+                note=note,
+                created_by=created_by,
+                updated_by=created_by,
             )
-            return obj
 
         # Niveau 1 — zones principales
         salon = zone("Salon", color="#fef9c3", note="Pièce de vie principale, parquet chêne")
@@ -912,7 +1006,6 @@ class Command(BaseCommand):
             import_statement_file,
             set_allocations,
         )
-        from core.timezones import household_today
 
         today = household_today(household)
         # Le relevé couvre le mois précédent et le mois courant : l'aperçu des
@@ -988,6 +1081,15 @@ class Command(BaseCommand):
         # opérations futures n'existe pas, et fausserait tous les compteurs du
         # mois en cours.
         lines = [line for line in lines if d(line[0]) <= today]
+
+        # ── Les récurrences, AVANT l'import ───────────────────────────────────
+        #
+        # L'ordre n'est pas cosmétique : c'est l'import qui confirme les échéances
+        # qu'il couvre (``banking.matching.match_recurrences``). Les créer après
+        # laisserait quatre échéances « à confirmer » sur des prélèvements déjà au
+        # relevé — l'écart que le foyer n'a aucun moyen de comprendre, et l'inverse
+        # exact de ce que la démonstration doit montrer.
+        self._create_recurring(household, budgets, lines, d, today)
 
         rows = ["Date;Libelle;Montant;Solde"]
         balance = Decimal("2480.00")
@@ -1140,3 +1242,1196 @@ class Command(BaseCommand):
                 is_global=True,
             )
         return budget
+
+    def _create_recurring(self, household, budgets, lines, d, today):
+        """Les échéances régulières du foyer — deux que le relevé confirmera seul.
+
+        Les deux premières sont **calées sur une ligne du relevé** (même montant au
+        centime, même jour) : c'est la condition d'auto-confirmation, et la seule
+        façon de montrer que l'app ne redemande pas de saisir ce qu'elle voit déjà.
+        Les deux autres n'ont aucune ligne en face et restent « à venir » — c'est
+        la projection de trésorerie.
+        """
+
+        def anchor_on(needle, fallback_days):
+            """Le jour de la dernière ligne portant ``needle``, sinon une date future.
+
+            Le relevé est tronqué à aujourd'hui : un mois qui commence n'a pas
+            encore vu passer son prélèvement Orange. Sans ce repli, la récurrence
+            naîtrait avec une échéance déjà dépassée et rien pour la justifier —
+            un écart fabriqué par la seed elle-même.
+            """
+            days = [offset for offset, label, _amount in lines if needle in label]
+            return d(days[-1]) if days else today + timedelta(days=fallback_days)
+
+        def recurring(label, amount, *, supplier, budget, next_due, cadence, notes=""):
+            obj, _created = RecurringExpense.objects.get_or_create(
+                household=household,
+                label=label,
+                defaults={
+                    "amount": Decimal(amount),
+                    "supplier": supplier,
+                    "budget": budget,
+                    "next_due_date": next_due,
+                    "cadence": cadence,
+                    "notes": notes,
+                },
+            )
+            return obj
+
+        recurring(
+            "Fibre Orange",
+            "42.99",
+            supplier="Orange",
+            budget=budgets["abonnements"],
+            next_due=anchor_on("ORANGE", 6),
+            cadence=RecurringExpense.Cadence.MONTHLY,
+        )
+        recurring(
+            "Assurance habitation",
+            "58.30",
+            supplier="MAIF",
+            budget=budgets["assurances"],
+            next_due=anchor_on("MAIF", 11),
+            cadence=RecurringExpense.Cadence.MONTHLY,
+            notes="Contrat H-4419028, prélevé le 14.",
+        )
+        recurring(
+            "Abonnement Netflix",
+            "13.49",
+            supplier="Netflix",
+            budget=budgets["loisirs"],
+            next_due=today + timedelta(days=6),
+            cadence=RecurringExpense.Cadence.MONTHLY,
+        )
+        taxe_year = today.year if today < date(today.year, 10, 15) else today.year + 1
+        recurring(
+            "Taxe foncière",
+            "1240.00",
+            supplier="DGFiP",
+            budget=budgets["maison"],
+            next_due=date(taxe_year, 10, 15),
+            cadence=RecurringExpense.Cadence.YEARLY,
+            notes="Payée en une fois, prélèvement à l'échéance.",
+        )
+
+    # ------------------------------------------------------------------
+    # Équipements
+    # ------------------------------------------------------------------
+
+    def _create_equipment(self, household, user, zones):
+        """Le parc matériel — avec ce qui fait l'intérêt de l'écran : une garantie
+        qui court encore, une révision due, une autre en retard, et une machine
+        partie à l'atelier. Un parc entièrement vert ne montre rien.
+        """
+        today = household_today(household)
+
+        def equip(name, *, zone_key=None, category="general", **fields):
+            defaults = {
+                "zone": zones[zone_key] if zone_key else None,
+                "category": category,
+                "created_by": user,
+                "updated_by": user,
+                **fields,
+            }
+            obj, _created = Equipment.objects.get_or_create(
+                household=household, name=name, defaults=defaults
+            )
+            return obj
+
+        chaudiere = equip(
+            "Chaudière gaz Vitodens 100-W",
+            zone_key="cave",
+            category="heating",
+            manufacturer="Viessmann",
+            model="Vitodens 100-W B1HF",
+            serial_number="7519-448210",
+            purchase_date=date(2015, 10, 12),
+            purchase_price=Decimal("3450.00"),
+            purchase_vendor="Chauffage Rhône Services",
+            warranty_expires_on=date(2020, 10, 12),
+            warranty_provider="Viessmann France",
+            maintenance_interval_months=12,
+            # Onze mois : la révision annuelle tombe le mois prochain.
+            last_service_at=today - timedelta(days=335),
+            notes="Contrat d'entretien annuel chez Berthier. Pression à vérifier entre 1,2 et 1,5 bar.",
+            tags=["chauffage", "contrat d'entretien"],
+        )
+        equip(
+            "Lave-linge Serie 6",
+            zone_key="sdb",
+            category="appliance",
+            manufacturer="Bosch",
+            model="WAN28270FF",
+            serial_number="FD9812-004417",
+            purchase_date=today - timedelta(days=730),
+            purchase_price=Decimal("549.00"),
+            purchase_vendor="Boulanger",
+            warranty_expires_on=today + timedelta(days=365),
+            warranty_provider="Boulanger — extension 5 ans",
+            notes="Bruit de roulement à l'essorage depuis quelques semaines.",
+            tags=["électroménager", "garantie"],
+        )
+        equip(
+            "Réfrigérateur combiné CNef 4315",
+            zone_key="cuisine",
+            category="appliance",
+            manufacturer="Liebherr",
+            model="CNef 4315-20",
+            purchase_date=today - timedelta(days=1490),
+            purchase_price=Decimal("799.00"),
+            purchase_vendor="Darty",
+            warranty_expires_on=today - timedelta(days=760),
+            tags=["électroménager"],
+        )
+        tondeuse = equip(
+            "Tondeuse thermique IZY HRG 416",
+            zone_key="garage",
+            category="garden",
+            manufacturer="Honda",
+            model="HRG 416 SK",
+            serial_number="MZCG-1904722",
+            purchase_date=today - timedelta(days=1820),
+            purchase_price=Decimal("429.00"),
+            purchase_vendor="Gamm vert",
+            maintenance_interval_months=12,
+            # Quatorze mois : la vidange est en retard, et l'écran le dit.
+            last_service_at=today - timedelta(days=425),
+            notes="Vidange + bougie + filtre à air une fois par an, avant la première tonte.",
+            tags=["jardin", "entretien annuel"],
+        )
+        equip(
+            "VMC double flux InspirAIR Home",
+            zone_key="cave",
+            category="hvac",
+            manufacturer="Aldes",
+            model="InspirAIR Home SC240",
+            purchase_date=date(2015, 11, 20),
+            purchase_price=Decimal("2180.00"),
+            maintenance_interval_months=6,
+            last_service_at=today - timedelta(days=200),
+            notes="Filtres G4/F7 à changer deux fois par an.",
+            tags=["ventilation"],
+        )
+        equip(
+            "Vélo électrique Riverside 500 E",
+            zone_key="garage",
+            category="mobility",
+            manufacturer="Decathlon",
+            model="Riverside 500 E",
+            serial_number="DKT-2211-88431",
+            purchase_date=today - timedelta(days=400),
+            purchase_price=Decimal("1299.00"),
+            purchase_vendor="Decathlon Vénissieux",
+            warranty_expires_on=today + timedelta(days=330),
+            status=Equipment.Status.MAINTENANCE,
+            notes="À l'atelier : capteur de pédalier à remplacer, pièce commandée.",
+            tags=["mobilité", "garantie"],
+        )
+        equip(
+            "Perceuse-visseuse GSR 18V-55",
+            zone_key="garage",
+            category="tool",
+            manufacturer="Bosch Professional",
+            model="GSR 18V-55",
+            purchase_date=today - timedelta(days=210),
+            purchase_price=Decimal("189.90"),
+            purchase_vendor="Leroy Merlin",
+            warranty_expires_on=today + timedelta(days=885),
+            tags=["outillage", "chantier sdb"],
+        )
+
+        self.stdout.write(
+            f"  Équipements : {Equipment.objects.filter(household=household).count()} au parc"
+        )
+        return {"chaudiere": chaudiere, "tondeuse": tondeuse}
+
+    # ------------------------------------------------------------------
+    # Stock
+    # ------------------------------------------------------------------
+
+    def _create_stock(self, household, user, zones):
+        """Le garde-manger et l'atelier, avec une histoire derrière chaque article.
+
+        Les quantités **ne sont pas posées à plat** : chaque article est créé à son
+        niveau d'il y a trois mois, puis descendu par des inventaires datés. C'est
+        ce qui donne une courbe de consommation à afficher — un article créé à sa
+        quantité du jour n'a qu'un point, et l'écran qui en fait un graphique
+        n'aurait rien à montrer.
+
+        Les statuts (`in_stock` / `low_stock` / `out_of_stock`) ne sont jamais
+        écrits : ils se recalculent depuis la quantité et le seuil, comme partout
+        ailleurs dans l'app.
+        """
+        from interactions.services import household_noon
+        from stock.services import (
+            create_stock_item,
+            purchase_stock_item,
+            recompute_status,
+            record_initial_level,
+            record_inventory,
+        )
+
+        now = timezone.now()
+        today = household_today(household)
+
+        def category(name, emoji, color, sort_order):
+            obj, _created = StockCategory.objects.get_or_create(
+                household=household,
+                name=name,
+                defaults={
+                    "emoji": emoji,
+                    "color": color,
+                    "sort_order": sort_order,
+                    "created_by": user,
+                    "updated_by": user,
+                },
+            )
+            return obj
+
+        categories = {
+            "food": category("Alimentaire", "🥫", "#f59e0b", 1),
+            "cleaning": category("Entretien", "🧴", "#38bdf8", 2),
+            "diy": category("Bricolage", "🔩", "#94a3b8", 3),
+            "animals": category("Animaux", "🐔", "#22c55e", 4),
+            "heating": category("Chauffage", "🔥", "#ef4444", 5),
+        }
+
+        def item(name, *, cat, zone_key, unit, levels, min_quantity, unit_price=None, supplier="", notes=""):
+            """``levels`` = [(jours avant aujourd'hui, quantité)], du plus ancien au plus récent."""
+            existing = StockItem.objects.filter(household=household, name=name).first()
+            if existing is not None:
+                return existing
+
+            first_days, first_qty = levels[0]
+            obj = create_stock_item(
+                household,
+                user,
+                category=categories[cat],
+                name=name,
+                unit=unit,
+                quantity=str(first_qty),
+                min_quantity=str(min_quantity),
+                zone=str(zones[zone_key].id),
+                unit_price=str(unit_price) if unit_price is not None else None,
+                supplier=supplier,
+                notes=notes,
+            )
+            recompute_status(obj)
+            obj.save(update_fields=["status", "updated_at"])
+            record_initial_level(item=obj, user=user, occurred_at=now - timedelta(days=first_days))
+            for days, quantity in levels[1:]:
+                record_inventory(
+                    item=obj,
+                    user=user,
+                    quantity=Decimal(str(quantity)),
+                    occurred_at=now - timedelta(days=days),
+                )
+            return obj
+
+        cafe = item(
+            "Café en grains",
+            cat="food",
+            zone_key="cuisine",
+            unit="kg",
+            levels=[(62, 2), (31, 1.4), (4, 0.7)],
+            min_quantity=0.8,
+            unit_price="18.90",
+            supplier="Torréfaction Mokxa",
+        )
+        pastilles = item(
+            "Pastilles lave-vaisselle",
+            cat="cleaning",
+            zone_key="cuisine",
+            unit="unit",
+            levels=[(55, 60), (21, 22), (2, 0)],
+            min_quantity=10,
+            unit_price="0.27",
+            supplier="Carrefour Market",
+        )
+        item(
+            "Lessive liquide",
+            cat="cleaning",
+            zone_key="sdb",
+            unit="L",
+            levels=[(70, 5), (26, 2.5)],
+            min_quantity=1,
+            unit_price="4.10",
+        )
+        item(
+            "Papier toilette",
+            cat="cleaning",
+            zone_key="cave",
+            unit="unit",
+            levels=[(45, 24), (9, 9)],
+            min_quantity=6,
+            unit_price="0.52",
+        )
+        item(
+            "Sel pour adoucisseur",
+            cat="cleaning",
+            zone_key="cave",
+            unit="kg",
+            levels=[(48, 50), (12, 25)],
+            min_quantity=15,
+            unit_price="0.65",
+        )
+        item(
+            "Vis 4×40",
+            cat="diy",
+            zone_key="garage",
+            unit="unit",
+            levels=[(90, 300), (18, 210)],
+            min_quantity=50,
+            unit_price="0.06",
+            supplier="Leroy Merlin",
+        )
+        ampoules = item(
+            "Ampoules LED E27",
+            cat="diy",
+            zone_key="garage",
+            unit="unit",
+            levels=[(80, 8), (13, 3)],
+            min_quantity=4,
+            unit_price="3.40",
+            supplier="Leroy Merlin",
+        )
+        item(
+            "Bois de chauffage",
+            cat="heating",
+            zone_key="cave",
+            unit="stère",
+            levels=[(120, 6), (60, 4.6), (14, 3.8)],
+            min_quantity=2,
+            unit_price="82.00",
+            supplier="Bois du Pilat",
+            notes="Chêne sec, livré fendu en 33 cm.",
+        )
+
+        # ── Les granulés : le seul article qui a été racheté ───────────────────
+        #
+        # L'achat est daté **avant la fenêtre de conformité** (le solde d'ouverture
+        # du compte est au dernier jour de l'avant-dernier mois). Une dépense sans
+        # ligne de relevé *dans* la fenêtre est un écart légitime que le Contrôle
+        # signalerait — vrai dans un vrai foyer, mais ici ce serait un écart
+        # fabriqué par la seed, sur un achat qu'aucun relevé de démonstration ne
+        # couvrira jamais.
+        purchase_day = today.replace(day=1) - timedelta(days=1)
+        purchase_day = purchase_day.replace(day=1) - timedelta(days=5)
+        purchase_at = household_noon(household, purchase_day)
+        granules = item(
+            "Granulés pour poules",
+            cat="animals",
+            zone_key="jardin",
+            unit="kg",
+            levels=[((today - purchase_day).days + 40, 30), ((today - purchase_day).days + 2, 16)],
+            min_quantity=5,
+            unit_price="1.05",
+            supplier="Gamm vert",
+            notes="Ponte bio, sac de 25 kg.",
+        )
+        if not Interaction.objects.filter(
+            household=household, kind="stock_purchase", source_object_id=granules.id
+        ).exists():
+            purchase_stock_item(
+                item=granules,
+                user=user,
+                delta=Decimal("25"),
+                amount=Decimal("26.25"),
+                supplier="Gamm vert",
+                brand="Ponte bio",
+                remaining_before=Decimal("16"),
+                occurred_at=purchase_at,
+                notes="Sac de 25 kg, ramené du magasin.",
+            )
+            record_inventory(
+                item=granules, user=user, quantity=Decimal("30"), occurred_at=now - timedelta(days=20)
+            )
+            record_inventory(
+                item=granules, user=user, quantity=Decimal("19"), occurred_at=now - timedelta(days=5)
+            )
+
+        self.stdout.write(
+            f"  Stock : {StockItem.objects.filter(household=household).count()} articles dans "
+            f"{len(categories)} catégories, "
+            f"{StockItem.objects.filter(household=household).exclude(status='in_stock').count()} à racheter"
+        )
+        return {
+            "cafe": cafe,
+            "pastilles": pastilles,
+            "ampoules": ampoules,
+            "granules": granules,
+        }
+
+    # ------------------------------------------------------------------
+    # Liste de courses
+    # ------------------------------------------------------------------
+
+    def _create_shopping(self, household, user, stock):
+        """La liste partagée : ce qui vient du stock bas, et ce qu'on y jette à la main."""
+        from shopping.services import add_stock_item_to_list, create_list_item
+
+        # Depuis l'inventaire : le lien vers l'article survit à la course, et
+        # ``add_stock_item_to_list`` est déjà idempotent sur une ligne non cochée.
+        for key, quantity in (("pastilles", 60), ("cafe", 1), ("ampoules", 4)):
+            add_stock_item_to_list(household, user, stock[key], quantity=quantity)
+
+        def line(label, *, quantity=None, unit="", note="", checked_days_ago=None):
+            existing = ShoppingListItem.objects.filter(household=household, label=label).first()
+            if existing is not None:
+                return existing
+            obj = create_list_item(
+                household, user, label=label, quantity=quantity, unit=unit, note=note
+            )
+            if checked_days_ago is not None:
+                obj.checked_at = timezone.now() - timedelta(days=checked_days_ago)
+                obj.save(update_fields=["checked_at", "updated_at"])
+            return obj
+
+        line("Pain de campagne", quantity=1, unit="unit")
+        line("Fromage de chèvre", note="Le petit rond de la fromagerie, pas celui du rayon.")
+        line("Piles AA", quantity=4, unit="unit", note="Pour la télécommande du portail.")
+        line("Terreau", quantity=40, unit="L", note="Pour les jardinières de la terrasse.")
+        line("Yaourts nature", quantity=8, unit="unit", checked_days_ago=2)
+        line("Pommes", quantity=2, unit="kg", checked_days_ago=2)
+
+        self.stdout.write(
+            "  Courses : "
+            f"{ShoppingListItem.objects.filter(household=household, checked_at__isnull=True).count()} à prendre, "
+            f"{ShoppingListItem.objects.filter(household=household, checked_at__isnull=False).count()} cochées"
+        )
+
+    # ------------------------------------------------------------------
+    # Poulailler
+    # ------------------------------------------------------------------
+
+    def _create_chickens(self, household, user, zones, stock):
+        """Cinq poules, quarante-cinq jours de ponte, et un journal qui explique les trous.
+
+        La ponte n'est pas régulière et ne doit pas l'être : une couvaison, une
+        maladie et une attaque de fouine se lisent dans la courbe, et c'est le
+        journal qui les explique. Une série plate ne prouve rien.
+        """
+        from chickens.services import (
+            complete_chore,
+            create_chicken,
+            create_chore,
+            create_event,
+            log_eggs,
+        )
+
+        today = household_today(household)
+        jardin = str(zones["jardin"].id)
+
+        def hen(name, *, breed, color, status, acquired_days_ago, notes=""):
+            existing = Chicken.objects.filter(household=household, name=name).first()
+            if existing is not None:
+                return existing
+            return create_chicken(
+                household,
+                user,
+                name=name,
+                breed=breed,
+                color=color,
+                status=status,
+                acquired_on=today - timedelta(days=acquired_days_ago),
+                notes=notes,
+                zone_id=jardin,
+            )
+
+        roussette = hen(
+            "Roussette", breed="Poule rousse", color="Rousse",
+            status=Chicken.Status.ACTIVE, acquired_days_ago=430,
+        )
+        hen(
+            "Marguerite", breed="Sussex", color="Blanche mouchetée",
+            status=Chicken.Status.ACTIVE, acquired_days_ago=430,
+        )
+        plumette = hen(
+            "Plumette", breed="Marans", color="Noir cuivré",
+            status=Chicken.Status.BROODY, acquired_days_ago=430,
+            notes="Couve tout ce qu'elle trouve dès qu'il fait chaud.",
+        )
+        coquette = hen(
+            "Coquette", breed="Leghorn", color="Blanche",
+            status=Chicken.Status.SICK, acquired_days_ago=180,
+            notes="Sous traitement, isolée dans le petit enclos.",
+        )
+        bijou = hen(
+            "Bijou", breed="Poule rousse", color="Rousse",
+            status=Chicken.Status.DECEASED, acquired_days_ago=430,
+        )
+
+        def event(type_, title, days_ago, *, chicken=None, notes=""):
+            if ChickenEvent.objects.filter(household=household, title=title).exists():
+                return
+            create_event(
+                household,
+                user,
+                type=type_,
+                title=title,
+                occurred_on=today - timedelta(days=days_ago),
+                chicken=chicken,
+                notes=notes,
+            )
+
+        event(
+            ChickenEvent.Type.ARRIVAL, "Arrivée des quatre premières poules", 430,
+            notes="Récupérées chez un éleveur de Saint-Priest, à six mois.",
+        )
+        event(
+            ChickenEvent.Type.ARRIVAL, "Arrivée de Coquette", 180, chicken=coquette,
+            notes="Remplace une poule perdue l'automne dernier.",
+        )
+        event(
+            ChickenEvent.Type.PREDATOR, "Fouine dans le poulailler", 58,
+            notes="Passage par le grillage côté nord, réparé le lendemain. Bijou n'a pas survécu.",
+        )
+        event(
+            ChickenEvent.Type.DEATH, "Bijou n'a pas survécu à l'attaque", 58, chicken=bijou,
+        )
+        event(
+            ChickenEvent.Type.MOLT, "Mue de Roussette", 34, chicken=roussette,
+            notes="Ponte arrêtée pendant trois semaines, plumage refait depuis.",
+        )
+        event(
+            ChickenEvent.Type.ILLNESS, "Coryza chez Coquette", 9, chicken=coquette,
+            notes="Écoulement et éternuements. Traitement vétérinaire sur 8 jours, isolement.",
+        )
+        event(
+            ChickenEvent.Type.BROODY, "Plumette se met à couver", 6, chicken=plumette,
+            notes="Retirée du nid deux fois par jour, sans grand succès.",
+        )
+
+        def chore(name, emoji, interval_days, *, starts_days_ago, done_days_ago=(), notes=""):
+            existing = ChickenChore.objects.filter(household=household, name=name).first()
+            if existing is not None:
+                return existing
+            obj = create_chore(
+                household,
+                user,
+                name=name,
+                emoji=emoji,
+                interval_days=interval_days,
+                starts_on=today - timedelta(days=starts_days_ago),
+                notes=notes,
+            )
+            for days in done_days_ago:
+                complete_chore(household, user, obj, occurred_on=today - timedelta(days=days))
+            return obj
+
+        chore(
+            "Nettoyer le poulailler", "🧹", 14,
+            starts_days_ago=40, done_days_ago=(38, 22, 8),
+        )
+        # Volontairement en retard de trois jours : un écran de soins tous verts
+        # ne dit pas à quoi sert le rappel.
+        chore(
+            "Changer la litière", "🪵", 30,
+            starts_days_ago=70, done_days_ago=(65, 33),
+            notes="Copeaux de peuplier, un sac par changement.",
+        )
+        chore(
+            "Vermifuger le troupeau", "💊", 180,
+            starts_days_ago=200, done_days_ago=(120,),
+            notes="Traitement sur 3 jours dans l'eau de boisson.",
+        )
+
+        # La ponte : quatre poules pondeuses, moins pendant la mue et la couvaison,
+        # rien les jours où personne n'est passé ramasser.
+        pattern = [4, 3, 4, 5, 3, 4, 2]
+        for offset in range(45):
+            day = today - timedelta(days=offset)
+            count = pattern[offset % len(pattern)]
+            if 30 <= offset <= 45:      # mue de Roussette
+                count = max(count - 1, 0)
+            if offset <= 8:             # Plumette couve, Coquette est malade
+                count = max(count - 2, 0)
+            if offset in (12, 27):      # personne n'est passé ramasser
+                continue
+            log_eggs(household, user, date=day, count=count)
+
+        ChickenSettings.objects.get_or_create(
+            household=household,
+            defaults={"feed_stock_item": stock["granules"], "created_by": user},
+        )
+
+        self.stdout.write(
+            f"  Poulailler : {Chicken.objects.filter(household=household).count()} poules, "
+            f"{EggLog.objects.filter(household=household).count()} jours de ponte, "
+            f"{ChickenChore.objects.filter(household=household).count()} soins récurrents"
+        )
+
+    # ------------------------------------------------------------------
+    # Eau
+    # ------------------------------------------------------------------
+
+    def _create_water(self, household, user):
+        """Dix-huit mois de relevés — assez pour que l'écran compare un mois à celui
+        de l'an dernier, ce qu'une poignée de points ne permet pas.
+
+        La consommation suit la saison : arrosage l'été, quasi rien l'hiver.
+        """
+        from water.services import create_water_reading
+
+        today = household_today(household)
+        # m³ consommés par mois, de janvier à décembre (potager + jardin l'été).
+        by_month = [7, 7, 8, 10, 13, 18, 22, 21, 14, 9, 7, 7]
+
+        first = date(today.year, today.month, 1)
+        months = []
+        cursor = first
+        for _ in range(18):
+            months.append(cursor)
+            cursor = (cursor - timedelta(days=1)).replace(day=1)
+        months.reverse()
+
+        index = Decimal("1042.500")
+        created = 0
+        for month_start in months:
+            if not WaterReading.objects.filter(
+                household=household, reading_date=month_start
+            ).exists():
+                create_water_reading(
+                    household, user, reading_date=month_start, index_m3=index
+                )
+                created += 1
+            index += Decimal(by_month[month_start.month - 1]) + Decimal("0.400")
+
+        self.stdout.write(f"  Eau : {created} relevés de compteur ajoutés")
+
+    # ------------------------------------------------------------------
+    # Assurances
+    # ------------------------------------------------------------------
+
+    def _create_insurance(self, household, user):
+        today = household_today(household)
+
+        def contract(name, **fields):
+            obj, _created = InsuranceContract.objects.get_or_create(
+                household=household,
+                name=name,
+                defaults={"created_by": user, "updated_by": user, **fields},
+            )
+            return obj
+
+        contract(
+            "Habitation — 14 rue des Lilas",
+            provider="MAIF",
+            contract_number="H-4419028",
+            type=InsuranceContract.InsuranceType.HOME,
+            insured_item="Maison individuelle 128 m², dépendances et jardin",
+            start_date=date(2015, 9, 1),
+            renewal_date=date(today.year + (0 if today.month < 9 else 1), 9, 1),
+            payment_frequency=InsuranceContract.PaymentFrequency.MONTHLY,
+            monthly_cost=Decimal("58.30"),
+            yearly_cost=Decimal("699.60"),
+            coverage_summary="Multirisque habitation, bris de glace, dégâts des eaux, "
+                             "responsabilité civile familiale. Franchise 150 €.",
+            notes="Le prélèvement du 14 apparaît au relevé.",
+        )
+        contract(
+            "Auto — Peugeot 308",
+            provider="MAIF",
+            contract_number="A-2280714",
+            type=InsuranceContract.InsuranceType.CAR,
+            insured_item="Peugeot 308 SW 1.5 BlueHDi — AB-442-CD",
+            start_date=date(2019, 4, 15),
+            renewal_date=date(today.year + (0 if today.month < 4 else 1), 4, 15),
+            payment_frequency=InsuranceContract.PaymentFrequency.QUARTERLY,
+            monthly_cost=Decimal("62.00"),
+            yearly_cost=Decimal("744.00"),
+            coverage_summary="Tous risques, bonus 0,50, prêt de volant. Assistance 0 km.",
+        )
+        contract(
+            "Mutuelle santé famille",
+            provider="Harmonie Mutuelle",
+            contract_number="M-77120945",
+            type=InsuranceContract.InsuranceType.HEALTH,
+            insured_item="Claire, Antoine et Léa",
+            start_date=date(2021, 1, 1),
+            renewal_date=date(today.year + 1, 1, 1),
+            payment_frequency=InsuranceContract.PaymentFrequency.MONTHLY,
+            monthly_cost=Decimal("148.90"),
+            yearly_cost=Decimal("1786.80"),
+            coverage_summary="Formule 3 : optique et dentaire renforcés, hospitalisation 200 %.",
+            notes="C'est elle qui a remboursé les 47,60 € du relevé.",
+        )
+        contract(
+            "Garantie accidents de la vie",
+            provider="MAIF",
+            contract_number="G-9041220",
+            type=InsuranceContract.InsuranceType.LIABILITY,
+            start_date=date(2018, 6, 1),
+            renewal_date=date(today.year + (0 if today.month < 6 else 1), 6, 1),
+            payment_frequency=InsuranceContract.PaymentFrequency.YEARLY,
+            monthly_cost=Decimal("12.40"),
+            yearly_cost=Decimal("148.80"),
+            coverage_summary="Accidents de la vie privée pour les trois membres du foyer.",
+        )
+
+        self.stdout.write(
+            f"  Assurances : {InsuranceContract.objects.filter(household=household).count()} contrats"
+        )
+
+    # ------------------------------------------------------------------
+    # Suivis chiffrés
+    # ------------------------------------------------------------------
+
+    def _create_trackers(self, household, user):
+        """Trois séries que rien d'autre ne mesure dans l'app.
+
+        Aucune ne double un compteur existant : ni l'eau (module dédié), ni
+        l'électricité, ni le coût d'un chantier — qui est une somme de dépenses et
+        n'a donc pas le droit d'avoir une seconde définition ici.
+        """
+        from trackers.services import add_entry, create_tracker
+
+        now = timezone.now()
+
+        def tracker(name, *, unit, emoji, description, entries):
+            existing = Tracker.objects.filter(household=household, name=name).first()
+            if existing is not None:
+                return existing
+            obj = create_tracker(
+                household, user, name=name, unit=unit, emoji=emoji, description=description
+            )
+            for days_ago, value, note in entries:
+                add_entry(
+                    household,
+                    user,
+                    obj,
+                    value=Decimal(str(value)),
+                    occurred_at=now - timedelta(days=days_ago),
+                    note=note,
+                )
+            return obj
+
+        tracker(
+            "Récupérateur d'eau de pluie",
+            unit="L",
+            emoji="💧",
+            description="Cuve de 1000 L au fond du jardin, relevée à la jauge.",
+            entries=[
+                (150, 940, "Plein après les pluies de mars."),
+                (120, 780, ""),
+                (90, 520, "Premiers arrosages du potager."),
+                (60, 310, ""),
+                (30, 120, "Presque vide, arrosage au tuyau depuis."),
+                (5, 640, "Remontée après l'orage de la semaine dernière."),
+            ],
+        )
+        tracker(
+            "Heures moteur tondeuse",
+            unit="h",
+            emoji="🚜",
+            description="Compteur horaire de la Honda IZY — sert à caler la vidange annuelle.",
+            entries=[
+                (365, 118.5, "Relevé au moment de la dernière vidange."),
+                (200, 131.0, ""),
+                (120, 142.5, ""),
+                (60, 151.0, ""),
+                (14, 158.5, "Vidange à prévoir, on dépasse les 40 h depuis la dernière."),
+            ],
+        )
+        tracker(
+            "Température de la cave",
+            unit="°C",
+            emoji="🌡️",
+            description="Relevée sur le thermomètre du fond, près des bouteilles.",
+            entries=[
+                (180, 11.5, ""),
+                (150, 12.0, ""),
+                (120, 13.5, ""),
+                (90, 15.0, ""),
+                (60, 16.5, "Un peu haut, on ferme le soupirail la journée."),
+                (20, 15.5, ""),
+                (3, 15.0, ""),
+            ],
+        )
+
+        self.stdout.write(
+            f"  Suivis : {Tracker.objects.filter(household=household).count()} séries, "
+            f"{TrackerEntry.objects.filter(household=household).count()} relevés"
+        )
+
+    # ------------------------------------------------------------------
+    # Annuaire
+    # ------------------------------------------------------------------
+
+    def _create_directory(self, household, user):
+        """Les gens qu'on rappelle : l'artisan du chantier, le vétérinaire, l'assureur.
+
+        Les coordonnées sont **fictives par construction** — numéros en 06 99 xx et
+        domaines `.demo`, qui n'appartiennent à personne. Un jeu de démonstration
+        publié dans un dépôt public n'a pas le droit de faire sonner un vrai
+        téléphone.
+        """
+
+        def structure(name, *, type_, description="", website="", tags=None, phone=None,
+                      email=None, address=None):
+            obj, created = Structure.objects.get_or_create(
+                household=household,
+                name=name,
+                defaults={
+                    "type": type_,
+                    "description": description,
+                    "website": website,
+                    "tags": tags or [],
+                    "created_by": user,
+                    "updated_by": user,
+                },
+            )
+            if created:
+                if phone:
+                    Phone.objects.create(
+                        household=household, structure=obj, phone=phone,
+                        label="Standard", is_primary=True, created_by=user,
+                    )
+                if email:
+                    Email.objects.create(
+                        household=household, structure=obj, email=email,
+                        label="Contact", is_primary=True, created_by=user,
+                    )
+                if address:
+                    Address.objects.create(
+                        household=household, structure=obj, is_primary=True,
+                        created_by=user, **address,
+                    )
+            return obj
+
+        def contact(first_name, last_name, *, structure_obj=None, position="", notes="",
+                    phone=None, email=None):
+            obj, created = Contact.objects.get_or_create(
+                household=household,
+                first_name=first_name,
+                last_name=last_name,
+                defaults={
+                    "structure": structure_obj,
+                    "position": position,
+                    "notes": notes,
+                    "created_by": user,
+                    "updated_by": user,
+                },
+            )
+            if created:
+                if phone:
+                    Phone.objects.create(
+                        household=household, contact=obj, phone=phone,
+                        label="Mobile", is_primary=True, created_by=user,
+                    )
+                if email:
+                    Email.objects.create(
+                        household=household, contact=obj, email=email,
+                        label="Pro", is_primary=True, created_by=user,
+                    )
+            return obj
+
+        plomberie = structure(
+            "Plomberie Berthier",
+            type_="Artisan",
+            description="Plombier chauffagiste — chantier de la salle de bain et entretien de la chaudière.",
+            tags=["plomberie", "chantier sdb", "chaudière"],
+            phone="06 99 41 22 08",
+            email="contact@plomberie-berthier.demo",
+            address={
+                "address_1": "8 rue Villon",
+                "zipcode": "69008",
+                "city": "Lyon",
+                "country": "FR",
+                "label": "Atelier",
+            },
+        )
+        contact(
+            "Julien", "Berthier",
+            structure_obj=plomberie,
+            position="Gérant",
+            notes="Répond mieux par SMS. Devis n° 2024-118 accepté pour la salle de bain.",
+            phone="06 99 41 22 08",
+            email="j.berthier@plomberie-berthier.demo",
+        )
+
+        veto = structure(
+            "Clinique vétérinaire des Lilas",
+            type_="Santé animale",
+            description="Suit le poulailler — vaccination et traitement du coryza.",
+            tags=["poules", "urgence"],
+            phone="06 99 30 55 71",
+            email="accueil@veto-lilas.demo",
+            address={
+                "address_1": "22 avenue Lacassagne",
+                "zipcode": "69003",
+                "city": "Lyon",
+                "country": "FR",
+            },
+        )
+        contact(
+            "Nadia", "Belkacem",
+            structure_obj=veto,
+            position="Vétérinaire",
+            notes="Consulte les volailles le mardi et le samedi matin.",
+        )
+
+        structure(
+            "MAIF — agence Lyon Part-Dieu",
+            type_="Assurance",
+            description="Habitation, auto et garantie accidents de la vie.",
+            tags=["assurance"],
+            phone="06 99 12 84 30",
+            email="lyon.partdieu@assureur.demo",
+        )
+        contact(
+            "Sophie", "Nguyen",
+            position="Conseillère MAIF",
+            notes="Interlocutrice pour le sinistre dégât des eaux de 2023.",
+            email="s.nguyen@assureur.demo",
+        )
+
+        structure(
+            "Mairie de Lyon 3e",
+            type_="Administration",
+            description="État civil, encombrants, autorisation de travaux.",
+            website="https://mairie3.lyon.demo",
+            tags=["administratif"],
+            phone="06 99 00 33 03",
+        )
+        structure(
+            "Crédit Mutuel — Lyon Montchat",
+            type_="Banque",
+            description="Compte courant et crédit immobilier.",
+            tags=["banque"],
+            phone="06 99 77 10 46",
+            email="montchat@banque.demo",
+        )
+
+        self.stdout.write(
+            f"  Annuaire : {Structure.objects.filter(household=household).count()} structures, "
+            f"{Contact.objects.filter(household=household).count()} contacts"
+        )
+
+    # ------------------------------------------------------------------
+    # Journal du foyer
+    # ------------------------------------------------------------------
+
+    def _create_journal(self, household, claire, antoine, zones, equipment, projects):
+        """Les entrées qui ne sont ni une tâche, ni une dépense : ce dont on se souvient.
+
+        Trois familles dans la même table, discriminées comme le veut la règle :
+        des **notes**, des **entretiens** rattachés à un équipement par la liaison
+        polymorphe, et le **carnet de rénovation** (`metadata.kind='renovation'`),
+        qui garde la marque et la référence de ce qui a été posé — la question à
+        laquelle personne ne sait répondre trois ans plus tard.
+        """
+        from django.contrib.contenttypes.models import ContentType
+
+        from interactions.services import create_note_interaction, create_renovation_interaction
+
+        now = timezone.now()
+
+        def exists(subject):
+            return Interaction.objects.filter(household=household, subject=subject).exists()
+
+        def note(subject, content, days_ago, *, user=claire, zone_keys=()):
+            if exists(subject):
+                return None
+            return create_note_interaction(
+                household=household,
+                user=user,
+                subject=subject,
+                content=content,
+                occurred_at=now - timedelta(days=days_ago),
+                zone_ids=[zones[key].id for key in zone_keys] or None,
+            )
+
+        def log(subject, content, type_, days_ago, *, user=claire, zone_keys=(), equip=None):
+            """Une entrée d'entretien, éventuellement rattachée à un équipement."""
+            if exists(subject):
+                return None
+            interaction = Interaction.objects.create(
+                household=household,
+                created_by=user,
+                updated_by=user,
+                subject=subject,
+                content=content,
+                type=type_,
+                occurred_at=now - timedelta(days=days_ago),
+            )
+            for key in zone_keys:
+                InteractionZone.objects.get_or_create(interaction=interaction, zone=zones[key])
+            if equip is not None:
+                EquipmentInteraction.objects.get_or_create(
+                    equipment=equip,
+                    interaction=interaction,
+                    defaults={"role": "log", "created_by": user},
+                )
+            return interaction
+
+        note(
+            "Code du portail changé",
+            "L'ancien ne fonctionnait plus depuis le remplacement de la carte électronique. "
+            "Le nouveau est dans le gestionnaire de mots de passe partagé.",
+            21,
+            user=antoine,
+            zone_keys=("garage",),
+        )
+        note(
+            "Les voisins sont absents du 10 au 24",
+            "On relève leur courrier et on arrose les tomates. Ils ont laissé la clé du portillon.",
+            9,
+            zone_keys=("jardin",),
+        )
+        note(
+            "Idées pour la chambre de Léa",
+            "Bleu ardoise sur le mur du lit, étagères murales au-dessus du bureau, "
+            "et remplacer le luminaire du plafond.",
+            40,
+            zone_keys=("chambre_ado",),
+        )
+        note(
+            "Où couper l'eau",
+            "Vanne générale dans la cave, à droite du compteur, derrière l'étagère à outils.",
+            120,
+            user=antoine,
+            zone_keys=("cave",),
+        )
+
+        log(
+            "Entretien annuel de la chaudière",
+            "Contrôle de combustion, nettoyage du corps de chauffe, pression remise à 1,4 bar. "
+            "Attestation d'entretien remise sur place.",
+            "maintenance",
+            335,
+            zone_keys=("cave",),
+            equip=equipment["chaudiere"],
+        )
+        log(
+            "Vidange de la tondeuse",
+            "Huile, bougie et filtre à air changés avant la première tonte de la saison.",
+            "maintenance",
+            425,
+            user=antoine,
+            zone_keys=("garage",),
+            equip=equipment["tondeuse"],
+        )
+        log(
+            "Bruit de roulement au lave-linge",
+            "Grondement à l'essorage, de plus en plus net. Encore sous extension de garantie "
+            "jusqu'à l'an prochain — appeler le SAV avant de démonter quoi que ce soit.",
+            "issue",
+            12,
+            zone_keys=("sdb",),
+        )
+        log(
+            "Ramonage du conduit",
+            "Ramonage annuel du conduit de l'insert, certificat à garder pour l'assurance.",
+            "inspection",
+            230,
+            zone_keys=("salon",),
+        )
+        log(
+            "Fuite sous l'évier",
+            "Joint du siphon remplacé, plus de trace d'humidité depuis. Le meuble a gonflé, "
+            "à surveiller.",
+            "repair",
+            65,
+            user=antoine,
+            zone_keys=("cuisine",),
+        )
+
+        renovations = [
+            {
+                "element": "plumbing",
+                "interaction_type": "replacement",
+                "subject": "Dépose de la baignoire, pose du receveur",
+                "product": "Receveur extra-plat 120 × 90",
+                "brand": "Jacob Delafon",
+                "reference": "E62466-00",
+                "zone_keys": ("sdb",),
+                "days_ago": 24,
+                "notes": "Évacuation refaite en diamètre 40, pente vérifiée.",
+            },
+            {
+                "element": "floor",
+                "interaction_type": "installation",
+                "subject": "Carrelage de la salle de bain",
+                "product": "Grès cérame 60 × 60 anthracite",
+                "brand": "Novoceram",
+                "reference": "NOV-6060-ANT",
+                "zone_keys": ("sdb",),
+                "days_ago": 11,
+                "notes": "Deux boîtes de rechange rangées à la cave, sous l'établi.",
+            },
+            {
+                "element": "paint",
+                "interaction_type": "upgrade",
+                "subject": "Peinture du mur du lit",
+                "product": "Peinture mate lessivable — Bleu Ardoise",
+                "brand": "Tollens",
+                "reference": "T2035-BA",
+                "zone_keys": ("chambre_ado",),
+                "days_ago": 95,
+                "notes": "Un pot de 2,5 L a suffi pour deux couches.",
+            },
+            {
+                "element": "joinery",
+                "interaction_type": "replacement",
+                "subject": "Fenêtre du bureau",
+                "product": "Fenêtre PVC double vitrage 4/16/4",
+                "brand": "K-Line",
+                "reference": "KL-DV-1204",
+                "zone_keys": ("bureau",),
+                "days_ago": 300,
+                "notes": "Posée par l'entreprise, facture et garantie décennale au dossier.",
+            },
+        ]
+        for entry in renovations:
+            if exists(entry["subject"]):
+                continue
+            create_renovation_interaction(
+                household=household,
+                user=claire,
+                element=entry["element"],
+                interaction_type=entry["interaction_type"],
+                subject=entry["subject"],
+                product=entry["product"],
+                brand=entry["brand"],
+                reference=entry["reference"],
+                occurred_at=now - timedelta(days=entry["days_ago"]),
+                notes=entry["notes"],
+                zone_ids=[zones[key].id for key in entry["zone_keys"]],
+            )
+
+        # Les étiquettes : elles ne servent qu'à retrouver, donc elles se posent
+        # sur ce qui se cherche — une garantie, un chantier, le chauffage.
+        content_type = ContentType.objects.get_for_model(Interaction)
+        for tag_name, subjects in {
+            "chauffage": ("Entretien annuel de la chaudière", "Ramonage du conduit"),
+            "garantie": ("Bruit de roulement au lave-linge", "Fenêtre du bureau"),
+            "chantier sdb": ("Dépose de la baignoire, pose du receveur", "Carrelage de la salle de bain"),
+        }.items():
+            tag, _created = Tag.objects.get_or_create(
+                household=household,
+                type=Tag.TagType.INTERACTION,
+                name=tag_name,
+                defaults={"created_by": claire},
+            )
+            for subject in subjects:
+                interaction = Interaction.objects.filter(
+                    household=household, subject=subject
+                ).first()
+                if interaction is None:
+                    continue
+                TagLink.objects.get_or_create(
+                    household=household,
+                    tag=tag,
+                    content_type=content_type,
+                    object_id=str(interaction.id),
+                    defaults={"created_by": claire},
+                )
+
+        self.stdout.write(
+            "  Journal : "
+            f"{Interaction.objects.filter(household=household).exclude(type='expense').count()} entrées "
+            f"(notes, entretiens, rénovation), "
+            f"{Tag.objects.filter(household=household).count()} étiquettes"
+        )
