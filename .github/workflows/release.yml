@@ -92,3 +92,98 @@ jobs:
             -e DATABASE_URL=postgres://u:p@127.0.0.1:5432/none \
             ghcr.io/${{ github.repository_owner }}/maisonnee:${{ steps.meta.outputs.version }} \
             python manage.py check --deploy --fail-level ERROR
+
+  # Les notes de release, écrites depuis l'historique.
+  #
+  # `docs/self-hosting/releases.md` promet deux choses à qui met à jour : ce qui
+  # a changé, et **si la version contient une migration**. La seconde est la plus
+  # utile et la moins évidente à retrouver soi-même — c'est elle qui décide s'il
+  # faut sauvegarder avant, et si un retour en arrière est encore possible.
+  #
+  # Après `image`, jamais avant : annoncer une version dont l'image n'est pas
+  # publiée envoie les gens tirer quelque chose qui n'existe pas.
+  notes:
+    name: Notes de release
+    needs: [image]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ inputs.tag || github.ref }}
+          # L'historique complet : sans lui, `git describe` ne voit aucun tag
+          # antérieur et toute release se croirait la première.
+          fetch-depth: 0
+
+      - name: Composer les notes
+        id: compose
+        env:
+          TAG: ${{ inputs.tag || github.ref_name }}
+        run: |
+          set -euo pipefail
+
+          # Le tag précédent, s'il y en a un. La toute première release n'en a
+          # pas : elle ne peut donc pas lister « ce qui a changé depuis », et
+          # prétendre le contraire en déroulant tout l'historique ne renseigne
+          # personne.
+          previous="$(git describe --tags --abbrev=0 "$TAG^" 2>/dev/null || true)"
+
+          {
+            if [ -z "$previous" ]; then
+              echo "Première release publiée de Maisonnée."
+              echo
+              echo "Installation, sauvegarde et mise à jour :"
+              echo "[docs/self-hosting](https://github.com/${GITHUB_REPOSITORY}/blob/${TAG}/docs/self-hosting/README.md)."
+              range="$TAG"
+            else
+              range="$previous..$TAG"
+              echo "Changements depuis \`$previous\`."
+              echo
+              # Seuls `feat`, `fix` et `perf` : le reste est interne, et une
+              # liste où les refactors côtoient les corrections se lit comme du
+              # bruit — même contrat que le changelog in-app.
+              if git log --no-merges --pretty=%s "$range" \
+                   | grep -E '^(feat|fix|perf)(\([^)]*\))?:' > /tmp/user_facing.txt; then
+                sed 's/^/- /' /tmp/user_facing.txt
+              else
+                echo "_Aucun changement visible par l'utilisateur._"
+              fi
+            fi
+
+            echo
+            # Le signal qui décide d'une sauvegarde préalable.
+            if [ -n "$previous" ] && git diff --name-only "$range" -- '*/migrations/*.py' | grep -q .; then
+              echo "> ⚠️ **Cette version contient une migration de base de données.**"
+              echo "> Sauvegarde avant de mettre à jour, et le retour en arrière n'est"
+              echo "> plus une simple bascule d'image :"
+              echo "> [backup-restore](https://github.com/${GITHUB_REPOSITORY}/blob/${TAG}/docs/self-hosting/backup-restore.md)."
+            elif [ -n "$previous" ]; then
+              echo "> Aucune migration de base de données dans cette version."
+            fi
+
+            echo
+            echo '```bash'
+            echo "docker compose pull && docker compose up -d"
+            echo '```'
+          } > /tmp/notes.md
+
+          cat /tmp/notes.md
+
+      - name: Publier la release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ inputs.tag || github.ref_name }}
+        run: |
+          set -euo pipefail
+          # Idempotent : republier une image sans re-tagger (le `workflow_dispatch`
+          # existe pour ça) ne doit pas échouer sur une release déjà là.
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release edit "$TAG" --notes-file /tmp/notes.md
+          else
+            gh release create "$TAG" \
+              --title "$TAG" \
+              --notes-file /tmp/notes.md \
+              $([ "${TAG#*-}" != "$TAG" ] && echo --prerelease || true)
+          fi
