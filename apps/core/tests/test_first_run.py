@@ -146,12 +146,129 @@ class TestTheDemoHouseholdIsWorthVisiting:
         assert allocation.budget.name == "Santé"
         assert allocation.amount > 0
 
-    def test_running_it_twice_creates_nothing_new(self):
-        """L'idempotence n'est pas une politesse : le conteneur ``init`` la
-        rejoue à chaque démarrage."""
-        from banking.models import BankTransaction
+    def test_the_statement_confirms_the_recurrences_it_covers(self):
+        """Deux échéances sont calées sur une ligne du relevé, au centime près.
+
+        C'est l'import qui les confirme, pas la seed : une récurrence semée à
+        côté de son prélèvement laisserait « échéance passée non confirmée » sur
+        une ligne déjà au relevé — l'app fabriquerait son propre écart.
+        """
+        from budget.models import RecurringExpense
+        from core.timezones import household_today
         from interactions.models import Interaction
 
-        before = (BankTransaction.objects.count(), Interaction.objects.count())
+        household = Household.objects.get(name="Famille Mercier")
+        confirmed = Interaction.objects.filter(kind="recurring", recurring_expense__isnull=False)
+        assert confirmed.count() == 2
+
+        # Et toute échéance repart dans le futur : une récurrence qui naît en
+        # retard est un écart que le foyer n'a aucun moyen de résoudre.
+        today = household_today(household)
+        assert all(r.next_due_date >= today for r in RecurringExpense.objects.all())
+
+    def test_every_module_of_the_sidebar_has_something_to_show(self):
+        """Un module vide est un module qu'on juge sans l'avoir vu.
+
+        La liste est celle des modules que la seed alimente ; un module ajouté
+        au produit et oublié ici arrive vide chez le visiteur.
+        """
+        from chickens.models import Chicken, EggLog
+        from directory.models import Contact, Structure
+        from equipment.models import Equipment
+        from insurance.models import InsuranceContract
+        from shopping.models import ShoppingListItem
+        from stock.models import StockItem, StockLevelReading
+        from trackers.models import Tracker, TrackerEntry
+        from water.models import WaterReading
+
+        for model in (
+            Equipment, StockItem, StockLevelReading, ShoppingListItem,
+            Chicken, EggLog, WaterReading, InsuranceContract,
+            Tracker, TrackerEntry, Structure, Contact,
+        ):
+            assert model.objects.exists(), f"{model.__name__} : aucun objet semé"
+
+    def test_a_stock_item_carries_a_curve_and_not_a_single_point(self):
+        """Une quantité posée à plat ne se trace pas.
+
+        L'écran de consommation dérive une pente et une date d'épuisement des
+        relevés successifs : un article créé à sa quantité du jour n'a qu'un
+        point, et l'écran n'a rien à montrer.
+        """
+        from stock.models import StockItem
+        from stock.services import compute_consumption
+
+        item = StockItem.objects.get(name="Granulés pour poules")
+        consumption = compute_consumption(item, period="all")
+        assert consumption["points_count"] >= 4
+        assert consumption["rate_per_day"] > 0
+        # Le rachat est daté hors de la fenêtre de conformité : une dépense sans
+        # ligne de relevé *dans* la fenêtre serait un écart fabriqué par la seed.
+        assert any(p["kind"] == "purchase" for p in consumption["points"])
+
+    def test_the_control_only_reports_the_gaps_that_were_left_on_purpose(self):
+        """La démo n'est pas en règle, mais elle n'est en tort que là où on l'a voulu.
+
+        Tout écart supplémentaire est un défaut de la seed elle-même : le
+        visiteur ne peut pas distinguer « laissé exprès » de « cassé ».
+        """
+        from banking import compliance
+
+        household = Household.objects.get(name="Famille Mercier")
+        detected = {g.spec.kind: g.detected for g in compliance.summary(household) if g.detected}
+        assert set(detected) <= {"transaction_unallocated", "internal_without_counterpart"}
+
+    def test_a_given_password_replaces_the_published_one_even_on_existing_accounts(self):
+        """Le mot de passe par défaut est publié — dans le dépôt, qui est public.
+
+        Sans cette option, semer la démonstration sur une instance joignable
+        depuis Internet y ouvre trois comptes dont tout le monde a la clé. Et
+        l'appliquer **aussi** aux comptes existants est ce qui rend la correction
+        possible : une commande qui ne fait rien en silence laisse croire que la
+        porte est refermée.
+        """
+        claire = User.objects.get(email="claire.mercier@demo.local")
+        assert claire.check_password("demo1234")
+
+        call_command("seed_demo_data", password="jamais-dans-le-depot")
+
+        claire.refresh_from_db()
+        assert claire.check_password("jamais-dans-le-depot")
+        assert not claire.check_password("demo1234")
+
+    def test_running_it_twice_creates_nothing_new(self):
+        """L'idempotence n'est pas une politesse : le conteneur ``init`` la
+        rejoue à chaque démarrage.
+
+        Le compte porte sur **toutes** les tables que la seed écrit, et pas sur
+        deux d'entre elles : les zones se reposaient à chaque relance — neuf
+        doublons, dont une « Cuisine » bis à laquelle plus rien n'était
+        rattaché — et deux compteurs bancaires stables ne le voyaient pas.
+        """
+        from banking.models import BankTransaction
+        from budget.models import RecurringExpense
+        from chickens.models import Chicken, ChickenChore, ChickenEvent, EggLog
+        from directory.models import Contact, Phone, Structure
+        from equipment.models import Equipment
+        from insurance.models import InsuranceContract
+        from interactions.models import Interaction
+        from shopping.models import ShoppingListItem
+        from stock.models import StockCategory, StockItem, StockLevelReading
+        from tags.models import Tag, TagLink
+        from tasks.models import Task
+        from trackers.models import Tracker, TrackerEntry
+        from water.models import WaterReading
+        from zones.models import Zone
+
+        models = (
+            Zone, Task, Equipment, StockCategory, StockItem, StockLevelReading,
+            ShoppingListItem, Chicken, EggLog, ChickenChore, ChickenEvent,
+            WaterReading, InsuranceContract, Tracker, TrackerEntry,
+            Structure, Contact, Phone, Tag, TagLink,
+            BankTransaction, Interaction, RecurringExpense,
+        )
+        before = {m.__name__: m.objects.count() for m in models}
+
         call_command("seed_demo_data")
-        assert (BankTransaction.objects.count(), Interaction.objects.count()) == before
+
+        assert {m.__name__: m.objects.count() for m in models} == before
