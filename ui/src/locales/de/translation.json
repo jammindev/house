@@ -1613,11 +1613,11 @@
           },
           "sort": {
             "title": "Sagen, warum ein Foto existiert",
-            "body": "Ein Foto einer Seriennummer und ein Geburtstagsfoto gehören nicht an denselben Ort. Geben Sie jedem seinen Zweck: Technisch (ein Beleg, den man wieder liest), Beobachtung (eine datierte Feststellung — ein Riss, ein Leck) oder Erinnerung. Die Galerie filtert dann nach einem davon. Ein Foto, das niemand sortiert hat, bleibt unter « Zu sortieren » — das ist ein Zustand, keine Erinnerung als Standard."
+            "body": "Ein Foto einer Seriennummer und ein Geburtstagsfoto gehören nicht an denselben Ort. Geben Sie jedem seinen Zweck: Technisch (ein Beleg, den man wieder liest), Beobachtung (eine datierte Feststellung — ein Riss, ein Leck) oder Erinnerung. Die Galerie öffnet sich auf den Erinnerungen; die Chips summieren sich — schalten Sie Technisch und/oder Beobachtung dazu, um sie zu erweitern. Ihre Wahl bleibt für den Besuch bestehen. Ein Foto, das niemand sortiert hat, bleibt unter « Zu sortieren » — das ist ein Zustand, keine Erinnerung als Standard."
           },
           "add": {
             "title": "Fotos hinzufügen",
-            "body": "Wähle gleich eine ganze Serie aus: Das Feld nimmt mehrere Fotos an, die nacheinander gesendet werden. Aus einem Projekt, einem Gerät oder einer Zone heraus sortiert der Reiter Fotos sie in Vorher / Während / Nachher und kann sie vergleichen."
+            "body": "Wähle gleich eine ganze Serie aus: Das Feld nimmt mehrere Fotos an, die nacheinander gesendet werden. Aus einem Projekt, einem Gerät oder einer Zone heraus sortiert der Reiter Fotos sie in Vorher / Während / Nachher und kann sie vergleichen. Sie können schon beim Hochladen sagen, wozu: Der Haushalt erfährt dann, dass es Fotos zu sehen gibt – außer bei einer Erinnerung, die niemanden weckt."
           },
           "file": {
             "title": "Ein Foto einem Bereich zuordnen",
@@ -1926,6 +1926,8 @@
     "purpose": {
       "label": "Zweck",
       "all": "Alle",
+      "uploadLabel": "Wozu diese Fotos (optional)",
+      "uploadHint": "Ohne Angabe landen sie in der Sortierliste. Eine Erinnerung benachrichtigt niemanden – alles andere informiert den Haushalt.",
       "none": "Dieses Foto hat noch niemand einsortiert.",
       "untriaged": "Zu sortieren",
       "technical": "Technisch",
@@ -2854,7 +2856,8 @@
       "stock_low": "Geringer Bestand",
       "stock_out": "Nicht mehr vorrätig",
       "weather_alert": "Wetterwarnung",
-      "chicken_chore_due": "Stallaufgabe fällig"
+      "chicken_chore_due": "Stallaufgabe fällig",
+      "photo_added": "Fotos hinzugefügt"
     }
   },
   "invitations": {

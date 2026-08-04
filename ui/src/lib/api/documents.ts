@@ -130,6 +130,14 @@ export interface UploadDocumentInput {
   type?: DocumentType | 'photo' | '';
   notes?: string;
   zone?: string;
+  /**
+   * L'intention, posée dès l'envoi quand on la connaît déjà. Omise = non triée, et
+   * c'est le cas normal — rien n'oblige à décider tout de suite.
+   *
+   * C'est elle, et rien d'autre, qui décide si le foyer est prévenu : un souvenir
+   * envoyé comme tel ne réveille personne.
+   */
+  purpose?: PhotoPurpose | '';
 }
 
 export interface DocumentUploadResponse {
@@ -200,6 +208,7 @@ export async function uploadDocument(input: UploadDocumentInput): Promise<Docume
   if (input.type) formData.set('type', input.type);
   if (input.notes) formData.set('notes', input.notes);
   if (input.zone) formData.set('zone', input.zone);
+  if (input.purpose) formData.set('purpose', input.purpose);
 
   const { data } = await api.post('/documents/documents/upload/', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },

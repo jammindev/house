@@ -1613,11 +1613,11 @@
           },
           "sort": {
             "title": "Decir por qué existe una foto",
-            "body": "Una foto de un número de serie y una foto de cumpleaños no pintan nada en el mismo sitio. Dé a cada una su intención: Técnica (una prueba que se volverá a leer), Observación (un hecho fechado — una grieta, una fuga) o Recuerdo. La galería se filtra entonces por una de ellas. Una foto que nadie ha clasificado permanece en « Por clasificar » — es un estado, no un recuerdo por defecto."
+            "body": "Una foto de un número de serie y una foto de cumpleaños no pintan nada en el mismo sitio. Dé a cada una su intención: Técnica (una prueba que se volverá a leer), Observación (un hecho fechado — una grieta, una fuga) o Recuerdo. La galería se abre por los recuerdos; las píldoras se acumulan, añade Técnica y/u Observación para ampliar — tu elección se mantiene durante la visita. Una foto que nadie ha clasificado permanece en « Por clasificar » — es un estado, no un recuerdo por defecto."
           },
           "add": {
             "title": "Añadir fotos",
-            "body": "Selecciona toda una serie de una vez: el campo acepta varias fotos, enviadas una tras otra. Desde un proyecto, un equipo o una zona, la pestaña Fotos las clasifica en Antes / Durante / Después y sabe compararlas."
+            "body": "Selecciona toda una serie de una vez: el campo acepta varias fotos, enviadas una tras otra. Desde un proyecto, un equipo o una zona, la pestaña Fotos las clasifica en Antes / Durante / Después y sabe compararlas. Puedes decir ya al enviarlas por qué las añades: el hogar sabrá entonces que hay fotos que mirar, salvo un recuerdo, que no avisa a nadie."
           },
           "file": {
             "title": "Clasificar una foto en una zona",
@@ -1926,6 +1926,8 @@
     "purpose": {
       "label": "Intención",
       "all": "Todas",
+      "uploadLabel": "Por qué estas fotos (opcional)",
+      "uploadHint": "Sin respuesta, van a la cola « Por clasificar ». Un recuerdo no avisa a nadie; todo lo demás avisa al hogar.",
       "none": "Nadie ha clasificado aún esta foto.",
       "untriaged": "Por clasificar",
       "technical": "Técnica",
@@ -2854,7 +2856,8 @@
       "stock_low": "Existencias bajas",
       "stock_out": "Sin existencias",
       "weather_alert": "Alerta meteorológica",
-      "chicken_chore_due": "Tarea del gallinero pendiente"
+      "chicken_chore_due": "Tarea del gallinero pendiente",
+      "photo_added": "Fotos añadidas"
     }
   },
   "invitations": {

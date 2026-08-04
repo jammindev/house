@@ -1613,11 +1613,11 @@
           },
           "sort": {
             "title": "Dire pourquoi une photo existe",
-            "body": "Une photo de numéro de série et une photo d'anniversaire n'ont rien à faire au même endroit. Donnez à chacune son intention : Technique (une preuve qu'on relira), Observation (un fait daté, une fissure, une fuite) ou Souvenir. La galerie se filtre alors sur l'une d'elles. Une photo que personne n'a triée reste dans « À trier » — c'est un état, pas un souvenir par défaut."
+            "body": "Une photo de numéro de série et une photo d'anniversaire n'ont rien à faire au même endroit. Donnez à chacune son intention : Technique (une preuve qu'on relira), Observation (un fait daté, une fissure, une fuite) ou Souvenir. La galerie s'ouvre sur les souvenirs ; les pastilles se cumulent, ajoutez Technique et/ou Observation pour élargir — votre choix tient le temps de la visite. Une photo que personne n'a triée reste dans « À trier » — c'est un état, pas un souvenir par défaut."
           },
           "add": {
             "title": "Ajouter des photos",
-            "body": "Sélectionnez toute une série d'un coup : le champ accepte plusieurs photos, envoyées l'une après l'autre. Depuis un projet, un équipement ou une zone, l'onglet Photos les classe en Avant / Pendant / Après et sait les comparer."
+            "body": "Sélectionnez toute une série d'un coup : le champ accepte plusieurs photos, envoyées l'une après l'autre. Depuis un projet, un équipement ou une zone, l'onglet Photos les classe en Avant / Pendant / Après et sait les comparer. Vous pouvez dire dès l'envoi pourquoi vous les ajoutez : le foyer est alors prévenu qu'il y a des photos à regarder — sauf pour un souvenir, qui ne réveille personne."
           },
           "file": {
             "title": "Ranger une photo dans une zone",
@@ -1926,6 +1926,8 @@
     "purpose": {
       "label": "Intention",
       "all": "Toutes",
+      "uploadLabel": "Pourquoi ces photos (facultatif)",
+      "uploadHint": "Sans réponse, elles rejoignent la file « À trier ». Un souvenir ne prévient personne — tout le reste prévient le foyer.",
       "none": "Personne n'a encore trié cette photo.",
       "untriaged": "À trier",
       "technical": "Technique",
@@ -2854,7 +2856,8 @@
       "stock_low": "Stock bas",
       "stock_out": "Stock épuisé",
       "weather_alert": "Alerte météo",
-      "chicken_chore_due": "Corvée du poulailler à faire"
+      "chicken_chore_due": "Corvée du poulailler à faire",
+      "photo_added": "Photos ajoutées"
     }
   },
   "invitations": {

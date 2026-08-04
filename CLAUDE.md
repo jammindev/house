@@ -1366,9 +1366,45 @@ c'est l'intention qui sépare une preuve d'un souvenir. Doc :
   photos ne se vide jamais, et une file qu'on ne vide jamais cesse d'être lue.
 - **Une file bornée le dit** : `total` (ce qui reste) **et** ce que l'écran montre,
   jamais l'un pour l'autre.
+- **La galerie ne s'ouvre pas sur l'ensemble** : `DEFAULT_PURPOSES = ['memory']`, et
+  les pastilles se **cumulent** (`?purpose=memory,technical` en un appel). Une
+  photothèque en vrac mélange le numéro de série d'une chaudière et un anniversaire —
+  elle ne répond à aucune des deux questions qu'on vient y poser. Corollaires :
+  `untriaged` **reste seul** dans la sélection (ce n'est pas une quatrième intention,
+  et il ouvre un autre écran — le serveur refuse le mélange en 400) ; tout décocher
+  revient à « Toutes », jamais à une galerie vide sans rien à décocher ; et une
+  valeur inconnue **dans une liste** refuse toute la liste, sinon la réponse serait
+  plausible pour une question fausse.
+- **La règle de sélection vit dans `purposes.ts`**, avec la liste des intentions —
+  `togglePurpose` / `purposeParam` / `purposesFromParam`, testés dans
+  `purposes.test.ts`. Une seule définition, comme pour les trois intentions.
 
-Régressions : `documents/tests/test_photo_purpose.py::TestEmptyIsNotAMemory` et
-`::TestABatchNeverOverwritesAChoice`, `test_triage_clusters.py`.
+### Une photo ajoutée se dit au foyer — sauf le souvenir
+
+`documents/notifications.py::notify_photo_added`, type `photo_added`, via
+`notify_household`. Trois silences, et chacun vaut mieux qu'une ligne dans la cloche :
+
+- **`purpose='memory'` posé à l'envoi** — un souvenir n'attend rien de personne.
+  C'est la seule raison pour laquelle `DocumentUploadSerializer` accepte `purpose` :
+  sans lui l'intention serait toujours vide à l'upload, et l'exception serait écrite
+  mais **inatteignable**. ⚠️ Le vide n'est toujours pas `memory` : une photo non
+  triée s'annonce comme les autres.
+- **`is_private=True`** — personne d'autre ne peut la voir, l'annoncer poserait dans
+  la cloche une ligne qui ne mène nulle part.
+- **Une rafale déjà annoncée.** Le dialog d'envoi **boucle fichier par fichier** :
+  quinze photos font quinze appels. Le `dedup_key` s'ancre sur le **début de la
+  rafale** (une requête indexée), jamais sur une tranche d'horloge (`now() // 600`)
+  qui couperait un lot en deux au hasard de l'heure d'envoi — un hasard qu'on ne peut
+  pas expliquer à un utilisateur.
+
+Et l'`url` **porte l'intention** (`/app/photos?purpose=untriaged`) : avec le défaut
+« souvenirs », `/app/photos` tout court ne montrerait justement pas ce qu'on annonce.
+`PhotosPage` consomme le paramètre au montage puis le retire de l'URL — il donne le
+point d'entrée, il ne dispute pas les pastilles ensuite.
+
+Régressions : `documents/tests/test_photo_purpose.py::TestEmptyIsNotAMemory`,
+`::TestABatchNeverOverwritesAChoice` et `::TestTheGalleryAsksForSeveralIntentsAtOnce`,
+`test_triage_clusters.py`, `test_photo_notifications.py`, `ui/src/features/photos/purposes.test.ts`.
 
 ---
 

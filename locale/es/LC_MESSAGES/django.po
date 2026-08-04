@@ -2223,3 +2223,11 @@ msgstr "Contraseña"
 #: templates/login.html:88
 msgid "Back to home"
 msgstr "Volver al inicio"
+
+#: apps/documents/notifications.py
+msgid "%(member)s added photos"
+msgstr "%(member)s ha añadido fotos"
+
+#: apps/documents/notifications.py
+msgid "Starting with “%(name)s”."
+msgstr "Empezando por «%(name)s»."

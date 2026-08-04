@@ -22,6 +22,7 @@ from .extraction import extract_text
 from .exif import read_taken_at
 from .image_processing import normalize_image
 from .models import Document, DocumentLink
+from .notifications import notify_photo_added
 from .queries import (
     TRIAGE_CLUSTERS,
     TRIAGE_WINDOW,
@@ -113,18 +114,32 @@ def get_documents_queryset_for_request(request):
     # vide ou inconnu est refusé, jamais dégradé en « toutes ». Laisser un vide vouloir
     # dire « tous » est ce qui rend un compteur aveugle — l'écran annoncerait « rien à
     # trier » en montrant la galerie entière.
+    #
+    # Plusieurs intentions se demandent **en un appel** (`?purpose=memory,technical`) :
+    # la galerie s'ouvre sur les souvenirs et on y ajoute ce qu'on veut voir. Les
+    # recomposer côté client à partir de trois requêtes donnerait trois listes à
+    # fusionner, donc trois ordres possibles pour le même écran.
+    #
+    # Une valeur inconnue dans la liste refuse **toute** la liste : n'en ignorer
+    # qu'une renverrait une réponse plausible à une question fausse, et l'utilisateur
+    # croirait avoir filtré sur ce qu'il a demandé.
     if 'purpose' in query_params:
-        purpose = (query_params.get('purpose') or '').strip()
-        if purpose == UNTRIAGED:
+        raw = (query_params.get('purpose') or '').strip()
+        requested = [value.strip() for value in raw.split(',')]
+        known = {value for value, _label in Document.Purpose.choices}
+        expected = f'Expected a comma-separated list of technical, observation, memory — or {UNTRIAGED} alone.'
+
+        if requested == [UNTRIAGED]:
             queryset = untriaged(queryset)
-        elif purpose in {value for value, _label in Document.Purpose.choices}:
-            queryset = queryset.filter(purpose=purpose)
+        elif requested and all(value in known for value in requested):
+            queryset = queryset.filter(purpose__in=requested)
         else:
+            # `untriaged` n'est pas une quatrième intention mais l'absence de choix,
+            # et il ouvre un autre écran — la file par grappes. Mélangé à des
+            # intentions, il rendrait la réponse inclassable : ni une galerie, ni
+            # une file.
             raise ValidationError({
-                'purpose': (
-                    f'Unknown purpose: {purpose!r}. '
-                    f'Expected one of technical, observation, memory, {UNTRIAGED}.'
-                )
+                'purpose': f'Unknown purpose: {raw!r}. {expected}'
             })
 
     # Legacy per-entity params (?zone= / ?project= / ?equipment=) + generic
@@ -353,6 +368,7 @@ class DocumentViewSet(viewsets.ModelViewSet):
                     notes=serializer.validated_data.get('notes', ''),
                     metadata=metadata,
                     taken_at=taken_at,
+                    purpose=serializer.validated_data.get('purpose', ''),
                 )
                 if zone is not None:
                     link_document(
@@ -368,6 +384,10 @@ class DocumentViewSet(viewsets.ModelViewSet):
 
         if document.type == 'photo':
             generate_thumbnails(document)
+            # Après les vignettes, et hors de la transaction : le foyer est prévenu
+            # d'une photo qui existe et qui s'affiche. Prévenir avant laisserait un
+            # lien mener à une vignette absente le temps du traitement.
+            notify_photo_added(document)
         else:
             _run_extraction(document, feature="ocr_upload", user=request.user)
 

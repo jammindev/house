@@ -56,6 +56,7 @@
 | GET | `documents/purpose_counts/` | Compte des photos par intention, dont « à trier » |
 | GET | `documents/triage/` | Ce que personne n'a trié, **par grappes de session** |
 | POST | `documents/set_purpose/` | Pose une intention sur un lot ; n'écrase rien sans `overwrite` |
+| GET | `documents/?purpose=memory,technical` | Plusieurs intentions en un appel ; `untriaged` reste seul, valeur inconnue = 400 |
 | POST | `documents/{id}/reprocess_ocr/` | Relancer l'extraction OCR |
 
 Permissions : `IsHouseholdMember` partout. Seul le `created_by` peut changer `is_private` (`views.py:140-144`).
@@ -202,6 +203,43 @@ nature il est.
 - Côté front, les trois intentions ont **une seule définition**
   (`ui/src/features/photos/purposes.ts`) : icône, libellé, phrase d'aide. « À trier » n'y
   est délibérément pas — ce n'est pas une quatrième intention, c'est l'absence de choix.
+- **La galerie s'ouvre sur les souvenirs, pas sur l'ensemble** (`DEFAULT_PURPOSES`), et
+  les pastilles se **cumulent** : `?purpose=memory,technical` part en **un** appel.
+  Recomposer côté client à partir de trois requêtes donnerait trois listes à fusionner,
+  donc trois ordres possibles pour le même écran. Trois conséquences, tenues par
+  `purposes.test.ts` et `test_photo_purpose.py::TestTheGalleryAsksForSeveralIntentsAtOnce` :
+  `untriaged` **reste seul** (il ouvre la file par grappes, un autre écran — le serveur
+  refuse le mélange en 400) ; tout décocher revient à « Toutes », jamais à une galerie
+  vide sans rien à décocher ; une valeur inconnue **dans une liste** refuse toute la
+  liste, sinon la réponse serait plausible pour une question fausse. La sélection est
+  gardée en session (`photos.purposes`) — on revient vingt fois sur cette page en
+  rangeant un chantier.
+
+### Une photo ajoutée se dit au foyer (`apps/documents/notifications.py`)
+
+Type `photo_added` (dans `MUTABLE_TYPES` : fréquent et purement informatif), émis par
+`notify_photo_added` via `notify_household` à la fin de `upload`. Régression :
+`test_photo_notifications.py`.
+
+- **Trois silences.** Un `purpose='memory'` posé à l'envoi (un souvenir n'attend rien
+  de personne), une photo `is_private` (personne d'autre ne peut la voir, l'annoncer
+  mènerait dans le vide), et une rafale déjà annoncée. ⚠️ Le vide n'est toujours pas
+  `memory` : une photo non triée s'annonce comme les autres, et c'est le cas courant.
+- **`DocumentUploadSerializer` accepte `purpose` pour cette raison précise.** À
+  l'upload, l'intention serait sinon toujours vide, et « sauf si memory » serait une
+  règle écrite mais **inatteignable**. Le dialog d'envoi expose les trois pastilles,
+  optionnelles.
+- **Une rafale est un événement, pas quinze.** Le dialog boucle fichier par fichier :
+  quinze photos font quinze appels d'upload. Le `dedup_key` s'ancre sur le **début de
+  la rafale** (`BURST_WINDOW = 30 min`, une requête indexée sur `idx_docs_creator`),
+  jamais sur une tranche d'horloge (`now() // 600`) — une tranche coupe un lot en deux
+  au hasard de l'heure d'envoi, et ce hasard-là ne s'explique pas à un utilisateur.
+- **L'`url` porte l'intention** : `/app/photos?purpose=untriaged` (ou l'étagère
+  choisie). Avec le défaut « souvenirs », `/app/photos` tout court ne montrerait
+  justement pas ce qu'on annonce — annoncer sans mener fait refaire au lecteur la
+  recherche qu'on venait de faire pour lui. `PhotosPage` consomme le paramètre au
+  montage puis le retire de l'URL : il donne le point d'entrée, il ne dispute pas les
+  pastilles ensuite.
 
 ### Pipeline OCR / extraction (`apps/documents/extraction.py`)
 

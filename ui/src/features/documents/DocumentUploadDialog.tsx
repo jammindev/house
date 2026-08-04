@@ -8,7 +8,9 @@ import { Select } from '@/design-system/select';
 import { Button } from '@/design-system/button';
 import { FormField } from '@/design-system/form-field';
 import { Label } from '@/design-system/label';
-import { DOCUMENT_TYPES, type DocumentType, type DocumentDetail } from '@/lib/api/documents';
+import { FilterPill } from '@/design-system/filter-pill';
+import { DOCUMENT_TYPES, type DocumentType, type DocumentDetail, type PhotoPurpose } from '@/lib/api/documents';
+import { PURPOSES } from '@/features/photos/purposes';
 import { useCreateDocument } from './hooks';
 import ZonePicker from '@/features/zones/ZonePicker';
 
@@ -48,6 +50,7 @@ export default function DocumentUploadDialog({
   const [type, setType] = React.useState<DocumentType | 'photo' | ''>(forcedType ?? '');
   const [notes, setNotes] = React.useState('');
   const [zone, setZone] = React.useState('');
+  const [purpose, setPurpose] = React.useState<PhotoPurpose | ''>('');
   const [error, setError] = React.useState<string | null>(null);
 
   // Ce qui est **déjà arrivé** dans le foyer, par index dans `files`. C'est la
@@ -67,6 +70,7 @@ export default function DocumentUploadDialog({
     setType(forcedType ?? '');
     setNotes('');
     setZone('');
+    setPurpose('');
     setError(null);
     setDone(new Set());
     setFailed(new Set());
@@ -118,6 +122,7 @@ export default function DocumentUploadDialog({
           type: type || undefined,
           notes: notes || undefined,
           zone: zone || undefined,
+          purpose: purpose || undefined,
         });
         nextDone.add(index);
         setDone(new Set(nextDone));
@@ -257,6 +262,39 @@ export default function DocumentUploadDialog({
                 options={typeOptions}
               />
             </FormField>
+          )}
+
+          {/* Intention — optionnelle, et c'est voulu : le vide dit « personne n'a
+              encore trié » et alimente la file, pas « souvenir ». La poser ici est le
+              seul moment où celui qui envoie sait déjà pourquoi il envoie, et c'est
+              elle qui décide si le foyer est prévenu — un souvenir ne réveille
+              personne. */}
+          {isPhotoMode && (
+            <div className="space-y-1.5">
+              <Label htmlFor="upload-purpose">{t('photos.purpose.uploadLabel')}</Label>
+              <div id="upload-purpose" className="flex flex-wrap gap-1.5">
+                {PURPOSES.map((spec) => {
+                  const Icon = spec.icon;
+                  return (
+                    <FilterPill
+                      key={spec.key}
+                      active={purpose === spec.key}
+                      // Recliquer détrie : le choix se défait avec le même geste
+                      // qui le pose, sans quoi une pastille cliquée par erreur
+                      // obligerait à fermer le dialog pour repartir de zéro.
+                      onClick={() => setPurpose(purpose === spec.key ? '' : spec.key)}
+                      title={t(spec.hintKey)}
+                    >
+                      <Icon className="h-3 w-3" aria-hidden />
+                      {t(spec.labelKey)}
+                    </FilterPill>
+                  );
+                })}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {t('photos.purpose.uploadHint')}
+              </p>
+            </div>
           )}
 
           {/* Zone */}

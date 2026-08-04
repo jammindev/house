@@ -2213,3 +2213,11 @@ msgstr "Mot de passe"
 #: templates/login.html:88
 msgid "Back to home"
 msgstr "Retour à l'accueil"
+
+#: apps/documents/notifications.py
+msgid "%(member)s added photos"
+msgstr "%(member)s a ajouté des photos"
+
+#: apps/documents/notifications.py
+msgid "Starting with “%(name)s”."
+msgstr "En commençant par « %(name)s »."

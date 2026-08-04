@@ -2226,3 +2226,11 @@ msgstr "Passwort"
 #: templates/login.html:88
 msgid "Back to home"
 msgstr "Zurück zur Startseite"
+
+#: apps/documents/notifications.py
+msgid "%(member)s added photos"
+msgstr "%(member)s hat Fotos hinzugefügt"
+
+#: apps/documents/notifications.py
+msgid "Starting with “%(name)s”."
+msgstr "Beginnend mit „%(name)s“."

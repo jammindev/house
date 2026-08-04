@@ -23,6 +23,7 @@ class Notification(models.Model):
         STOCK_OUT = "stock_out", _("Out of stock")
         WEATHER_ALERT = "weather_alert", _("Weather alert")
         CHICKEN_CHORE_DUE = "chicken_chore_due", _("Coop chore due")
+        PHOTO_ADDED = "photo_added", _("Photos added")
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(
@@ -102,4 +103,9 @@ MUTABLE_TYPES = frozenset({
     # or the reminder that helps for a month becomes the one that trains the
     # household to ignore the bell.
     Notification.Type.CHICKEN_CHORE_DUE,
+    # Envoyer des photos est le geste le plus fréquent du foyer, et ce qu'il
+    # annonce n'appelle aucune action : le taire doit rester possible, sinon la
+    # cloche devient du bruit et emporte avec elle la rare notification qui
+    # comptait.
+    Notification.Type.PHOTO_ADDED,
 })

@@ -48,6 +48,15 @@ class DocumentUploadSerializer(serializers.Serializer):
     notes = serializers.CharField(required=False, allow_blank=True)
     is_private = serializers.BooleanField(required=False, default=False)
     zone = serializers.UUIDField(required=False, allow_null=True)
+    # L'intention, posée dès l'envoi quand celui qui envoie la connaît déjà. Absent
+    # ou vide = non trié, et c'est le cas normal : rien n'oblige à décider tout de
+    # suite. Sans ce champ, « un souvenir ne réveille personne » serait une règle
+    # écrite mais inatteignable — à l'upload, `purpose` serait toujours vide.
+    purpose = serializers.ChoiceField(
+        choices=Document.Purpose.choices,
+        required=False,
+        allow_blank=True,
+    )
 
 class DocumentSerializer(serializers.ModelSerializer):
     """Document list/create serializer."""

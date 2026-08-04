@@ -140,6 +140,47 @@ class TestEmptyIsNotAMemory:
 
 
 @pytest.mark.django_db
+class TestTheGalleryAsksForSeveralIntentsAtOnce:
+    """La galerie s'ouvre sur les souvenirs, et on y ajoute ce qu'on veut voir.
+
+    Une pastille par intention, cumulables : « les souvenirs **et** le technique »
+    est une question courante, et la poser en trois requêtes recomposées côté client
+    ferait trois listes à fusionner, donc trois ordres possibles pour le même écran.
+    """
+
+    def test_two_intents_are_asked_for_in_one_call(self, client, household, owner):
+        _photo(household, owner, name="Chaudiere", purpose="technical")
+        _photo(household, owner, name="Anniversaire", purpose="memory")
+        _photo(household, owner, name="Fissure", purpose="observation")
+        _photo(household, owner, name="Pas triee")
+
+        response = client.get(LIST_URL, {"purpose": "memory,technical"})
+
+        assert response.status_code == status.HTTP_200_OK
+        assert _names(response) == {"Anniversaire", "Chaudiere"}
+
+    def test_one_unknown_value_refuses_the_whole_list(self, client, household, owner):
+        """Ignorer l'intrus renverrait une liste plausible pour une question fausse —
+        et l'utilisateur croirait avoir filtré sur ce qu'il a demandé."""
+        _photo(household, owner, name="Anniversaire", purpose="memory")
+
+        response = client.get(LIST_URL, {"purpose": "memory,souvenir"})
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_untriaged_stays_alone(self, client, household, owner):
+        """« À trier » n'est pas une quatrième intention mais l'absence de choix, et
+        elle ouvre un autre écran — la file par grappes. La mélanger à des intentions
+        rendrait la réponse inclassable : ni une galerie, ni une file."""
+        _photo(household, owner, name="Anniversaire", purpose="memory")
+        _photo(household, owner, name="Pas triee")
+
+        response = client.get(LIST_URL, {"purpose": "memory,untriaged"})
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+@pytest.mark.django_db
 class TestABatchNeverOverwritesAChoice:
     """Trier une grappe ne défait pas le travail déjà fait.
 

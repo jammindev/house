@@ -10,6 +10,7 @@ import {
   Upload,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { useSearchParams } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import ListPage from '@/components/ListPage';
 import EmptyState from '@/components/EmptyState';
@@ -50,20 +51,31 @@ import PhotoZonesDialog from './PhotoZonesDialog';
 import PhotoZonesBulkDialog from './PhotoZonesBulkDialog';
 import PhotoPurposeEditor from './PhotoPurposeEditor';
 import TriagePanel from './TriagePanel';
-import { PURPOSES } from './purposes';
+import {
+  DEFAULT_PURPOSES,
+  PURPOSES,
+  purposeParam,
+  purposesFromParam,
+  togglePurpose,
+} from './purposes';
 import { groupPhotosByMonth } from './grouping';
 
 export default function PhotosPage() {
   const { t } = useTranslation();
   const qc = useQueryClient();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const [search, setSearch] = React.useState('');
   const [zone, setZone] = useSessionState<string>('photos.zone', '');
   const [withoutZone, setWithoutZone] = useSessionState<boolean>('photos.withoutZone', false);
-  // '' = toutes les intentions. On **omet** la clé côté requête plutôt que d'envoyer
-  // un vide : le serveur refuse `?purpose=`, pour qu'un paramètre oublié ne puisse
-  // jamais se lire comme un filtre.
-  const [purpose, setPurpose] = useSessionState<string>('photos.purpose', '');
+  // Les intentions affichées, **cumulables**. La galerie s'ouvre sur les souvenirs
+  // (`DEFAULT_PURPOSES`) et on y ajoute technique et/ou observation ; liste vide =
+  // toutes. La session garde le choix, parce qu'on revient sur cette page vingt fois
+  // en rangeant un chantier et que refaire le réglage à chaque retour le ferait
+  // abandonner.
+  const [purposes, setPurposes] = useSessionState<string[]>('photos.purposes', [
+    ...DEFAULT_PURPOSES,
+  ]);
   const [openId, setOpenId] = React.useState<string | null>(null);
   const [uploadOpen, setUploadOpen] = React.useState(false);
   const [zonesFor, setZonesFor] = React.useState<DocumentItem | null>(null);
@@ -71,16 +83,17 @@ export default function PhotosPage() {
   // Une frappe ne vaut pas une requête : la recherche partait à chaque caractère.
   const debouncedSearch = useDebouncedValue(search.trim(), 300);
   const hasFilters = debouncedSearch !== '' || zone !== '' || withoutZone;
-  const isTriage = purpose === UNTRIAGED;
+  const isTriage = purposes.length === 1 && purposes[0] === UNTRIAGED;
 
+  const purposeQuery = purposeParam(purposes);
   const filters = React.useMemo(
     () => ({
       ...(debouncedSearch ? { search: debouncedSearch } : {}),
       ...(zone ? { zone } : {}),
       ...(withoutZone ? { without_zone: '1' } : {}),
-      ...(purpose ? { purpose } : {}),
+      ...(purposeQuery ? { purpose: purposeQuery } : {}),
     }),
-    [debouncedSearch, zone, withoutZone, purpose],
+    [debouncedSearch, zone, withoutZone, purposeQuery],
   );
 
   // En mode tri, la galerie à plat ne se charge pas : elle ramènerait toute la
@@ -146,11 +159,11 @@ export default function PhotosPage() {
   // Changer d'intention change ce qu'on regarde : la sélection en cours ne porte plus
   // sur rien de visible, et la garder ferait ranger des photos sorties de l'écran.
   const handlePurposeChange = React.useCallback(
-    (next: string) => {
-      setPurpose(next === purpose ? '' : next);
+    (key: string) => {
+      setPurposes((current) => togglePurpose(current, key));
       selection.exit();
     },
-    [purpose, setPurpose, selection],
+    [setPurposes, selection],
   );
 
   // « Dans le salon » et « dans aucune zone » ne peuvent pas être vrais ensemble :
@@ -160,6 +173,19 @@ export default function PhotosPage() {
     setWithoutZone(next);
     if (next) setZone('');
   }, [withoutZone, setWithoutZone, setZone]);
+
+  // Une notification « Ben a ajouté des photos » arrive ici avec l'étagère où elles
+  // sont — sans quoi elle mènerait à la galerie par défaut, c'est-à-dire là où elles
+  // ne sont justement pas. Le paramètre est consommé puis retiré de l'URL : il donne
+  // le point d'entrée, il ne dispute pas les pastilles à l'utilisateur ensuite.
+  React.useEffect(() => {
+    const asked = purposesFromParam(searchParams.get('purpose'));
+    if (!asked) return;
+    setPurposes(asked);
+    const next = new URLSearchParams(searchParams);
+    next.delete('purpose');
+    setSearchParams(next, { replace: true });
+  }, [searchParams, setPurposes, setSearchParams]);
 
   const handleZoneFilterChange = React.useCallback(
     (id: string | null) => {
@@ -199,10 +225,15 @@ export default function PhotosPage() {
   // En mode tri, le panneau porte son propre état vide (« tout est trié »), qui n'est
   // pas le même message : une galerie vide et une file vide ne disent pas la même
   // chose, et `ListPage` masquerait la barre d'intentions avec le reste.
+  const hasPurposeFilter = purposes.length > 0;
   const isTrulyEmpty =
-    !isTriage && !isLoading && !error && photos.length === 0 && !hasFilters && !purpose;
+    !isTriage && !isLoading && !error && photos.length === 0 && !hasFilters && !hasPurposeFilter;
   const isNoResults =
-    !isTriage && !isLoading && !error && photos.length === 0 && (hasFilters || Boolean(purpose));
+    !isTriage &&
+    !isLoading &&
+    !error &&
+    photos.length === 0 &&
+    (hasFilters || hasPurposeFilter);
 
   return (
     <>
@@ -239,9 +270,12 @@ export default function PhotosPage() {
         }
       >
         {/* L'intention d'abord : c'est elle qui sépare la preuve du souvenir, et le
-            reste des filtres (zone, recherche) ne dit que *où* et *quoi*. */}
+            reste des filtres (zone, recherche) ne dit que *où* et *quoi*. Les
+            pastilles se **cumulent** — « les souvenirs et le technique » est une
+            question courante, et la poser en trois écrans successifs revient à ne
+            pas pouvoir la poser. */}
         <div className="mb-3 flex flex-wrap items-center gap-1.5">
-          <FilterPill active={purpose === ''} onClick={() => handlePurposeChange('')}>
+          <FilterPill active={purposes.length === 0} onClick={() => handlePurposeChange('')}>
             {t('photos.purpose.all')}
           </FilterPill>
           {PURPOSES.map((spec) => {
@@ -249,7 +283,7 @@ export default function PhotosPage() {
             return (
               <FilterPill
                 key={spec.key}
-                active={purpose === spec.key}
+                active={purposes.includes(spec.key)}
                 onClick={() => handlePurposeChange(spec.key)}
                 title={t(spec.hintKey)}
               >

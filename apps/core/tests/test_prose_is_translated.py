@@ -36,6 +36,10 @@ PROSE_MODULES = [
     "apps/budget/report/ping.py",
     "apps/recap/render.py",
     "apps/recap/ping.py",
+    # Une notification est de la prose que le foyer lit, et elle est rendue **une
+    # fois par destinataire** dans sa langue : un `msgstr` vide y poste l'anglais à
+    # tout le monde sans que rien ne rougisse.
+    "apps/documents/notifications.py",
 ]
 
 LANGUAGES = ["fr", "de", "es"]
