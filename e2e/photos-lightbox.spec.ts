@@ -4,6 +4,7 @@ import { test, expect, type Page } from './fixtures';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const FIXTURE_PHOTO = path.resolve(__dirname, 'fixtures/test-photo.jpg');
+const FIXTURE_PHOTO_2 = path.resolve(__dirname, 'fixtures/test-photo-2.jpg');
 
 const TOGGLE = 'Afficher ou masquer les informations';
 /** Le pli de la card info : ce qui s'édite (titre, zones) attend ce clic. */
@@ -21,14 +22,14 @@ const EXPAND = "Plus d'informations";
  * par-dessus. Même leçon que `decimal-input.spec.ts` : certains défauts
  * n'existent que là où il y a un moteur de rendu.
  */
-async function openFirstPhoto(page: Page) {
+async function openFirstPhoto(page: Page, atLeast = 1) {
   await page.goto('/app/photos');
   await page.waitForLoadState('networkidle');
 
-  if ((await page.locator('main img').count()) === 0) {
+  if ((await page.locator('main img').count()) < atLeast) {
     await page.getByRole('button', { name: 'Ajouter des photos' }).first().click();
     const dialog = page.getByRole('dialog');
-    await dialog.locator('#upload-file').setInputFiles(FIXTURE_PHOTO);
+    await dialog.locator('#upload-file').setInputFiles([FIXTURE_PHOTO, FIXTURE_PHOTO_2]);
     await dialog.getByRole('button', { name: /Téléverser|Ajouter/ }).click();
     await expect(dialog).toBeHidden();
     await page.waitForLoadState('networkidle');
@@ -103,6 +104,46 @@ test('le sélecteur de zones s’ouvre dans l’écran, jamais sous le bord', as
 
   expect(box.y).toBeGreaterThanOrEqual(0);
   expect(box.y + box.height).toBeLessThanOrEqual(viewport.height);
+});
+
+/**
+ * Le geste natif : on tire la photo suivante, et la piste se repose sur une photo
+ * entière. Rien de tout ça n'existe hors d'un moteur de rendu — jsdom n'a ni mise
+ * en page, ni défilement, ni points d'ancrage. Les tests vitest ne tiennent donc
+ * que la **décision** (sur quelle photo on s'est posé) ; que le geste aboutisse et
+ * qu'il ne laisse jamais deux demi-photos à l'écran se prouve ici.
+ */
+test('le défilement horizontal change de photo, et se repose sur une photo entière', async ({ page }) => {
+  await openFirstPhoto(page, 2);
+
+  const track = page.getByTestId('photo-track');
+  const width = (await track.boundingBox())!.width;
+  await expect(page.getByText('1 sur 2')).toBeVisible();
+
+  await track.hover();
+  await page.mouse.wheel(width, 0);
+
+  await expect(page.getByText('2 sur 2')).toBeVisible();
+
+  // L'ancrage : jamais un entre-deux, quelle que soit la force du geste.
+  const scrollLeft = await track.evaluate((el) => el.scrollLeft);
+  expect(scrollLeft % width).toBeLessThan(1);
+});
+
+/**
+ * Le pendant du test précédent, dans l'autre sens : les flèches et le clavier
+ * conduisent la même piste. Une navigation qui sauterait la piste au lieu de la
+ * faire défiler laisserait le compteur et l'image se contredire.
+ */
+test('la flèche suivante fait défiler la piste, elle ne la court-circuite pas', async ({ page }) => {
+  await openFirstPhoto(page, 2);
+
+  const track = page.getByTestId('photo-track');
+  const width = (await track.boundingBox())!.width;
+
+  await page.getByRole('button', { name: 'Photo suivante' }).click();
+
+  await expect.poll(() => track.evaluate((el) => el.scrollLeft)).toBeGreaterThan(width - 1);
 });
 
 test('la photo occupe tout l’écran, sans cadre', async ({ page }) => {
