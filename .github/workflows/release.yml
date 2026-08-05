@@ -84,14 +84,29 @@ jobs:
       # espoir publié. Le test est minuscule et il attrape ce qui casse vraiment
       # : une dépendance native absente de l'architecture, un `collectstatic`
       # raté au build, un module qui ne s'importe pas.
-      - name: L'image démarre et se connaît
+      #
+      # ⚠️ **Les deux architectures, et `--platform` explicitement.** Sans lui,
+      # `docker run` prend la variante du runner — amd64 — et le manifeste arm64
+      # part sans que personne ne l'ait jamais démarré. C'est la moitié du public
+      # de l'auto-hébergement (Raspberry Pi, NAS) qui découvrirait le problème à
+      # notre place, et la phrase du dessus vaut aussi pour elle. La construction
+      # arm64 réussit d'ailleurs sans rien prouver du démarrage : une roue
+      # native compilée pour la mauvaise architecture ne se voit qu'à l'import.
+      - name: L'image démarre et se connaît (les deux architectures)
         run: |
-          docker run --rm \
-            -e DJANGO_SETTINGS_MODULE=config.settings.selfhost \
-            -e MAISONNEE_STATE_DIR=/tmp/state \
-            -e DATABASE_URL=postgres://u:p@127.0.0.1:5432/none \
-            ghcr.io/${{ github.repository_owner }}/maisonnee:${{ steps.meta.outputs.version }} \
-            python manage.py check --deploy --fail-level ERROR
+          set -euo pipefail
+          for platform in linux/amd64 linux/arm64; do
+            echo "── $platform ───────────────────────────────────────────────"
+            # arm64 tourne ici sous QEMU (installé plus haut pour le build) :
+            # c'est lent, et c'est le prix d'une vérification qui vaut quelque
+            # chose sans avoir de Raspberry Pi dans la CI.
+            docker run --rm --platform "$platform" \
+              -e DJANGO_SETTINGS_MODULE=config.settings.selfhost \
+              -e MAISONNEE_STATE_DIR=/tmp/state \
+              -e DATABASE_URL=postgres://u:p@127.0.0.1:5432/none \
+              ghcr.io/${{ github.repository_owner }}/maisonnee:${{ steps.meta.outputs.version }} \
+              python manage.py check --deploy --fail-level ERROR
+          done
 
   # Les notes de release, écrites depuis l'historique.
   #
