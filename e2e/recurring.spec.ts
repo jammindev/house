@@ -80,7 +80,7 @@ function todayIso(): string {
 test.describe('Dépenses récurrentes — parcours 21 lot 2', () => {
   test.beforeEach(async ({ page }) => {
     // Hydrater le localStorage (JWT) avant tout appel API
-    await page.goto('/app/money?tab=budgets');
+    await page.goto('/app/money/budgets');
     await expect(page).toHaveURL(/\/app\/money/);
 
     // Repartir d'une ardoise vierge
@@ -91,7 +91,7 @@ test.describe('Dépenses récurrentes — parcours 21 lot 2', () => {
 
   test('la link card "Dépenses récurrentes" mène à /app/money/recurring avec état vide', async ({ page }) => {
     // La link card n'apparaît qu'une fois l'overview chargé — attendre le titre
-    await expect(page.getByRole('heading', { level: 1, name: 'Argent' })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1, name: 'Budgets' })).toBeVisible();
 
     // Cliquer sur la card "Dépenses récurrentes"
     await page.getByText('Dépenses récurrentes').click();
@@ -101,8 +101,9 @@ test.describe('Dépenses récurrentes — parcours 21 lot 2', () => {
     // Titre de la page
     await expect(page.getByRole('heading', { level: 1, name: 'Dépenses récurrentes' })).toBeVisible();
 
-    // Lien retour vers Budgets visible
-    await expect(page.getByRole('link', { name: 'Budgets' })).toBeVisible();
+    // Lien retour vers Budgets visible — scopé à la page, la sidebar portant
+    // désormais sa propre entrée « Budgets » (issue #562).
+    await expect(page.locator('main').getByRole('link', { name: 'Budgets' })).toBeVisible();
 
     // Bouton d'action principal
     await expect(page.getByRole('button', { name: 'Nouvelle récurrence' })).toBeVisible();

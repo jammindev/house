@@ -153,7 +153,7 @@ export default function BudgetCategoryDetailPage() {
 
   return (
     <>
-      <BackLink fallback="/app/money?tab=budgets" fallbackLabel={t('budget.title')} />
+      <BackLink fallback="/app/money/budgets" fallbackLabel={t('budget.title')} />
       <PageHeader
         title={row?.name ?? t('budget.category.detail.fallbackTitle')}
         description={t('budget.category.detail.description')}

@@ -4088,13 +4088,9 @@
   },
   "money": {
     "title": "Geld",
-    "description": "Konten, Ausgaben und Budgets — Kontoauszüge sind die Quelle der Wahrheit.",
     "tabs": {
       "control": "Kontrolle",
-      "pending": "Zuordnen",
-      "accounts": "Konten",
-      "expenses": "Ausgaben",
-      "budgets": "Budgets"
+      "pending": "Zuordnen"
     },
     "compliance": {
       "clean": "Alles stimmt",

@@ -1,16 +1,18 @@
 import { test, expect } from '@playwright/test';
 
 /**
- * Parcours 26 — Lot 2 : le module « Argent ».
+ * Parcours 26 lot 2, puis issue #562 : le groupe « Argent ».
  *
- * Couvre ce que la fusion des trois pages pouvait casser en silence, et que rien
- * d'autre ne vérifie :
+ * Trois pages — Budgets, Dépenses, Comptes — et non plus une page à cinq
+ * onglets. Ce qui se couvre ici est ce que le découpage pouvait casser en
+ * silence, et que rien d'autre ne vérifie :
  *
- *  1. La coque : un seul titre, cinq onglets, Contrôle en premier
+ *  1. Les trois pages, chacune sous son URL, et les deux onglets restés sur
+ *     Comptes (Contrôle et « À ranger » ne portent que sur les relevés)
  *  2. Les redirections des anciennes URLs, **query string préservée** — l'agent
  *     produit `/app/budget?b={id}` et les favoris peuvent porter n'importe quoi
- *  3. Le deep link `?tab=` atterrit sur le bon onglet
- *  4. La sidebar : une entrée « Argent », plus aucune des trois anciennes
+ *  3. Le deep link `?tab=` décide de la page d'arrivée
+ *  4. La sidebar : un groupe « Argent » à trois entrées
  *  5. Le panneau Contrôle liste des groupes d'écarts et sait dire « conforme »
  *  6. Les sous-pages autonomes restent accessibles en direct
  */
@@ -20,29 +22,37 @@ async function getAccessToken(page: import('@playwright/test').Page): Promise<st
 }
 
 // ---------------------------------------------------------------------------
-// 1. La coque
+// 1. Les trois pages
 // ---------------------------------------------------------------------------
 
-test.describe('Module Argent — la coque', () => {
-  test('un seul titre et cinq onglets, Contrôle en tête', async ({ page }) => {
-    await page.goto('/app/money');
-    await expect(page).toHaveURL(/\/app\/money/);
-    await expect(page.getByRole('heading', { level: 1, name: 'Argent' })).toBeVisible();
-
-    for (const label of ['Contrôle', 'À ranger', 'Comptes', 'Dépenses', 'Budgets']) {
-      await expect(page.getByRole('button', { name: new RegExp(label) }).first()).toBeVisible();
+test.describe('Groupe Argent — les trois pages', () => {
+  test('chaque page a son URL et son propre titre', async ({ page }) => {
+    for (const [path, heading] of [
+      ['/app/money/budgets', 'Budgets'],
+      ['/app/money/expenses', 'Dépenses'],
+      ['/app/money/accounts', 'Comptes'],
+    ]) {
+      await page.goto(path);
+      await expect(page).toHaveURL(new RegExp(path));
+      await expect(page.getByRole('heading', { level: 1, name: heading })).toBeVisible();
     }
   });
 
-  test('changer d\'onglet affiche le panneau correspondant', async ({ page }) => {
-    await page.goto('/app/money');
+  test('la page Comptes garde Contrôle et « À ranger », et ouvre sur Comptes', async ({
+    page,
+  }) => {
+    await page.goto('/app/money/accounts');
 
-    await page.getByRole('button', { name: /Comptes/ }).first().click();
-    // Le panneau Comptes porte les filtres du journal bancaire.
+    for (const label of ['Comptes', 'Contrôle', 'À ranger']) {
+      await expect(page.getByRole('button', { name: new RegExp(label) }).first()).toBeVisible();
+    }
+
+    // Défaut : une entrée de sidebar qui annonce les comptes et ouvre autre
+    // chose fait douter du clic. Le panneau Comptes porte les filtres du journal.
     await expect(page.getByRole('button', { name: 'Actifs' })).toBeVisible();
 
-    await page.getByRole('button', { name: /Budgets/ }).first().click();
-    await expect(page.getByRole('button', { name: /Nouveau budget|Budget/ }).first()).toBeVisible();
+    await page.getByRole('button', { name: /Contrôle/ }).first().click();
+    await expect(page.getByText('Sorties non affectées')).toBeVisible();
   });
 });
 
@@ -50,21 +60,33 @@ test.describe('Module Argent — la coque', () => {
 // 2. & 3. Redirections et deep links
 // ---------------------------------------------------------------------------
 
-test.describe('Module Argent — anciennes URLs', () => {
-  test('/app/budget redirige vers l\'onglet Budgets', async ({ page }) => {
+test.describe('Groupe Argent — anciennes URLs', () => {
+  test('/app/budget redirige vers la page Budgets', async ({ page }) => {
     await page.goto('/app/budget');
-    await expect(page).toHaveURL(/\/app\/money\?.*tab=budgets/);
-    await expect(page.getByRole('heading', { level: 1, name: 'Argent' })).toBeVisible();
+    await expect(page).toHaveURL(/\/app\/money\/budgets/);
+    await expect(page.getByRole('heading', { level: 1, name: 'Budgets' })).toBeVisible();
   });
 
-  test('/app/expenses redirige vers l\'onglet Dépenses', async ({ page }) => {
+  test('/app/expenses redirige vers la page Dépenses', async ({ page }) => {
     await page.goto('/app/expenses');
-    await expect(page).toHaveURL(/\/app\/money\?.*tab=expenses/);
+    await expect(page).toHaveURL(/\/app\/money\/expenses/);
   });
 
-  test('/app/banking redirige vers l\'onglet Comptes', async ({ page }) => {
+  test('/app/banking redirige vers la page Comptes', async ({ page }) => {
     await page.goto('/app/banking');
-    await expect(page).toHaveURL(/\/app\/money\?.*tab=accounts/);
+    await expect(page).toHaveURL(/\/app\/money\/accounts/);
+  });
+
+  test('/app/money seul mène à la première page du groupe', async ({ page }) => {
+    await page.goto('/app/money');
+    await expect(page).toHaveURL(/\/app\/money\/budgets/);
+  });
+
+  test('un ancien ?tab= décide de la page d\'arrivée', async ({ page }) => {
+    // Les favoris et les guides du tutoriel d'avant l'éclatement pointent dessus.
+    await page.goto('/app/money?tab=control');
+    await expect(page).toHaveURL(/\/app\/money\/accounts\?.*tab=control/);
+    await expect(page.getByText('Sorties non affectées')).toBeVisible();
   });
 
   test('la query string survit à la redirection', async ({ page }) => {
@@ -72,7 +94,7 @@ test.describe('Module Argent — anciennes URLs', () => {
     // Perdre le paramètre transformerait un lien précis en lien approximatif.
     await page.goto('/app/budget?b=8f14e45f-ceea-467a-9c1e-000000000000');
     await expect(page).toHaveURL(/b=8f14e45f-ceea-467a-9c1e-000000000000/);
-    await expect(page).toHaveURL(/tab=budgets/);
+    await expect(page).toHaveURL(/\/app\/money\/budgets/);
   });
 
   test('/app/banking/transactions redirige vers /app/money/transactions', async ({ page }) => {
@@ -102,16 +124,24 @@ test.describe('Module Argent — anciennes URLs', () => {
 // 4. Sidebar
 // ---------------------------------------------------------------------------
 
-test('la sidebar porte une entrée « Argent » et plus aucune des trois anciennes', async ({ page }) => {
+test('la sidebar porte un groupe « Argent » à trois entrées', async ({ page }) => {
   await page.goto('/app/dashboard');
   const sidebar = page.locator('aside');
 
-  await expect(sidebar.getByRole('link', { name: 'Argent' })).toBeVisible();
-  await expect(sidebar.getByRole('link', { name: 'Comptes bancaires' })).toHaveCount(0);
-  // « Dépenses » et « Budgets » ne sont plus des entrées de navigation : ce sont
-  // des onglets. Les laisser dans la sidebar ferait deux chemins vers le même
-  // écran, dont un qui perd le contexte des trois autres onglets.
-  await expect(sidebar.getByRole('link', { name: 'Budgets', exact: true })).toHaveCount(0);
+  // « Argent » est le libellé du **groupe**, plus un lien : cliquer dessus ne
+  // menait qu'à la première des trois pages, ce que la page nomme déjà.
+  await expect(sidebar.getByText('Argent', { exact: true })).toBeVisible();
+  await expect(sidebar.getByRole('link', { name: 'Argent' })).toHaveCount(0);
+
+  // Pas d'`exact` : le bouton d'épinglage vit **dans** le lien, donc son
+  // aria-label entre dans le nom accessible (« Budgets Épingler »).
+  for (const [label, href] of [
+    ['Budgets', '/app/money/budgets'],
+    ['Dépenses', '/app/money/expenses'],
+    ['Comptes', '/app/money/accounts'],
+  ]) {
+    await expect(sidebar.getByRole('link', { name: label })).toHaveAttribute('href', href);
+  }
 });
 
 // ---------------------------------------------------------------------------
@@ -120,7 +150,7 @@ test('la sidebar porte une entrée « Argent » et plus aucune des trois ancienn
 
 test.describe('Module Argent — Contrôle', () => {
   test('liste les groupes d\'écarts et dit ce qu\'il reste à faire', async ({ page }) => {
-    await page.goto('/app/money?tab=control');
+    await page.goto('/app/money/accounts?tab=control');
 
     // Les cinq détecteurs du lot 1 sont déclarés côté serveur : le panneau doit
     // tous les montrer, y compris ceux à zéro — « contrôlé et conforme » ne doit
@@ -131,7 +161,7 @@ test.describe('Module Argent — Contrôle', () => {
   });
 
   test('un groupe se déplie et explique comment résoudre', async ({ page }) => {
-    await page.goto('/app/money?tab=control');
+    await page.goto('/app/money/accounts?tab=control');
 
     await page.getByText('Sorties non affectées').click();
     await expect(
@@ -166,7 +196,7 @@ test.describe('Module Argent — création de compte', () => {
   test('la date de solde d\'ouverture est requise, et pré-remplie à aujourd\'hui', async ({
     page,
   }) => {
-    await page.goto('/app/money?tab=accounts');
+    await page.goto('/app/money/accounts');
     await page.getByRole('button', { name: 'Nouveau compte' }).first().click();
 
     const dialog = page.getByRole('dialog');
@@ -187,7 +217,7 @@ test.describe('Module Argent — création de compte', () => {
   });
 
   test('avec une date, le compte est créé', async ({ page }) => {
-    await page.goto('/app/money?tab=accounts');
+    await page.goto('/app/money/accounts');
     await page.getByRole('button', { name: 'Nouveau compte' }).first().click();
 
     const dialog = page.getByRole('dialog');
@@ -212,7 +242,7 @@ test.describe('Module Argent — non évaluable ≠ conforme', () => {
     // compte créé avec la date du jour, alimenté par des opérations **antérieures**.
     // La fenêtre de conformité devient vide, tous les détecteurs se taisent, et l'app
     // affichait une coche verte avec « Toutes vos opérations sont affectées ».
-    await page.goto('/app/money?tab=accounts');
+    await page.goto('/app/money/accounts');
     const token = await page.evaluate(() => localStorage.getItem('access_token') ?? '');
     const headers = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
 
@@ -249,12 +279,12 @@ test.describe('Module Argent — non évaluable ≠ conforme', () => {
     expect(blocker.open).toBeGreaterThan(0);
 
     // La file ne doit surtout PAS annoncer que tout est rangé.
-    await page.goto('/app/money?tab=pending');
+    await page.goto('/app/money/accounts?tab=pending');
     await expect(page.getByText('Toutes vos opérations sont affectées')).toHaveCount(0);
     await expect(page.getByText("Rien d'évaluable pour l'instant")).toBeVisible();
 
     // Et le contrôle doit dire « non évaluable », pas « conforme ».
-    await page.goto('/app/money?tab=control');
+    await page.goto('/app/money/accounts?tab=control');
     await expect(page.getByText('Tout est conforme')).toHaveCount(0);
     await expect(page.getByText('Compte hors de portée du contrôle').first()).toBeVisible();
 

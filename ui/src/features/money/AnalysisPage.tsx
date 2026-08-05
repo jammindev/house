@@ -100,7 +100,7 @@ export default function AnalysisPage() {
 
   return (
     <>
-      <BackLink fallback="/app/money?tab=budgets" fallbackLabel={t('budget.title')} />
+      <BackLink fallback="/app/money/budgets" fallbackLabel={t('budget.title')} />
       <PageHeader title={t('analysis.title')} description={t('analysis.description')} />
 
       <div className="flex flex-wrap items-center gap-2 pb-4">

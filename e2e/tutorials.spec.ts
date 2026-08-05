@@ -111,9 +111,9 @@ test.describe('Tutoriel — comprendre le mécanisme Argent', () => {
     ).toBeVisible();
     await expect(page.getByText('Un zéro peut vouloir dire deux choses')).toBeVisible();
 
-    // Et le lien mène bien à l'onglet Contrôle.
+    // Et le lien mène bien à l'onglet Contrôle de la page Comptes.
     await page.getByRole('link', { name: 'Ouvrir la page', exact: true }).click();
-    await expect(page).toHaveURL(/\/app\/money\?.*tab=control/);
+    await expect(page).toHaveURL(/\/app\/money\/accounts\?.*tab=control/);
   });
 
   test('la checklist rappelle le prérequis du compte', async ({ page }) => {

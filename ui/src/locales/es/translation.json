@@ -4088,13 +4088,9 @@
   },
   "money": {
     "title": "Dinero",
-    "description": "Cuentas, gastos y presupuestos — los extractos son la fuente de verdad.",
     "tabs": {
       "control": "Control",
-      "pending": "Por ordenar",
-      "accounts": "Cuentas",
-      "expenses": "Gastos",
-      "budgets": "Presupuestos"
+      "pending": "Por ordenar"
     },
     "compliance": {
       "clean": "Todo cuadra",

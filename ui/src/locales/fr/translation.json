@@ -4088,13 +4088,9 @@
   },
   "money": {
     "title": "Argent",
-    "description": "Comptes, dépenses et budgets — les relevés sont la source de vérité.",
     "tabs": {
       "control": "Contrôle",
-      "pending": "À ranger",
-      "accounts": "Comptes",
-      "expenses": "Dépenses",
-      "budgets": "Budgets"
+      "pending": "À ranger"
     },
     "compliance": {
       "clean": "Tout est conforme",

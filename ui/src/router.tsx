@@ -1,7 +1,7 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import ProtectedLayout from './components/ProtectedLayout';
 import ModuleRoute from './components/ModuleRoute';
-import LegacyMoneyRedirect from './components/LegacyMoneyRedirect';
+import MoneyTabRedirect from './components/MoneyTabRedirect';
 import PreserveQueryRedirect from './components/PreserveQueryRedirect';
 import LoginPage from './features/auth/LoginPage';
 import ForgotPasswordPage from './features/auth/ForgotPasswordPage';
@@ -51,7 +51,9 @@ const DigestPage = lazyWithReload(() => import('./features/digest/DigestPage'));
 const RecapHistoryPage = lazyWithReload(() => import('./features/recap/RecapHistoryPage'));
 const RecapStoryPage = lazyWithReload(() => import('./features/recap/RecapStoryPage'));
 const BriefingsPage = lazyWithReload(() => import('./features/briefings/BriefingsPage'));
-const MoneyPage = lazyWithReload(() => import('./features/money/MoneyPage'));
+const MoneyBudgetsPage = lazyWithReload(() => import('./features/money/BudgetsPage'));
+const MoneyExpensesPage = lazyWithReload(() => import('./features/money/ExpensesPage'));
+const MoneyAccountsPage = lazyWithReload(() => import('./features/money/AccountsPage'));
 const RecurringPage = lazyWithReload(() => import('./features/budget/RecurringPage'));
 const ReportsPage = lazyWithReload(() => import('./features/budget/ReportsPage'));
 const MoneyAnalysisPage = lazyWithReload(() => import('./features/money/AnalysisPage'));
@@ -104,7 +106,11 @@ export const router = createBrowserRouter([
       { path: 'interactions/new', element: <InteractionNewPage /> },
       { path: 'interactions/:id', element: <InteractionDetailPage /> },
       { path: 'interactions/:id/edit', element: <InteractionEditPage /> },
-      { path: 'money', element: <MoneyPage /> },
+      // Le groupe « Argent » : trois pages, trois URLs (issue #562). `/app/money`
+      // n'est plus une page — il redirige en lisant `?tab=` (voir plus bas).
+      { path: 'money/budgets', element: <MoneyBudgetsPage /> },
+      { path: 'money/expenses', element: <MoneyExpensesPage /> },
+      { path: 'money/accounts', element: <MoneyAccountsPage /> },
       { path: 'money/transactions', element: <BankingTransactionsPage /> },
       { path: 'money/transactions/:id', element: <BankingTransactionDetailPage /> },
       { path: 'money/analysis', element: <MoneyAnalysisPage /> },
@@ -116,12 +122,14 @@ export const router = createBrowserRouter([
       { path: 'money/expenses/:id', element: <ExpenseDetailPage /> },
       { path: 'money/recurring', element: <RecurringPage /> },
       { path: 'money/reports', element: <ReportsPage /> },
-      // Anciennes URLs (parcours 26, lot 2) : les favoris, les liens de l'agent et
-      // les tutoriels pointent encore dessus. La query string est **préservée** —
-      // `?b={id}` vient de `budget/apps.py::SearchableSpec.url_template`.
-      { path: 'expenses', element: <LegacyMoneyRedirect tab="expenses" /> },
-      { path: 'budget', element: <LegacyMoneyRedirect tab="budgets" /> },
-      { path: 'banking', element: <LegacyMoneyRedirect tab="accounts" /> },
+      // Anciennes URLs (parcours 26 lot 2, puis issue #562) : les favoris et les
+      // liens produits avant la bascule pointent encore dessus. La query string est
+      // **préservée**, et `?tab=` décide de la page d'arrivée — `?b={id}` vient de
+      // `budget/apps.py::SearchableSpec.url_template`.
+      { path: 'money', element: <MoneyTabRedirect /> },
+      { path: 'expenses', element: <MoneyTabRedirect tab="expenses" /> },
+      { path: 'budget', element: <MoneyTabRedirect tab="budgets" /> },
+      { path: 'banking', element: <MoneyTabRedirect tab="accounts" /> },
       { path: 'banking/transactions', element: <Navigate to="/app/money/transactions" replace /> },
       // Les deux dernières pages restées hors de la famille : `?r={id}` de l'agent
       // survit au déplacement.

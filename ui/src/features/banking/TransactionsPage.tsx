@@ -109,7 +109,7 @@ export default function TransactionsPage() {
       <PageHeader
         title={t('banking.journal.title')}
         description={t('banking.journal.subtitle')}
-        backLink={<BackLink fallback="/app/money" fallbackLabel={t('money.title')} />}
+        backLink={<BackLink fallback="/app/money/accounts" fallbackLabel={t('banking.title')} />}
       >
         <Button
           variant="outline"

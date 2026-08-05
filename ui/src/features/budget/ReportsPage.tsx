@@ -31,7 +31,7 @@ export default function ReportsPage() {
 
   return (
     <>
-      <BackLink fallback="/app/money?tab=budgets" fallbackLabel={t('budget.title')} />
+      <BackLink fallback="/app/money/budgets" fallbackLabel={t('budget.title')} />
       <PageHeader title={t('report.title')} description={t('report.description')} />
 
       {showSkeleton ? (

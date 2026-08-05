@@ -43,7 +43,7 @@ export default function ExpensesCard() {
   const max = Math.max(...series.map((row) => row.total), 1);
 
   return (
-    <Link to="/app/money?tab=expenses" state={pushBack(location)} className="group block h-full">
+    <Link to="/app/money/expenses" state={pushBack(location)} className="group block h-full">
       <Card className="flex h-full flex-col p-4 transition-colors hover:border-border hover:bg-muted/20">
         <CardTitle className="text-sm text-muted-foreground">
           💶 {t('dashboard.metrics.expenses.title')}

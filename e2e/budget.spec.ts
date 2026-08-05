@@ -4,7 +4,7 @@ import { test, expect } from '@playwright/test';
  * Parcours 21 — Lot 1 : Budgets mensuels.
  *
  * Couvre :
- *  1. Sidebar entry "Argent" → /app/money (onglet Budgets)
+ *  1. Sidebar entry "Budgets" → /app/money/budgets
  *  2. État vide avant tout budget
  *  3. Création d'un budget nommé "Courses 400 €"
  *  4. Présence de la card "Hors budget" dès qu'un budget existe
@@ -45,8 +45,8 @@ async function deleteAllBudgets(page: import('@playwright/test').Page): Promise<
  * créer sur place plutôt que de renvoyer ailleurs.
  */
 async function openCashDialog(page: import('@playwright/test').Page) {
-  await page.goto('/app/money?tab=expenses');
-  await expect(page.getByRole('heading', { level: 1, name: 'Argent' })).toBeVisible();
+  await page.goto('/app/money/expenses');
+  await expect(page.getByRole('heading', { level: 1, name: 'Dépenses' })).toBeVisible();
   await page.getByRole('button', { name: 'Nouvelle dépense' }).first().click();
 
   const dialog = page.getByRole('dialog');
@@ -89,7 +89,7 @@ test.describe('Budgets — parcours 21', () => {
   test.beforeEach(async ({ page }) => {
     // Naviguer vers la page pour hydrater le localStorage (JWT obligatoire
     // avant tout appel API via page.request)
-    await page.goto('/app/money?tab=budgets');
+    await page.goto('/app/money/budgets');
     await expect(page).toHaveURL(/\/app\/money/);
 
     // Nettoyer tous les budgets pour garantir un état vide au départ
@@ -102,19 +102,22 @@ test.describe('Budgets — parcours 21', () => {
 
   // ── 1. Affichage & sidebar ───────────────────────────────────────────────
 
-  test('la sidebar contient un lien "Argent" vers /app/money', async ({ page }) => {
-    // budget est dans le groupe Suivi (tracking), non optionnel → toujours visible
-    const budgetLink = page.getByRole('link', { name: 'Argent' });
+  test('la sidebar contient un lien "Budgets" vers /app/money/budgets', async ({ page }) => {
+    // « Budgets » est la première entrée du groupe Argent, non optionnelle →
+    // toujours visible (issue #562).
+    // Sans `exact` : le bouton d'épinglage est dans le lien, son aria-label
+    // entre donc dans le nom accessible.
+    const budgetLink = page.locator('aside').getByRole('link', { name: 'Budgets' });
     await expect(budgetLink).toBeVisible();
     await budgetLink.click();
-    await expect(page).toHaveURL(/\/app\/money/);
-    await expect(page.getByRole('heading', { level: 1, name: 'Argent' })).toBeVisible();
+    await expect(page).toHaveURL(/\/app\/money\/budgets/);
+    await expect(page.getByRole('heading', { level: 1, name: 'Budgets' })).toBeVisible();
   });
 
   // ── 2. État vide ─────────────────────────────────────────────────────────
 
   test('affiche l\'état vide quand aucun budget n\'existe', async ({ page }) => {
-    await expect(page.getByRole('heading', { level: 1, name: 'Argent' })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1, name: 'Budgets' })).toBeVisible();
 
     // EmptyState avec le texte "Aucun budget"
     await expect(page.getByText('Aucun budget')).toBeVisible();
@@ -259,7 +262,7 @@ test.describe('Budgets — parcours 21', () => {
 
 test.describe('Budgets — intégration dépenses ad-hoc', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/app/money?tab=budgets');
+    await page.goto('/app/money/budgets');
     await expect(page).toHaveURL(/\/app\/money/);
 
     // Repartir d'une ardoise vierge, puis créer un budget nommé
@@ -292,7 +295,7 @@ test.describe('Budgets — intégration dépenses ad-hoc', () => {
     await expect(dialog).toBeHidden();
 
     // Aller sur la page Budgets et vérifier que le montant dépensé a augmenté
-    await page.goto('/app/money?tab=budgets');
+    await page.goto('/app/money/budgets');
     await expect(page.getByText('Courses Tests')).toBeVisible();
 
     // La dépense de 85 € doit apparaître : "85,00 € / 500,00 €"

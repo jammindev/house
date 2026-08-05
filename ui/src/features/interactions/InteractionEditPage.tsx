@@ -42,7 +42,7 @@ export default function InteractionEditPage() {
   const navigate = useNavigate();
   // `navigate(-1)` sert au reste de la page (annuler, enregistrer), mais après une
   // suppression il peut renvoyer sur la fiche d'un objet qui n'existe plus.
-  const navigateBackAfterDelete = useNavigateBack('/app/money?tab=expenses');
+  const navigateBackAfterDelete = useNavigateBack('/app/money/expenses');
 
   const { data: interaction, isLoading, error } = useInteraction(id ?? '');
   // Le hook, jamais `updateInteraction` en direct : c'est lui qui périme les

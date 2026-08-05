@@ -14,8 +14,8 @@ import { test, expect } from '@playwright/test';
 
 /** Le compte espèces se crée depuis le dialog, en un clic. */
 async function openCashDialog(page: import('@playwright/test').Page) {
-  await page.goto('/app/money?tab=expenses');
-  await expect(page.getByRole('heading', { level: 1, name: 'Argent' })).toBeVisible();
+  await page.goto('/app/money/expenses');
+  await expect(page.getByRole('heading', { level: 1, name: 'Dépenses' })).toBeVisible();
   await page.getByRole('button', { name: 'Nouvelle dépense' }).first().click();
 
   const dialog = page.getByRole('dialog');

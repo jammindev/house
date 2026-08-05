@@ -77,7 +77,7 @@ async function apiCreatePreviousMonthExpense(
 test.describe('Bilan mensuel — parcours 21 lot 3', () => {
   test.beforeEach(async ({ page }) => {
     // Hydrater le localStorage (JWT) avant tout appel API
-    await page.goto('/app/money?tab=budgets');
+    await page.goto('/app/money/budgets');
     await expect(page).toHaveURL(/\/app\/money/);
   });
 
@@ -85,7 +85,7 @@ test.describe('Bilan mensuel — parcours 21 lot 3', () => {
 
   test('la link card "Bilan mensuel" depuis l\'onglet Budgets mène à /app/money/reports', async ({ page }) => {
     // Attendre que l'overview soit chargé (la link card n'apparaît qu'ensuite)
-    await expect(page.getByRole('heading', { level: 1, name: 'Argent' })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1, name: 'Budgets' })).toBeVisible();
 
     // La link card est identifiée par son titre "Bilan mensuel"
     await page.getByText('Bilan mensuel').click();
@@ -98,8 +98,9 @@ test.describe('Bilan mensuel — parcours 21 lot 3', () => {
   test('la page /app/money/reports affiche le BackLink, le titre et la description', async ({ page }) => {
     await page.goto('/app/money/reports');
 
-    // BackLink vers Budgets
-    await expect(page.getByRole('link', { name: 'Budgets' })).toBeVisible();
+    // BackLink vers Budgets — porté par la page, pas par la sidebar (qui a sa
+    // propre entrée « Budgets » depuis l'éclatement du module, issue #562).
+    await expect(page.locator('main').getByRole('link', { name: 'Budgets' })).toBeVisible();
 
     // Titre de page (h1)
     await expect(page.getByRole('heading', { level: 1, name: 'Bilan mensuel' })).toBeVisible();
@@ -127,11 +128,12 @@ test.describe('Bilan mensuel — parcours 21 lot 3', () => {
   test('le BackLink "Budgets" navigue bien vers l\'onglet Budgets', async ({ page }) => {
     await page.goto('/app/money/reports');
 
-    await expect(page.getByRole('link', { name: 'Budgets' })).toBeVisible();
-    await page.getByRole('link', { name: 'Budgets' }).click();
+    const backLink = page.locator('main').getByRole('link', { name: 'Budgets' });
+    await expect(backLink).toBeVisible();
+    await backLink.click();
 
-    await expect(page).toHaveURL(/\/app\/money/);
-    await expect(page.getByRole('heading', { level: 1, name: 'Argent' })).toBeVisible();
+    await expect(page).toHaveURL(/\/app\/money\/budgets/);
+    await expect(page.getByRole('heading', { level: 1, name: 'Budgets' })).toBeVisible();
   });
 
   // ── 5. Rapport "Mois dernier" : seed + vérification ──────────────────────
@@ -175,6 +177,6 @@ test.describe('Bilan mensuel — parcours 21 lot 3', () => {
 
     await expect(page).toHaveURL(/\/app\/money\/reports/);
     await expect(page.getByRole('heading', { level: 1, name: 'Bilan mensuel' })).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Budgets' })).toBeVisible();
+    await expect(page.locator('main').getByRole('link', { name: 'Budgets' })).toBeVisible();
   });
 });

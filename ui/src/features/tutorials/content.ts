@@ -53,7 +53,7 @@ export const GETTING_STARTED: GettingStartedItem[] = [
   { key: 'log-note', to: '/app/interactions', moduleKey: 'interactions' },
   // Le prérequis de tout le module Argent : sans compte déclaré et daté, aucun
   // contrôle ne porte sur l'argent du foyer.
-  { key: 'declare-account', to: '/app/money?tab=accounts', moduleKey: 'money' },
+  { key: 'declare-account', to: '/app/money/accounts', moduleKey: 'money_accounts' },
   { key: 'ask-agent', to: '/app/agent' },
   { key: 'invite-member', to: '/app/settings' },
 ];
@@ -86,10 +86,10 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
   // volontaire : le mécanisme de conformité a des règles contre-intuitives (une
   // fenêtre qui exclut volontairement des données, un zéro qui peut vouloir dire
   // « non évaluable ») qu'aucun parcours procédural ne fait comprendre.
-  { key: 'money', moduleKey: 'money', Icon: ShieldCheck, to: '/app/money?tab=control', stepIds: ['source', 'allocation', 'axes', 'window', 'arbitrate', 'notEvaluable', 'cash'] },
-  { key: 'expenses', moduleKey: 'money', Icon: Receipt, to: '/app/money?tab=pending', stepIds: ['record', 'supplier', 'sort', 'control', 'sources', 'sheet', 'trace', 'review'] },
-  { key: 'budget', moduleKey: 'money', Icon: PiggyBank, to: '/app/money?tab=budgets', stepIds: ['create', 'assign', 'track', 'sheet', 'analysis', 'recurring', 'report'] },
-  { key: 'banking', moduleKey: 'money', Icon: Landmark, to: '/app/money?tab=accounts', stepIds: ['accounts', 'cash', 'openingBalance', 'import', 'journal', 'balance', 'sheet'] },
+  { key: 'money', moduleKey: 'money_accounts', Icon: ShieldCheck, to: '/app/money/accounts?tab=control', stepIds: ['source', 'allocation', 'axes', 'window', 'arbitrate', 'notEvaluable', 'cash'] },
+  { key: 'expenses', moduleKey: 'money_expenses', Icon: Receipt, to: '/app/money/accounts?tab=pending', stepIds: ['record', 'supplier', 'sort', 'control', 'sources', 'sheet', 'trace', 'review'] },
+  { key: 'budget', moduleKey: 'money_budgets', Icon: PiggyBank, to: '/app/money/budgets', stepIds: ['create', 'assign', 'track', 'sheet', 'analysis', 'recurring', 'report'] },
+  { key: 'banking', moduleKey: 'money_accounts', Icon: Landmark, to: '/app/money/accounts', stepIds: ['accounts', 'cash', 'openingBalance', 'import', 'journal', 'balance', 'sheet'] },
   { key: 'documents', moduleKey: 'documents', to: '/app/documents', stepIds: ['upload', 'link', 'find'] },
   // `sort` vient juste après `browse` : l'intention est la première question que
   // pose désormais la galerie, avant même « où est rangée cette photo ».

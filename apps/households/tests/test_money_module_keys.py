@@ -1,13 +1,14 @@
-"""The « Argent » module key contract (parcours 26, lot 2).
+"""The « Argent » module key contract (parcours 26 lot 2, then issue #562).
 
-Merging three navigation entries into one is the risky half of the lot, and the
-risk is not visual: it is **stored configuration that stops matching anything**.
-Two things have to hold, and nothing else in the suite checks them.
+Moving navigation entries around is the risky half of such a change, and the risk
+is not visual: it is **stored configuration that stops matching anything**. Two
+things have to hold, and nothing else in the suite checks them.
 
 1. The registries agree with the frontend one (`ui/src/lib/modules.ts`). A key that
    exists on one side only produces either an invisible module or a 400 on a
-   perfectly ordinary PATCH.
-2. `money` is **core**. It cannot be optional: a household switching it off would
+   perfectly ordinary PATCH — and the 400 lands on a user who merely toggled a pin,
+   because the frontend sends back the whole stored list.
+2. The family is **core**. It cannot be optional: a household switching it off would
    lose expenses and budgets, which were never switchable. That is the whole reason
    bank accounts stopped being an opt-in.
 """
@@ -20,21 +21,26 @@ import pytest
 from households.modules import LEGACY_MONEY_MODULES, OPTIONAL_MODULES, PINNABLE_MODULES
 
 
-class TestModuleRegistries:
-    def test_money_is_pinnable(self):
-        assert "money" in PINNABLE_MODULES
+MONEY_PAGES = ("money_budgets", "money_expenses", "money_accounts")
 
-    def test_money_is_not_optional(self):
+
+class TestModuleRegistries:
+    @pytest.mark.parametrize("key", MONEY_PAGES)
+    def test_each_money_page_is_pinnable(self, key):
+        assert key in PINNABLE_MODULES
+
+    @pytest.mark.parametrize("key", MONEY_PAGES)
+    def test_no_money_page_is_optional(self, key):
         """Core by necessity, not by taste — see the module docstring."""
-        assert "money" not in OPTIONAL_MODULES
+        assert key not in OPTIONAL_MODULES
 
     @pytest.mark.parametrize("legacy", sorted(LEGACY_MONEY_MODULES))
     def test_legacy_keys_are_gone_from_both_registries(self, legacy):
         assert legacy not in PINNABLE_MODULES
         assert legacy not in OPTIONAL_MODULES
 
-    def test_legacy_set_names_exactly_the_three_merged_keys(self):
-        assert LEGACY_MONEY_MODULES == {"banking", "expenses", "budget"}
+    def test_legacy_set_names_every_retired_money_key(self):
+        assert LEGACY_MONEY_MODULES == {"banking", "expenses", "budget", "money"}
 
 
 migration = importlib.import_module("households.migrations.0011_retire_banking_module_key")

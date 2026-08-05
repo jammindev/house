@@ -21,6 +21,9 @@ from accounts.serializers import UserSerializer
 from .factories import UserFactory
 
 migration = importlib.import_module("accounts.migrations.0014_pinned_modules_money")
+split_migration = importlib.import_module(
+    "accounts.migrations.0018_pinned_modules_money_pages"
+)
 
 
 class FakeQuerySet:
@@ -102,16 +105,65 @@ class TestUnfold:
         assert row.pinned_modules == ["expenses", "tasks"]
 
 
+def split(pinned: list[str]) -> list[str]:
+    row = FakeRow(list(pinned))
+    split_migration.split_money_pin(FakeApps([row]), None)
+    return row.pinned_modules
+
+
+class TestSplitMoneyPin:
+    """« Argent » became a group of three pages (issue #562), so ``money`` has to go.
+
+    Same failure mode as the fold above, one notch worse: the sidebar sends the
+    **whole** stored list back on the next pin toggle, so a leftover key does not
+    merely lose a shortcut — it turns an unrelated toggle into a 400.
+    """
+
+    def test_money_becomes_the_first_page_of_the_group(self):
+        assert split(["money"]) == ["money_budgets"]
+
+    def test_position_is_preserved(self):
+        assert split(["money", "tasks", "stock"]) == ["money_budgets", "tasks", "stock"]
+        assert split(["tasks", "money"]) == ["tasks", "money_budgets"]
+
+    def test_an_existing_page_pin_collapses_with_the_converted_one(self):
+        assert split(["money", "money_budgets"]) == ["money_budgets"]
+
+    def test_other_keys_are_untouched(self):
+        assert split(["tasks", "stock"]) == ["tasks", "stock"]
+
+    def test_an_already_split_list_is_left_alone(self):
+        assert split(["money_accounts", "tasks"]) == ["money_accounts", "tasks"]
+
+    def test_a_row_without_money_is_not_saved(self):
+        row = FakeRow(["tasks"])
+        split_migration.split_money_pin(FakeApps([row]), None)
+        assert row.saved_fields is None
+
+    def test_a_split_row_is_saved_on_the_narrow_field(self):
+        row = FakeRow(["money"])
+        split_migration.split_money_pin(FakeApps([row]), None)
+        assert row.saved_fields == ["pinned_modules"]
+
+    def test_rollback_folds_the_pages_back(self):
+        row = FakeRow(["money_budgets", "tasks", "money_accounts"])
+        split_migration.fold_back_into_money(FakeApps([row]), None)
+        assert row.pinned_modules == ["money", "tasks"]
+
+
 @pytest.mark.django_db
 class TestSerializerAgreesWithTheMigration:
-    def test_money_is_accepted(self):
-        """The migration writes `money`; the serializer must not then reject it on
-        the next ordinary PATCH — that would lock the user out of their own pins."""
+    @pytest.mark.parametrize(
+        "key", ["money_budgets", "money_expenses", "money_accounts"]
+    )
+    def test_the_money_pages_are_accepted(self, key):
+        """The migration writes these keys; the serializer must not then reject them
+        on the next ordinary PATCH — that would lock the user out of their own pins."""
         user = UserFactory()
-        serializer = UserSerializer(user, data={"pinned_modules": ["money"]}, partial=True)
+        serializer = UserSerializer(user, data={"pinned_modules": [key]}, partial=True)
         assert serializer.is_valid(), serializer.errors
 
-    @pytest.mark.parametrize("legacy", ["banking", "expenses", "budget"])
+    @pytest.mark.parametrize("legacy", ["banking", "expenses", "budget", "money"])
     def test_legacy_keys_are_refused(self, legacy):
         user = UserFactory()
         serializer = UserSerializer(user, data={"pinned_modules": [legacy]}, partial=True)

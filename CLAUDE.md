@@ -425,29 +425,45 @@ Doc : `docs/parcours/PARCOURS_26_CONFORMITE_ARGENT.md` + section « Conformité 
   est invérifiable. Régression :
   `banking/tests/test_expense_marker.py::TestTheMarkerAgreesWithTheControl`.
 
-#### Le module « Argent » — une seule clé, cinq onglets
+#### Le groupe « Argent » — trois pages, une seule famille d'URLs
 
-Comptes, dépenses et budgets sont **un seul module** (`money`, `/app/money`), à
-onglets : Contrôle / À ranger / Comptes / Dépenses / Budgets. Doc :
-`docs/MODULES/money.md`.
+Comptes, dépenses et budgets sont **trois pages d'un groupe de sidebar** (`money`),
+dans cet ordre : Budgets (`/app/money/budgets`), Dépenses (`/app/money/expenses`),
+Comptes (`/app/money/accounts`). Doc : `docs/MODULES/money.md`.
 
-- **Ne pas recréer d'entrée de sidebar** pour `banking`, `expenses` ou `budget` :
-  ces clés n'existent plus dans `MODULES` ni dans `households.modules`. `money` est
-  **core** (non désactivable) — conséquence assumée : les comptes bancaires ne sont
-  plus un opt-in.
+- **Contrôle et « À ranger » restent des onglets de la page Comptes**, qui ouvre
+  sur Comptes. Ils ne portent que sur ce que les relevés laissent en suspens : en
+  faire des destinations obligerait à changer d'écran pour agir sur ce qu'on vient
+  d'y lire. Et une entrée de sidebar qui annonce les comptes et ouvre autre chose
+  fait douter du clic.
+- **Les clés de module sont `money_budgets` / `money_expenses` / `money_accounts`**,
+  identiques des deux côtés (`ui/src/lib/modules.ts`,
+  `households.modules.PINNABLE_MODULES`). Ne pas ressusciter `banking`, `expenses`,
+  `budget` ni `money` : ce sont des `LEGACY_MONEY_MODULES`. Toutes sont **core**
+  (non désactivables) — conséquence assumée : les comptes bancaires ne sont plus un
+  opt-in. ⚠️ **Renommer une clé de nav se livre avec sa data migration** : la
+  sidebar renvoie la liste **entière** de `pinned_modules` au prochain épinglage,
+  donc une clé morte ne perd pas seulement un raccourci, elle transforme un geste
+  sans rapport en 400 (`accounts.0014` puis `accounts.0018`).
 - Toute nouvelle URL de la famille argent vit sous `/app/money` — y compris
   `/app/money/recurring` et `/app/money/reports`, entrées dans la famille en juillet
   2026. Les anciennes redirigent en **préservant la query string** :
-  `LegacyMoneyRedirect` pour les trois onglets (l'agent produit `/app/budget?b={id}`),
-  `PreserveQueryRedirect` pour les sous-pages (`?r={id}`) — ne pas remplacer par un
-  `<Navigate to>` en dur, qui perd le paramètre et transforme un lien précis en lien
-  faux. **Un `url_template` d'agent de cette famille doit pointer directement sous
-  `/app/money`**, jamais via une redirection : une redirection rattrape un ancien
+  `MoneyTabRedirect` pour `/app/money` et les trois anciennes pages (l'agent
+  produisait `/app/budget?b={id}`), `PreserveQueryRedirect` pour les sous-pages
+  (`?r={id}`) — ne pas remplacer par un `<Navigate to>` en dur, qui perd le
+  paramètre et transforme un lien précis en lien faux. `MoneyTabRedirect` **lit
+  `?tab=` pour choisir la page** et ne le laisse survivre que sur Comptes, seule
+  page à avoir encore des onglets : un paramètre qui ne pilote plus rien se recopie
+  dans un favori en promettant le contraire. La résolution vit dans
+  `ui/src/lib/moneyRedirect.ts`, testée sans routeur.
+- **Un `url_template` d'agent de cette famille doit pointer directement sur la
+  page**, jamais via une redirection — ni `/app/budget`, ni `/app/money?tab=budgets`
+  qui n'est plus qu'une redirection à son tour. Une redirection rattrape un ancien
   lien, elle ne justifie pas d'en produire de nouveaux. Tenu par
   `agent/tests/test_registry.py::test_the_money_family_links_stay_inside_the_money_module`.
 - Les panneaux (`AccountsPanel`, `ExpensesPanel`, `BudgetsPanel`) n'ont **pas** de
-  `PageHeader` : la coque porte le titre. Un panneau qui en ajoute un produit deux
-  `h1`.
+  `PageHeader` : la page qui les enveloppe porte le titre. Un panneau qui en ajoute
+  un produit deux `h1`.
 - Une pastille de budget de la file « À ranger » n'apparaît que sur une ligne
   **entièrement** non ventilée : l'écriture d'une ventilation est un remplacement
   complet, donc un raccourci sur une ligne partielle détruirait le travail déjà

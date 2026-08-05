@@ -4088,13 +4088,9 @@
   },
   "money": {
     "title": "Money",
-    "description": "Accounts, expenses and budgets — statements are the source of truth.",
     "tabs": {
       "control": "Control",
-      "pending": "To sort",
-      "accounts": "Accounts",
-      "expenses": "Expenses",
-      "budgets": "Budgets"
+      "pending": "To sort"
     },
     "compliance": {
       "clean": "Everything checks out",

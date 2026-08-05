@@ -38,7 +38,7 @@ async function deleteAllBudgets(page: import('@playwright/test').Page): Promise<
 
 test.describe('Champs décimaux — la virgule du clavier français', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/app/money?tab=budgets');
+    await page.goto('/app/money/budgets');
     await expect(page).toHaveURL(/\/app\/money/);
     await deleteAllBudgets(page);
     await page.reload();

@@ -32,10 +32,10 @@ test.describe('Budgets — navigation par mois', () => {
   test.beforeEach(async ({ page }) => {
     // La période est persistée en session : repartir du mois en cours, sinon un
     // test précédent décide de ce que celui-ci voit.
-    await page.goto('/app/money?tab=budgets');
+    await page.goto('/app/money/budgets');
     await page.evaluate(() => sessionStorage.removeItem('budget.period'));
     await page.reload();
-    await expect(page.getByRole('heading', { level: 1, name: 'Argent' })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1, name: 'Budgets' })).toBeVisible();
   });
 
   test('le panneau ouvre sur le mois en cours', async ({ page }) => {
@@ -124,10 +124,10 @@ test.describe('Budgets — navigation par mois', () => {
  */
 test.describe('Budgets — le plafond ne se compare qu’à un mois', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/app/money?tab=budgets');
+    await page.goto('/app/money/budgets');
     await page.evaluate(() => sessionStorage.removeItem('budget.period'));
     await page.reload();
-    await expect(page.getByRole('heading', { level: 1, name: 'Argent' })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1, name: 'Budgets' })).toBeVisible();
   });
 
   test('la barre de progression disparaît sur une fenêtre qui n’est pas un mois', async ({

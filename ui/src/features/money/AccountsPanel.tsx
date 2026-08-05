@@ -33,12 +33,12 @@ import {
 } from './balanceWindow';
 
 /**
- * Onglet « Comptes » du module Argent (parcours 26, lot 2).
+ * Onglet « Comptes » de la page Comptes (parcours 26 lot 2, puis issue #562).
  *
  * Anciennement `banking/BankingPage`. Le contenu est inchangé : seul le
- * `PageHeader` disparaît, la coque `MoneyPage` portant désormais le titre. Les
- * actions restent dans le panneau — elles connaissent l'état d'édition local
- * (compte courant, import en cours), qu'il aurait fallu remonter sans raison.
+ * `PageHeader` disparaît, `AccountsPage` portant désormais le titre. Les actions
+ * restent dans le panneau — elles connaissent l'état d'édition local (compte
+ * courant, import en cours), qu'il aurait fallu remonter sans raison.
  */
 export default function AccountsPanel() {
   const { t } = useTranslation();

@@ -14,8 +14,8 @@ interface PreserveQueryRedirectProps {
  * qui ouvrait *une* récurrence ouvre la liste — le lien reste valide et devient
  * faux, ce qui est le pire des deux.
  *
- * Le pendant à un seul paramètre existe déjà pour les trois anciennes pages du
- * module : `LegacyMoneyRedirect`, qui ajoute en plus l'onglet.
+ * Le pendant pour les anciennes URLs de la famille argent est
+ * `MoneyTabRedirect`, qui lit en plus `?tab=` pour choisir la page d'arrivée.
  */
 export default function PreserveQueryRedirect({ to }: PreserveQueryRedirectProps) {
   const location = useLocation();

@@ -53,9 +53,9 @@ test('parcours dépenses — total mensuel + breakdown via achat de stock', asyn
   await expect(dialog).toBeHidden();
 
   // 3. Naviguer vers l'onglet Dépenses et vérifier le total
-  await page.goto('/app/money?tab=expenses');
+  await page.goto('/app/money/expenses');
   await expect(page).toHaveURL(/\/app\/money/);
-  await expect(page.getByRole('heading', { level: 1, name: 'Argent' })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1, name: 'Dépenses' })).toBeVisible();
 
   // Le total du mois courant doit refléter au moins notre achat de 150 €.
   // On évite d'asserter exactement 150,00 € pour ne pas casser si la DB

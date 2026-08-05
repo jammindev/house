@@ -113,7 +113,7 @@ class TestBootRegistry:
             )
 
     def test_the_money_family_links_stay_inside_the_money_module(self):
-        """Comptes, dépenses, budgets et récurrences sont **un** module (`money`).
+        """Comptes, dépenses, budgets et récurrences sont **une** famille d'URLs.
 
         Trois de ses entités pointaient sur `/app/banking`, `/app/expenses` et
         `/app/budget` après la fusion du parcours 26 ; deux autres sur
@@ -121,6 +121,11 @@ class TestBootRegistry:
         juillet 2026. Une redirection rattrape l'ancien lien, mais un lien de
         l'agent est produit *aujourd'hui* : le faire passer par une redirection,
         c'est accepter qu'il pointe vers une URL qu'on a décidé d'abandonner.
+
+        D'où la seconde moitié du test : `/app/money?tab=budgets` **était** une
+        page et n'est plus qu'une redirection depuis l'éclatement du module
+        (issue #562). Un lien qui la vise reste valide, donc rien ne le
+        signalerait — et c'est exactement pour ça qu'il se teste.
         """
         money = {"budget", "recurring_expense"}
         seen = set()
@@ -130,6 +135,10 @@ class TestBootRegistry:
                 assert spec.url_template.startswith("/app/money"), (
                     f"{spec.entity_type} points outside the money module: "
                     f"{spec.url_template}"
+                )
+                assert not spec.url_template.startswith("/app/money?"), (
+                    f"{spec.entity_type} goes through the `?tab=` redirect instead "
+                    f"of the page that now holds it: {spec.url_template}"
                 )
         # Sans ça, renommer une entité rendrait ce test muet au lieu de rouge.
         assert seen == money, f"entités de la famille argent introuvables : {money - seen}"

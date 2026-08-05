@@ -86,7 +86,7 @@ export default function AccountDetailPage() {
   const { id = '' } = useParams<{ id: string }>();
   const { t } = useTranslation();
   const location = useLocation();
-  const navigateBack = useNavigateBack('/app/money?tab=accounts');
+  const navigateBack = useNavigateBack('/app/money/accounts');
 
   const [editOpen, setEditOpen] = React.useState(false);
   const [importOpen, setImportOpen] = React.useState(false);
@@ -124,7 +124,7 @@ export default function AccountDetailPage() {
     return (
       <LoadError
         message={t('banking.account.notFound')}
-        link={{ to: '/app/money?tab=accounts', label: t('money.tabs.accounts') }}
+        link={{ to: '/app/money/accounts', label: t('banking.title') }}
       />
     );
   }
@@ -150,7 +150,7 @@ export default function AccountDetailPage() {
     <>
       <PageHeader
         backLink={
-          <BackLink fallback="/app/money?tab=accounts" fallbackLabel={t('money.tabs.accounts')} />
+          <BackLink fallback="/app/money/accounts" fallbackLabel={t('banking.title')} />
         }
         title={
           <span className="flex items-center gap-2">

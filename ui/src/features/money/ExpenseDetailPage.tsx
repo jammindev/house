@@ -62,7 +62,7 @@ export default function ExpenseDetailPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
-  const navigateBack = useNavigateBack('/app/money?tab=expenses');
+  const navigateBack = useNavigateBack('/app/money/expenses');
 
   const [attachOpen, setAttachOpen] = React.useState(false);
   const [refundOpen, setRefundOpen] = React.useState(false);
@@ -89,7 +89,7 @@ export default function ExpenseDetailPage() {
     return (
       <LoadError
         message={t('interactions.error_load_failed')}
-        link={{ to: '/app/money?tab=expenses', label: t('money.tabs.expenses') }}
+        link={{ to: '/app/money/expenses', label: t('expenses.title') }}
       />
     );
   }
@@ -106,7 +106,7 @@ export default function ExpenseDetailPage() {
       <div className="space-y-6">
         <PageHeader
           backLink={
-            <BackLink fallback="/app/money?tab=expenses" fallbackLabel={t('money.tabs.expenses')} />
+            <BackLink fallback="/app/money/expenses" fallbackLabel={t('expenses.title')} />
           }
           title={expense.subject}
           titleSuffix={
@@ -181,7 +181,7 @@ export default function ExpenseDetailPage() {
             <InfoField label={t('purchase.fields.budget')}>
               {budget ? (
                 <Link
-                  to="/app/money?tab=budgets"
+                  to="/app/money/budgets"
                   state={pushBack(location)}
                   className="font-medium text-primary hover:underline"
                 >
