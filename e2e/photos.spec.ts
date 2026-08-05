@@ -15,11 +15,13 @@ test('affiche la page des photos', async ({ page }) => {
 });
 
 test('téléverse une photo depuis la page Photos', async ({ page }) => {
-  await page.getByRole('button', { name: 'Téléverser des photos' }).first().click();
+  // « Ajouter des photos » (`photos.upload_title`) — le bouton et le titre du
+  // dialog partagent la clé, et le test cherchait encore l'ancien libellé.
+  await page.getByRole('button', { name: 'Ajouter des photos' }).first().click();
 
   const dialog = page.getByRole('dialog');
   await expect(dialog).toBeVisible();
-  await expect(dialog.getByText('Téléverser des photos')).toBeVisible();
+  await expect(dialog.getByText('Ajouter des photos')).toBeVisible();
 
   // Le sélecteur de type ne doit pas apparaître en mode photo
   await expect(dialog.locator('#upload-type')).toHaveCount(0);
