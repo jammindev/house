@@ -1,6 +1,7 @@
 # Parcours 28 — Backlog technique : ouvrir Maisonnée
 
-> **État au 2026-08-03** — lots 0, 1, 2, 3 et 4 livrés ; lot 1bis partiel.
+> **État au 2026-08-05** — lots 0, 1, 2, 3, 4 et 5 livrés ; lot 1bis partiel.
+> Première release publiée : **`v0.1.0`**.
 > Chantier technique transverse : rendre le projet publiable, installable par un
 > tiers et défendable une fois exposé. Aucune feature métier.
 
@@ -21,7 +22,7 @@ Issue ombrelle : **#485**
 | 2 | `docker compose up` — première installation en une commande | ✅ Livré | #488 |
 | 3 | Dégradation propre sans service tiers (IA, SMTP, push, Telegram) | ✅ Livré | #489 |
 | 4 | LICENSE AGPL-3.0 + gouvernance (CONTRIBUTING, SECURITY, DCO, templates) | ✅ Livré (PR #496) | #490 |
-| 5 | Exploitation par un tiers : sauvegarde, restauration testée, mises à jour, releases | 🔄 Partiel — doc, scripts et CI livrés ; **reste le premier tag** | #491 |
+| 5 | Exploitation par un tiers : sauvegarde, restauration testée, mises à jour, releases | ✅ Livré (PR #549, #561) — `v0.1.0` publiée | #491 |
 | 6 | Façade Maisonnée : README bilingue, captures, GIF, identité | ⬜ À faire | #492 |
 | 7 | Recette pilote (5-10 foyers) puis annonce et mesure de la rétention | ⬜ À faire | #493 |
 | 8 | Identité visuelle : logo, palette de marque, icônes, aperçu social | ⬜ À faire | #494 |
@@ -580,10 +581,29 @@ une sauvegarde.
 > `DEPLOYMENT.md` annonce en première ligne qu'il décrit le déploiement de
 > l'auteur et renvoie vers `docs/self-hosting/`.
 >
-> **Reste, et ce sont deux décisions, pas du code** : supprimer `v1.0.0` et
-> poser `v0.1.0` (critère 3), puis basculer le paquet `ghcr` en public. Le
-> premier tag prouve ou casse le build arm64 — critère 4 du lot 2, en attente
-> depuis le lot 2.
+> **Le tag, posé le 2026-08-04.** `v1.0.0` supprimé (aucune Release ne lui était
+> attachée, rien ne le lisait) ; **`v0.1.0`** publiée. Le run a fait ce qu'on lui
+> demandait : round-trip de sauvegarde **bloquant** vert, image `amd64` +
+> `arm64` poussée, image démarrée, notes de première release générées — et la
+> branche « pas de tag antérieur » a bien produit l'intro courte au lieu de
+> dérouler huit cents commits.
+>
+> **Deux défauts trouvés en vérifiant la release, corrigés.** ① Le test de
+> démarrage tournait **sans `--platform`** : il ne lançait que l'amd64, et le
+> manifeste arm64 partait sans que personne ne l'ait jamais démarré — alors que
+> le workflow porte lui-même la phrase « une image qu'on n'a pas démarrée est un
+> espoir publié ». Construire ne prouve rien du démarrage : une roue native pour
+> la mauvaise architecture ne se voit qu'à l'import. ② Le chemin
+> `workflow_dispatch` de republication nommait l'image d'après `github.ref`,
+> donc `main` : l'entrée existait pour republier sans re-tagger, et elle ne
+> décidait pas du nom.
+>
+> **Reste un clic, non scriptable** : le paquet `ghcr` naît **privé** même sur un
+> dépôt public — GitHub n'expose aucun endpoint REST pour sa visibilité. Sans ce
+> passage en public, le `docker compose up` d'un inconnu échoue sur `denied`, ce
+> qui ressemble à un bug et n'en est pas un. C'est aussi ce qui bloque la
+> vérification finale du critère 4 du lot 2 : tant que le paquet est privé, on ne
+> peut pas tirer l'image arm64 depuis l'extérieur pour la démarrer.
 >
 > **Trois écarts au plan.** ① `backup_db.sh` **n'archive pas** `media/` en
 > propre : il archive le **répertoire d'état**, qui porte les fichiers *et* la

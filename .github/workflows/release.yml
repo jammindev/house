@@ -65,10 +65,24 @@ jobs:
         uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
         with:
           images: ghcr.io/${{ github.repository_owner }}/maisonnee
+          # `value=` est ce qui fait marcher la republication.
+          #
+          # Par défaut ces motifs lisent `github.ref`, qui vaut `refs/heads/main`
+          # sur un `workflow_dispatch` : la version ne se déduisait alors d'aucun
+          # tag, et republier `v0.1.0` aurait poussé une image nommée `main`.
+          # L'entrée existe précisément pour republier sans re-tagger — elle ne
+          # servait à rien tant qu'elle ne décidait pas aussi du nom.
+          #
+          # Vide (déclenchement par tag), `value=` retombe sur la ref git.
           tags: |
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=raw,value=latest,enable=${{ !contains(github.ref, '-') }}
+            type=semver,pattern={{version}},value=${{ inputs.tag }}
+            type=semver,pattern={{major}}.{{minor}},value=${{ inputs.tag }}
+            # Même raison : sur une republication, c'est le tag demandé qui dit
+            # s'il s'agit d'une préversion, pas la branche depuis laquelle on
+            # déclenche. (Limite assumée : republier une version ancienne
+            # déplace `latest` — la republication sert à réparer un échec de
+            # registre sur la dernière, pas à ressusciter une vieille.)
+            type=raw,value=latest,enable=${{ !contains(inputs.tag || github.ref, '-') }}
 
       - uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
         with:
