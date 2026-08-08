@@ -4,6 +4,7 @@ import ModuleRoute from './components/ModuleRoute';
 import MoneyTabRedirect from './components/MoneyTabRedirect';
 import PreserveQueryRedirect from './components/PreserveQueryRedirect';
 import LoginPage from './features/auth/LoginPage';
+import SignupPage from './features/auth/SignupPage';
 import ForgotPasswordPage from './features/auth/ForgotPasswordPage';
 import ResetPasswordPage from './features/auth/ResetPasswordPage';
 import JoinHouseholdPage from './features/auth/JoinHouseholdPage';
@@ -77,6 +78,10 @@ export const router = createBrowserRouter([
   {
     path: '/login',
     element: <LoginPage />,
+  },
+  {
+    path: '/signup',
+    element: <SignupPage />,
   },
   {
     path: '/forgot-password',
