@@ -1,0 +1,73 @@
+# Préparer la prochaine version, et la publier quand on décide de la publier.
+#
+# ── Pourquoi cet outil, et pourquoi pas l'automatisation totale ───────────────
+#
+# `release.yml` porte une décision écrite : une image que quelqu'un installe est
+# une **release**, donc elle se déclenche sur un tag, jamais sur un push. C'est
+# juste, et publier automatiquement à chaque merge la casserait — « j'ai la
+# dernière version » redeviendrait une phrase sans contenu.
+#
+# Mais le défaut réel n'était pas l'absence d'automatisation : `v0.1.0` est
+# restée seule pendant neuf jours pendant que toute la façade était livrée, et un
+# inconnu qui installait recevait une app appelée « House », sans logo. Personne
+# n'avait décidé de ne pas publier — personne n'y avait pensé.
+#
+# D'où release-please, qui n'automatise pas la décision mais la **rend visible** :
+# il tient en permanence une PR « release X.Y.Z » qui s'enrichit à chaque merge.
+# Le numéro et les notes sont calculés depuis les commits — ce qui ne marche que
+# parce que `type(scope): description` est déjà un contrat dans ce dépôt, imposé
+# pour le changelog in-app. Publier reste un geste : fusionner cette PR.
+#
+# ── ⚠️ Le piège qui aurait tout cassé en silence ──────────────────────────────
+#
+# Un tag poussé avec le `GITHUB_TOKEN` par défaut **ne déclenche aucun workflow**
+# (protection anti-boucle de GitHub). Le câblage évident — release-please pousse
+# le tag, `release.yml` écoute `push: tags` — aurait donc créé le tag et la
+# release, et **jamais construit l'image**. Aucune erreur, aucun job rouge : juste
+# une release qui annonce une version que le registre n'a pas.
+#
+# On n'y remédie donc pas par un déclencheur mais par un **appel** : `release.yml`
+# est `workflow_call`, et on l'invoque ici. Son entrée `tag` existait déjà, écrite
+# pour la republication.
+name: Release Please
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-please
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    name: Tenir la PR de release à jour
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    outputs:
+      release_created: ${{ steps.rp.outputs.release_created }}
+      tag_name: ${{ steps.rp.outputs.tag_name }}
+    steps:
+      - id: rp
+        uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
+        with:
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+  # Ne tourne que sur le push qui **fusionne** la PR de release — c'est le seul
+  # moment où `release_created` est vrai.
+  publish:
+    name: Publier l'image de cette version
+    needs: [prepare]
+    if: needs.prepare.outputs.release_created == 'true'
+    permissions:
+      contents: write
+      packages: write
+    uses: ./.github/workflows/release.yml
+    with:
+      tag: ${{ needs.prepare.outputs.tag_name }}

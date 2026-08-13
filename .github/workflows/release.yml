@@ -23,6 +23,19 @@ on:
       tag:
         description: "Tag git à publier (ex. v0.1.0)"
         required: true
+  # Appelé par `release-please.yml` quand la PR de release est fusionnée.
+  #
+  # ⚠️ C'est un **appel**, pas un déclencheur, et ce n'est pas un détail de
+  # style : un tag poussé avec le `GITHUB_TOKEN` ne déclenche aucun workflow
+  # (protection anti-boucle de GitHub). Le `push: tags` ci-dessus ne verrait
+  # donc jamais le tag de release-please, et l'image ne serait jamais construite
+  # — sans une ligne rouge nulle part.
+  workflow_call:
+    inputs:
+      tag:
+        description: "Tag git à publier (ex. v0.1.0)"
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -122,12 +135,24 @@ jobs:
               python manage.py check --deploy --fail-level ERROR
           done
 
-  # Les notes de release, écrites depuis l'historique.
+  # Ce que les notes de release disent **en plus** de la liste des changements.
   #
-  # `docs/self-hosting/releases.md` promet deux choses à qui met à jour : ce qui
-  # a changé, et **si la version contient une migration**. La seconde est la plus
-  # utile et la moins évidente à retrouver soi-même — c'est elle qui décide s'il
-  # faut sauvegarder avant, et si un retour en arrière est encore possible.
+  # Depuis release-please, la liste est écrite par lui : il la calcule depuis les
+  # commits, en sections, et il crée la release en même temps que le tag. Ce
+  # job ne la recompose donc plus — il **ajoute** ce que release-please ne peut
+  # pas savoir, et qui est justement le plus utile à qui met à jour : **est-ce
+  # que cette version contient une migration ?** Ça ne se lit pas dans un sujet
+  # de commit, ça se lit dans le diff des fichiers de migration. C'est cette
+  # ligne qui décide s'il faut sauvegarder avant, et si le retour en arrière est
+  # encore une simple bascule d'image.
+  #
+  # Le chemin « aucune release n'existe » reste écrit : un `git tag` à la main
+  # court-circuite release-please, et une release sans notes serait pire qu'une
+  # release aux notes minimales.
+  #
+  # **En anglais**, comme le README et `docs/self-hosting/` : le lecteur est
+  # l'inconnu qui met à jour son instance (`CLAUDE.md` § Langue). Les notes de
+  # `v0.1.0` étaient en français — c'était un écart, pas un choix.
   #
   # Après `image`, jamais avant : annoncer une version dont l'image n'est pas
   # publiée envoie les gens tirer quelque chose qui n'existe pas.
@@ -146,71 +171,94 @@ jobs:
           # antérieur et toute release se croirait la première.
           fetch-depth: 0
 
-      - name: Composer les notes
-        id: compose
+      - name: Composer le complément « mise à jour »
         env:
           TAG: ${{ inputs.tag || github.ref_name }}
         run: |
           set -euo pipefail
 
-          # Le tag précédent, s'il y en a un. La toute première release n'en a
-          # pas : elle ne peut donc pas lister « ce qui a changé depuis », et
-          # prétendre le contraire en déroulant tout l'historique ne renseigne
-          # personne.
+          # Le tag précédent, s'il y en a un. La toute première release n'a rien
+          # à comparer : elle ne peut donc pas dire si « cette version » ajoute
+          # une migration, puisqu'elle les contient toutes.
           previous="$(git describe --tags --abbrev=0 "$TAG^" 2>/dev/null || true)"
 
           {
+            echo
+            echo "---"
+            echo
+            # Le signal qui décide d'une sauvegarde préalable. C'est la seule
+            # information de ces notes qu'aucune lecture des sujets de commit ne
+            # donne, et la plus coûteuse à retrouver soi-même.
             if [ -z "$previous" ]; then
-              echo "Première release publiée de Maisonnée."
-              echo
-              echo "Installation, sauvegarde et mise à jour :"
-              echo "[docs/self-hosting](https://github.com/${GITHUB_REPOSITORY}/blob/${TAG}/docs/self-hosting/README.md)."
-              range="$TAG"
+              : # rien à comparer
+            elif git diff --name-only "$previous..$TAG" -- '*/migrations/*.py' | grep -q .; then
+              echo "> ⚠️ **This release contains a database migration.**"
+              echo "> Back up before upgrading — rolling back is no longer a matter of"
+              echo "> switching the image tag:"
+              echo "> [backup and restore](https://github.com/${GITHUB_REPOSITORY}/blob/${TAG}/docs/self-hosting/backup-restore.md)."
             else
-              range="$previous..$TAG"
-              echo "Changements depuis \`$previous\`."
-              echo
-              # Seuls `feat`, `fix` et `perf` : le reste est interne, et une
-              # liste où les refactors côtoient les corrections se lit comme du
-              # bruit — même contrat que le changelog in-app.
-              if git log --no-merges --pretty=%s "$range" \
-                   | grep -E '^(feat|fix|perf)(\([^)]*\))?:' > /tmp/user_facing.txt; then
-                sed 's/^/- /' /tmp/user_facing.txt
-              else
-                echo "_Aucun changement visible par l'utilisateur._"
-              fi
+              echo "> No database migration in this release."
             fi
 
             echo
-            # Le signal qui décide d'une sauvegarde préalable.
-            if [ -n "$previous" ] && git diff --name-only "$range" -- '*/migrations/*.py' | grep -q .; then
-              echo "> ⚠️ **Cette version contient une migration de base de données.**"
-              echo "> Sauvegarde avant de mettre à jour, et le retour en arrière n'est"
-              echo "> plus une simple bascule d'image :"
-              echo "> [backup-restore](https://github.com/${GITHUB_REPOSITORY}/blob/${TAG}/docs/self-hosting/backup-restore.md)."
-            elif [ -n "$previous" ]; then
-              echo "> Aucune migration de base de données dans cette version."
-            fi
-
+            echo "Upgrade:"
             echo
             echo '```bash'
             echo "docker compose pull && docker compose up -d"
             echo '```'
-          } > /tmp/notes.md
+            echo
+            echo "Install, back up and upgrade:"
+            echo "[docs/self-hosting](https://github.com/${GITHUB_REPOSITORY}/blob/${TAG}/docs/self-hosting/README.md)."
+          } > /tmp/supplement.md
 
-          cat /tmp/notes.md
+          cat /tmp/supplement.md
 
-      - name: Publier la release
+      - name: Compléter la release
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ inputs.tag || github.ref_name }}
         run: |
           set -euo pipefail
-          # Idempotent : republier une image sans re-tagger (le `workflow_dispatch`
-          # existe pour ça) ne doit pas échouer sur une release déjà là.
+
           if gh release view "$TAG" >/dev/null 2>&1; then
+            # Le cas normal : release-please a créé la release avec sa liste de
+            # changements, on ajoute le complément à la suite.
+            #
+            # ⚠️ **Idempotent.** Republier une image sans re-tagger (le
+            # `workflow_dispatch` existe pour ça) rejouerait ce job : sans ce
+            # garde, la release accumulerait un bloc « mise à jour » par
+            # republication.
+            body="$(gh release view "$TAG" --json body --jq .body)"
+            if printf '%s' "$body" | grep -q 'docker compose pull'; then
+              echo "Complément déjà présent — rien à ajouter."
+              exit 0
+            fi
+            printf '%s\n' "$body" > /tmp/notes.md
+            cat /tmp/supplement.md >> /tmp/notes.md
             gh release edit "$TAG" --notes-file /tmp/notes.md
           else
+            # Aucune release : un `git tag` posé à la main, qui court-circuite
+            # release-please. On retombe sur la liste dérivée des commits — des
+            # notes minimales valent mieux qu'une release muette.
+            previous="$(git describe --tags --abbrev=0 "$TAG^" 2>/dev/null || true)"
+            {
+              if [ -z "$previous" ]; then
+                echo "First published release of Maisonnée."
+              else
+                echo "Changes since \`$previous\`."
+                echo
+                # Seuls `feat`, `fix` et `perf` : le reste est interne, et une
+                # liste où les refactors côtoient les corrections se lit comme
+                # du bruit — même contrat que le changelog in-app.
+                if git log --no-merges --pretty=%s "$previous..$TAG" \
+                     | grep -E '^(feat|fix|perf)(\([^)]*\))?:' > /tmp/user_facing.txt; then
+                  sed 's/^/- /' /tmp/user_facing.txt
+                else
+                  echo "_No user-facing changes._"
+                fi
+              fi
+            } > /tmp/notes.md
+            cat /tmp/supplement.md >> /tmp/notes.md
             gh release create "$TAG" \
               --title "$TAG" \
               --notes-file /tmp/notes.md \
