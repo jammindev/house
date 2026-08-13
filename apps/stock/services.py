@@ -12,12 +12,14 @@ directly: routing every write through here keeps that invariant true.
 """
 from __future__ import annotations
 
-from datetime import datetime, timedelta
+from collections import defaultdict
+from datetime import date, datetime, time, timedelta
 from decimal import Decimal
 
 from django.db import transaction
 from django.utils import timezone
 
+from core.timezones import household_today, household_tz
 from interactions.services import create_expense_interaction
 
 from .models import StockItem, StockLevelReading
@@ -29,6 +31,15 @@ CONSUMPTION_PERIOD_DAYS: dict[str, int | None] = {
     "90d": 90,
     "1y": 365,
     "all": None,
+}
+
+# Taille d'une barre du graphe de consommation. Un jour se lit sur un ou trois
+# mois ; sur un an il faudrait 365 barres pour dire ce que douze disent mieux.
+CONSUMPTION_GRANULARITY: dict[str, str] = {
+    "30d": "day",
+    "90d": "day",
+    "1y": "month",
+    "all": "month",
 }
 
 
@@ -77,6 +88,7 @@ def purchase_stock_item(
     supplier: str = "",
     brand: str = "",
     remaining_before: Decimal | None = None,
+    remaining_at: datetime | None = None,
     occurred_at: datetime | None = None,
     notes: str = "",
     budget_id=None,
@@ -92,7 +104,10 @@ def purchase_stock_item(
     ``remaining_before + delta`` (correcting drift), and an ``inventory`` level
     reading is written at that remaining level right before the ``purchase``
     reading of the new total — so the consumption curve shows the descent, then
-    the restock jump.
+    the restock jump. That count is dated ``remaining_at`` when given (an
+    imported statement antedates the expense, but the count has its own day),
+    otherwise ``occurred_at``. A count *after* the purchase is refused upstream
+    by the serializer: it would leave the last reading below the item quantity.
 
     Returns ``(item, interaction)``.
     """
@@ -113,7 +128,7 @@ def purchase_stock_item(
             item,
             quantity=remaining_before,
             kind=StockLevelReading.Kind.INVENTORY,
-            reading_at=occurred_at,
+            reading_at=remaining_at or occurred_at,
             user=user,
         )
         item.quantity = remaining_before + delta
@@ -320,20 +335,90 @@ def recent_level_readings(item: StockItem, *, limit: int = 12):
     return list(item.level_readings.order_by("-reading_at", "-created_at")[:limit])
 
 
+def _daily_consumption(readings, tz) -> dict:
+    """Spread each descent between two readings over the days it covers.
+
+    A level reading says *how much is left*, never *when it was eaten*: between
+    two counts, the only honest attribution is a uniform one — which is exactly
+    the arithmetic the headline burn rate already uses (total consumed / days
+    spanned). Deriving the bars from the same descents is what keeps the two
+    numbers from contradicting each other on the same screen. Restock jumps
+    upward are not negative consumption and are skipped.
+    """
+    daily: dict = defaultdict(Decimal)
+    for previous, current in zip(readings, readings[1:]):
+        if current.quantity >= previous.quantity:
+            continue
+        consumed = previous.quantity - current.quantity
+        start = previous.reading_at.astimezone(tz).date()
+        end = current.reading_at.astimezone(tz).date()
+        days = (end - start).days
+        if days <= 0:
+            # Two readings the same day: nothing to spread over.
+            daily[end] += consumed
+            continue
+        share = consumed / days
+        for offset in range(1, days + 1):
+            daily[start + timedelta(days=offset)] += share
+    return daily
+
+
+def _bucket_start(day: date, granularity: str) -> date:
+    return day.replace(day=1) if granularity == "month" else day
+
+
+def _next_bucket(day: date, granularity: str) -> date:
+    if granularity == "month":
+        return (day + timedelta(days=32)).replace(day=1)
+    return day + timedelta(days=1)
+
+
+def _consumption_buckets(daily: dict, *, granularity: str, tz, start: date, end: date) -> list[dict]:
+    """Aggregate the daily consumption into the window's bars, zeros included.
+
+    A missing bar and a bar at zero read very differently: the window is filled
+    end to end so an empty stretch shows as an empty stretch, not as a gap the
+    chart silently closes.
+    """
+    totals: dict = defaultdict(Decimal)
+    for day, value in daily.items():
+        if start <= day <= end:
+            totals[_bucket_start(day, granularity)] += value
+
+    buckets = []
+    cursor = _bucket_start(start, granularity)
+    while cursor <= end:
+        buckets.append(
+            {
+                "ts": datetime.combine(cursor, time.min, tzinfo=tz).isoformat(),
+                "consumed": float(round(totals.get(cursor, Decimal("0")), 3)),
+            }
+        )
+        cursor = _next_bucket(cursor, granularity)
+    return buckets
+
+
 def compute_consumption(item: StockItem, *, period: str = "90d") -> dict:
     """Build the consumption curve of an item + derived depletion metrics.
 
-    Returns the dated level points over the selected window plus a burn rate and
-    a projected depletion date. The rate is derived from the *descents* between
-    consecutive readings (restock jumps upward are excluded); the honest daily
-    average is ``total consumed / calendar days spanned``. Both metrics are
-    ``None`` when there are fewer than two points to interpolate.
+    Returns the dated level points over the selected window, the consumption
+    **bars** (per day, or per month over a year), a burn rate and a projected
+    depletion date. The rate is derived from the *descents* between consecutive
+    readings (restock jumps upward are excluded); the honest daily average is
+    ``total consumed / calendar days spanned``. Both metrics are ``None`` when
+    there are fewer than two readings to interpolate.
+
+    The last reading *before* the window anchors the computation: without it a
+    30-day window on a slow-moving item shows nothing while the item empties.
+    It never enters ``points`` — the raw curve stays what the window contains.
 
     Shape::
 
         {
           "period": "90d",
+          "granularity": "day" | "month",
           "points": [{"date": iso, "quantity": float, "kind": str}, ...],
+          "buckets": [{"ts": iso datetime, "consumed": float}, ...],
           "last_level": float,
           "points_count": int,
           "rate_per_day": float | None,
@@ -341,16 +426,24 @@ def compute_consumption(item: StockItem, *, period: str = "90d") -> dict:
         }
     """
     period_days = CONSUMPTION_PERIOD_DAYS.get(period, 90)
+    granularity = CONSUMPTION_GRANULARITY.get(period, "day")
+    tz = household_tz(item.household)
 
-    readings = StockLevelReading.objects.filter(stock_item=item)
-    if period_days is not None:
-        cutoff = timezone.now() - timedelta(days=period_days)
-        readings = readings.filter(reading_at__gte=cutoff)
-    readings = list(readings.order_by("reading_at", "created_at"))
+    stored = StockLevelReading.objects.filter(stock_item=item)
+    cutoff = timezone.now() - timedelta(days=period_days) if period_days is not None else None
+    in_window = list(
+        (stored.filter(reading_at__gte=cutoff) if cutoff else stored).order_by("reading_at", "created_at")
+    )
+    anchor = (
+        stored.filter(reading_at__lt=cutoff).order_by("-reading_at", "-created_at").first()
+        if cutoff
+        else None
+    )
+    readings = ([anchor] if anchor is not None else []) + in_window
 
     points = [
         {"date": r.reading_at.isoformat(), "quantity": float(r.quantity), "kind": r.kind}
-        for r in readings
+        for r in in_window
     ]
     last_level = float(item.quantity)
 
@@ -375,11 +468,27 @@ def compute_consumption(item: StockItem, *, period: str = "90d") -> dict:
                     timezone.now() + timedelta(days=days_left)
                 ).date().isoformat()
 
+    buckets: list[dict] = []
+    if len(readings) >= 2:
+        end = max(household_today(item.household), readings[-1].reading_at.astimezone(tz).date())
+        start = (
+            cutoff.astimezone(tz).date() if cutoff else readings[0].reading_at.astimezone(tz).date()
+        )
+        buckets = _consumption_buckets(
+            _daily_consumption(readings, tz),
+            granularity=granularity,
+            tz=tz,
+            start=min(start, end),
+            end=end,
+        )
+
     return {
         "period": period,
+        "granularity": granularity,
         "points": points,
+        "buckets": buckets,
         "last_level": last_level,
-        "points_count": len(readings),
+        "points_count": len(points),
         "rate_per_day": rate_per_day,
         "projected_depletion_date": projected_depletion_date,
     }

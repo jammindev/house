@@ -2590,7 +2590,8 @@
       "recorded": "Inventory updated",
       "fields": {
         "quantity": "Remaining quantity ({{unit}})",
-        "quantity_hint": "Enter the actual amount left — no need to compute a difference."
+        "quantity_hint": "Enter the actual amount left — no need to compute a difference.",
+        "counted_on": "Count date"
       },
       "errors": {
         "invalid": "Enter a quantity of 0 or more."
@@ -2610,7 +2611,8 @@
       "rate_value": "{{rate}} {{unit}}/day",
       "depletion": "Projected depletion",
       "last_level": "Last known level",
-      "not_enough_data": "Not enough history yet to plot a curve. Record a purchase or an inventory."
+      "not_enough_data": "Not enough history yet to plot consumption. Record a purchase or an inventory count.",
+      "consumed": "Consumed"
     }
   },
   "purchase": {
@@ -2626,7 +2628,9 @@
       "occurred_at": "Purchase date",
       "notes": "Notes",
       "budget": "Budget",
-      "budget_none": "No budget"
+      "budget_none": "No budget",
+      "remaining_at": "Count date",
+      "remaining_at_hint": "Defaults to the purchase day. Change it if you counted another day."
     },
     "price_mode": {
       "total": "Total",
@@ -2640,7 +2644,8 @@
       "delta_required": "Enter a purchased quantity greater than 0.",
       "price_invalid": "Price must be positive.",
       "save_failed": "Could not save the purchase.",
-      "remaining_invalid": "Remaining quantity must be positive."
+      "remaining_invalid": "Remaining quantity must be positive.",
+      "remaining_at_after_purchase": "The count cannot be later than the purchase — record a separate inventory instead."
     }
   },
   "admin": {

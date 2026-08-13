@@ -358,3 +358,168 @@ def test_edit_without_quantity_change_records_no_reading(client, user, category,
 
     assert response.status_code == 200
     assert _readings(item) == []
+
+
+# --- Dater soi-même un comptage (#575) ---------------------------------------
+
+
+@pytest.mark.django_db
+def test_inventory_accepts_a_chosen_date(client, user, feed, membership):
+    """Un comptage se date au jour où on a compté, pas au jour où on le saisit.
+
+    Le serveur l'acceptait déjà ; rien ne le tenait. Un relevé importé antidate
+    la dépense, et l'inventaire qui l'accompagne doit pouvoir suivre.
+    """
+    client.force_login(user)
+    counted_on = timezone.now() - timedelta(days=9)
+
+    response = client.post(
+        _inventory_url(feed),
+        data={"quantity": "8.5", "occurred_at": counted_on.isoformat()},
+        content_type="application/json",
+    )
+
+    assert response.status_code == 200, response.content
+    readings = _readings(feed)
+    assert len(readings) == 1
+    assert abs((readings[0].reading_at - counted_on).total_seconds()) < 1
+
+
+@pytest.mark.django_db
+def test_purchase_dates_the_remaining_count_on_its_own_day(client, user, feed, membership):
+    """La quantité restante se compte un jour, l'achat se fait un autre.
+
+    Sans `remaining_at`, la lecture `inventory` héritait de la date de la
+    dépense : la courbe racontait la date de saisie, pas celle du comptage.
+    """
+    client.force_login(user)
+    bought_on = timezone.now() - timedelta(days=2)
+    counted_on = timezone.now() - timedelta(days=5)
+
+    response = client.post(
+        _purchase_url(feed),
+        data={
+            "delta": "20",
+            "amount": "30",
+            "remaining_before": "0.5",
+            "occurred_at": bought_on.isoformat(),
+            "remaining_at": counted_on.isoformat(),
+        },
+        content_type="application/json",
+    )
+
+    assert response.status_code == 201, response.content
+    readings = _readings(feed)
+    assert len(readings) == 2
+    assert readings[0].kind == StockLevelReading.Kind.INVENTORY
+    assert abs((readings[0].reading_at - counted_on).total_seconds()) < 1
+    assert readings[1].kind == StockLevelReading.Kind.PURCHASE
+    assert abs((readings[1].reading_at - bought_on).total_seconds()) < 1
+
+
+@pytest.mark.django_db
+def test_purchase_refuses_a_remaining_count_after_the_purchase(client, user, feed, membership):
+    """« Restant avant » veut dire avant : un comptage postérieur est un refus.
+
+    L'accepter écrirait la dernière lecture *sous* la quantité de l'article et
+    casserait l'invariant (dernière lecture == quantité). Le geste existe : un
+    inventaire à part, avec sa propre date.
+    """
+    client.force_login(user)
+    bought_on = timezone.now() - timedelta(days=5)
+
+    response = client.post(
+        _purchase_url(feed),
+        data={
+            "delta": "20",
+            "remaining_before": "0.5",
+            "occurred_at": bought_on.isoformat(),
+            "remaining_at": (bought_on + timedelta(days=1)).isoformat(),
+        },
+        content_type="application/json",
+    )
+
+    assert response.status_code == 400, response.content
+    feed.refresh_from_db()
+    assert feed.quantity == Decimal("2.000")
+    assert _readings(feed) == []
+
+
+# --- La consommation se lit en barres (#575) ---------------------------------
+
+
+def _bucket_values(data):
+    return [b["consumed"] for b in data["buckets"]]
+
+
+@pytest.mark.django_db
+def test_consumption_spreads_a_descent_over_the_days_it_covers(client, user, feed, membership):
+    """Une descente entre deux relevés se répartit sur les jours qu'elle couvre.
+
+    C'est la même arithmétique que le « rythme de consommation » déjà affiché :
+    les deux chiffres ne peuvent donc pas se contredire.
+    """
+    client.force_login(user)
+    now = timezone.now()
+    record_inventory(item=feed, user=user, quantity=Decimal("10"), occurred_at=now - timedelta(days=10))
+    record_inventory(item=feed, user=user, quantity=Decimal("2"), occurred_at=now)
+
+    data = client.get(_consumption_url(feed)).json()
+
+    assert data["granularity"] == "day"
+    values = _bucket_values(data)
+    assert sum(values) == pytest.approx(8.0, abs=0.01)
+    # 8 kg sur 10 jours = 0.8/jour, et le reste de la fenêtre à zéro.
+    assert sorted(set(round(v, 3) for v in values)) == [0.0, 0.8]
+    assert len([v for v in values if v > 0]) == 10
+    # Une barre par jour de la fenêtre, zéros compris.
+    assert len(values) >= 90
+
+
+@pytest.mark.django_db
+def test_consumption_buckets_by_month_over_a_year(client, user, feed, membership):
+    """Sur un an, une barre par mois — 365 barres quotidiennes ne se lisent pas."""
+    client.force_login(user)
+    now = timezone.now()
+    record_inventory(item=feed, user=user, quantity=Decimal("30"), occurred_at=now - timedelta(days=200))
+    record_inventory(item=feed, user=user, quantity=Decimal("0"), occurred_at=now)
+
+    data = client.get(_consumption_url(feed), {"period": "1y"}).json()
+
+    assert data["granularity"] == "month"
+    values = _bucket_values(data)
+    assert 12 <= len(values) <= 14
+    assert sum(values) == pytest.approx(30.0, abs=0.05)
+
+
+@pytest.mark.django_db
+def test_consumption_anchors_on_the_last_reading_before_the_window(client, user, feed, membership):
+    """Une fenêtre courte sur un article lent n'a rien à montrer sans ancre.
+
+    Le dernier relevé *avant* la fenêtre est ce qui rend la descente lisible sur
+    30 jours ; sans lui l'écran annonce « pas assez de données » alors que
+    l'article se vide sous les yeux de son propriétaire.
+    """
+    client.force_login(user)
+    now = timezone.now()
+    record_inventory(item=feed, user=user, quantity=Decimal("12"), occurred_at=now - timedelta(days=60))
+    record_inventory(item=feed, user=user, quantity=Decimal("0"), occurred_at=now)
+
+    data = client.get(_consumption_url(feed), {"period": "30d"}).json()
+
+    # Un seul relevé dans la fenêtre — le contrat de `points` ne bouge pas.
+    assert data["points_count"] == 1
+    values = _bucket_values(data)
+    # 12 kg sur 60 jours = 0.2/jour, dont 30 jours tombent dans la fenêtre.
+    assert sum(values) == pytest.approx(6.0, abs=0.25)
+    assert data["rate_per_day"] == pytest.approx(0.2, abs=0.01)
+
+
+@pytest.mark.django_db
+def test_consumption_without_two_readings_has_no_buckets(client, user, feed, membership):
+    """Un seul relevé ne fait pas une consommation — pas de barres à zéro."""
+    client.force_login(user)
+    record_inventory(item=feed, user=user, quantity=Decimal("10"))
+
+    data = client.get(_consumption_url(feed)).json()
+    assert data["buckets"] == []

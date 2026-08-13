@@ -2590,7 +2590,8 @@
       "recorded": "Inventaire mis à jour",
       "fields": {
         "quantity": "Quantité restante ({{unit}})",
-        "quantity_hint": "Saisis la quantité réellement restante — pas besoin de calculer un écart."
+        "quantity_hint": "Saisis la quantité réellement restante — pas besoin de calculer un écart.",
+        "counted_on": "Date du comptage"
       },
       "errors": {
         "invalid": "Indique une quantité de 0 ou plus."
@@ -2610,7 +2611,8 @@
       "rate_value": "{{rate}} {{unit}}/jour",
       "depletion": "Rupture estimée",
       "last_level": "Dernier niveau connu",
-      "not_enough_data": "Pas encore assez d'historique pour tracer une courbe. Enregistre un achat ou un inventaire."
+      "not_enough_data": "Pas encore assez d'historique pour tracer une consommation. Enregistre un achat ou un inventaire.",
+      "consumed": "Consommé"
     }
   },
   "purchase": {
@@ -2626,7 +2628,9 @@
       "occurred_at": "Date d'achat",
       "notes": "Notes",
       "budget": "Budget",
-      "budget_none": "Aucun budget"
+      "budget_none": "Aucun budget",
+      "remaining_at": "Date du comptage",
+      "remaining_at_hint": "Par défaut le jour de l'achat. Change-la si tu as compté un autre jour."
     },
     "price_mode": {
       "total": "Total",
@@ -2640,7 +2644,8 @@
       "delta_required": "Indique une quantité achetée supérieure à 0.",
       "price_invalid": "Le prix doit être positif.",
       "save_failed": "Impossible d'enregistrer l'achat.",
-      "remaining_invalid": "La quantité restante doit être positive."
+      "remaining_invalid": "La quantité restante doit être positive.",
+      "remaining_at_after_purchase": "Le comptage ne peut pas être postérieur à l'achat — enregistre plutôt un inventaire à part."
     }
   },
   "admin": {

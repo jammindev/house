@@ -12,6 +12,7 @@ import {
   YAxis,
 } from 'recharts';
 import type { Granularity } from '@/lib/period';
+import { formatLabel, formatTick } from './ticks';
 
 // Generic stacked bar chart for time-bucketed consumption (electricity, water…).
 // Values arrive already converted to their display unit; each series is one
@@ -36,34 +37,6 @@ export interface ConsumptionChartOverlay {
   color: string;
   unit: string;
   points: { ts: string; value: number }[];
-}
-
-function formatTick(ts: string, granularity: Granularity, locale: string): string {
-  const date = new Date(ts);
-  switch (granularity) {
-    case 'hour':
-      return date.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
-    case 'day':
-      return date.toLocaleDateString(locale, { day: 'numeric' });
-    case 'month':
-      return date.toLocaleDateString(locale, { month: 'short' });
-    case 'year':
-      return date.toLocaleDateString(locale, { year: 'numeric' });
-  }
-}
-
-function formatLabel(ts: string, granularity: Granularity, locale: string): string {
-  const date = new Date(ts);
-  switch (granularity) {
-    case 'hour':
-      return date.toLocaleString(locale, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
-    case 'day':
-      return date.toLocaleDateString(locale, { weekday: 'short', day: 'numeric', month: 'short' });
-    case 'month':
-      return date.toLocaleDateString(locale, { month: 'long', year: 'numeric' });
-    case 'year':
-      return date.toLocaleDateString(locale, { year: 'numeric' });
-  }
 }
 
 interface ConsumptionBarChartProps {
@@ -103,6 +76,11 @@ export default function ConsumptionBarChart({
     }));
   }, [buckets, overlay]);
 
+  const crossesMonths = React.useMemo(
+    () => new Set(buckets.map((b) => b.ts.slice(0, 7))).size > 1,
+    [buckets],
+  );
+
   const seriesLabel = React.useCallback(
     (key: string) => {
       if (overlay && key === overlay.key) return overlay.label;
@@ -118,7 +96,7 @@ export default function ConsumptionBarChart({
           <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
           <XAxis
             dataKey="ts"
-            tickFormatter={(ts: string) => formatTick(ts, granularity, locale)}
+            tickFormatter={(ts: string) => formatTick(ts, granularity, locale, crossesMonths)}
             tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
             tickLine={false}
             axisLine={{ stroke: 'hsl(var(--border))' }}

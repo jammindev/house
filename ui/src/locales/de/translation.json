@@ -2590,7 +2590,8 @@
       "recorded": "Inventur aktualisiert",
       "fields": {
         "quantity": "Restmenge ({{unit}})",
-        "quantity_hint": "Gib die tatsächlich verbleibende Menge ein — keine Differenz berechnen."
+        "quantity_hint": "Gib die tatsächlich verbleibende Menge ein — keine Differenz berechnen.",
+        "counted_on": "Datum der Zählung"
       },
       "errors": {
         "invalid": "Gib eine Menge von 0 oder mehr an."
@@ -2610,7 +2611,8 @@
       "rate_value": "{{rate}} {{unit}}/Tag",
       "depletion": "Voraussichtlich leer",
       "last_level": "Letzter bekannter Stand",
-      "not_enough_data": "Noch nicht genug Verlauf für eine Kurve. Erfasse einen Kauf oder eine Inventur."
+      "not_enough_data": "Noch nicht genug Verlauf, um den Verbrauch darzustellen. Erfasse einen Kauf oder eine Bestandsaufnahme.",
+      "consumed": "Verbraucht"
     }
   },
   "purchase": {
@@ -2626,7 +2628,9 @@
       "occurred_at": "Kaufdatum",
       "notes": "Notizen",
       "budget": "Budget",
-      "budget_none": "Kein Budget"
+      "budget_none": "Kein Budget",
+      "remaining_at": "Datum der Zählung",
+      "remaining_at_hint": "Standardmäßig der Kauftag. Ändere es, wenn du an einem anderen Tag gezählt hast."
     },
     "price_mode": {
       "total": "Gesamt",
@@ -2640,7 +2644,8 @@
       "delta_required": "Gib eine gekaufte Menge größer als 0 an.",
       "price_invalid": "Der Preis muss positiv sein.",
       "save_failed": "Einkauf konnte nicht gespeichert werden.",
-      "remaining_invalid": "Die Restmenge muss positiv sein."
+      "remaining_invalid": "Die Restmenge muss positiv sein.",
+      "remaining_at_after_purchase": "Die Zählung darf nicht nach dem Kauf liegen — erfasse stattdessen eine separate Bestandsaufnahme."
     }
   },
   "admin": {

@@ -5,10 +5,10 @@ import { useDelayedLoading } from '@/lib/useDelayedLoading';
 import { useSessionState } from '@/lib/useSessionState';
 import WeatherOverlayToggle from '@/features/weather/WeatherOverlayToggle';
 import { useTemperatureOverlay } from '@/features/weather/overlay';
+import ConsumptionBarChart from '@/components/charts/ConsumptionBarChart';
 import type { ConsumptionPeriod } from '@/lib/api/stock';
 import { useStockConsumption } from './hooks';
 import { formatDate } from './format';
-import StockConsumptionChart from './StockConsumptionChart';
 
 const PERIODS: ConsumptionPeriod[] = ['30d', '90d', '1y', 'all'];
 
@@ -32,26 +32,34 @@ export default function StockConsumptionTab({ itemId, unit }: StockConsumptionTa
   const { data, isLoading } = useStockConsumption(itemId, period);
   const showSkeleton = useDelayedLoading(isLoading && !data);
 
-  const hasCurve = data != null && data.points_count >= 2;
+  // Le serveur ne renvoie des barres qu'à partir de deux relevés : une seule
+  // lecture de niveau ne dit rien d'une consommation.
+  const buckets = React.useMemo(() => data?.buckets ?? [], [data]);
+  const granularity = data?.granularity ?? 'day';
+  const hasCurve = data != null && buckets.length > 0;
 
   // Temperature overlay (parcours 18 lot 5) — reuses the electricity/water hook.
   const [showWeather, setShowWeather] = useSessionState<boolean>(`stock.consumption.showWeather`, false);
-  const overlayBuckets = React.useMemo(
-    () => (data?.points ?? []).map((p) => ({ ts: p.date })),
-    [data],
-  );
   const range = React.useMemo(() => {
-    const points = data?.points ?? [];
-    if (points.length === 0) return { from: '', to: '' };
-    return { from: points[0].date.slice(0, 10), to: points[points.length - 1].date.slice(0, 10) };
-  }, [data]);
+    if (buckets.length === 0) return { from: '', to: '' };
+    return { from: buckets[0].ts.slice(0, 10), to: buckets[buckets.length - 1].ts.slice(0, 10) };
+  }, [buckets]);
   const { available: weatherAvailable, overlay: weatherOverlay } = useTemperatureOverlay({
     from: range.from,
     to: range.to,
-    granularity: 'day',
-    buckets: overlayBuckets,
+    granularity,
+    buckets,
     show: showWeather,
   });
+
+  const series = React.useMemo(
+    () => [{ key: 'consumed', label: t('stock.consumption.consumed'), color: 'hsl(var(--chart-1))' }],
+    [t],
+  );
+  const chartBuckets = React.useMemo(
+    () => buckets.map((b) => ({ ts: b.ts, values: { consumed: b.consumed } })),
+    [buckets],
+  );
 
   return (
     <section className="space-y-4">
@@ -93,7 +101,13 @@ export default function StockConsumptionTab({ itemId, unit }: StockConsumptionTa
             />
           </dl>
 
-          <StockConsumptionChart points={data.points} unit={unit} overlay={weatherOverlay} />
+          <ConsumptionBarChart
+            buckets={chartBuckets}
+            series={series}
+            granularity={granularity}
+            unit={unit}
+            overlay={weatherOverlay}
+          />
         </>
       ) : (
         <p className="text-sm italic text-muted-foreground">

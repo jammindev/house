@@ -151,6 +151,7 @@ class StockItemViewSet(viewsets.ModelViewSet):
             supplier=data.get("supplier", "") or "",
             brand=data.get("brand", "") or "",
             remaining_before=data.get("remaining_before"),
+            remaining_at=data.get("remaining_at"),
             occurred_at=data.get("occurred_at"),
             notes=data.get("notes", "") or "",
             budget_id=budget_id,

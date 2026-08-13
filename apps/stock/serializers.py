@@ -1,5 +1,6 @@
 from decimal import Decimal
 
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
@@ -152,6 +153,10 @@ class StockPurchaseSerializer(serializers.Serializer):
         max_digits=12, decimal_places=3, required=False, allow_null=True, min_value=Decimal("0")
     )
     occurred_at = serializers.DateTimeField(required=False, allow_null=True)
+    # Date du comptage, quand elle diffère de celle de l'achat. Une dépense
+    # importée d'un relevé est antidatée ; le comptage qui l'accompagne a sa
+    # propre date, et sans ce champ la courbe racontait la date de saisie.
+    remaining_at = serializers.DateTimeField(required=False, allow_null=True)
     # Enveloppe à laquelle imputer l'achat. Facultative, mais son absence est
     # l'écart `expense_without_budget` : sans budget, un euro n'est classé par
     # aucun axe (projet et zone disent *sur quoi* et *où*, pas *de quelle
@@ -159,6 +164,23 @@ class StockPurchaseSerializer(serializers.Serializer):
     # réparer.
     budget_id = serializers.UUIDField(required=False, allow_null=True)
     notes = serializers.CharField(required=False, allow_blank=True, default="")
+
+    def validate(self, attrs):
+        """« Restant avant » veut dire avant — un comptage postérieur est refusé.
+
+        L'accepter écrirait la dernière lecture de niveau *sous* la quantité de
+        l'article et casserait l'invariant que toute la courbe suppose (dernière
+        lecture == quantité). Le geste existe déjà ailleurs : un inventaire à
+        part, qui porte sa propre date.
+        """
+        remaining_at = attrs.get("remaining_at")
+        if remaining_at is not None:
+            occurred_at = attrs.get("occurred_at") or timezone.now()
+            if remaining_at > occurred_at:
+                raise serializers.ValidationError(
+                    {"remaining_at": _("The count must not be later than the purchase — record a separate inventory instead.")}
+                )
+        return attrs
 
 
 class StockInventorySerializer(serializers.Serializer):

@@ -18,6 +18,8 @@ export interface PurchaseFormPayload {
   brand: string;
   /** Measured remaining quantity before the purchase (stock only). Null = not provided. */
   remaining_before: number | null;
+  /** Day that count was made, when it differs from the purchase day. Null = same day. */
+  remaining_at: string | null;
   occurred_at: string | null;
   notes: string;
   /** Enveloppe à laquelle imputer l'achat. `null` = non classé. */
@@ -50,6 +52,7 @@ interface FormState {
   supplier: string;
   brand: string;
   remaining: string;
+  remainingAt: string;
   occurredAt: string;
   notes: string;
   budgetId: string;
@@ -67,6 +70,7 @@ function emptyState(currentQuantity?: number, budgetId = ''): FormState {
     supplier: '',
     brand: '',
     remaining: currentQuantity != null ? String(currentQuantity) : '',
+    remainingAt: todayIsoDate(),
     occurredAt: todayIsoDate(),
     notes: '',
     budgetId,
@@ -151,9 +155,19 @@ export default function PurchaseForm({
         : priceValue;
     }
 
-    const occurredAt = form.occurredAt
-      ? new Date(`${form.occurredAt}T12:00:00`).toISOString()
-      : null;
+    // Midi : à minuit, une date se décale d'un jour au passage en UTC.
+    const atNoon = (day: string) => new Date(`${day}T12:00:00`).toISOString();
+    const occurredAt = form.occurredAt ? atNoon(form.occurredAt) : null;
+
+    // Le comptage a son propre jour, mais « restant avant » veut dire avant :
+    // un comptage postérieur laisserait la dernière lecture de niveau sous la
+    // quantité de l'article. Le serveur le refuse ; on le dit ici plutôt que de
+    // laisser remonter un échec sans nom.
+    const countedOn = form.remainingAt || form.occurredAt;
+    if (isRecalibrating && countedOn && form.occurredAt && countedOn > form.occurredAt) {
+      setInternalError(t('purchase.errors.remaining_at_after_purchase'));
+      return;
+    }
 
     await onSubmit({
       delta,
@@ -161,6 +175,8 @@ export default function PurchaseForm({
       supplier: form.supplier.trim(),
       brand: form.brand.trim(),
       remaining_before: isRecalibrating ? parsedRemaining : null,
+      remaining_at:
+        isRecalibrating && countedOn && countedOn !== form.occurredAt ? atNoon(countedOn) : null,
       occurred_at: occurredAt,
       notes: form.notes.trim(),
       budget_id: form.budgetId || null,
@@ -204,6 +220,25 @@ export default function PurchaseForm({
                   unit: deltaUnit ?? '',
                 })
               : t('purchase.fields.remaining_before_hint')}
+          </p>
+        </FormField>
+      ) : null}
+
+      {/* Le jour du comptage suit celui de l'achat tant qu'on n'en dit rien —
+          mais un relevé importé antidate la dépense, et le stock, lui, a été
+          compté un autre jour. Inutile tant que la saisie ne recalibre rien :
+          sans écart, aucune lecture de niveau n'est écrite. */}
+      {isRecalibrating ? (
+        <FormField label={t('purchase.fields.remaining_at')} htmlFor="purchase-remaining-date">
+          <Input
+            id="purchase-remaining-date"
+            type="date"
+            value={form.remainingAt || form.occurredAt}
+            max={form.occurredAt || undefined}
+            onChange={(e) => updateField('remainingAt', e.target.value)}
+          />
+          <p className="mt-1 text-xs text-muted-foreground">
+            {t('purchase.fields.remaining_at_hint')}
           </p>
         </FormField>
       ) : null}

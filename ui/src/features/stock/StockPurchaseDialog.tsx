@@ -34,6 +34,7 @@ export default function StockPurchaseDialog({ open, onOpenChange, item }: StockP
           supplier: payload.supplier,
           brand: payload.brand,
           remaining_before: payload.remaining_before,
+          remaining_at: payload.remaining_at,
           occurred_at: payload.occurred_at,
           notes: payload.notes,
           budget_id: payload.budget_id,

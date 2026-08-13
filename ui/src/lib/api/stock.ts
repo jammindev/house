@@ -163,6 +163,8 @@ export interface StockPurchasePayload {
   supplier?: string;
   brand?: string;
   remaining_before?: number | null;
+  /** Jour du comptage, quand il diffère de celui de l'achat. `null` = celui de l'achat. */
+  remaining_at?: string | null;
   occurred_at?: string | null;
   notes?: string;
   /** Enveloppe à laquelle imputer la dépense créée. `null` = non classée. */
@@ -183,6 +185,7 @@ export async function purchaseStockItem(
     supplier: payload.supplier ?? '',
     brand: payload.brand ?? '',
     remaining_before: payload.remaining_before ?? null,
+    remaining_at: payload.remaining_at ?? null,
     occurred_at: payload.occurred_at ?? null,
     notes: payload.notes ?? '',
     // Le budget était typé, accepté par le serveur… et jamais envoyé : chaque
@@ -251,9 +254,17 @@ export interface StockConsumptionPoint {
   kind: 'inventory' | 'purchase';
 }
 
+/** Une barre du graphe : ce qui a été consommé sur le jour (ou le mois) `ts`. */
+export interface StockConsumptionBucket {
+  ts: string;
+  consumed: number;
+}
+
 export interface StockConsumption {
   period: string;
+  granularity: 'day' | 'month';
   points: StockConsumptionPoint[];
+  buckets: StockConsumptionBucket[];
   last_level: number;
   points_count: number;
   rate_per_day: number | null;
