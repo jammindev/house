@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/lib/auth/useAuth';
 import { Button } from '../../design-system/button';
 import { Input } from '../../design-system/input';
+import { Logo } from '../../design-system/logo';
 
 /**
  * Where to land after login. Only same-site absolute paths are honoured — a
@@ -53,6 +54,14 @@ export default function LoginPage() {
   return (
     <div className="flex min-h-dvh items-center justify-center pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
       <form onSubmit={handleSubmit} className="w-full max-w-sm space-y-4">
+        {/* La première chose qu'on voit de Maisonnée, et la seule page qu'on
+            voit sans compte. Le signe est en `currentColor` comme partout
+            ailleurs : la couleur de marque ne vit que là où le thème du foyer
+            ne va pas (favicon, icônes PWA, aperçu social). */}
+        <div className="flex flex-col items-center gap-3 pb-2 text-foreground">
+          <Logo size={44} />
+          <span className="text-xl font-semibold tracking-tight">Maisonnée</span>
+        </div>
         <h1 className="text-2xl font-semibold">{t('auth.login')}</h1>
         {resetSuccess && <p className="text-sm text-primary">{t('auth.passwordResetSuccess')}</p>}
         {error && <p className="text-sm text-destructive">{error}</p>}
