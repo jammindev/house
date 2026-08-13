@@ -4,7 +4,7 @@ import { ArrowDownLeft, Split, Tag } from 'lucide-react';
 import { Card } from '@/design-system/card';
 import { Button } from '@/design-system/button';
 import { CheckboxField } from '@/design-system/checkbox-field';
-import { formatAmount } from '@/lib/format';
+import { appLocale, formatAmount } from '@/lib/format';
 import { useQualifyTransaction, useSetAllocations } from '@/features/banking/hooks';
 import type { PendingRow } from './PendingQueue';
 
@@ -100,7 +100,7 @@ export default function PendingCard({
             <div className="min-w-0">
               <p className="truncate font-medium text-foreground">{row.label}</p>
               <p className="text-xs text-muted-foreground">
-                {row.bookedOn ? new Date(row.bookedOn).toLocaleDateString() : ''}
+                {row.bookedOn ? new Date(row.bookedOn).toLocaleDateString(appLocale()) : ''}
                 {row.accountName ? ` · ${row.accountName}` : ''}
               </p>
             </div>

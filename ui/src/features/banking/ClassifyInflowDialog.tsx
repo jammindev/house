@@ -6,7 +6,7 @@ import { FormField } from '@/design-system/form-field';
 import { Select } from '@/design-system/select';
 import { DecimalInput } from '@/design-system/decimal-input';
 import { Button } from '@/design-system/button';
-import { formatAmount } from '@/lib/format';
+import { appLocale, formatAmount } from '@/lib/format';
 import type { BankTransaction, InflowNature } from '@/lib/api/banking';
 import { useBudgets } from '@/features/budget/hooks';
 import { selectableBudgets } from '@/features/budget/tree';
@@ -151,7 +151,7 @@ export default function ClassifyInflowDialog({
         <div className="rounded-lg border border-border bg-muted/40 p-3 text-sm">
           <p className="font-medium text-foreground">{transaction.label_raw}</p>
           <p className="text-xs text-muted-foreground">
-            {new Date(transaction.booked_on).toLocaleDateString()} ·{' '}
+            {new Date(transaction.booked_on).toLocaleDateString(appLocale())} ·{' '}
             {formatAmount(transaction.amount)}
           </p>
         </div>

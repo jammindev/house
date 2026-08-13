@@ -1,4 +1,5 @@
 import { api } from '@/lib/axios';
+import { appLocale } from '@/lib/format';
 
 export type TaskStatus = 'backlog' | 'pending' | 'in_progress' | 'done' | 'archived' | null;
 export type TaskColumnId = 'backlog' | 'pending' | 'in_progress' | 'done';
@@ -107,11 +108,11 @@ export function formatRelativeDate(dateStr: string | null): string | null {
   const diffMs = date.getTime() - now.getTime();
   const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
   try {
-    const rtf = new Intl.RelativeTimeFormat(undefined, { numeric: 'auto' });
+    const rtf = new Intl.RelativeTimeFormat(appLocale(), { numeric: 'auto' });
     if (Math.abs(diffDays) < 1) return rtf.format(0, 'day');
     return rtf.format(diffDays, 'day');
   } catch {
-    return date.toLocaleDateString();
+    return date.toLocaleDateString(appLocale());
   }
 }
 

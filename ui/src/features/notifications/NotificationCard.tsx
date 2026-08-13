@@ -5,6 +5,7 @@ import { Button } from '@/design-system/button';
 import { Card } from '@/design-system/card';
 import { useAcceptInvitation, useDeclineInvitation } from '@/features/settings/hooks';
 import { pushBack } from '@/lib/backNavigation';
+import { appLocale } from '@/lib/format';
 import { triggerBellRefresh } from '@/lib/notifications';
 import type { NotificationItem } from '@/lib/api/notifications';
 
@@ -23,12 +24,12 @@ function formatRelativeFromNow(dateStr: string): string {
   const diffHours = Math.round(diffMin / 60);
   const diffDays = Math.round(diffHours / 24);
   try {
-    const rtf = new Intl.RelativeTimeFormat(undefined, { numeric: 'auto' });
+    const rtf = new Intl.RelativeTimeFormat(appLocale(), { numeric: 'auto' });
     if (Math.abs(diffMin) < 60) return rtf.format(diffMin, 'minute');
     if (Math.abs(diffHours) < 24) return rtf.format(diffHours, 'hour');
     return rtf.format(diffDays, 'day');
   } catch {
-    return date.toLocaleDateString();
+    return date.toLocaleDateString(appLocale());
   }
 }
 

@@ -6,6 +6,7 @@ import { Badge } from '@/design-system/badge';
 import { Button } from '@/design-system/button';
 import { Card, CardTitle } from '@/design-system/card';
 import { pushBack } from '@/lib/backNavigation';
+import { appLocale } from '@/lib/format';
 import type { InteractionListItem } from '@/lib/api/interactions';
 import NewTaskDialog from '@/features/tasks/NewTaskDialog';
 
@@ -17,7 +18,7 @@ interface InteractionCardProps {
 function formatDate(value: string): string {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
-  return new Intl.DateTimeFormat(undefined, {
+  return new Intl.DateTimeFormat(appLocale(), {
     dateStyle: 'medium',
     timeStyle: 'short',
   }).format(date);

@@ -3,12 +3,41 @@
  * Centralise les définitions qui étaient dupliquées dans une douzaine de pages/cards.
  */
 
+import i18next from 'i18next';
+
+/**
+ * La langue dans laquelle l'app **écrit** — la seule locale de formatage.
+ *
+ * `Intl.…Format(undefined, …)` et `toLocaleDateString()` lisent la locale du
+ * **runtime**, donc celle du navigateur. Or l'app choisit sa langue avant de
+ * regarder le navigateur : préférence du compte (`/accounts/me/.locale`,
+ * appliquée par `AuthProvider`), puis `localStorage.lang`, et seulement en
+ * dernier recours `navigator.language`. Tant que les deux coïncident le défaut
+ * est invisible ; dès qu'ils divergent — un Mac en anglais, un compte en
+ * français — l'interface est française et les dates américaines
+ * (« Aug 13, 2026 »), les montants aussi (« €1,234.50 »).
+ *
+ * Un seul endroit répond donc à « dans quelle langue lit-on ? », et c'est
+ * celui qui répond déjà pour les mots. Garde-fou : `lib/locale.test.ts`.
+ *
+ * ⚠️ On lit le **singleton `i18next`**, jamais notre module `lib/i18n` : ce
+ * dernier appelle `.init()` et tire `initReactI18next` à l'import. Or
+ * `format.ts` est importé par presque tous les composants, et une quinzaine de
+ * suites de tests remplacent `react-i18next` par un `vi.mock` qui n'expose que
+ * `useTranslation` — les faire toutes échouer au chargement pour lire une
+ * langue serait un couplage payé partout pour un besoin d'ici. C'est le même
+ * objet : `lib/i18n` configure ce singleton.
+ */
+export function appLocale(): string {
+  return i18next.language || 'en';
+}
+
 /** Date « medium » localisée, ou « — » si vide / invalide renvoyé tel quel. */
 export function formatDate(value?: string | null): string {
   if (!value) return '—';
   const d = new Date(value);
   if (Number.isNaN(d.getTime())) return value;
-  return new Intl.DateTimeFormat(undefined, { dateStyle: 'medium' }).format(d);
+  return new Intl.DateTimeFormat(appLocale(), { dateStyle: 'medium' }).format(d);
 }
 
 /** Date + heure « medium/short » localisée, ou « — » si vide. */
@@ -16,7 +45,7 @@ export function formatDateTime(value?: string | null): string {
   if (!value) return '—';
   const d = new Date(value);
   if (Number.isNaN(d.getTime())) return value;
-  return new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(d);
+  return new Intl.DateTimeFormat(appLocale(), { dateStyle: 'medium', timeStyle: 'short' }).format(d);
 }
 
 /**
@@ -35,7 +64,7 @@ export function formatAmount(
   const parsed = Number(value);
   if (Number.isNaN(parsed)) return String(value);
   const digits = options?.fractionDigits;
-  return new Intl.NumberFormat(undefined, {
+  return new Intl.NumberFormat(appLocale(), {
     style: 'currency',
     currency: 'EUR',
     ...(digits != null ? { minimumFractionDigits: digits, maximumFractionDigits: digits } : {}),
@@ -47,7 +76,7 @@ export function formatMonthYear(value?: string | null): string {
   if (!value) return '—';
   const d = new Date(value);
   if (Number.isNaN(d.getTime())) return value;
-  return new Intl.DateTimeFormat(undefined, { month: 'long', year: 'numeric' }).format(d);
+  return new Intl.DateTimeFormat(appLocale(), { month: 'long', year: 'numeric' }).format(d);
 }
 
 /**
@@ -62,18 +91,18 @@ export function formatMonthYear(value?: string | null): string {
 export function formatMonthKey(month: string): string {
   const [year, index] = month.split('-').map(Number);
   if (!year || !index) return month;
-  return new Intl.DateTimeFormat(undefined, { month: 'long', year: 'numeric' }).format(
+  return new Intl.DateTimeFormat(appLocale(), { month: 'long', year: 'numeric' }).format(
     new Date(year, index - 1, 1),
   );
 }
 
 /**
  * Le séparateur décimal de la locale de lecture — « , » en français, « . » en
- * anglais. Même source que `formatAmount` (la locale du navigateur), pour qu'un
- * montant saisi et le même montant réaffiché ne se lisent pas de deux façons.
+ * anglais. Même source que `formatAmount` (`appLocale()`), pour qu'un montant
+ * saisi et le même montant réaffiché ne se lisent pas de deux façons.
  */
 export function decimalSeparator(locale?: string): string {
-  const parts = new Intl.NumberFormat(locale).formatToParts(1.1);
+  const parts = new Intl.NumberFormat(locale ?? appLocale()).formatToParts(1.1);
   return parts.find((part) => part.type === 'decimal')?.value ?? '.';
 }
 

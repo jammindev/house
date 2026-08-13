@@ -13,6 +13,7 @@ import { useAcceptInvitation, useDeclineInvitation } from '@/features/settings/h
 import { useAlertsSummary } from '@/features/alerts/hooks';
 import { EMPTY_ALERTS_SUMMARY, buildAlertSections, flattenAlertRows, type AlertRow } from '@/features/alerts/rows';
 import { Button } from '@/design-system/button';
+import { appLocale } from '@/lib/format';
 import { triggerBellRefresh } from '@/lib/notifications';
 import type { NotificationItem } from '@/lib/api/notifications';
 
@@ -28,12 +29,12 @@ function relativeShort(dateStr: string): string {
   const diffHours = Math.round(diffMin / 60);
   const diffDays = Math.round(diffHours / 24);
   try {
-    const rtf = new Intl.RelativeTimeFormat(undefined, { numeric: 'auto', style: 'narrow' });
+    const rtf = new Intl.RelativeTimeFormat(appLocale(), { numeric: 'auto', style: 'narrow' });
     if (Math.abs(diffMin) < 60) return rtf.format(diffMin, 'minute');
     if (Math.abs(diffHours) < 24) return rtf.format(diffHours, 'hour');
     return rtf.format(diffDays, 'day');
   } catch {
-    return date.toLocaleDateString();
+    return date.toLocaleDateString(appLocale());
   }
 }
 

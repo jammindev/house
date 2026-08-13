@@ -4,6 +4,7 @@ import { useParams, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Layers, NotebookText } from 'lucide-react';
 import { pushBack } from '@/lib/backNavigation';
+import { appLocale } from '@/lib/format';
 import { Button } from '@/design-system/button';
 import { Card, CardContent } from '@/design-system/card';
 import BackLink from '@/components/BackLink';
@@ -304,7 +305,7 @@ function TabActivity({ zoneId, navigate }: { zoneId: string; navigate: (to: stri
               <div className="min-w-0 flex-1">
                 <p className="truncate">{item.subject}</p>
                 <p className="text-xs text-muted-foreground">
-                  {new Date(item.occurred_at).toLocaleDateString()}
+                  {new Date(item.occurred_at).toLocaleDateString(appLocale())}
                 </p>
               </div>
               <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">

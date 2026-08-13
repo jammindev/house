@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { AlertTriangle } from 'lucide-react';
-import { formatAmount } from '@/lib/format';
+import { appLocale, formatAmount } from '@/lib/format';
 import type { AccountBalance } from '@/lib/api/banking';
 
 interface ChainGapAlertProps {
@@ -48,8 +48,8 @@ export default function ChainGapAlert({ balance, accountName }: ChainGapAlertPro
         {balance.gaps.map((gap) => (
           <li key={gap.after_transaction_id} className="text-xs text-destructive">
             {t('banking.balance.chainBroken.gap', {
-              from: new Date(gap.gap_start).toLocaleDateString(),
-              to: new Date(gap.gap_end).toLocaleDateString(),
+              from: new Date(gap.gap_start).toLocaleDateString(appLocale()),
+              to: new Date(gap.gap_end).toLocaleDateString(appLocale()),
               amount: formatAmount(gap.missing_amount),
             })}
           </li>

@@ -7,7 +7,7 @@ import { Input } from '@/design-system/input';
 import { DecimalInput } from '@/design-system/decimal-input';
 import { Button } from '@/design-system/button';
 import { Card } from '@/design-system/card';
-import { formatAmount, todayISO } from '@/lib/format';
+import { appLocale, formatAmount, todayISO } from '@/lib/format';
 import type { BankAccount } from '@/lib/api/banking';
 import { useBalanceAnchor, useSetBalanceAnchor } from './hooks';
 
@@ -273,5 +273,5 @@ function readServerError(err: unknown, t: (key: string) => string): string {
 
 function formatDate(value: string | null | undefined): string {
   if (!value) return '—';
-  return new Date(value).toLocaleDateString();
+  return new Date(value).toLocaleDateString(appLocale());
 }

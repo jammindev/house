@@ -5,7 +5,7 @@ import { FormField } from '@/design-system/form-field';
 import { DecimalInput } from '@/design-system/decimal-input';
 import { Select } from '@/design-system/select';
 import { Button } from '@/design-system/button';
-import { formatAmount } from '@/lib/format';
+import { appLocale, formatAmount } from '@/lib/format';
 import type { BankAccount, BankTransaction } from '@/lib/api/banking';
 import { useWithdrawToCash } from './hooks';
 
@@ -77,7 +77,7 @@ export default function WithdrawToCashDialog({
         <div className="rounded-lg border border-border bg-muted/40 p-3 text-sm">
           <p className="font-medium text-foreground">{transaction.label_raw}</p>
           <p className="text-xs text-muted-foreground">
-            {new Date(transaction.booked_on).toLocaleDateString()} ·{' '}
+            {new Date(transaction.booked_on).toLocaleDateString(appLocale())} ·{' '}
             {formatAmount(transaction.amount)}
           </p>
         </div>

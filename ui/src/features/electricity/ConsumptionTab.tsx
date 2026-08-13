@@ -10,6 +10,7 @@ import CardActions, { type CardAction } from '@/components/CardActions';
 import EmptyState from '@/components/EmptyState';
 import { useDelayedLoading } from '@/lib/useDelayedLoading';
 import { useDeleteWithUndo } from '@/lib/useDeleteWithUndo';
+import { appLocale } from '@/lib/format';
 import { useSessionState } from '@/lib/useSessionState';
 import { isoDate, periodLabel, periodRange, shiftAnchor } from '@/lib/period';
 import type { ElectricityMeter, Granularity, MeterReading } from '@/lib/api/electricity';
@@ -33,7 +34,7 @@ import TariffsDialog from './TariffsDialog';
 const GRANULARITIES: Granularity[] = ['hour', 'day', 'month', 'year'];
 
 function formatKwh(wh: number): string {
-  return (wh / 1000).toLocaleString(undefined, { maximumFractionDigits: 1 });
+  return (wh / 1000).toLocaleString(appLocale(), { maximumFractionDigits: 1 });
 }
 
 function formatEur(value: number, locale: string): string {
