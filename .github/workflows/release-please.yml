@@ -29,6 +29,24 @@
 # On n'y remédie donc pas par un déclencheur mais par un **appel** : `release.yml`
 # est `workflow_call`, et on l'invoque ici. Son entrée `tag` existait déjà, écrite
 # pour la republication.
+# ── ⚠️ Le second piège : ce dépôt n'autorise pas n'importe quelle action ─────
+#
+# `allowed_actions: selected` (durcissement du lot 0) : seules les actions de
+# GitHub, plus une liste nommée, ont le droit de tourner. Une action absente de
+# cette liste fait échouer le workflow **au démarrage** — zéro job, zéro log, et
+# pour tout message « This run likely failed because of a workflow file issue »,
+# alors que le fichier est parfaitement valide.
+#
+# `googleapis/release-please-action@*` a donc dû y être ajoutée. Si ce workflow
+# se remet un jour à échouer sans rien dire après un changement d'action,
+# regarder là **avant** de relire le YAML :
+#
+#   gh api /repos/jammindev/house/actions/permissions/selected-actions
+#
+# Et la version est **v4.4.1 (node20)**, pas la v5.0.0 : celle-ci tourne en
+# `node24`, un runtime dont on n'a pas vérifié qu'il s'exécute sur le runner —
+# la référence *résout*, ce qui ne prouve rien de l'exécution. `sha_pinning_required`
+# est actif de toute façon : l'épinglage par empreinte n'est pas une politesse.
 name: Release Please
 
 on:
@@ -54,7 +72,7 @@ jobs:
       tag_name: ${{ steps.rp.outputs.tag_name }}
     steps:
       - id: rp
-        uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
+        uses: googleapis/release-please-action@5c625bfb5d1ff62eadeeb3772007f7f66fdcf071 # v4.4.1
         with:
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
