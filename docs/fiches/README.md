@@ -27,6 +27,7 @@ Chaque fiche suit le même squelette :
 - [SNAPSHOT_ET_RECIT.md](SNAPSHOT_ET_RECIT.md) — Instantané figé & récit tardif : garder la mémoire d'une période close sans réécrire l'histoire, et la raconter dans la langue du lecteur (parcours 21 + 27)
 - [PIPELINE_MEDIA.md](PIPELINE_MEDIA.md) — Pipeline média : où vivent les octets, qui les sert, quand ils sont transformés (stockage objet optionnel, URL présignée et contrôle d'accès, file de tâches adossée à Postgres) (parcours 29)
 - [AUTO_HEBERGEMENT.md](AUTO_HEBERGEMENT.md) — D'un déploiement à un produit installable : ce que change le passage à l'auto-hébergement (modèle de menace, capacités optionnelles, licence copyleft réseau, sauvegarde comme fonctionnalité) (parcours 28)
+- [DEPENDANCES_ET_PAQUETS.md](DEPENDANCES_ET_PAQUETS.md) — Ce qu'on exécute sans l'avoir écrit : bibliothèque, paquet, registre, gestionnaire, verrou ; l'ingrédient (PyPI, npm) contre le plat fini (image de conteneur) ; où GitHub Packages se range, et les trois défenses de la chaîne d'approvisionnement (parcours 28)
 - [DISTRIBUTION_ET_REGISTRE.md](DISTRIBUTION_ET_REGISTRE.md) — Distribuer une image : ce qu'un registre stocke vraiment (index, manifestes, couches), multi-architecture par émulation, tag mutable contre empreinte immuable, et les trois étages de permissions de GitHub Packages (parcours 28)
 
 ## Quand créer une fiche ?
