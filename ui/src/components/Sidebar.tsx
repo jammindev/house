@@ -130,8 +130,14 @@ export default function Sidebar() {
 
         {/* Le nom du foyer — et son sélecteur — vivent dans le header dès qu'il
             a la place de les porter, et ici seulement sous 768 px (#577). Le
-            `mr-auto` tient la fermeture à droite quand le nom se tait. */}
-        <div className="h-12 shrink-0 flex items-center justify-end gap-2 px-3">
+            `mr-auto` tient la fermeture à droite quand le nom se tait.
+
+            `lg:hidden` : au-dessus de `lg` cette ligne ne porte plus rien — le
+            nom est parti dans le `TopBar` et la croix est `lg:hidden` — mais son
+            `h-12` réservait toujours ses 48 px, si bien que la nav commençait
+            39 px sous le titre de la page (#589). Un conteneur qui survit à son
+            contenu ne se voit dans aucun diff : il ne se mesure qu'à l'écran. */}
+        <div className="h-12 shrink-0 flex items-center justify-end gap-2 px-3 lg:hidden">
           <div className="mr-auto min-w-0">
             <HouseholdSwitcher placement="sidebar" />
           </div>
@@ -143,8 +149,11 @@ export default function Sidebar() {
           </button>
         </div>
 
-        {/* Nav */}
-        <nav className="flex-1 overflow-y-auto px-2 py-2 space-y-0.5">
+        {/* Nav — `lg:pt-4` reprend le `p-4` du `<main>` : le premier item et le
+            `h1` de la page ont alors la même hauteur de boîte, donc le même
+            centre de ligne. Sous `lg`, l'en-tête ci-dessus est là et la nav
+            garde son `py-2`. */}
+        <nav className="flex-1 overflow-y-auto px-2 py-2 lg:pt-4 space-y-0.5">
           <div>
             {FIXED_TOP.map((item) => (
               <NavItem
