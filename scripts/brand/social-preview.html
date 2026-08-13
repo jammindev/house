@@ -1,0 +1,75 @@
+<!doctype html>
+<meta charset="utf-8" />
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 1280px; height: 640px; }
+  body {
+    background: #3F5741;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 74px;
+    padding: 0 88px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .mark { width: 212px; height: 212px; flex: none; color: #fff; }
+  .mark svg { width: 100%; height: 100%; display: block; }
+  .col { max-width: 724px; }
+  .wordmark {
+    font-family: 'Playfair Display', 'Didot', 'Bodoni 72', Georgia, serif;
+    font-weight: 700;
+    font-size: 82px;
+    line-height: 1.05;
+    color: #fff;
+    letter-spacing: -0.01em;
+    margin-bottom: 22px;
+  }
+  .lede, .sub {
+    font-family: 'Inter', -apple-system, 'Helvetica Neue', Arial, sans-serif;
+  }
+  .lede {
+    font-size: 31px;
+    line-height: 1.32;
+    color: #DCE1DD;
+    letter-spacing: -0.005em;
+  }
+  .sub {
+    font-size: 25px;
+    line-height: 1.38;
+    color: #B6BFB7;
+    margin-top: 14px;
+  }
+  .rule {
+    width: 296px;
+    height: 1px;
+    background: #9FABA0;
+    opacity: 0.55;
+    margin: 30px 0 20px;
+  }
+  .foot {
+    font-family: 'SF Mono', 'Menlo', ui-monospace, monospace;
+    font-size: 22px;
+    letter-spacing: 0.04em;
+    color: #9FABA0;
+  }
+</style>
+
+<div class="mark">
+  <!-- Le trace de docs/assets/brand/logo-mark.svg, inline pour que le rendu ne
+       depende d'aucun chargement externe. -->
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" role="img" aria-label="Maisonnee">
+    <path fill="currentColor" fill-rule="evenodd"
+          d="M1 21v-7a11 11 0 0 1 22 0v7ZM10.6 19.8c-1-4 .8-8.2 4.6-9.6.9 4.2-1 8.2-4.6 9.6Z" />
+  </svg>
+</div>
+
+<div class="col">
+  <div class="wordmark">Maisonn&eacute;e</div>
+  <!-- La coupure est explicite. Laissee au navigateur, la deuxieme ligne
+       tombait sur « can answer for it. » — la moitie de la promesse, celle qui
+       distingue le produit, reduite a un moignon de trois mots. -->
+  <div class="lede">Everything a household keeps alive &mdash;<br />and a memory that can answer for it.</div>
+  <div class="sub">Indoors and out: the works, the money, the meters,<br />the garden, the animals.</div>
+  <div class="rule"></div>
+  <div class="foot">self-hosted &middot; AGPL-3.0</div>
+</div>

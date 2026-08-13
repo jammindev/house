@@ -184,6 +184,63 @@ class TestTheFrontDoorHasNoDeadLinks:
         ]
         assert not dead, f"{readme} affiche des images absentes : {sorted(set(dead))}"
 
+    def test_the_social_preview_says_what_the_readme_says(self):
+        """L'aperçu social et le README portent la **même** promesse.
+
+        Ce sont deux exemplaires d'un même texte, et deux exemplaires d'une
+        valeur divergent toujours — c'est la raison d'être de
+        `TestTheMarkHasASingleDefinition` juste au-dessus, appliquée à de la
+        prose. Ça s'est produit dans la journée : le README a été recadré sur
+        l'assistant (« *and a memory that can answer for it* », l'argent
+        redescendu dans la liste), l'image est restée sur la version d'avant.
+        Rien n'a rougi, et c'est l'image — pas le README — que voit en premier
+        quelqu'un à qui on partage le lien.
+
+        La comparaison se fait sur la **source du harnais**, jamais sur le PNG :
+        un pixel ne dit pas ce qu'il raconte. Et sur le README anglais seul,
+        parce que c'est celui que GitHub sert par défaut et que la carte est en
+        anglais.
+        """
+        html = (REPO / "scripts/brand/social-preview.html").read_text()
+
+        def spoken(css_class: str) -> str:
+            block = re.search(rf'class="{css_class}">(.*?)</div>', html, flags=re.S)
+            assert block, f"aucun bloc .{css_class} dans le harnais"
+            text = re.sub(r"<br\s*/?>", " ", block.group(1))
+            text = text.replace("&mdash;", "—").replace("&eacute;", "é")
+            return re.sub(r"\s+", " ", text).strip()
+
+        readme = (REPO / "README.md").read_text()
+        tagline = re.search(r"^\*\*(.+?)\*\*$", readme, flags=re.M)
+        assert tagline, "aucune accroche en gras dans README.md"
+        subtitle = readme.split(tagline.group(0), 1)[1].splitlines()[1].strip()
+
+        assert spoken("lede") == tagline.group(1).strip(), (
+            "L'accroche de l'aperçu social a dérivé de celle du README.\n"
+            f"  README : {tagline.group(1).strip()}\n"
+            f"  image  : {spoken('lede')}\n"
+            "Corriger scripts/brand/social-preview.html, puis "
+            "`npm run brand:social`."
+        )
+        assert spoken("sub") == subtitle, (
+            "Le sous-titre de l'aperçu social a dérivé de celui du README.\n"
+            f"  README : {subtitle}\n"
+            f"  image  : {spoken('sub')}"
+        )
+
+    def test_the_social_preview_is_the_size_github_expects(self):
+        """1280×640. Lu dans l'en-tête PNG, sans dépendance d'image.
+
+        Une carte au mauvais ratio n'échoue pas : GitHub la recadre, et le
+        rognage tombe où il veut — en pratique sur la moitié de l'accroche.
+        """
+        import struct
+
+        header = (BRAND / "social-preview.png").read_bytes()[:24]
+        assert header[:8] == b"\x89PNG\r\n\x1a\n", "ce n'est pas un PNG"
+        width, height = struct.unpack(">II", header[16:24])
+        assert (width, height) == (1280, 640), f"aperçu social en {width}×{height}"
+
     def test_the_screenshots_are_the_six_the_harness_produces(self):
         """Les captures versionnées sont celles que `npm run screenshots` écrit.
 

@@ -20,7 +20,8 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:headed": "playwright test --headed",
-    "screenshots": "TZ=Europe/Paris playwright test --config playwright.screenshots.config.ts"
+    "screenshots": "TZ=Europe/Paris playwright test --config playwright.screenshots.config.ts",
+    "brand:social": "node scripts/brand/render.mjs"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.15",
