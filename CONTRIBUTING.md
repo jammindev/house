@@ -133,7 +133,12 @@ your modifications. Self-hosting for your own family is not "hosting for others"
 it is the normal use of this software.
 
 The **name and the logo are not covered by the licence.** The code is free; the
-identity is not. A fork that is not this project should carry its own name.
+identity is not. A fork that is not this project should carry its own name. What
+you may and may not do with the name and the mark is spelled out — without
+lawyer-speak, and in more detail than this paragraph — in
+[docs/assets/brand/README.md](docs/assets/brand/README.md). Short version:
+talking about Maisonnée is always fine, running a modified copy at home is always
+fine, and redistributing one under this name is not.
 
 ## Translations
 

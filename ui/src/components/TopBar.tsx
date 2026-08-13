@@ -1,4 +1,4 @@
-import { Home, LogOut, Menu } from 'lucide-react';
+import { LogOut, Menu } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/lib/auth/useAuth';
@@ -7,6 +7,7 @@ import HouseholdSwitcher from './HouseholdSwitcher';
 import NotificationsBell from '@/features/notifications/NotificationsBell';
 import GlobalSearch from '@/features/search/GlobalSearch';
 import WeatherChip from '@/features/weather/WeatherChip';
+import { Logo } from '@/design-system/logo';
 
 export default function TopBar() {
   const { t } = useTranslation();
@@ -31,11 +32,20 @@ export default function TopBar() {
       </button>
 
       {/* Logo — masqué sur mobile, où le hamburger ancre déjà la gauche et où
-          chaque pixel va au nom du foyer. */}
-      <Link to="/app/dashboard" className="hidden sm:flex shrink-0 items-center" aria-label={t('dashboard.title')}>
-        <div className="h-7 w-7 rounded-md bg-primary flex items-center justify-center">
-          <Home className="h-4 w-4 text-primary-foreground" />
-        </div>
+          chaque pixel va au nom du foyer.
+
+          Plus de pastille `bg-primary` : la marque n'est pas la couleur du
+          thème. Les 17 thèmes de `themes.css` repeignaient `--primary`, donc la
+          marque changeait de couleur d'un foyer à l'autre. Le signe hérite
+          désormais de la couleur du texte (`currentColor`), et la couleur de
+          marque ne vit que là où le thème ne va pas — favicon, icônes PWA,
+          aperçu social. Voir `design-system/logo.tsx`. */}
+      <Link
+        to="/app/dashboard"
+        className="hidden sm:flex shrink-0 items-center text-foreground transition-colors hover:text-primary"
+        aria-label={t('dashboard.title')}
+      >
+        <Logo size={26} />
       </Link>
 
       {/* Le foyer, pas le nom de l'app */}

@@ -1,0 +1,18 @@
+<!--
+  Maisonnee : la marque seule.
+
+  Un abri, et dans l'abri un vide en forme de feuille. La masse est ce que le
+  foyer tient ; le vide est la place qu'il laisse a ce qui pousse.
+
+  Aucune couleur en dur : le signe herite de celle du texte autour
+  (currentColor), parce que l'app a 17 themes que l'utilisateur choisit.
+  Un seul trace, une seule regle de remplissage (evenodd) : c'est ce qui fait
+  tenir le signe a 16 px.
+
+  Le pourquoi du dessin, et ce qu'on a essaye avant : docs/assets/brand/README.md
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"
+     role="img" aria-label="Maisonnee">
+  <path fill="currentColor" fill-rule="evenodd"
+        d="M1 21v-7a11 11 0 0 1 22 0v7ZM10.6 19.8c-1-4 .8-8.2 4.6-9.6.9 4.2-1 8.2-4.6 9.6Z" />
+</svg>
