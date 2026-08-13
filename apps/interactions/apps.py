@@ -56,29 +56,39 @@ class InteractionsConfig(AppConfig):
 def _create_note_from_agent(household, user, fields, *, anchor=None):
     """Map the agent's raw ``fields`` to ``interactions.services.create_note_interaction``.
 
-    Resolves the conversation ``anchor``: an anchored project links the note to
-    that project (it lands in the project's timeline); an anchored zone attaches
-    the note to that zone.
+    La pièce vient d'abord de ce que l'utilisateur a dit (``zone`` = nom ou id,
+    ``zone_ids`` = liste d'ids) ; l'``anchor`` n'est qu'un **défaut** pour la
+    conversation ancrée — un projet ancré lie la note au projet et hérite de ses
+    pièces, une zone ancrée l'attache à cette zone.
+
+    Lire ``fields`` n'est pas un détail : hors conversation ancrée — l'assistant
+    global, seul chemin depuis la disparition des onglets « Assistant » —
+    l'ancre est toujours ``None``, et la note partait donc sans zone (#579).
     """
+    from zones.services import resolve_zone_ids
+
     from .services import create_note_interaction
 
+    zone_ids = resolve_zone_ids(household, fields.get('zone'), fields.get('zone_ids'))
+
     project = None
-    zone_ids = None
     if anchor:
         anchor_type, anchor_id = anchor
         if anchor_type == 'project':
             project = anchor_id
-            # Inherit the project's zone(s): the note lands in the project timeline
-            # *and* in the right room(s), instead of falling back to the root zone.
-            from projects.models import ProjectZone
+            if not zone_ids:
+                # Inherit the project's zone(s): the note lands in the project timeline
+                # *and* in the right room(s), instead of falling back to the root zone.
+                from projects.models import ProjectZone
 
-            zone_ids = list(
-                ProjectZone.objects.filter(project_id=anchor_id).values_list(
-                    'zone_id', flat=True
-                )
-            ) or None
-        elif anchor_type == 'zone':
-            zone_ids = [anchor_id]
+                zone_ids = [
+                    str(zone_id)
+                    for zone_id in ProjectZone.objects.filter(
+                        project_id=anchor_id
+                    ).values_list('zone_id', flat=True)
+                ]
+        elif anchor_type == 'zone' and not zone_ids:
+            zone_ids = [str(anchor_id)]
 
     return create_note_interaction(
         household=household,
@@ -86,7 +96,7 @@ def _create_note_from_agent(household, user, fields, *, anchor=None):
         subject=(fields.get('subject') or '').strip(),
         content=fields.get('content') or '',
         project=project,
-        zone_ids=zone_ids,
+        zone_ids=zone_ids or None,
     )
 
 
@@ -139,15 +149,20 @@ def _create_renovation_from_agent(household, user, fields, *, anchor=None):
     """Map the agent's raw ``fields`` to ``services.create_renovation_interaction``.
 
     An anchored zone conversation attaches the entry to that zone; otherwise the
-    agent must pass ``zone_ids`` (the service rejects a zone-less entry).
+    agent must pass ``zone`` (a name or an id) or ``zone_ids`` (the service
+    rejects a zone-less entry).
     """
+    from zones.services import resolve_zone_ids
+
     from .services import create_renovation_interaction
 
-    zone_ids = list(fields.get('zone_ids') or [])
+    # Même résolution que la note : « la salle de bain » vaut son id. Sans ça un
+    # nom partait vers un `id__in` et mourait en « is not a valid UUID ».
+    zone_ids = resolve_zone_ids(household, fields.get('zone'), fields.get('zone_ids'))
     if anchor:
         anchor_type, anchor_id = anchor
-        if anchor_type == 'zone' and anchor_id not in zone_ids:
-            zone_ids.append(anchor_id)
+        if anchor_type == 'zone' and str(anchor_id) not in zone_ids:
+            zone_ids.append(str(anchor_id))
 
     return create_renovation_interaction(
         household=household,

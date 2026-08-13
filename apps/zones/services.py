@@ -1,11 +1,18 @@
 """
-Zones services — le point d'entrée métier des écritures d'ordre.
+Zones services — le point d'entrée métier des écritures d'ordre, et la
+résolution d'une pièce désignée par son nom.
 
 Le viewset REST **et** tout futur câblage agent passent par ces fonctions : c'est
 ici que vit l'invariant « les rangs d'une fratrie sont 0..n-1, sans trou ni
 doublon ». Un appelant qui écrirait `position` directement le violerait, et deux
 frères au même rang rendraient l'ordre dépendant du plan d'exécution PostgreSQL.
+
+C'est aussi ici que vit `resolve_zone` : une pièce se désigne par **son nom**, et
+un seul endroit décide ce que « la chambre » veut dire.
 """
+import unicodedata
+import uuid
+
 from django.db import transaction
 from django.db.models import F
 
@@ -129,3 +136,121 @@ def shift_positions_after_removal(household_id, parent_id, removed_position) -> 
         parent_id=parent_id,
         position__gt=removed_position,
     ).update(position=F('position') - 1)
+
+
+# --- Résoudre « la chambre » ---------------------------------------------------
+#
+# Un utilisateur nomme une pièce, il ne cite jamais un UUID. Le tool
+# `create_entity` de l'agent offre déjà ce « nom ou id » pour un tracker, un
+# compteur ou un article de stock ; les zones en manquaient, et une note demandée
+# « dans la salle de bain » atterrissait donc sans zone du tout (#579).
+#
+# Deux principes portent tout ce bloc :
+#   - le foyer borne la résolution — c'est ici que se refuse l'écriture dans la
+#     pièce d'un autre foyer, pas dans l'appelant ;
+#   - l'ambigu se dit, il ne se devine pas (`banking.rules` : « des valeurs de
+#     départ, jamais des vérités »). Choisir au hasard entre deux chambres rangerait
+#     la note dans la mauvaise pièce en confirmant à l'utilisateur que c'est fait.
+
+
+def _fold(text) -> str:
+    """Minuscule sans accents, pour comparer ce qu'un humain écrit.
+
+    « salle de bain » doit retrouver « Salle de bain » : la casse et les accents
+    ne sont pas des différences de désignation.
+    """
+    decomposed = unicodedata.normalize('NFKD', str(text or ''))
+    stripped = ''.join(c for c in decomposed if not unicodedata.combining(c))
+    return stripped.casefold().strip()
+
+
+def _only_one(candidates, raw) -> Zone:
+    """La seule candidate, ou un `ValueError` qui les nomme toutes."""
+    if len(candidates) == 1:
+        return candidates[0]
+    listed = ', '.join(f"{zone.name} ({zone.id})" for zone in candidates)
+    raise ValueError(
+        f"ambiguous zone '{raw}' — several zones match, pass an id: {listed}"
+    )
+
+
+def resolve_zone(household, value) -> Zone:
+    """Résout une zone depuis une référence brute : un id, ou un nom.
+
+    Args:
+        household: instance de foyer (ou son id) — borne la recherche.
+        value: un UUID, un nom (« Salle de bain »), ou la tournure de
+            l'utilisateur (« dans la salle de bain »).
+
+    Raises:
+        ValueError: référence vide, inconnue, ou ambiguë. C'est le contrat
+            d'erreur **récupérable** des writables de l'agent : le tool le
+            transforme en message que le modèle relaie, au lieu d'écrire une
+            entrée rangée nulle part.
+    """
+    household_id = getattr(household, 'id', household)
+    raw = str(getattr(value, 'pk', value) or '').strip()
+    if not raw:
+        raise ValueError("zone is required")
+
+    try:
+        zone_uuid = uuid.UUID(raw)
+    except ValueError:
+        zone_uuid = None
+    if zone_uuid is not None:
+        # Un id est une désignation exacte : introuvable veut dire « pas dans ce
+        # foyer », jamais « c'est peut-être un nom » — sinon l'id d'une pièce
+        # d'un autre foyer se ferait deviner comme un libellé.
+        match = Zone.objects.filter(household_id=household_id, pk=zone_uuid).first()
+        if match is None:
+            raise ValueError(f"unknown zone: {raw}")
+        return match
+
+    needle = _fold(raw)
+    # Un foyer compte quelques dizaines de pièces : une seule requête, puis la
+    # comparaison en Python, qui sait faire ce qu'`icontains` ne fait pas (les
+    # accents, et la containment dans l'autre sens).
+    zones = list(Zone.objects.filter(household_id=household_id))
+
+    exact = [zone for zone in zones if _fold(zone.name) == needle]
+    if exact:
+        return _only_one(exact, raw)
+
+    # « dans la salle de bain » : c'est le NOM qui est contenu dans ce que
+    # l'utilisateur a dit. Le plus long gagne — « Salle de bain » avant « Salle » :
+    # pas une devinette, le nom le plus précis qui tienne encore dans la phrase.
+    inside_phrase = [
+        zone for zone in zones if _fold(zone.name) and _fold(zone.name) in needle
+    ]
+    if inside_phrase:
+        longest = max(len(_fold(zone.name)) for zone in inside_phrase)
+        return _only_one(
+            [zone for zone in inside_phrase if len(_fold(zone.name)) == longest], raw
+        )
+
+    # « chambre » pour « Chambre parentale » : là le mot ne discrimine rien, donc
+    # deux candidates restent deux candidates.
+    partial = [zone for zone in zones if needle in _fold(zone.name)]
+    if partial:
+        return _only_one(partial, raw)
+
+    raise ValueError(f"unknown zone: {raw}")
+
+
+def resolve_zone_ids(household, *refs) -> list[str]:
+    """Résout plusieurs références de zone en ids, dédoublonnés, ordre préservé.
+
+    Accepte indifféremment des valeurs seules et des listes (`zone` et
+    `zone_ids` côté agent), et ignore les vides — un champ absent n'est pas une
+    demande de zone.
+    """
+    resolved: list[str] = []
+    for ref in refs:
+        values = ref if isinstance(ref, (list, tuple, set)) else [ref]
+        for value in values:
+            if value in (None, ''):
+                continue
+            zone_id = str(resolve_zone(household, value).id)
+            if zone_id not in resolved:
+                resolved.append(zone_id)
+    return resolved
