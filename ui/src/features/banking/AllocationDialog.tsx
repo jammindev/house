@@ -8,7 +8,7 @@ import { Input } from '@/design-system/input';
 import { DecimalInput } from '@/design-system/decimal-input';
 import { Select } from '@/design-system/select';
 import { Button } from '@/design-system/button';
-import { formatAmount } from '@/lib/format';
+import { appLocale, formatAmount } from '@/lib/format';
 import ZonePicker from '@/features/zones/ZonePicker';
 import type { AllocationLine } from '@/lib/api/banking';
 import { useBudgets } from '@/features/budget/hooks';
@@ -198,7 +198,7 @@ export default function AllocationDialog({
           <p className="font-medium text-foreground">{label}</p>
           {transaction ? (
             <p className="text-xs text-muted-foreground">
-              {new Date(transaction.booked_on).toLocaleDateString()} ·{' '}
+              {new Date(transaction.booked_on).toLocaleDateString(appLocale())} ·{' '}
               {formatAmount(transaction.amount)}
             </p>
           ) : null}

@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { Card, CardTitle } from '@/design-system/card';
 import Sparkline from '@/components/Sparkline';
 import { pushBack } from '@/lib/backNavigation';
+import { appLocale } from '@/lib/format';
 import { useDelayedLoading } from '@/lib/useDelayedLoading';
 import { useWaterConsumptionSummary, useWaterReadings } from '@/features/water/hooks';
 import { isoDate } from './hooks';
@@ -43,7 +44,7 @@ export default function WaterCard() {
         </p>
         <p className="mt-0.5 text-xs text-muted-foreground">
           {t('dashboard.metrics.water.total', {
-            m3: (summary.total_l / 1000).toLocaleString(undefined, { maximumFractionDigits: 1 }),
+            m3: (summary.total_l / 1000).toLocaleString(appLocale(), { maximumFractionDigits: 1 }),
           })}
         </p>
         <div className="mt-auto pt-3 text-primary">

@@ -1,11 +1,12 @@
 import { useTranslation } from 'react-i18next';
 import { Card } from '@/design-system/card';
 import type { AIUsageCall } from '@/lib/api/ai-usage';
+import { appLocale } from '@/lib/format';
 
 function formatDate(value: string): string {
   const d = new Date(value);
   if (Number.isNaN(d.getTime())) return value;
-  return new Intl.DateTimeFormat(undefined, {
+  return new Intl.DateTimeFormat(appLocale(), {
     dateStyle: 'short',
     timeStyle: 'short',
   }).format(d);

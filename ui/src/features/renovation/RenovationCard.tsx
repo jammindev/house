@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { Pencil, Trash2, Layers } from 'lucide-react';
 import { Card } from '@/design-system/card';
 import CardActions, { type CardAction } from '@/components/CardActions';
+import { appLocale } from '@/lib/format';
 import type { InteractionListItem } from '@/lib/api/interactions';
 import type { RenovationElement, RenovationType } from '@/lib/api/renovation';
 
@@ -65,7 +66,7 @@ export default function RenovationCard({ entry, onEdit, onDelete }: RenovationCa
           ) : null}
 
           <p className="mt-1 text-xs text-muted-foreground">
-            {entry.occurred_at ? new Date(entry.occurred_at).toLocaleDateString() : null}
+            {entry.occurred_at ? new Date(entry.occurred_at).toLocaleDateString(appLocale()) : null}
           </p>
         </div>
         <CardActions actions={actions} />

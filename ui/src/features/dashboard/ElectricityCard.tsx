@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { Link, useLocation } from 'react-router-dom';
 import { Card, CardTitle } from '@/design-system/card';
 import Sparkline from '@/components/Sparkline';
+import { appLocale } from '@/lib/format';
 import { pushBack } from '@/lib/backNavigation';
 import { useDelayedLoading } from '@/lib/useDelayedLoading';
 import { useConsumptionSummary, useMeters } from '@/features/electricity/hooks';
@@ -17,7 +18,7 @@ function windowRange(): { date_from: string; date_to: string } {
 }
 
 function formatEur(amount: number): string {
-  return new Intl.NumberFormat(undefined, {
+  return new Intl.NumberFormat(appLocale(), {
     style: 'currency',
     currency: 'EUR',
     maximumFractionDigits: 0,

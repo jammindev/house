@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { CloudSun, FileText, Link, Lock, Paperclip, Pencil, Trash2 } from 'lucide-react';
 import { Card } from '@/design-system/card';
 import { useAuth } from '@/lib/auth/useAuth';
+import { appLocale } from '@/lib/format';
 import type { HouseholdMember, Task, TaskStatus } from '@/lib/api/tasks';
 import { isTaskOverdue, formatRelativeDate } from '@/lib/api/tasks';
 import CardActions, { type CardAction } from '@/components/CardActions';
@@ -52,7 +53,7 @@ export default function TaskCard({
   const totalAttachments = (task.linked_document_count ?? 0) + (task.linked_interaction_count ?? 0);
 
   const completedAtFormatted = task.completed_at
-    ? new Intl.DateTimeFormat(undefined, { dateStyle: 'short' }).format(new Date(task.completed_at))
+    ? new Intl.DateTimeFormat(appLocale(), { dateStyle: 'short' }).format(new Date(task.completed_at))
     : null;
 
   const handleStatusChange = async (newStatus: TaskStatus) => {

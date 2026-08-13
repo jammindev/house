@@ -20,6 +20,7 @@ import { Badge } from '@/design-system/badge';
 import { CardTitle } from '@/design-system/card';
 import CardActions, { type CardAction } from '@/components/CardActions';
 import { pushBack } from '@/lib/backNavigation';
+import { appLocale } from '@/lib/format';
 import { formatFileSize, type DocumentItem } from '@/lib/api/documents';
 import { isWithoutContext } from './grouping';
 
@@ -72,7 +73,7 @@ export default function DocumentCard({
   const fileName = doc.name || doc.file_path.split('/').pop() || '';
   const fileSize =
     typeof doc.metadata?.size === 'number' ? formatFileSize(doc.metadata.size) : null;
-  const createdDate = new Date(doc.created_at).toLocaleDateString();
+  const createdDate = new Date(doc.created_at).toLocaleDateString(appLocale());
   const hasOcrText = Boolean(doc.ocr_text && doc.ocr_text.trim());
 
   // Les activités liées ont déjà leur ligne juste en dessous : les répéter ici

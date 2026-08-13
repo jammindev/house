@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import { Card } from '@/design-system/card';
 import CardActions, { type CardAction } from '@/components/CardActions';
-import { formatAmount } from '@/lib/format';
+import { appLocale, formatAmount } from '@/lib/format';
 import { pushBack } from '@/lib/backNavigation';
 import type { BankTransaction } from '@/lib/api/banking';
 
@@ -116,7 +116,7 @@ export default function TransactionRow({
           </div>
 
           <p className="mt-0.5 text-xs text-muted-foreground">
-            {new Date(transaction.booked_on).toLocaleDateString()}
+            {new Date(transaction.booked_on).toLocaleDateString(appLocale())}
             {transaction.balance_after
               ? ` · ${t('banking.journal.balanceAfter', {
                   amount: formatAmount(transaction.balance_after),

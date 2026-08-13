@@ -16,6 +16,7 @@ import { Card } from '@/design-system/card';
 import { Button } from '@/design-system/button';
 import { Badge } from '@/design-system/badge';
 import { useDelayedLoading } from '@/lib/useDelayedLoading';
+import { appLocale } from '@/lib/format';
 import EmptyState from '@/components/EmptyState';
 import type { ComplianceFinding, ComplianceGroup, ComplianceSeverity } from '@/lib/api/banking';
 import { useComplianceGroup, useComplianceSummary, useRevokeWaiver } from './hooks';
@@ -627,5 +628,5 @@ function FindingRow({
 /** Une date ISO en date locale, ou un tiret quand l'information manque. */
 function formatMaybeDate(value: unknown): string {
   if (typeof value !== 'string' || !value) return '—';
-  return new Date(value).toLocaleDateString();
+  return new Date(value).toLocaleDateString(appLocale());
 }

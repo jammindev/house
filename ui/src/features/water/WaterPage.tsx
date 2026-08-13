@@ -10,6 +10,7 @@ import PageHeader from '@/components/PageHeader';
 import ConsumptionBarChart from '@/components/charts/ConsumptionBarChart';
 import WeatherOverlayToggle from '@/features/weather/WeatherOverlayToggle';
 import { useTemperatureOverlay } from '@/features/weather/overlay';
+import { appLocale } from '@/lib/format';
 import { useDelayedLoading } from '@/lib/useDelayedLoading';
 import { useDeleteWithUndo } from '@/lib/useDeleteWithUndo';
 import { useSessionState } from '@/lib/useSessionState';
@@ -27,7 +28,7 @@ import WaterReadingDialog from './WaterReadingDialog';
 const GRANULARITIES: WaterGranularity[] = ['day', 'month', 'year'];
 
 function formatM3(litres: number): string {
-  return (litres / 1000).toLocaleString(undefined, { maximumFractionDigits: 3 });
+  return (litres / 1000).toLocaleString(appLocale(), { maximumFractionDigits: 3 });
 }
 
 // ── Readings list ─────────────────────────────────────────────────────────────

@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { SheetDialog } from '@/design-system/sheet-dialog';
 import { Button } from '@/design-system/button';
-import { formatAmount } from '@/lib/format';
+import { appLocale, formatAmount } from '@/lib/format';
 import type { BankTransaction } from '@/lib/api/banking';
 import { useAllocations, useLinkInteraction, useSuggestions } from './hooks';
 import SuggestionRow from './SuggestionRow';
@@ -33,7 +33,7 @@ export default function SuggestionsDialog({
         <div className="rounded-lg border border-border bg-muted/40 p-3 text-sm">
           <p className="font-medium text-foreground">{transaction.label_raw}</p>
           <p className="text-xs text-muted-foreground">
-            {new Date(transaction.booked_on).toLocaleDateString()} ·{' '}
+            {new Date(transaction.booked_on).toLocaleDateString(appLocale())} ·{' '}
             {formatAmount(transaction.amount)}
           </p>
         </div>
