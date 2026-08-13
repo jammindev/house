@@ -1,5 +1,5 @@
 /*
- * Service worker — House PWA.
+ * Service worker — Maisonnée PWA.
  *
  * Servi à la racine (`/sw.js`) par Django (voir config/urls.py) pour avoir un
  * scope `/` et contrôler tout `/app/*`. NE PAS le déplacer sous /static/ :
@@ -147,7 +147,7 @@ self.addEventListener('push', (event) => {
     payload = { body: event.data ? event.data.text() : '' };
   }
 
-  const title = payload.title || 'House';
+  const title = payload.title || 'Maisonnée';
   const options = {
     body: payload.body || '',
     icon: '/static/icons/icon-192.png',

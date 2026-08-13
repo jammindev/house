@@ -1,5 +1,10 @@
 # Documentation Hub
 
+> La porte d'entrée publique du projet est [`../README.md`](../README.md)
+> (et [`../README.fr.md`](../README.fr.md)) : la promesse, les captures et
+> l'installation en trois lignes. Ce hub-ci s'adresse à qui travaille dessus.
+
+
 Documentation active du projet **House**. Mise à jour : avril 2026.
 
 Architecture courante : **SPA pure** — backend Django/DRF (API REST + JWT) + frontend React unique (`ui/src`) routé par `react-router`.

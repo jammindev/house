@@ -3,7 +3,7 @@
 {% get_current_language as CURRENT_LANGUAGE %}
 {% get_available_languages as AVAILABLE_LANGUAGES %}
 
-{% block title %}{% trans "Sign in" %} — House{% endblock %}
+{% block title %}{% trans "Sign in" %} — Maisonnée{% endblock %}
 
 {% block body %}
 <div class="min-h-screen flex flex-col items-center justify-center px-6 py-12">
@@ -13,8 +13,16 @@
 
         {# Logo / Wordmark #}
         <div class="text-center mb-8">
-            <a href="{% url 'home' %}" class="text-2xl font-bold bg-gradient-to-r from-primary-600 to-primary-700 bg-clip-text text-transparent">
-                🏠 House
+            {# Le signe est hors du dégradé : `bg-clip-text text-transparent` rendrait
+               transparent tout ce qu'il contient, y compris un SVG en currentColor. #}
+            <a href="{% url 'home' %}" class="inline-flex items-center justify-center gap-2.5">
+                <svg viewBox="0 0 24 24" class="h-7 w-7 text-primary-700" aria-hidden="true" focusable="false">
+                    <path fill="currentColor" fill-rule="evenodd"
+                          d="M1 21v-7a11 11 0 0 1 22 0v7ZM10.6 19.8c-1-4 .8-8.2 4.6-9.6.9 4.2-1 8.2-4.6 9.6Z" />
+                </svg>
+                <span class="text-2xl font-bold bg-gradient-to-r from-primary-600 to-primary-700 bg-clip-text text-transparent">
+                    Maisonnée
+                </span>
             </a>
             <p class="mt-2 text-sm text-gray-500">{% trans "Sign in to your workspace" %}</p>
         </div>

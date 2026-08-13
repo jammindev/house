@@ -1032,7 +1032,7 @@
     "themeLight": "Light",
     "themeDark": "Dark",
     "themeSystem": "System",
-    "colorThemeHouse": "House",
+    "colorThemeHouse": "Maisonnée",
     "colorThemeBlue": "Blue",
     "colorThemeSass": "Sass",
     "colorThemeSage": "Sage",
@@ -1442,7 +1442,7 @@
           },
           "chores": {
             "title": "Never wonder when you last cleaned",
-            "body": "Add the jobs you redo — clean the coop, wash the feeder — with how many days apart. Tick « Done » each time and House counts from there; turn on the coop reminder in Settings › Proactive messages and it tells you in the morning when one has slipped."
+            "body": "Add the jobs you redo — clean the coop, wash the feeder — with how many days apart. Tick « Done » each time and Maisonnée counts from there; turn on the coop reminder in Settings › Proactive messages and it tells you in the morning when one has slipped."
           },
           "stats": {
             "title": "Track laying and cost",
@@ -1672,7 +1672,7 @@
           },
           "invite": {
             "title": "Invite the household",
-            "body": "Invite creates a link — House sends no email. Copy it and pass it on however you like: whoever opens it chooses a password and lands straight in the household, with no account needed beforehand. An email address is optional and only addresses the invitation. A link lasts a week, and you can revoke it at any time."
+            "body": "Invite creates a link — Maisonnée sends no email. Copy it and pass it on however you like: whoever opens it chooses a password and lands straight in the household, with no account needed beforehand. An email address is optional and only addresses the invitation. A link lasts a week, and you can revoke it at any time."
           },
           "modules": {
             "title": "Enable the right modules",
@@ -1738,7 +1738,7 @@
           },
           "sheet": {
             "title": "Open a budget's sheet",
-            "body": "Tap a budget to open its sheet. Pick the period — the four shortcuts, or two free dates — and everything recomputes. Under the amount sits the comparison with the equivalent previous period: a month compares with the month before, a year with the year before, a free window with the same duration just before it. Below that, the spending rhythm day by day (month by month over a long window) and each supplier's share as a percentage. With nothing spent before, House says there is no comparison rather than inventing a percentage. « Unbudgeted » opens exactly the same way.\n\nAt the bottom, the period's expenses are browsed page by page. « Select » ticks several lines, then « Fix… » changes their supplier or their budget in one go — that is how you move what sits in the wrong envelope. Moved lines leave the sheet right away: they now count elsewhere. The chips above the list narrow it down — a kind, a supplier, or « without supplier » to spot what is still to be filled in. They leave the total at the top alone: it keeps covering the whole period, because that is the figure compared with the ceiling."
+            "body": "Tap a budget to open its sheet. Pick the period — the four shortcuts, or two free dates — and everything recomputes. Under the amount sits the comparison with the equivalent previous period: a month compares with the month before, a year with the year before, a free window with the same duration just before it. Below that, the spending rhythm day by day (month by month over a long window) and each supplier's share as a percentage. With nothing spent before, Maisonnée says there is no comparison rather than inventing a percentage. « Unbudgeted » opens exactly the same way.\n\nAt the bottom, the period's expenses are browsed page by page. « Select » ticks several lines, then « Fix… » changes their supplier or their budget in one go — that is how you move what sits in the wrong envelope. Moved lines leave the sheet right away: they now count elsewhere. The chips above the list narrow it down — a kind, a supplier, or « without supplier » to spot what is still to be filled in. They leave the total at the top alone: it keeps covering the whole period, because that is the figure compared with the ceiling."
           },
           "analysis": {
             "title": "See where it actually goes",
@@ -1780,11 +1780,11 @@
           },
           "balance": {
             "title": "Check your balance",
-            "body": "Each account shows its balance, computed at read time — never frozen in the database. If your bank exports a balance column, House anchors on it and checks the statement chain along the way: when operations are missing you get “chain broken” with the period and the missing amount, rather than a plausible but wrong figure. This is the best test of your imports: if the balance shown matches your paper statement, everything is right. For cash, open the journal and use “Move to cash” on a withdrawal — it leaves the spending totals and feeds your cash account balance."
+            "body": "Each account shows its balance, computed at read time — never frozen in the database. If your bank exports a balance column, Maisonnée anchors on it and checks the statement chain along the way: when operations are missing you get “chain broken” with the period and the missing amount, rather than a plausible but wrong figure. This is the best test of your imports: if the balance shown matches your paper statement, everything is right. For cash, open the journal and use “Move to cash” on a withdrawal — it leaves the spending totals and feeds your cash account balance."
           },
           "sheet": {
             "title": "Open an account's sheet",
-            "body": "Tap an account's name to open its sheet. Everything House knows about it is gathered there: its balance and where that figure comes from, the **checked period** (outside it House requires nothing — before is history, after is a statement that has not arrived yet), the periods no statement ever covered, the full history of your imports with what each one created, skipped and reconciled by itself, and how many operations are still waiting to be sorted out on this account. If the sheet says no check applies to this account, fix it right there: it is the one setting that makes every other check meaningful."
+            "body": "Tap an account's name to open its sheet. Everything Maisonnée knows about it is gathered there: its balance and where that figure comes from, the **checked period** (outside it Maisonnée requires nothing — before is history, after is a statement that has not arrived yet), the periods no statement ever covered, the full history of your imports with what each one created, skipped and reconciled by itself, and how many operations are still waiting to be sorted out on this account. If the sheet says no check applies to this account, fix it right there: it is the one setting that makes every other check meaningful."
           }
         }
       },
@@ -1824,11 +1824,11 @@
       },
       "recap": {
         "title": "Your monthly recap",
-        "intro": "Every module in House asks you for something. This is the one page that gives something back: once a month, your household's month told in a handful of cards.",
+        "intro": "Every module in Maisonnée asks you for something. This is the one page that gives something back: once a month, your household's month told in a handful of cards.",
         "steps": {
           "what": {
             "title": "What it is",
-            "body": "On the 5th working day of the month, House closes the month just gone and tells it: what you spent, what you got done, what the house consumed, what you photographed. The first days of the month give you time to record the last receipts — after that there is nothing to fill in, it is built from what you already recorded."
+            "body": "On the 5th working day of the month, Maisonnée closes the month just gone and tells it: what you spent, what you got done, what the house consumed, what you photographed. The first days of the month give you time to record the last receipts — after that there is nothing to fill in, it is built from what you already recorded."
           },
           "story": {
             "title": "Read it like a story",
@@ -1840,7 +1840,7 @@
           },
           "appointment": {
             "title": "Get told when it's ready",
-            "body": "Enable the reminder and House messages you on the 5th working day of the month with a link. It is off by default: if you already receive the monthly budget report, you would otherwise get two messages that morning."
+            "body": "Enable the reminder and Maisonnée messages you on the 5th working day of the month with a link. It is off by default: if you already receive the monthly budget report, you would otherwise get two messages that morning."
           },
           "frozen": {
             "title": "Why the figures never move",
@@ -2890,7 +2890,7 @@
     "expiresOn": "Valid until {{date}}",
     "pendingLinks_one": "{{count}} pending link",
     "pendingLinks_other": "{{count}} pending links",
-    "alsoNotifiedInApp": "This address already has a House account — they were notified in the app as well.",
+    "alsoNotifiedInApp": "This address already has a Maisonnée account — they were notified in the app as well.",
     "linkInvalidTitle": "Invalid link",
     "linkInvalid": "This invitation link is not valid. It may have been used already, or revoked.",
     "expiredTitle": "Invitation expired",
@@ -3055,7 +3055,7 @@
     },
     "chores": {
       "title": "Chores",
-      "empty": "No recurring chore yet. Add the ones you redo — cleaning the coop, washing the feeder — and House will tell you when they slip.",
+      "empty": "No recurring chore yet. Add the ones you redo — cleaning the coop, washing the feeder — and Maisonnée will tell you when they slip.",
       "created": "Chore added",
       "updated": "Chore updated",
       "deleted": "Chore deleted",
@@ -3901,10 +3901,10 @@
     "anchor": {
       "title": "Find the opening balance",
       "action": "Find the opening balance",
-      "intro": "Your bank does not export balances in its statements. Give the balance you can read today: House subtracts the movements to find the starting one.",
+      "intro": "Your bank does not export balances in its statements. Give the balance you can read today: Maisonnée subtracts the movements to find the starting one.",
       "noLines": "This account holds no operation. Import a statement first, or type the opening balance straight into the account.",
       "fromStatement": "Your statement carries the balance — nothing to type.",
-      "fromStatementDetail": "House read {{amount}} on {{date}} in your operations. Nothing estimated: that is the bank's own figure.",
+      "fromStatementDetail": "Maisonnée read {{amount}} on {{date}} in your operations. Nothing estimated: that is the bank's own figure.",
       "apply": "Apply",
       "applied": "Opening balance saved.",
       "balanceLabel": "Balance read on your bank",
@@ -3972,7 +3972,7 @@
       "balanceUnavailable": "No balance computed for this account.",
       "coverageTitle": "Checked period",
       "coverageWindow": "From {{from}} to {{to}}",
-      "coverageHint": "Outside it, House requires nothing: before is history, after is a statement that has not arrived yet.",
+      "coverageHint": "Outside it, Maisonnée requires nothing: before is history, after is a statement that has not arrived yet.",
       "coverageNone": {
         "no_opening_date": "No opening balance date: no check applies to this account.",
         "opening_date_after_data": "Your opening balance date ({{openingDate}}) is later than your oldest operation ({{earliestLine}}): the checked period is empty, so no check applies to this account.",

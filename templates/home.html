@@ -1,15 +1,21 @@
 {% extends "base_public.html" %}
 {% load i18n %}
 
-{% block title %}{% trans "House — Manage your home" %}{% endblock %}
+{% block title %}{% trans "Maisonnée — Manage your home" %}{% endblock %}
 
 {% block body %}
 
 {# ── Navbar ────────────────────────────────────────────────────────────────── #}
 <header class="sticky top-0 z-50 border-b border-border/50 bg-background/80 backdrop-blur-xl">
     <div class="mx-auto max-w-6xl px-6 h-16 flex items-center justify-between">
-        <span class="text-xl font-bold bg-gradient-to-r from-primary-600 to-primary-700 bg-clip-text text-transparent">
-            🏠 House
+        <span class="inline-flex items-center gap-2.5">
+            <svg viewBox="0 0 24 24" class="h-6 w-6 text-primary-700" aria-hidden="true" focusable="false">
+                <path fill="currentColor" fill-rule="evenodd"
+                      d="M1 21v-7a11 11 0 0 1 22 0v7ZM10.6 19.8c-1-4 .8-8.2 4.6-9.6.9 4.2-1 8.2-4.6 9.6Z" />
+            </svg>
+            <span class="text-xl font-bold bg-gradient-to-r from-primary-600 to-primary-700 bg-clip-text text-transparent">
+                Maisonnée
+            </span>
         </span>
         <a href="{% url 'login' %}"
            class="inline-flex items-center gap-2 rounded-xl bg-primary-600 px-5 py-2 text-sm font-semibold text-white
@@ -91,7 +97,7 @@
 
 {# ── Footer ────────────────────────────────────────────────────────────────── #}
 <footer class="border-t border-border/50 mt-8 py-8 text-center text-sm text-gray-400">
-    © 2026 House — {% trans "All rights reserved" %}
+    © 2026 Maisonnée — {% trans "All rights reserved" %}
 </footer>
 
 {% endblock %}

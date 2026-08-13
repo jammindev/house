@@ -1442,7 +1442,7 @@
           },
           "chores": {
             "title": "Ne plus se demander quand tu as nettoyé",
-            "body": "Ajoute les gestes que tu refais — nettoyer le poulailler, laver le mangeoir — avec le nombre de jours entre deux fois. Coche « Fait » à chaque fois et House repart de là ; active le rappel des corvées dans Réglages › Messages proactifs et il te prévient le matin quand l'une traîne."
+            "body": "Ajoute les gestes que tu refais — nettoyer le poulailler, laver le mangeoir — avec le nombre de jours entre deux fois. Coche « Fait » à chaque fois et Maisonnée repart de là ; active le rappel des corvées dans Réglages › Messages proactifs et il te prévient le matin quand l'une traîne."
           },
           "stats": {
             "title": "Suivre la ponte et le coût",
@@ -1672,7 +1672,7 @@
           },
           "invite": {
             "title": "Inviter le foyer",
-            "body": "Inviter crée un lien — House n'envoie aucun e-mail. Copiez-le et transmettez-le comme vous voulez : celui qui l'ouvre choisit un mot de passe et arrive directement dans le foyer, sans compte préalable. L'adresse e-mail est facultative et sert seulement à adresser l'invitation. Un lien vaut une semaine, et vous pouvez le révoquer à tout moment."
+            "body": "Inviter crée un lien — Maisonnée n'envoie aucun e-mail. Copiez-le et transmettez-le comme vous voulez : celui qui l'ouvre choisit un mot de passe et arrive directement dans le foyer, sans compte préalable. L'adresse e-mail est facultative et sert seulement à adresser l'invitation. Un lien vaut une semaine, et vous pouvez le révoquer à tout moment."
           },
           "modules": {
             "title": "Activer les bons modules",
@@ -1738,7 +1738,7 @@
           },
           "sheet": {
             "title": "Ouvrir la fiche d'un budget",
-            "body": "Touche un budget pour ouvrir sa fiche. Choisis la période — les quatre raccourcis, ou deux dates libres — et tout se recalcule. Sous le montant, la comparaison avec la période précédente équivalente : un mois se compare au mois d'avant, une année à l'année d'avant, une fenêtre libre à la même durée juste avant. En dessous, le rythme des dépenses jour par jour (mois par mois sur une longue fenêtre) et la part de chaque fournisseur en pourcentage. Sans dépense avant, House écrit qu'il n'y a pas de comparaison plutôt que d'inventer un pourcentage. « Hors budget » s'ouvre exactement pareil.\n\nEn bas, la liste des dépenses de la période se parcourt page par page. « Sélectionner » y coche plusieurs lignes, puis « Corriger… » change leur fournisseur ou leur budget d'un coup — c'est le geste pour déplacer ce qui est rangé dans la mauvaise enveloppe. Les lignes déplacées quittent la fiche aussitôt : elles comptent désormais ailleurs. Les pastilles au-dessus de la liste la réduisent — une nature, un fournisseur, ou « sans fournisseur » pour repérer ce qui reste à renseigner. Elles ne touchent pas au total du haut, qui reste celui de la période entière : c'est lui qu'on compare au plafond."
+            "body": "Touche un budget pour ouvrir sa fiche. Choisis la période — les quatre raccourcis, ou deux dates libres — et tout se recalcule. Sous le montant, la comparaison avec la période précédente équivalente : un mois se compare au mois d'avant, une année à l'année d'avant, une fenêtre libre à la même durée juste avant. En dessous, le rythme des dépenses jour par jour (mois par mois sur une longue fenêtre) et la part de chaque fournisseur en pourcentage. Sans dépense avant, Maisonnée écrit qu'il n'y a pas de comparaison plutôt que d'inventer un pourcentage. « Hors budget » s'ouvre exactement pareil.\n\nEn bas, la liste des dépenses de la période se parcourt page par page. « Sélectionner » y coche plusieurs lignes, puis « Corriger… » change leur fournisseur ou leur budget d'un coup — c'est le geste pour déplacer ce qui est rangé dans la mauvaise enveloppe. Les lignes déplacées quittent la fiche aussitôt : elles comptent désormais ailleurs. Les pastilles au-dessus de la liste la réduisent — une nature, un fournisseur, ou « sans fournisseur » pour repérer ce qui reste à renseigner. Elles ne touchent pas au total du haut, qui reste celui de la période entière : c'est lui qu'on compare au plafond."
           },
           "analysis": {
             "title": "Comprendre où ça part",
@@ -1780,11 +1780,11 @@
           },
           "balance": {
             "title": "Vérifier ton solde",
-            "body": "Chaque compte affiche son solde, calculé à la lecture — il n'est jamais figé en base. Si ta banque exporte la colonne solde, House s'y ancre et vérifie au passage que la chaîne des relevés est complète : s'il manque des opérations, tu vois « chaîne rompue » avec la période et le montant manquant, plutôt qu'un chiffre plausible mais faux. C'est le meilleur test de tes imports : si le solde affiché tombe sur celui de ton relevé papier, tout est bon. Pour le liquide, ouvre le journal et utilise « Verser aux espèces » sur un retrait : il sort des totaux de dépenses et alimente le solde de ton compte espèces."
+            "body": "Chaque compte affiche son solde, calculé à la lecture — il n'est jamais figé en base. Si ta banque exporte la colonne solde, Maisonnée s'y ancre et vérifie au passage que la chaîne des relevés est complète : s'il manque des opérations, tu vois « chaîne rompue » avec la période et le montant manquant, plutôt qu'un chiffre plausible mais faux. C'est le meilleur test de tes imports : si le solde affiché tombe sur celui de ton relevé papier, tout est bon. Pour le liquide, ouvre le journal et utilise « Verser aux espèces » sur un retrait : il sort des totaux de dépenses et alimente le solde de ton compte espèces."
           },
           "sheet": {
             "title": "Ouvrir la fiche d'un compte",
-            "body": "Touche le nom d'un compte pour ouvrir sa fiche. Tout ce que House sait de lui y est réuni : son solde et d'où il vient, la **période contrôlée** (hors de cette période, House n'exige rien — avant c'est de l'histoire, après le relevé n'est pas encore arrivé), les périodes qu'aucun relevé n'a jamais couvertes, l'historique complet de tes imports avec ce que chacun a créé, ignoré et rapproché tout seul, et le nombre d'opérations qui attendent encore d'être rangées sur ce compte. Si la fiche annonce qu'aucun contrôle ne porte sur ce compte, corrige-le là : c'est le seul réglage qui rend tous les autres contrôles mesurables."
+            "body": "Touche le nom d'un compte pour ouvrir sa fiche. Tout ce que Maisonnée sait de lui y est réuni : son solde et d'où il vient, la **période contrôlée** (hors de cette période, Maisonnée n'exige rien — avant c'est de l'histoire, après le relevé n'est pas encore arrivé), les périodes qu'aucun relevé n'a jamais couvertes, l'historique complet de tes imports avec ce que chacun a créé, ignoré et rapproché tout seul, et le nombre d'opérations qui attendent encore d'être rangées sur ce compte. Si la fiche annonce qu'aucun contrôle ne porte sur ce compte, corrige-le là : c'est le seul réglage qui rend tous les autres contrôles mesurables."
           }
         }
       },
@@ -1824,11 +1824,11 @@
       },
       "recap": {
         "title": "Votre récap mensuel",
-        "intro": "Chaque module de House vous demande quelque chose. Voici la seule page qui vous rend quelque chose : une fois par mois, le mois de votre foyer raconté en quelques cartes.",
+        "intro": "Chaque module de Maisonnée vous demande quelque chose. Voici la seule page qui vous rend quelque chose : une fois par mois, le mois de votre foyer raconté en quelques cartes.",
         "steps": {
           "what": {
             "title": "Ce que c'est",
-            "body": "Au 5e jour ouvré du mois, House clôt le mois écoulé et le raconte : ce que vous avez dépensé, ce que vous avez accompli, ce que la maison a consommé, ce que vous avez photographié. Les premiers jours du mois vous laissent le temps d'enregistrer les derniers tickets — rien à saisir ensuite, tout est construit depuis ce que vous avez déjà noté."
+            "body": "Au 5e jour ouvré du mois, Maisonnée clôt le mois écoulé et le raconte : ce que vous avez dépensé, ce que vous avez accompli, ce que la maison a consommé, ce que vous avez photographié. Les premiers jours du mois vous laissent le temps d'enregistrer les derniers tickets — rien à saisir ensuite, tout est construit depuis ce que vous avez déjà noté."
           },
           "story": {
             "title": "Se lit comme une story",
@@ -1840,7 +1840,7 @@
           },
           "appointment": {
             "title": "Être prévenu quand il est prêt",
-            "body": "Activez le rappel et House vous écrit au 5e jour ouvré du mois avec un lien. C'est désactivé par défaut : si vous recevez déjà le bilan mensuel, vous auriez sinon deux messages ce matin-là."
+            "body": "Activez le rappel et Maisonnée vous écrit au 5e jour ouvré du mois avec un lien. C'est désactivé par défaut : si vous recevez déjà le bilan mensuel, vous auriez sinon deux messages ce matin-là."
           },
           "frozen": {
             "title": "Pourquoi les chiffres ne bougent plus",
@@ -2890,7 +2890,7 @@
     "expiresOn": "Valable jusqu'au {{date}}",
     "pendingLinks_one": "{{count}} lien en attente",
     "pendingLinks_other": "{{count}} liens en attente",
-    "alsoNotifiedInApp": "Cette adresse a déjà un compte House — la personne a aussi été notifiée dans l'app.",
+    "alsoNotifiedInApp": "Cette adresse a déjà un compte Maisonnée — la personne a aussi été notifiée dans l'app.",
     "linkInvalidTitle": "Lien invalide",
     "linkInvalid": "Ce lien d'invitation n'est pas valable. Il a peut-être déjà été utilisé, ou révoqué.",
     "expiredTitle": "Invitation expirée",
@@ -3055,7 +3055,7 @@
     },
     "chores": {
       "title": "Corvées",
-      "empty": "Aucune corvée récurrente. Ajoute les gestes que tu refais — nettoyer le poulailler, laver le mangeoir — et House te dira quand ils traînent.",
+      "empty": "Aucune corvée récurrente. Ajoute les gestes que tu refais — nettoyer le poulailler, laver le mangeoir — et Maisonnée te dira quand ils traînent.",
       "created": "Corvée ajoutée",
       "updated": "Corvée modifiée",
       "deleted": "Corvée supprimée",
@@ -3901,10 +3901,10 @@
     "anchor": {
       "title": "Retrouver le solde d'ouverture",
       "action": "Retrouver le solde d'ouverture",
-      "intro": "Ta banque n'exporte pas le solde dans ses relevés. Donne le solde que tu lis aujourd'hui : House retranche les mouvements pour retrouver celui du départ.",
+      "intro": "Ta banque n'exporte pas le solde dans ses relevés. Donne le solde que tu lis aujourd'hui : Maisonnée retranche les mouvements pour retrouver celui du départ.",
       "noLines": "Ce compte ne porte aucune opération. Importe d'abord un relevé, ou saisis le solde d'ouverture directement dans la fiche du compte.",
       "fromStatement": "Ton relevé porte le solde — rien à saisir.",
-      "fromStatementDetail": "House a lu {{amount}} au {{date}} dans tes opérations. Aucune estimation : c'est le chiffre de la banque.",
+      "fromStatementDetail": "Maisonnée a lu {{amount}} au {{date}} dans tes opérations. Aucune estimation : c'est le chiffre de la banque.",
       "apply": "Appliquer",
       "applied": "Solde d'ouverture enregistré.",
       "balanceLabel": "Solde lu sur ta banque",
@@ -3972,7 +3972,7 @@
       "balanceUnavailable": "Solde non calculé pour ce compte.",
       "coverageTitle": "Période contrôlée",
       "coverageWindow": "Du {{from}} au {{to}}",
-      "coverageHint": "En dehors, House n'exige rien : avant, c'est de l'histoire ; après, le relevé n'est pas encore arrivé.",
+      "coverageHint": "En dehors, Maisonnée n'exige rien : avant, c'est de l'histoire ; après, le relevé n'est pas encore arrivé.",
       "coverageNone": {
         "no_opening_date": "Aucune date de solde de départ : aucun contrôle ne porte sur ce compte.",
         "opening_date_after_data": "Ta date de solde de départ ({{openingDate}}) est postérieure à ta plus ancienne opération ({{earliestLine}}) : la période contrôlée est vide, donc aucun contrôle ne porte sur ce compte.",

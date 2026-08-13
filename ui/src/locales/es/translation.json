@@ -1442,7 +1442,7 @@
           },
           "chores": {
             "title": "No volver a dudar de cuándo limpiaste",
-            "body": "Añade las tareas que repites — limpiar el gallinero, lavar el comedero — con cuántos días de separación. Marca « Hecha » cada vez y House cuenta desde ahí; activa el recordatorio en Ajustes › Mensajes proactivos y te avisa por la mañana cuando alguna se retrasa."
+            "body": "Añade las tareas que repites — limpiar el gallinero, lavar el comedero — con cuántos días de separación. Marca « Hecha » cada vez y Maisonnée cuenta desde ahí; activa el recordatorio en Ajustes › Mensajes proactivos y te avisa por la mañana cuando alguna se retrasa."
           },
           "stats": {
             "title": "Seguir la puesta y el coste",
@@ -1672,7 +1672,7 @@
           },
           "invite": {
             "title": "Invitar al hogar",
-            "body": "Invitar crea un enlace — House no envía ningún correo. Cópielo y transmítalo como prefiera: quien lo abra elige una contraseña y entra directamente en el hogar, sin necesidad de tener cuenta antes. La dirección de correo es opcional y solo sirve para dirigir la invitación. Un enlace dura una semana y puede revocarlo en cualquier momento."
+            "body": "Invitar crea un enlace — Maisonnée no envía ningún correo. Cópielo y transmítalo como prefiera: quien lo abra elige una contraseña y entra directamente en el hogar, sin necesidad de tener cuenta antes. La dirección de correo es opcional y solo sirve para dirigir la invitación. Un enlace dura una semana y puede revocarlo en cualquier momento."
           },
           "modules": {
             "title": "Activar los módulos adecuados",
@@ -1738,7 +1738,7 @@
           },
           "sheet": {
             "title": "Abrir la ficha de un presupuesto",
-            "body": "Toca un presupuesto para abrir su ficha. Elige el periodo — los cuatro accesos rápidos o dos fechas libres — y todo se recalcula. Bajo el importe está la comparación con el periodo anterior equivalente: un mes se compara con el mes anterior, un año con el año anterior, una ventana libre con la misma duración justo antes. Debajo, el ritmo de gastos día a día (mes a mes en una ventana larga) y la parte de cada proveedor en porcentaje. Si antes no se gastó nada, House dice que no hay comparación en lugar de inventar un porcentaje. « Sin presupuesto » se abre exactamente igual.\n\nAbajo, la lista de gastos del periodo se recorre página a página. « Seleccionar » marca varias líneas y « Corregir… » cambia su proveedor o su presupuesto de una vez — es el gesto para mover lo que está en el sobre equivocado. Las líneas movidas salen de la ficha al instante: ahora cuentan en otro sitio. Las etiquetas sobre la lista la reducen — una naturaleza, un proveedor o « sin proveedor » para detectar lo que queda por rellenar. No tocan el total de arriba, que sigue siendo el del periodo completo: es el que se compara con el límite."
+            "body": "Toca un presupuesto para abrir su ficha. Elige el periodo — los cuatro accesos rápidos o dos fechas libres — y todo se recalcula. Bajo el importe está la comparación con el periodo anterior equivalente: un mes se compara con el mes anterior, un año con el año anterior, una ventana libre con la misma duración justo antes. Debajo, el ritmo de gastos día a día (mes a mes en una ventana larga) y la parte de cada proveedor en porcentaje. Si antes no se gastó nada, Maisonnée dice que no hay comparación en lugar de inventar un porcentaje. « Sin presupuesto » se abre exactamente igual.\n\nAbajo, la lista de gastos del periodo se recorre página a página. « Seleccionar » marca varias líneas y « Corregir… » cambia su proveedor o su presupuesto de una vez — es el gesto para mover lo que está en el sobre equivocado. Las líneas movidas salen de la ficha al instante: ahora cuentan en otro sitio. Las etiquetas sobre la lista la reducen — una naturaleza, un proveedor o « sin proveedor » para detectar lo que queda por rellenar. No tocan el total de arriba, que sigue siendo el del periodo completo: es el que se compara con el límite."
           },
           "analysis": {
             "title": "Ver adónde va de verdad",
@@ -1780,11 +1780,11 @@
           },
           "balance": {
             "title": "Comprobar tu saldo",
-            "body": "Cada cuenta muestra su saldo, calculado al leer: nunca queda congelado en la base de datos. Si tu banco exporta la columna de saldo, House se ancla en ella y comprueba de paso que la cadena de extractos esté completa: si faltan operaciones verás «cadena rota» con el periodo y el importe que falta, en lugar de una cifra plausible pero falsa. Es la mejor prueba de tus importaciones: si el saldo mostrado coincide con tu extracto en papel, todo está bien. Para el efectivo, abre el diario y usa «Pasar al efectivo» en una retirada: sale de los totales de gasto y alimenta el saldo de tu cuenta de efectivo."
+            "body": "Cada cuenta muestra su saldo, calculado al leer: nunca queda congelado en la base de datos. Si tu banco exporta la columna de saldo, Maisonnée se ancla en ella y comprueba de paso que la cadena de extractos esté completa: si faltan operaciones verás «cadena rota» con el periodo y el importe que falta, en lugar de una cifra plausible pero falsa. Es la mejor prueba de tus importaciones: si el saldo mostrado coincide con tu extracto en papel, todo está bien. Para el efectivo, abre el diario y usa «Pasar al efectivo» en una retirada: sale de los totales de gasto y alimenta el saldo de tu cuenta de efectivo."
           },
           "sheet": {
             "title": "Abrir la ficha de una cuenta",
-            "body": "Toca el nombre de una cuenta para abrir su ficha. Allí se reúne todo lo que House sabe de ella: su saldo y de dónde viene, el **periodo controlado** (fuera de él House no exige nada — antes es historia; después, el extracto aún no ha llegado), los periodos que ningún extracto ha cubierto nunca, el historial completo de tus importaciones con lo que cada una creó, omitió y concilió por sí sola, y cuántas operaciones siguen pendientes de clasificar en esta cuenta. Si la ficha indica que ningún control se aplica a esta cuenta, corrígelo ahí mismo: es el único ajuste que hace medibles todos los demás controles."
+            "body": "Toca el nombre de una cuenta para abrir su ficha. Allí se reúne todo lo que Maisonnée sabe de ella: su saldo y de dónde viene, el **periodo controlado** (fuera de él Maisonnée no exige nada — antes es historia; después, el extracto aún no ha llegado), los periodos que ningún extracto ha cubierto nunca, el historial completo de tus importaciones con lo que cada una creó, omitió y concilió por sí sola, y cuántas operaciones siguen pendientes de clasificar en esta cuenta. Si la ficha indica que ningún control se aplica a esta cuenta, corrígelo ahí mismo: es el único ajuste que hace medibles todos los demás controles."
           }
         }
       },
@@ -1824,11 +1824,11 @@
       },
       "recap": {
         "title": "Tu resumen mensual",
-        "intro": "Cada módulo de House te pide algo. Esta es la única página que te devuelve algo: una vez al mes, el mes de tu hogar contado en unas pocas tarjetas.",
+        "intro": "Cada módulo de Maisonnée te pide algo. Esta es la única página que te devuelve algo: una vez al mes, el mes de tu hogar contado en unas pocas tarjetas.",
         "steps": {
           "what": {
             "title": "Qué es",
-            "body": "El 5.º día hábil del mes, House cierra el mes pasado y lo cuenta: lo que gastaste, lo que lograste, lo que consumió la casa, lo que fotografiaste. Los primeros días del mes te dan tiempo para registrar los últimos tickets — después no hay nada que rellenar, todo se construye con lo que ya registraste."
+            "body": "El 5.º día hábil del mes, Maisonnée cierra el mes pasado y lo cuenta: lo que gastaste, lo que lograste, lo que consumió la casa, lo que fotografiaste. Los primeros días del mes te dan tiempo para registrar los últimos tickets — después no hay nada que rellenar, todo se construye con lo que ya registraste."
           },
           "story": {
             "title": "Se lee como una story",
@@ -1840,7 +1840,7 @@
           },
           "appointment": {
             "title": "Que te avisen cuando esté listo",
-            "body": "Activa el aviso y House te escribe el 5.º día hábil del mes con un enlace. Está desactivado por defecto: si ya recibes el balance mensual, tendrías dos mensajes esa mañana."
+            "body": "Activa el aviso y Maisonnée te escribe el 5.º día hábil del mes con un enlace. Está desactivado por defecto: si ya recibes el balance mensual, tendrías dos mensajes esa mañana."
           },
           "frozen": {
             "title": "Por qué las cifras ya no cambian",
@@ -2890,7 +2890,7 @@
     "expiresOn": "Válido hasta el {{date}}",
     "pendingLinks_one": "{{count}} enlace pendiente",
     "pendingLinks_other": "{{count}} enlaces pendientes",
-    "alsoNotifiedInApp": "Esta dirección ya tiene una cuenta de House — también se le notificó en la aplicación.",
+    "alsoNotifiedInApp": "Esta dirección ya tiene una cuenta de Maisonnée — también se le notificó en la aplicación.",
     "linkInvalidTitle": "Enlace no válido",
     "linkInvalid": "Este enlace de invitación no es válido. Puede que ya se haya usado o que se haya revocado.",
     "expiredTitle": "Invitación caducada",
@@ -3055,7 +3055,7 @@
     },
     "chores": {
       "title": "Tareas",
-      "empty": "Aún no hay tareas recurrentes. Añade las que repites — limpiar el gallinero, lavar el comedero — y House te avisará cuando se retrasen.",
+      "empty": "Aún no hay tareas recurrentes. Añade las que repites — limpiar el gallinero, lavar el comedero — y Maisonnée te avisará cuando se retrasen.",
       "created": "Tarea añadida",
       "updated": "Tarea actualizada",
       "deleted": "Tarea eliminada",
@@ -3901,10 +3901,10 @@
     "anchor": {
       "title": "Encontrar el saldo inicial",
       "action": "Encontrar el saldo inicial",
-      "intro": "Tu banco no exporta el saldo en sus extractos. Indica el saldo que ves hoy: House resta los movimientos para encontrar el del principio.",
+      "intro": "Tu banco no exporta el saldo en sus extractos. Indica el saldo que ves hoy: Maisonnée resta los movimientos para encontrar el del principio.",
       "noLines": "Esta cuenta no tiene ninguna operación. Importa primero un extracto, o escribe el saldo inicial directamente en la cuenta.",
       "fromStatement": "Tu extracto trae el saldo — no hay nada que escribir.",
-      "fromStatementDetail": "House ha leído {{amount}} el {{date}} en tus operaciones. Nada estimado: es la cifra del banco.",
+      "fromStatementDetail": "Maisonnée ha leído {{amount}} el {{date}} en tus operaciones. Nada estimado: es la cifra del banco.",
       "apply": "Aplicar",
       "applied": "Saldo inicial guardado.",
       "balanceLabel": "Saldo leído en tu banco",
@@ -3972,7 +3972,7 @@
       "balanceUnavailable": "No se ha calculado ningún saldo para esta cuenta.",
       "coverageTitle": "Periodo controlado",
       "coverageWindow": "Del {{from}} al {{to}}",
-      "coverageHint": "Fuera de él, House no exige nada: antes es historia; después, el extracto aún no ha llegado.",
+      "coverageHint": "Fuera de él, Maisonnée no exige nada: antes es historia; después, el extracto aún no ha llegado.",
       "coverageNone": {
         "no_opening_date": "Sin fecha de saldo inicial: ningún control se aplica a esta cuenta.",
         "opening_date_after_data": "La fecha de tu saldo inicial ({{openingDate}}) es posterior a tu operación más antigua ({{earliestLine}}): el periodo controlado está vacío, así que ningún control se aplica a esta cuenta.",
