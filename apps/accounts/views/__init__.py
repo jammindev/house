@@ -1,5 +1,11 @@
 """Views package for accounts app."""
-from .api import AuthViewSet, TokenObtainPairWithSessionView, UserViewSet, me_view
+from .api import (
+    AuthViewSet,
+    TokenObtainPairWithSessionView,
+    UserViewSet,
+    me_view,
+    signup_availability_view,
+)
 from .devices import DeviceTokenViewSet
 
 __all__ = [
@@ -8,4 +14,5 @@ __all__ = [
     'TokenObtainPairWithSessionView',
     'UserViewSet',
     'me_view',
+    'signup_availability_view',
 ]

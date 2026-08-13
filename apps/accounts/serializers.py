@@ -1,5 +1,7 @@
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError as DjangoValidationError
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
@@ -135,10 +137,26 @@ class UserSerializer(serializers.ModelSerializer):
             )
         return list(dict.fromkeys(value))
 
+    def _validate_password(self, password, user):
+        """Passe le mot de passe aux validateurs Django, ou lève un 400 nommé.
+
+        `set_password` **hache n'importe quoi** : sans cet appel, `AUTH_PASSWORD_VALIDATORS`
+        n'est consulté nulle part sur le chemin d'inscription, et `abc` devenait un mot de
+        passe valide en production. Le défaut ne se voyait pas — la création répondait 201,
+        exactement comme une bonne. Seul l'endpoint `change-password` validait, ce qui rendait
+        l'app **plus stricte sur un changement que sur une création** : le contraire de ce
+        qu'il faut, puisque c'est le premier mot de passe qui protège le compte.
+        """
+        try:
+            validate_password(password, user=user)
+        except DjangoValidationError as exc:
+            raise serializers.ValidationError({"password": list(exc.messages)})
+
     def create(self, validated_data):
         password = validated_data.pop("password", None)
         user = User(**validated_data)
         if password:
+            self._validate_password(password, user)
             user.set_password(password)
         else:
             user.set_unusable_password()
@@ -150,6 +168,7 @@ class UserSerializer(serializers.ModelSerializer):
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
         if password:
+            self._validate_password(password, instance)
             instance.set_password(password)
         instance.save()
         return instance

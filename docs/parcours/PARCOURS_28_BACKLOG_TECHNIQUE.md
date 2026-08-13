@@ -19,6 +19,7 @@ Issue ombrelle : **#485**
 | 0 | Hygiène du dépôt + durcissement CI (**urgent — dépôt déjà public**) | ✅ Livré (PR #495) | #486 |
 | 1 | Durcissement multi-tenant + test générique d'isolation (**bloquant**) | ✅ Livré (PR #497) | #487 |
 | 1bis | Isolation **en écriture** : FK de serializer ✅ (PR #499) ; actions custom + 26 `APIView` restants | 🔄 Partiel | #498 |
+| 1ter | Débit et inscription : plancher global, cache partagé, `ALLOW_OPEN_SIGNUP`, mot de passe validé | ✅ Livré | — |
 | 2 | `docker compose up` — première installation en une commande | ✅ Livré | #488 |
 | 3 | Dégradation propre sans service tiers (IA, SMTP, push, Telegram) | ✅ Livré | #489 |
 | 4 | LICENSE AGPL-3.0 + gouvernance (CONTRIBUTING, SECURITY, DCO, templates) | ✅ Livré (PR #496) | #490 |
@@ -245,6 +246,84 @@ détecteur ») et que le test de parité i18n.
 5. `DEBUG=True` en production échoue au démarrage.
 6. `SECURITY.md` (lot 4) décrit le canal de signalement — les deux lots se
    rejoignent ici.
+
+---
+
+## Lot 1ter — Débit et inscription : ce qu'un compte peut coûter
+
+**But.** Le lot 1 a démontré qu'un inconnu ne peut pas *lire* le foyer d'un autre.
+Il ne disait rien de ce qu'un inconnu peut **dépenser**. Constat fait en préparant
+l'ouverture, et c'est un écart ouvert, pas un travail préparatoire : le dépôt est
+public depuis le 2025-09-21, `POST /api/accounts/users/` est en `AllowAny`, et
+l'instance de l'auteur tourne derrière.
+
+Ce qui était atteignable sans rien savoir de plus que ce que le dépôt publie :
+
+1. **créer un compte** — sans validation de mot de passe (`abc` était accepté :
+   `set_password` hache n'importe quoi, et rien n'appelait `validate_password` sur
+   ce chemin), sans vérification d'adresse, sans cap de débit ;
+2. **dépenser la clé de l'instance** — `EMBEDDING_INDEXING_ENABLED` fait de toute
+   écriture d'entité un appel fournisseur, et `documents/upload` déclenche un
+   appel de **vision synchrone** par document non-photo. Ni l'un ni l'autre
+   n'était borné, parce que `DEFAULT_THROTTLE_CLASSES` n'était pas posé ;
+3. **remplir le disque** — 20 Mo par envoi, sans plafond de fréquence.
+
+Mesuré sur `ai_usage_log` en production : un appel `agent_ask` coûte ~0,7 c€
+(Sonnet 4.6, 1 531 tokens en entrée, 203 en sortie). Au plafond de l'agent — le
+seul qui existait — un compte pouvait déjà brûler ~40 €/jour ; l'OCR et les
+embeddings, eux, n'avaient pas de plafond du tout.
+
+**Le défaut le plus coûteux n'était pas l'absence de limite, c'était le cache.**
+DRF compte dans `django.core.cache`, qui n'était pas configuré : donc
+`LocMemCache`, un compteur **par process**. Avec quatre workers gunicorn, chaque
+limite existante valait quatre fois sa valeur affichée — la garde anti-dictionnaire
+à « 5/min » en autorisait vingt — et repartait à zéro à chaque deploy. Poser un
+plancher sans corriger ça aurait ajouté un compteur qui ment aux trois qui
+mentaient déjà.
+
+**Livré**
+
+- `apps/core/throttles.py` (nouveau) — plancher `user_burst` / `user_sustained` /
+  `anon`, posé en `DEFAULT_THROTTLE_CLASSES`
+- `config/settings/base.py` — `CACHES` en `DatabaseCache` (dans Postgres : déjà
+  sauvegardé, pas de RAM en plus, pas de service de plus), tarifs, et
+  `ALLOW_OPEN_SIGNUP`
+- `apps/core/migrations/0003_cache_table.py` (nouveau) — la table de cache est
+  créée par une **migration**, pas par une commande à lancer : sans elle l'API
+  entière tombe à la première requête. Le nom de table est passé explicitement,
+  sinon `createcachetable` lit `settings.CACHES` et ne crée rien sous les réglages
+  de test — une migration décrit un schéma, elle ne lit pas un réglage
+- `apps/core/introspection.py` (nouveau) — le parcours du routeur, extrait de
+  `test_tenant_isolation` pour être partagé au lieu d'être recopié
+- `apps/accounts/permissions.py` (nouveau) — `OpenSignupAllowed`
+- `apps/accounts/serializers.py` — `validate_password` à la création **et** à la
+  mise à jour
+- `apps/accounts/throttles.py` — `signup` (5/h par IP)
+- `apps/accounts/views/api.py` — cap et permission sur `create`, refus en **403**
+  et non 401 (DRF convertit sinon, à cause du `WWW-Authenticate` de JWT), plus
+  `GET /api/accounts/signup-availability/`, public
+- `apps/documents/throttles.py` (nouveau) — `document_upload`, `ocr_reprocess`
+- `apps/core/tests/test_rate_limits.py` (nouveau) — 12 régressions, **sabotage
+  vérifié deux fois** (voir ci-dessous)
+- `docs/MODULES/security.md`, `.env.example`
+
+**Deux leçons de méthode, à garder**
+
+1. **Le contrôle « toute portée a un tarif » a d'abord été écrit faux.** Il lisait
+   `cls.throttle_classes`, donc ne voyait **aucun** throttle posé par un
+   `get_throttles()` par action — c'est-à-dire exactement les trois qu'on venait
+   d'ajouter. Retirer le tarif de `document_upload` le laissait vert. Le sabotage
+   l'a montré ; une relecture ne l'aurait pas montré.
+2. **La découverte du routeur ne pouvait pas s'importer d'un test à l'autre** :
+   `apps/core/tests` n'est pas un paquet et ne peut pas le devenir tant que
+   `apps/core/tests.py` existe à côté (même situation dans `documents`,
+   `households`, `zones`). D'où `core/introspection.py` — un seul parcours, deux
+   lectures, plutôt que deux parcours qui divergent.
+
+**Ce que ça ne fait pas** — il n'y a **pas de plafond de dépense**.
+`AIUsageLog` observe, il ne coupe pas. Un quota par foyer (stockage et tokens)
+reste à faire, et n'est nécessaire que le jour où l'instance héberge des foyers
+tiers : c'est l'issue #531 côté stockage.
 
 ---
 

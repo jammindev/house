@@ -67,6 +67,18 @@ EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
 # `agent/tests/test_service.py::test_missing_api_key_returns_idk_...`.
 ANTHROPIC_API_KEY = "sk-ant-test-not-a-real-key"
 
+# Cache en mémoire pour la suite : elle tourne dans **un seul process**, donc
+# `LocMemCache` y compte juste — la raison qui l'interdit en production (quatre
+# workers, quatre compteurs) n'existe pas ici, et il évite un aller-retour en
+# base à chaque requête throttlée. Le vidage entre deux tests est assuré par une
+# fixture autouse dans `conftest.py` : sans elle, un test qui atteint une limite
+# la laisserait atteinte pour le suivant.
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+    }
+}
+
 # Password hashers (faster for tests)
 PASSWORD_HASHERS = [
     "django.contrib.auth.hashers.MD5PasswordHasher",

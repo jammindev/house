@@ -66,3 +66,21 @@ def django_db_modify_db_settings(django_db_modify_db_settings):
         _create_vector_extension(host, port, user, password, dbname)
 
     return django_db_modify_db_settings
+
+
+@pytest.fixture(autouse=True)
+def _clear_throttle_cache():
+    """Vide le cache entre deux tests — sinon les compteurs de débit fuient.
+
+    Depuis que `DEFAULT_THROTTLE_CLASSES` pose un plancher, **toute** requête de
+    la suite incrémente un compteur, et `LocMemCache` survit d'un test à l'autre
+    dans un même process. Sans ce vidage, un fichier de tests qui envoie
+    quelques centaines de requêtes finit par en faire refuser une : l'échec
+    tombe alors sur un test **innocent**, choisi par l'ordre d'exécution, ce qui
+    est la forme la plus coûteuse de test instable.
+    """
+    from django.core.cache import cache
+
+    cache.clear()
+    yield
+    cache.clear()

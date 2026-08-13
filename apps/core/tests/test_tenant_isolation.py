@@ -22,11 +22,12 @@ de tout ça ne passe par un queryset. Ces surfaces ont leurs propres tests —
 Ne jamais lire un succès ici comme un satisfecit général.
 """
 import pytest
-from django.urls import URLPattern, URLResolver, get_resolver
 from rest_framework.request import Request
 from rest_framework.test import APIRequestFactory, force_authenticate
 
 from accounts.tests.factories import UserFactory
+from core.introspection import dotted as _dotted
+from core.introspection import registered_api_views as _registered_api_views
 from core.models import HouseholdScopedModel
 from households.models import Household, HouseholdMember
 
@@ -56,25 +57,9 @@ EXEMPT_USER_SCOPED = {
 SKIP_NO_QUERYSET = True
 
 
-def _registered_api_views():
-    """Toutes les classes de vue montées sous ``/api/``, depuis le routeur réel."""
-    found = {}
-
-    def walk(resolver, prefix=""):
-        for pattern in resolver.url_patterns:
-            if isinstance(pattern, URLResolver):
-                walk(pattern, prefix + str(pattern.pattern))
-            elif isinstance(pattern, URLPattern):
-                cls = getattr(pattern.callback, "cls", None)
-                if cls is not None:
-                    found.setdefault(cls, prefix + str(pattern.pattern))
-
-    walk(get_resolver())
-    return {cls: path for cls, path in found.items() if path.startswith("api/")}
-
-
-def _dotted(cls):
-    return f"{cls.__module__}.{cls.__name__}"
+# Le parcours du routeur et le nom pointé vivent dans ``core.introspection`` :
+# ``test_rate_limits.py`` s'appuie sur le **même**, et deux parcours écrits
+# séparément auraient dérivé.
 
 
 def _constraints_of(sql: str) -> str:

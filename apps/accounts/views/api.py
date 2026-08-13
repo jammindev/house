@@ -17,6 +17,7 @@ from django.utils.translation import gettext_lazy as _
 
 from rest_framework import viewsets
 from rest_framework.decorators import action, api_view, permission_classes
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
@@ -25,12 +26,14 @@ from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 from rest_framework_simplejwt.views import TokenObtainPairView
 
 from accounts.models import User
+from accounts.permissions import OpenSignupAllowed
 from accounts.serializers import UserSerializer
 from accounts.throttles import (
     ChangePasswordRateThrottle,
     LoginEmailRateThrottle,
     LoginIPRateThrottle,
     PasswordResetRequestThrottle,
+    SignupRateThrottle,
 )
 from accounts.tokens import get_impersonation_token
 from core.file_validation import validate_upload, ALLOWED_IMAGE_TYPES, AVATAR_MAX_SIZE
@@ -201,8 +204,34 @@ class UserViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         """Allow anyone to create users (registration), require auth for other actions."""
         if self.action == "create":
-            return [AllowAny()]
+            return [OpenSignupAllowed()]
         return [IsAuthenticated()]
+
+    def permission_denied(self, request, message=None, code=None):
+        """Un refus d'inscription se dit en 403, jamais en 401.
+
+        DRF convertit tout refus de permission en **401** dès que la requête
+        n'est pas authentifiée et qu'un authenticator annonce un
+        `WWW-Authenticate` — ce que fait `JWTAuthentication`, montée en premier.
+        Or 401 veut dire « identifie-toi et recommence », et c'est faux ici :
+        aucune paire d'identifiants n'ouvrira une inscription que l'instance a
+        fermée. Un client qui suit le code irait boucler sur une page de
+        connexion pour un compte qu'il n'a pas encore.
+        """
+        if self.action == "create":
+            raise PermissionDenied(detail=message, code=code)
+        return super().permission_denied(request, message=message, code=code)
+
+    def get_throttles(self):
+        """L'inscription est le seul geste anonyme qui *écrit*. Elle a son cap.
+
+        Le plancher global (`core.throttles`) ne suffirait pas : il compte par IP
+        toutes portées confondues, alors que ce qu'on veut borner ici est précis
+        — le nombre de comptes qu'une même origine peut faire naître.
+        """
+        if self.action == "create":
+            return [SignupRateThrottle()]
+        return super().get_throttles()
 
     @action(detail=False, methods=['get', 'patch'])
     def me(self, request):
@@ -375,6 +404,27 @@ class TokenObtainPairWithSessionView(TokenObtainPairView):
             backend='django.contrib.auth.backends.ModelBackend',
         )
         return Response(serializer.validated_data, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def signup_availability_view(request):
+    """``GET /api/accounts/signup-availability/`` — l'inscription est-elle ouverte ?
+
+    **Public à dessein, et c'est le seul endpoint des comptes qui le soit en
+    lecture.** L'écran de connexion doit savoir s'il peut proposer « créer un
+    compte » *avant* que quiconque soit authentifié — sinon on retombe sur le
+    défaut que le parcours 28 a passé un lot entier à supprimer : une interface
+    qui promet, et un clic qui dément. Une capacité indisponible se déclare.
+
+    Ce qu'elle expose ne dit rien que la première tentative d'inscription ne
+    dirait déjà, en 403 : le booléen ne cartographie rien, contrairement à
+    `/api/capabilities/`, qui reste authentifié pour cette raison précise.
+    """
+    return Response(
+        {"open": bool(getattr(settings, "ALLOW_OPEN_SIGNUP", True))},
+        status=status.HTTP_200_OK,
+    )
 
 
 @api_view(['GET'])
