@@ -2,7 +2,7 @@ import { execFileSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 
 /**
  * Les captures du README.
@@ -78,33 +78,56 @@ interface Shot {
   path: string;
   /** Un repère qui prouve que la page a fini de charger — jamais un `waitForTimeout` seul. */
   ready: RegExp | string;
+  /** Un geste à faire avant de photographier (ouvrir une conversation, un onglet…). */
+  action?: (page: Page) => Promise<void>;
 }
 
 /**
- * Six écrans, choisis sur planche-contact parmi une dizaine.
+ * Sept écrans, choisis sur planche-contact, et **dans cet ordre**.
  *
- * Ce qui a été écarté, et pourquoi — c'est la partie utile de cette liste :
+ * L'ordre est la partie qui compte. Une première version ouvrait sur le tableau
+ * de bord et rangeait l'assistant en annexe — ce qui racontait un gestionnaire
+ * de comptes avec une option IA, c'est-à-dire l'inverse du produit. Ce qui est
+ * unique ici n'est pas le budget : c'est qu'un assistant puisse répondre sur le
+ * foyer, et il ne le peut que parce que les chantiers, le journal, les documents
+ * et les compteurs sont dans le même registre.
+ *
+ * D'où : l'assistant qui cite ses sources, puis la mémoire dans laquelle il
+ * puise, puis seulement le reste.
+ *
+ * Écartés, et pourquoi :
  *
  * - **Analyse des dépenses** : le graphe couvre douze mois dont neuf vides sur
  *   la seed. Neuf colonnes à zéro dans un README racontent un produit vide.
  * - **Projets** : deux fiches, deux barres de budget à peine entamées (90 € sur
  *   8 500 €). Beaucoup de filtres, peu de matière.
- * - **Assistant** : sans clé d'API sur l'instance de démo, l'écran montre à
- *   juste titre une capacité indisponible. Honnête, mais ce n'est pas une
- *   vitrine.
- *
- * L'ordre est celui du README, et il est délibéré : le tableau de bord d'abord
- * (l'argent et le dehors y sont côte à côte), puis l'argent, puis le dehors. Un
- * lecteur qui s'arrête à la troisième image doit déjà avoir compris que ce
- * n'est pas un gestionnaire de comptes.
+ * - **Tâches** : une liste de tâches ressemble à toutes les listes de tâches.
  */
 const SHOTS: Shot[] = [
-  { name: '01-dashboard', path: '/app/dashboard', ready: /dashboard|today|household/i },
-  { name: '02-bank-journal', path: '/app/money/transactions', ready: /transaction|account|journal/i },
-  { name: '03-budgets', path: '/app/money/budgets', ready: /budget/i },
-  { name: '04-chicken-coop', path: '/app/chickens', ready: /chicken|egg|hen/i },
-  { name: '05-electricity', path: '/app/electricity', ready: /electricity|board|circuit/i },
-  { name: '06-tasks', path: '/app/tasks', ready: /task/i },
+  {
+    name: '01-assistant',
+    path: '/app/agent',
+    ready: /Novoceram/i,
+    // ⚠️ Une modale de consentement (« Before you start ») recouvre la page à la
+    // première visite : elle dit ce qui part chez le fournisseur avant qu'on
+    // s'en serve. Elle interceptait tous les clics — trois sélecteurs ont
+    // échoué avant qu'on la voie, chacun avec un message qui n'en parlait pas.
+    // Une fois la modale levée, il reste à ouvrir la conversation : la page
+    // s'affiche sur l'état vide, elle ne reprend pas la dernière discussion.
+    action: async (page) => {
+      const notice = page.getByRole('button', { name: /got it|j'ai compris|compris/i });
+      if (await notice.count()) await notice.first().click();
+      await page.locator('[data-testid="agent-conversation-item"] button').first().click();
+      // Le fil est ouvert quand la référence citée est à l'écran — pas avant.
+      await expect(page.locator('body')).toContainText(/NOV-6060-ANT/i, { timeout: 10_000 });
+    },
+  },
+  { name: '02-journal', path: '/app/interactions', ready: /journal|activity|note/i },
+  { name: '03-dashboard', path: '/app/dashboard', ready: /dashboard|today|household/i },
+  { name: '04-bank-journal', path: '/app/money/transactions', ready: /transaction|account|journal/i },
+  { name: '05-budgets', path: '/app/money/budgets', ready: /budget/i },
+  { name: '06-chicken-coop', path: '/app/chickens', ready: /chicken|egg|hen/i },
+  { name: '07-electricity', path: '/app/electricity', ready: /electricity|board|circuit/i },
 ];
 
 for (const shot of SHOTS) {
@@ -113,6 +136,7 @@ for (const shot of SHOTS) {
     // On attend un repère de contenu, pas un délai fixe : une capture prise
     // pendant un squelette de chargement est une capture qui ment.
     await expect(page.locator('body')).toContainText(shot.ready, { timeout: 20_000 });
+    if (shot.action) await shot.action(page);
     await page.waitForLoadState('networkidle');
     // Les graphes et les compteurs s'animent à l'apparition ; sans cette pause
     // on photographie une barre à mi-course.

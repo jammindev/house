@@ -32,7 +32,18 @@ export default defineConfig({
   },
 
   webServer: {
+    // `ANTHROPIC_API_KEY` est posée ici, et sa valeur est volontairement
+    // inutilisable. La capacité « assistant » ne teste que la **présence** de la
+    // clé (`agent.capabilities.assistant_available`) : sans elle, l'écran de
+    // l'assistant affiche à juste titre « non configuré sur cette instance », ce
+    // qui est le bon comportement mais pas ce que le README doit montrer.
+    //
+    // Aucun appel au fournisseur n'a lieu : la capture relit une conversation
+    // **semée** (`seed_demo_data`), dont les deux messages et leurs citations
+    // sont du texte écrit dans la seed. C'est ce qui rend cette capture
+    // reproductible, gratuite et identique à chaque exécution.
     command:
+      'ANTHROPIC_API_KEY=demo-not-a-real-key ' +
       'DJANGO_SETTINGS_MODULE=config.settings.e2e venv/bin/python manage.py runserver 127.0.0.1:8002 --noreload',
     url: 'http://127.0.0.1:8002',
     reuseExistingServer: false,

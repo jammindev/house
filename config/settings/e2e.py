@@ -29,6 +29,19 @@ DATABASES = {
     "default": env.db(default="postgres://house_user:house_password@localhost:5432/house_e2e"),
 }
 
+# Capacités optionnelles — déclarées par l'environnement, pas figées ici.
+#
+# `base.py` pose `ANTHROPIC_API_KEY = ""`, donc l'instance E2E se comporte par
+# défaut comme une instance non configurée : l'assistant y affiche « non
+# configuré », ce qui est le bon comportement et ce que testent les E2E.
+#
+# Le harnais de captures (`playwright.screenshots.config.ts`) a besoin de
+# l'inverse — montrer l'assistant tel qu'il est quand il l'est. Il pose donc la
+# variable, avec une valeur inutilisable : la capacité ne teste que la
+# **présence** de la clé, et la capture relit une conversation semée sans jamais
+# appeler le fournisseur.
+ANTHROPIC_API_KEY = env("ANTHROPIC_API_KEY", default="")
+
 SESSION_COOKIE_SECURE = False
 CSRF_COOKIE_SECURE = False
 SECURE_SSL_REDIRECT = False
