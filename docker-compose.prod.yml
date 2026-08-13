@@ -1,3 +1,20 @@
+# Plafonds mémoire — un conteneur emballé ne prend plus la machine.
+#
+# Le VPS a 3,7 Go et héberge quatre applications plus Traefik et un runner : la
+# marge réelle tourne autour du gigaoctet. Sans plafond, un import de relevé un
+# peu gros ou une boucle d'OCR faisait tomber les voisins avant de tomber
+# lui-même — et c'est l'OOM killer du noyau qui choisissait la victime, jamais
+# le coupable.
+#
+# Les valeurs sont larges à dessein : ~3 à 4 fois l'usage observé
+# (web 272 Mo, db 127 Mo, schedulers 75 Mo chacun, nginx 6 Mo). Un plafond serré
+# transformerait un pic normal en conteneur tué, ce qui est pire que le problème
+# qu'on traite. Ce sont des **plafonds, pas des réservations** : leur somme
+# dépasse la RAM disponible, et c'est normal.
+#
+# ⚠️ À revoir si `docker stats` montre un service durablement au-dessus de la
+# moitié de son plafond — un plafond qu'on frôle tous les jours ne protège plus,
+# il attend son heure.
 services:
   db:
     # pgvector/pgvector:pg16 = official postgres:16 (Debian) + the `vector`
@@ -7,6 +24,9 @@ services:
     # ever looks off. See docs/parcours/PARCOURS_21_BACKLOG_TECHNIQUE.md.
     image: pgvector/pgvector:pg16
     restart: always
+    # Postgres : 127 Mo observés, mais shared_buffers et le cache
+    # de pages grossissent avec l'usage. Le tuer serait le pire des cas.
+    mem_limit: 1g
     volumes:
       - postgres-data:/var/lib/postgresql/data
     environment:
@@ -25,6 +45,9 @@ services:
     build: .
     image: house:latest
     restart: always
+    # gunicorn 4 workers : 272 Mo observés, avec des pics sur l'OCR,
+    # les miniatures et l'import d'un relevé.
+    mem_limit: 1g
     depends_on:
       db:
         condition: service_healthy
@@ -56,6 +79,8 @@ services:
   scheduler:
     image: house:latest
     restart: always
+    # 75 Mo observés ; un ping qui rend un bilan mensuel peut monter.
+    mem_limit: 512m
     depends_on:
       db:
         condition: service_healthy
@@ -73,6 +98,8 @@ services:
   scheduler-briefings:
     image: house:latest
     restart: always
+    # Idem — même image, même charge de pointe.
+    mem_limit: 512m
     depends_on:
       db:
         condition: service_healthy
@@ -88,6 +115,8 @@ services:
   nginx:
     image: nginx:alpine
     restart: always
+    # 6 Mo observés. Statique et proxy, rien qui grossisse.
+    mem_limit: 128m
     depends_on:
       - web
     volumes:
