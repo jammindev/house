@@ -1,5 +1,34 @@
 # Next steps
 
+> **2026-08-13 — Parcours 28 : il ne reste que le lot 7, et il n'est plus
+> technique.** Les lots 0, 1, 1ter, 2, 3, 4, 5, 6 et 8 sont livrés et déployés.
+> L'image `v0.1.0` est **publique** : `docker pull ghcr.io/jammindev/maisonnee:latest`
+> répond sans compte, en `amd64` et `arm64`, et les trois lignes du README sont
+> vraies pour un inconnu — vérifié sans authentification, pas en relisant le
+> workflow.
+>
+> **La prochaine action est donc la recette pilote** (#493) : cinq à dix foyers,
+> installation sans assistance en direct, questions à J+1, S+2, S+6, et une issue
+> par blocage rencontré. Les canaux publics (r/selfhosted, awesome-selfhosted,
+> Show HN) ne s'ouvrent qu'après correction de ces blocages — on n'a qu'un seul
+> coup par communauté. Ce qu'on mesure reste la **rétention à S+6**, pas les
+> étoiles.
+>
+> Deux gestes manuels non bloquants restent : déposer
+> `docs/assets/brand/social-preview.png` dans *Settings → General → Social preview*
+> (aucune API GitHub ne le fait), et le GIF d'import, volontairement non produit —
+> un flux multi-étapes qui casse en silence, et un GIF à moitié juste vaut moins
+> que pas de GIF.
+>
+> **Écart connu et assumé** : aucun plafond de dépense sur l'API du fournisseur.
+> `AIUsageLog` observe, il ne coupe pas. Sans conséquence tant que l'auteur
+> n'héberge pas de foyers tiers — bloquant le jour où il le ferait.
+>
+> - Journal : [`2026-08-13_parcours-28_ouverture-effective.md`](./journal/2026-08-13_parcours-28_ouverture-effective.md)
+> - Fiche neuve : [`DISTRIBUTION_ET_REGISTRE.md`](./fiches/DISTRIBUTION_ET_REGISTRE.md)
+
+---
+
 > **Cadré au 2026-08-03 — Parcours 29 : l'album du foyer.** Chantier cadré ce
 > jour (doc produit, fiche concept, backlog en 7 lots, issues #526 → #534).
 > **Lot 2 livré le 2026-08-04** (#528) — les six autres restent à faire.

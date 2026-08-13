@@ -51,8 +51,17 @@ refactors and chores stay internal.
 
 ## If `docker compose up` says `denied`
 
-The GitHub package is public, but a **newly created** `ghcr.io` package is
-private by default even on a public repository, and the first pull by a stranger
-then fails with `denied` — which looks like a bug and is not one. If you hit
-that, the package visibility has not been flipped yet; open an issue and it will
-be. Nothing on your side needs changing.
+The image is public since 2026-08-13, so this should not happen. If it does,
+nothing on your side needs changing — it means the package visibility has
+regressed, and an issue is the fastest fix.
+
+You can check for yourself, without an account:
+
+```bash
+docker logout ghcr.io && docker pull ghcr.io/jammindev/maisonnee:latest
+```
+
+Two things make this failure mode easy to reach and worth naming: a **newly
+created** `ghcr.io` package is private by default even when pushed from a public
+repository, and an organisation can forbid public packages outright — the two
+settings are independent of each other and of the repository's own visibility.
