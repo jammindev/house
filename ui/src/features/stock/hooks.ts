@@ -15,10 +15,15 @@ import {
   purchaseStockItem,
   recordStockInventory,
   fetchStockConsumption,
+  fetchStockReadings,
+  updateStockReading,
+  deleteStockReading,
+  undoStockPurchase,
   type StockItem,
   type StockCategory,
   type StockPurchasePayload,
   type StockInventoryPayload,
+  type StockReadingPatch,
   type ConsumptionPeriod,
 } from '@/lib/api/stock';
 import { toast } from '@/lib/toast';
@@ -35,6 +40,7 @@ export const stockKeys = {
   items: (filters?: StockFilters) => [...stockKeys.all, 'items', filters] as const,
   categories: () => [...stockKeys.all, 'categories'] as const,
   detail: (id: string) => [...stockKeys.all, 'detail', id] as const,
+  readings: (id: string) => [...stockKeys.all, 'readings', id] as const,
 };
 
 export function useStockItems(filters: StockFilters = {}) {
@@ -132,6 +138,62 @@ export function useRecordInventory() {
     onSuccess: () => {
       invalidate('stock');
       toast({ description: t('stock.inventory.recorded'), variant: 'success' });
+    },
+    onError: () => toast({ description: t('common.saveFailed'), variant: 'destructive' }),
+  });
+}
+
+export function useStockReadings(id: string) {
+  return useQuery({
+    queryKey: stockKeys.readings(id),
+    queryFn: () => fetchStockReadings(id),
+    enabled: !!id,
+  });
+}
+
+/** Corriger un relevé : le serveur réaligne l'article sur sa dernière lecture. */
+export function useUpdateStockReading() {
+  const invalidate = useInvalidate();
+  const { t } = useTranslation();
+  return useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: StockReadingPatch }) =>
+      updateStockReading(id, payload),
+    onSuccess: () => {
+      invalidate('stock');
+      toast({ description: t('stock.readings.updated'), variant: 'success' });
+    },
+    onError: () => toast({ description: t('common.saveFailed'), variant: 'destructive' }),
+  });
+}
+
+export function useDeleteStockReading() {
+  const invalidate = useInvalidate();
+  const { t } = useTranslation();
+  return useMutation({
+    mutationFn: (id: string) => deleteStockReading(id),
+    onSuccess: () => {
+      invalidate('stock');
+      toast({ description: t('stock.readings.deleted'), variant: 'success' });
+    },
+    onError: () => toast({ description: t('common.saveFailed'), variant: 'destructive' }),
+  });
+}
+
+/**
+ * Supprimer une dépense d'achat **et** le mouvement de stock qu'elle a produit.
+ *
+ * Le `DELETE` générique d'une interaction ne touche pas au stock : la lecture de
+ * niveau reste, sa source passe à `NULL`, la quantité ne bouge pas. `undo-purchase`
+ * est le seul chemin qui défait les trois d'un coup.
+ */
+export function useUndoStockPurchase() {
+  const invalidate = useInvalidate();
+  const { t } = useTranslation();
+  return useMutation({
+    mutationFn: (interactionId: string) => undoStockPurchase(interactionId),
+    onSuccess: () => {
+      invalidate('stock', 'interactions');
+      toast({ description: t('stock.purchase.undone'), variant: 'success' });
     },
     onError: () => toast({ description: t('common.saveFailed'), variant: 'destructive' }),
   });

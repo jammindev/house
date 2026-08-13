@@ -650,7 +650,9 @@
       "supplier_label": "Fournisseur",
       "supplier_placeholder": "ex : Leroy Merlin",
       "unit_price_info": "Prix unitaire : {{price}} par {{unit}}"
-    }
+    },
+    "delete_confirm_stock_purchase": "Cette dépense vient d'un achat de {{delta}} {{unit}} de {{itemName}}.",
+    "delete_revert_stock": "Retirer aussi {{delta}} {{unit}} du stock de {{itemName}}"
   },
   "tagSelector": {
     "selected_count": "{{count}} sélectionné(s)",
@@ -2570,7 +2572,8 @@
       "created": "Achat enregistré",
       "actions": {
         "add": "Achat"
-      }
+      },
+      "undone": "Achat annulé"
     },
     "detail": {
       "title": "Détails de l'article",
@@ -2613,6 +2616,22 @@
       "last_level": "Dernier niveau connu",
       "not_enough_data": "Pas encore assez d'historique pour tracer une consommation. Enregistre un achat ou un inventaire.",
       "consumed": "Consommé"
+    },
+    "readings": {
+      "title": "Relevés de niveau",
+      "hint": "La quantité de l'article suit toujours son relevé le plus récent — corriger un relevé corrige le stock.",
+      "edit_title": "Corriger un relevé",
+      "updated": "Relevé corrigé",
+      "deleted": "Relevé supprimé",
+      "delete_confirm": "La quantité de l'article passera à {{quantity}} {{unit}}.",
+      "fields": {
+        "quantity": "Quantité relevée ({{unit}})",
+        "reading_at": "Date du relevé"
+      },
+      "kind": {
+        "inventory": "Inventaire",
+        "purchase": "Après achat"
+      }
     }
   },
   "purchase": {

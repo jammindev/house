@@ -650,7 +650,9 @@
       "supplier_label": "Lieferant",
       "supplier_placeholder": "z. B. Leroy Merlin",
       "unit_price_info": "Einzelpreis: {{price}} pro {{unit}}"
-    }
+    },
+    "delete_confirm_stock_purchase": "Diese Ausgabe stammt aus einem Kauf von {{delta}} {{unit}} {{itemName}}.",
+    "delete_revert_stock": "Auch {{delta}} {{unit}} aus dem Bestand von {{itemName}} entfernen"
   },
   "tagSelector": {
     "selected_count": "{{count}} ausgewählt",
@@ -2570,7 +2572,8 @@
       "created": "Einkauf gespeichert",
       "actions": {
         "add": "Kauf"
-      }
+      },
+      "undone": "Kauf rückgängig gemacht"
     },
     "detail": {
       "title": "Artikeldetails",
@@ -2613,6 +2616,22 @@
       "last_level": "Letzter bekannter Stand",
       "not_enough_data": "Noch nicht genug Verlauf, um den Verbrauch darzustellen. Erfasse einen Kauf oder eine Bestandsaufnahme.",
       "consumed": "Verbraucht"
+    },
+    "readings": {
+      "title": "Bestandsmessungen",
+      "hint": "Die Menge eines Artikels folgt immer seiner jüngsten Messung — eine Messung zu korrigieren korrigiert den Bestand.",
+      "edit_title": "Messung korrigieren",
+      "updated": "Messung korrigiert",
+      "deleted": "Messung gelöscht",
+      "delete_confirm": "Die Menge des Artikels wird {{quantity}} {{unit}}.",
+      "fields": {
+        "quantity": "Gemessene Menge ({{unit}})",
+        "reading_at": "Datum der Messung"
+      },
+      "kind": {
+        "inventory": "Bestandsaufnahme",
+        "purchase": "Nach dem Kauf"
+      }
     }
   },
   "purchase": {

@@ -3,7 +3,7 @@ from decimal import Decimal
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters, status, viewsets
+from rest_framework import filters, mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated
@@ -12,23 +12,26 @@ from rest_framework.response import Response
 from core.permissions import IsHouseholdMember
 from interactions.services import validate_expense_budget
 
-from .models import StockCategory, StockItem
+from .models import StockCategory, StockItem, StockLevelReading
 from .notifications import notify_stock_status_change
 from .serializers import (
     StockCategorySerializer,
     StockCategorySummarySerializer,
     StockInventorySerializer,
     StockItemSerializer,
+    StockLevelReadingSerializer,
     StockPurchaseSerializer,
     StockQuantityAdjustSerializer,
     build_category_summary,
 )
 from .services import (
     compute_consumption,
+    delete_reading,
     purchase_stock_item,
     recompute_status,
     record_initial_level,
     record_inventory,
+    revise_reading,
     undo_purchase,
 )
 
@@ -63,6 +66,52 @@ class StockCategoryViewSet(viewsets.ModelViewSet):
         payload = build_category_summary(categories)
         serializer = StockCategorySummarySerializer(payload, many=True)
         return Response(serializer.data)
+
+
+class StockLevelReadingViewSet(
+    mixins.ListModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.DestroyModelMixin,
+    viewsets.GenericViewSet,
+):
+    """Lire et corriger les relevés de niveau d'un article.
+
+    Pas de création ici : un relevé naît d'un geste métier (achat, inventaire,
+    édition de la quantité), jamais d'un POST nu — c'est ce qui garantit que la
+    quantité, le statut et la notification suivent. Ne restent que les trois
+    verbes qui manquaient : lire, rectifier, supprimer.
+
+    Les écritures passent par ``services.revise_reading`` / ``delete_reading``,
+    qui réalignent l'article sur sa dernière lecture.
+    """
+
+    permission_classes = [IsAuthenticated, IsHouseholdMember]
+    serializer_class = StockLevelReadingSerializer
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
+    filterset_fields = ["stock_item", "kind"]
+    ordering_fields = ["reading_at", "created_at"]
+    ordering = ["-reading_at", "-created_at"]
+
+    def get_queryset(self):
+        queryset = StockLevelReading.objects.for_user_households(self.request.user).select_related(
+            "stock_item", "created_by", "updated_by"
+        )
+        selected_household = self.request.household
+        if selected_household:
+            queryset = queryset.filter(household=selected_household)
+        return queryset
+
+    def perform_update(self, serializer):
+        data = serializer.validated_data
+        revise_reading(
+            reading=serializer.instance,
+            user=self.request.user,
+            quantity=data.get("quantity"),
+            reading_at=data.get("reading_at"),
+        )
+
+    def perform_destroy(self, instance):
+        delete_reading(reading=instance, user=self.request.user)
 
 
 class StockItemViewSet(viewsets.ModelViewSet):

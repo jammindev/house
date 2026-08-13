@@ -1,3 +1,4 @@
+import type * as React from 'react';
 import {
   Dialog,
   DialogContent,
@@ -16,6 +17,8 @@ interface ConfirmDialogProps {
   confirmLabel?: string;
   onConfirm: () => void;
   loading?: boolean;
+  /** Options de la suppression (ex. « retirer aussi du stock »), sous le texte. */
+  children?: React.ReactNode;
 }
 
 export default function ConfirmDialog({
@@ -26,6 +29,7 @@ export default function ConfirmDialog({
   confirmLabel = 'Supprimer',
   onConfirm,
   loading = false,
+  children,
 }: ConfirmDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -34,6 +38,7 @@ export default function ConfirmDialog({
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
+        {children ? <div className="py-2">{children}</div> : null}
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
             Annuler

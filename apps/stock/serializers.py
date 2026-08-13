@@ -4,7 +4,7 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
-from .models import StockCategory, StockItem
+from .models import StockCategory, StockItem, StockLevelReading
 
 
 class StockCategoryPickerSerializer(serializers.ModelSerializer):
@@ -188,6 +188,32 @@ class StockInventorySerializer(serializers.Serializer):
 
     quantity = serializers.DecimalField(max_digits=12, decimal_places=3, min_value=Decimal("0"))
     occurred_at = serializers.DateTimeField(required=False, allow_null=True)
+
+
+class StockLevelReadingSerializer(serializers.ModelSerializer):
+    """Une lecture de niveau, telle qu'elle se lit et se corrige.
+
+    ``kind`` et ``source_interaction`` sont en lecture seule : ils disent *d'où
+    vient* la mesure, ce qui n'est pas de l'ordre de la correction. Seuls la
+    quantité et la date se rectifient — le reste serait réécrire l'histoire.
+    """
+
+    source_interaction = serializers.PrimaryKeyRelatedField(read_only=True)
+
+    class Meta:
+        model = StockLevelReading
+        fields = [
+            "id",
+            "stock_item",
+            "reading_at",
+            "quantity",
+            "kind",
+            "source_interaction",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = ["id", "stock_item", "kind", "source_interaction", "created_at", "updated_at"]
+        extra_kwargs = {"quantity": {"min_value": Decimal("0")}}
 
 
 class StockCategorySummarySerializer(serializers.Serializer):

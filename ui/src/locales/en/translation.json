@@ -650,7 +650,9 @@
       "supplier_label": "Supplier",
       "supplier_placeholder": "e.g. Leroy Merlin",
       "unit_price_info": "Unit price: {{price}} per {{unit}}"
-    }
+    },
+    "delete_confirm_stock_purchase": "This expense comes from a purchase of {{delta}} {{unit}} of {{itemName}}.",
+    "delete_revert_stock": "Also remove {{delta}} {{unit}} from {{itemName}} stock"
   },
   "tagSelector": {
     "selected_count": "{{count}} selected",
@@ -2570,7 +2572,8 @@
       "created": "Purchase recorded",
       "actions": {
         "add": "Buy"
-      }
+      },
+      "undone": "Purchase undone"
     },
     "detail": {
       "title": "Item details",
@@ -2613,6 +2616,22 @@
       "last_level": "Last known level",
       "not_enough_data": "Not enough history yet to plot consumption. Record a purchase or an inventory count.",
       "consumed": "Consumed"
+    },
+    "readings": {
+      "title": "Level readings",
+      "hint": "An item's quantity always follows its most recent reading — fixing a reading fixes the stock.",
+      "edit_title": "Fix a reading",
+      "updated": "Reading corrected",
+      "deleted": "Reading deleted",
+      "delete_confirm": "The item quantity will become {{quantity}} {{unit}}.",
+      "fields": {
+        "quantity": "Measured quantity ({{unit}})",
+        "reading_at": "Reading date"
+      },
+      "kind": {
+        "inventory": "Inventory count",
+        "purchase": "After purchase"
+      }
     }
   },
   "purchase": {

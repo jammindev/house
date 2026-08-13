@@ -9,6 +9,7 @@ import ConsumptionBarChart from '@/components/charts/ConsumptionBarChart';
 import type { ConsumptionPeriod } from '@/lib/api/stock';
 import { useStockConsumption } from './hooks';
 import { formatDate } from './format';
+import StockReadingsList from './StockReadingsList';
 
 const PERIODS: ConsumptionPeriod[] = ['30d', '90d', '1y', 'all'];
 
@@ -114,6 +115,10 @@ export default function StockConsumptionTab({ itemId, unit }: StockConsumptionTa
           {t('stock.consumption.not_enough_data')}
         </p>
       )}
+
+      {/* Hors du bloc conditionnel : c'est justement quand il n'y a qu'un seul
+          relevé — donc pas de courbe — qu'on a besoin de le corriger. */}
+      <StockReadingsList itemId={itemId} unit={unit} />
     </section>
   );
 }

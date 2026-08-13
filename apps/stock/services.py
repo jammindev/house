@@ -211,6 +211,67 @@ def record_inventory(
     return item
 
 
+def _realign_item(item: StockItem, user) -> StockItem:
+    """Ramener la quantité de l'article sur sa dernière lecture.
+
+    L'invariant du module (« la lecture la plus récente coïncide avec
+    ``StockItem.quantity`` ») ne tenait que parce que rien ne pouvait corriger une
+    lecture. Dès qu'on en édite ou qu'on en supprime une, il faut le rétablir —
+    sinon corriger un relevé fabrique exactement le désaccord que la courbe est
+    censée montrer.
+
+    Plus aucune lecture ⇒ **0**. Garder une quantité qu'aucune mesure n'atteste
+    serait la valeur inventée que le projet refuse partout ailleurs ; l'article
+    redevient ce qu'est un article créé vide.
+    """
+    latest = item.level_readings.order_by("-reading_at", "-created_at").first()
+    old_status = item.status
+    item.quantity = latest.quantity if latest is not None else Decimal("0")
+    recompute_status(item)
+    item.updated_by = user
+    item.save()
+    notify_stock_status_change(item, old_status, item.status)
+    return item
+
+
+@transaction.atomic
+def revise_reading(
+    *,
+    reading: StockLevelReading,
+    user,
+    quantity: Decimal | None = None,
+    reading_at: datetime | None = None,
+) -> StockLevelReading:
+    """Corriger la quantité et/ou la date d'une lecture, puis réaligner l'article.
+
+    Déplacer une lecture dans le temps peut la faire devenir (ou cesser d'être) la
+    dernière : c'est pour ça que le réalignement suit toujours l'écriture, et ne
+    se déduit pas de ce qui a été édité.
+    """
+    if quantity is not None:
+        reading.quantity = Decimal(quantity)
+    if reading_at is not None:
+        reading.reading_at = reading_at
+    reading.updated_by = user
+    reading.save()
+
+    _realign_item(reading.stock_item, user)
+    return reading
+
+
+@transaction.atomic
+def delete_reading(*, reading: StockLevelReading, user) -> StockItem:
+    """Supprimer une lecture et réaligner l'article sur celle qui reste.
+
+    La dépense éventuellement liée (``source_interaction``) n'est pas touchée :
+    supprimer une mesure de niveau n'efface pas l'argent dépensé. L'inverse — se
+    défaire de la dépense *et* du mouvement — est le geste de ``undo_purchase``.
+    """
+    item = reading.stock_item
+    reading.delete()
+    return _realign_item(item, user)
+
+
 def record_initial_level(*, item: StockItem, user, occurred_at: datetime | None = None) -> StockLevelReading | None:
     """Write the origin ``inventory`` reading for a freshly created item.
 

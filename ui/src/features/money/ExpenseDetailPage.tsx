@@ -101,6 +101,18 @@ export default function ExpenseDetailPage() {
   const documents = documentsQuery.data ?? [];
   const isOwnedSplit = isOwnedByAllocationEditor(expense.kind);
 
+  // Une dépense née d'un achat de stock a produit un mouvement que la suppression
+  // laisserait derrière elle, sans un mot. La confirmation offre de le retirer.
+  const metadata = (expense.metadata ?? {}) as Record<string, unknown>;
+  const stockPurchase =
+    expense.kind === 'stock_purchase' && metadata.delta
+      ? {
+          itemName: String(metadata.stock_item_name ?? expense.subject),
+          delta: String(metadata.delta),
+          unit: String(metadata.unit ?? ''),
+        }
+      : undefined;
+
   return (
     <>
       <div className="space-y-6">
@@ -150,6 +162,7 @@ export default function ExpenseDetailPage() {
           <InteractionDeleteAction
             id={expense.id}
             onDeleted={navigateBack}
+            stockPurchase={stockPurchase}
             description={
               isOwnedSplit ? t('money.expense.deleteSplitConfirm') : t('money.expense.deleteConfirm')
             }

@@ -217,6 +217,40 @@ export async function recordStockInventory(
   return data as StockItem;
 }
 
+/** Un relevé de niveau : la mesure datée dont la quantité de l'article découle. */
+export interface StockLevelReading {
+  id: string;
+  stock_item: string;
+  reading_at: string;
+  quantity: string;
+  kind: 'inventory' | 'purchase';
+  source_interaction: string | null;
+}
+
+export async function fetchStockReadings(itemId: string): Promise<StockLevelReading[]> {
+  const { data } = await api.get('/stock/readings/', {
+    params: { stock_item: itemId, ordering: '-reading_at' },
+  });
+  return normalizeList<StockLevelReading>(data);
+}
+
+export interface StockReadingPatch {
+  quantity?: number;
+  reading_at?: string;
+}
+
+export async function updateStockReading(
+  readingId: string,
+  payload: StockReadingPatch,
+): Promise<StockLevelReading> {
+  const { data } = await api.patch(`/stock/readings/${readingId}/`, payload);
+  return data as StockLevelReading;
+}
+
+export async function deleteStockReading(readingId: string): Promise<void> {
+  await api.delete(`/stock/readings/${readingId}/`);
+}
+
 export interface StockItemInteractionItem {
   id: string;
   subject: string;
