@@ -6,10 +6,15 @@ import HouseholdSwitcher from './HouseholdSwitcher';
 
 vi.mock('react-i18next', () => ({ useTranslation: () => ({ t: (key: string) => key }) }));
 
-const state = vi.hoisted(() => ({ households: [] as Household[], activeId: '' }));
+const state = vi.hoisted(() => ({
+  households: [] as Household[],
+  activeId: '',
+  isMobile: false,
+}));
 const post = vi.hoisted(() => vi.fn(() => Promise.resolve({ data: {} })));
 
 vi.mock('@/lib/axios', () => ({ api: { post } }));
+vi.mock('@/lib/hooks/useIsMobile', () => ({ useIsMobile: () => state.isMobile }));
 vi.mock('@/lib/modules', () => ({
   useHouseholdList: () => ({
     households: state.households,
@@ -43,6 +48,7 @@ beforeAll(() => {
 beforeEach(() => {
   state.households = [];
   state.activeId = '';
+  state.isMobile = false;
   post.mockClear();
 });
 
@@ -51,7 +57,7 @@ describe('HouseholdSwitcher — le titre du header', () => {
     state.households = [householdNamed('h1', 'Maison des Vandamme')];
     state.activeId = 'h1';
 
-    render(<HouseholdSwitcher />);
+    render(<HouseholdSwitcher placement="topbar" />);
 
     expect(screen.getByTestId('topbar-household')).toHaveTextContent('Maison des Vandamme');
   });
@@ -61,7 +67,7 @@ describe('HouseholdSwitcher — le titre du header', () => {
     state.households = [householdNamed('h1', 'Maison des Vandamme')];
     state.activeId = 'h1';
 
-    render(<HouseholdSwitcher />);
+    render(<HouseholdSwitcher placement="topbar" />);
 
     expect(screen.getByTestId('topbar-household').tagName).toBe('SPAN');
   });
@@ -71,7 +77,7 @@ describe('HouseholdSwitcher — le titre du header', () => {
     state.households = [householdNamed('h1', 'Maison des Vandamme'), householdNamed('h2', 'Appartement Lille')];
     state.activeId = 'h1';
 
-    render(<HouseholdSwitcher />);
+    render(<HouseholdSwitcher placement="topbar" />);
     await user.click(screen.getByTestId('topbar-household'));
     await user.click(screen.getByRole('menuitem', { name: /Appartement Lille/ }));
 
@@ -83,7 +89,7 @@ describe('HouseholdSwitcher — le titre du header', () => {
     state.households = [householdNamed('h1', 'Maison des Vandamme'), householdNamed('h2', 'Appartement Lille')];
     state.activeId = 'h1';
 
-    render(<HouseholdSwitcher />);
+    render(<HouseholdSwitcher placement="topbar" />);
     await user.click(screen.getByTestId('topbar-household'));
     await user.click(screen.getByRole('menuitem', { name: /Maison des Vandamme/ }));
 
@@ -91,8 +97,70 @@ describe('HouseholdSwitcher — le titre du header', () => {
   });
 
   it("n'affiche rien tant que le foyer actif est inconnu", () => {
-    render(<HouseholdSwitcher />);
+    render(<HouseholdSwitcher placement="topbar" />);
 
     expect(screen.queryByTestId('topbar-household')).not.toBeInTheDocument();
+  });
+});
+
+/**
+ * Régression #577. Le header mobile porte déjà cinq actions à droite (météo,
+ * recherche, cloche, avatar, déconnexion) ; le nom du foyer, posé dans un
+ * `flex-1` à toutes les largeurs, les rognait. Il déménage donc dans la
+ * sidebar sous 768 px — là où il est lisible en entier, et où le sélecteur
+ * reste atteignable pour un utilisateur multi-foyers.
+ *
+ * Ce qui est tenu ici, ce n'est pas une classe CSS : c'est qu'il n'y ait
+ * **jamais deux endroits** qui nomment le foyer en même temps. Masquer par CSS
+ * laisserait les deux instances dans le DOM — donc deux `data-testid`
+ * identiques, et un `getByTestId` en mode strict qui casse au premier E2E.
+ */
+describe('HouseholdSwitcher — le nom du foyer n’a qu’un domicile à la fois', () => {
+  beforeEach(() => {
+    state.households = [householdNamed('h1', 'Maison des Vandamme')];
+    state.activeId = 'h1';
+  });
+
+  it('sur mobile, se tait dans le header', () => {
+    state.isMobile = true;
+
+    render(<HouseholdSwitcher placement="topbar" />);
+
+    expect(screen.queryByTestId('topbar-household')).not.toBeInTheDocument();
+  });
+
+  it('sur mobile, se dit dans la sidebar', () => {
+    state.isMobile = true;
+
+    render(<HouseholdSwitcher placement="sidebar" />);
+
+    expect(screen.getByTestId('topbar-household')).toHaveTextContent('Maison des Vandamme');
+  });
+
+  it('sur desktop, se dit dans le header', () => {
+    render(<HouseholdSwitcher placement="topbar" />);
+
+    expect(screen.getByTestId('topbar-household')).toHaveTextContent('Maison des Vandamme');
+  });
+
+  // Sinon le nom apparaîtrait deux fois sur un écran large, où la sidebar est
+  // statique et le header déjà là.
+  it('sur desktop, se tait dans la sidebar', () => {
+    render(<HouseholdSwitcher placement="sidebar" />);
+
+    expect(screen.queryByTestId('topbar-household')).not.toBeInTheDocument();
+  });
+
+  // Un utilisateur multi-foyers doit pouvoir basculer sans écran large.
+  it('reste un sélecteur dans la sidebar quand il y a plusieurs foyers', async () => {
+    const user = userEvent.setup({ pointerEventsCheck: 0 });
+    state.isMobile = true;
+    state.households = [householdNamed('h1', 'Maison des Vandamme'), householdNamed('h2', 'Appartement Lille')];
+
+    render(<HouseholdSwitcher placement="sidebar" />);
+    await user.click(screen.getByTestId('topbar-household'));
+    await user.click(screen.getByRole('menuitem', { name: /Appartement Lille/ }));
+
+    expect(post).toHaveBeenCalledWith('/households/switch/', { household_id: 'h2' });
   });
 });

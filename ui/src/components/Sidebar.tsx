@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/lib/auth/useAuth';
+import HouseholdSwitcher from './HouseholdSwitcher';
 import { useSidebarToggle } from './SidebarToggleContext';
 import { useIsHouseholdOwner } from '@/features/ai-usage/hooks';
 import { useHeaderWeather } from '@/features/weather/hooks';
@@ -127,9 +128,13 @@ export default function Sidebar() {
         lg:translate-x-0 lg:static lg:z-auto lg:transform-none
       `}>
 
-        {/* Fermeture mobile. Le nom du foyer — et son sélecteur — vivent
-            désormais dans le header, où ils sont visibles sans ouvrir ce menu. */}
+        {/* Le nom du foyer — et son sélecteur — vivent dans le header dès qu'il
+            a la place de les porter, et ici seulement sous 768 px (#577). Le
+            `mr-auto` tient la fermeture à droite quand le nom se tait. */}
         <div className="h-12 shrink-0 flex items-center justify-end gap-2 px-3">
+          <div className="mr-auto min-w-0">
+            <HouseholdSwitcher placement="sidebar" />
+          </div>
           <button
             onClick={closeSidebar}
             className="lg:hidden p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"

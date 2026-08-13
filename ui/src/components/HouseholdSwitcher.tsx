@@ -9,7 +9,11 @@ import {
   DropdownMenuTrigger,
 } from '@/design-system/dropdown-menu';
 import { api } from '@/lib/axios';
+import { useIsMobile } from '@/lib/hooks/useIsMobile';
 import { useHouseholdList } from '@/lib/modules';
+
+/** Où le nom du foyer est posé dans la coquille de l'app. */
+export type HouseholdSwitcherPlacement = 'topbar' | 'sidebar';
 
 /**
  * Le nom du foyer actif, en titre du header — et le sélecteur quand il y en a
@@ -22,10 +26,21 @@ import { useHouseholdList } from '@/lib/modules';
  * La liste vient de `useHouseholdList` (clé `['households', 'list']`) : ce
  * composant maintenait sa propre requête sur une clé à lui, si bien que le
  * header pouvait nommer un foyer et le reste de l'app en lire un autre.
+ *
+ * **Il n'a qu'un domicile à la fois** (#577) : le header sur écran large, la
+ * sidebar sous 768 px. Le header mobile porte déjà cinq actions à droite —
+ * météo, recherche, cloche, avatar, déconnexion — et un `flex-1` de plus les
+ * rognait ; le logo et le nom d'utilisateur y sont d'ailleurs déjà masqués
+ * pour la même raison. La bascule se fait en JS, pas en CSS : deux instances
+ * masquées l'une après l'autre laisseraient deux `data-testid` identiques dans
+ * le DOM, et un sélecteur strict n'aurait plus de réponse unique à « où est le
+ * nom du foyer ». C'est aussi pourquoi le testid ne change pas avec
+ * l'emplacement : il désigne le nom du foyer, où qu'il soit.
  */
-export default function HouseholdSwitcher() {
+export default function HouseholdSwitcher({ placement }: { placement: HouseholdSwitcherPlacement }) {
   const { t } = useTranslation();
   const qc = useQueryClient();
+  const isMobile = useIsMobile();
   const { households, active } = useHouseholdList();
 
   const switchHousehold = useMutation({
@@ -36,6 +51,7 @@ export default function HouseholdSwitcher() {
     },
   });
 
+  if (placement !== (isMobile ? 'sidebar' : 'topbar')) return null;
   if (!active) return null;
 
   if (households.length <= 1) {

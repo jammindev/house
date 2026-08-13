@@ -48,9 +48,11 @@ export default function TopBar() {
         <Logo size={26} />
       </Link>
 
-      {/* Le foyer, pas le nom de l'app */}
+      {/* Le foyer, pas le nom de l'app — et pas sur mobile, où il déménage
+          dans la sidebar (voir `HouseholdSwitcher`, #577). Le conteneur reste
+          à toutes les largeurs : c'est lui qui pousse les actions à droite. */}
       <div className="min-w-0 flex-1">
-        <HouseholdSwitcher />
+        <HouseholdSwitcher placement="topbar" />
       </div>
 
       {/* Météo du foyer */}
