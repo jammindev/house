@@ -65,6 +65,34 @@ Règles :
   description du tool `create_entity`. Zéro touche à `apps/agent/tools.py` sur le
   fond.
 
+### ⚠️ L'ancre est un défaut, jamais la seule source d'un lien
+
+Un `create` qui ne lit un rattachement (zone, projet…) que dans l'`anchor` est
+**aveugle dans l'assistant global** — et c'est le seul chemin qui reste depuis que
+les onglets « Assistant » ont quitté les vues de détail. Une note demandée « dans
+la salle de bain » n'atterrissait donc dans **aucune** zone : `fields['zone']`
+n'était pas lu, et le tool ne documentait aucun champ de zone, donc le modèle
+n'avait rien à remplir. Deux moitiés de la même cause — un `create` qui lit
+`fields` sans que le schéma l'annonce ne sert à rien, et l'inverse non plus.
+Corollaires (#579) :
+
+- **La désignation par nom est la règle, pas une commodité.** Un utilisateur dit
+  « la chambre », jamais un UUID — même contrat que `stock_item`, `tracker`,
+  `meter`. Pour les zones, tout passe par `zones.services.resolve_zone` /
+  `resolve_zone_ids` : un seul endroit décide ce que « la chambre » veut dire,
+  **borne au foyer** (c'est là que se refuse l'écriture dans la pièce d'un autre
+  foyer), tolère la casse, les accents et la tournure entière (« dans la salle de
+  bain » — le nom le plus précis qui tienne dans la phrase gagne).
+- **Ce qui est nommé explicitement prime sur l'ancre**, qui ne comble que le vide.
+- **L'ambigu se dit, il ne se devine pas** : deux chambres qui correspondent lèvent
+  un `ValueError` nommant les candidates, que le tool relaie au modèle. Ranger au
+  hasard en confirmant que c'est fait est pire qu'une question — même règle que
+  `banking.rules` (« des valeurs de départ, jamais des vérités »).
+- **Un rattachement introuvable n'écrit rien.** Créer l'item sans sa pièce
+  produirait exactement le silence d'origine, cette fois avec une confirmation.
+
+Régression : `agent/tests/test_create_entity_zones.py`.
+
 **Garde-fous d'écriture** : prompt strict (créer seulement sur demande explicite),
 anti-doublon par tour (`service.ask`), et **Undo** côté client (toast « Annuler »
 qui supprime l'item). Une écriture est un effet de bord réversible, pas une

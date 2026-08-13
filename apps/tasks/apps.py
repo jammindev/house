@@ -47,20 +47,28 @@ class TasksConfig(AppConfig):
 def _create_task_from_agent(household, user, fields, *, anchor=None):
     """Map the agent's raw ``fields`` to ``tasks.services.create_task``.
 
-    Resolves the conversation ``anchor`` into a sensible default link: an
-    anchored project pre-fills the task's project (and its zones are inherited by
-    the task serializer via the project); an anchored zone pre-fills the zone.
+    La pièce vient d'abord de ``fields`` (``zone`` = nom ou id, ``zone_ids`` =
+    liste d'ids) ; l'``anchor`` n'est qu'un **défaut** — un projet ancré
+    pré-remplit le projet (dont le serializer hérite les zones), une zone ancrée
+    pré-remplit la zone.
+
+    Même trou que la note (#579), en plus discret : sans lecture de ``fields``, une
+    tâche demandée « dans la salle de bain » tombait sur le repli **zone racine**
+    du service, donc dans une pièce que personne n'avait nommée.
     """
+    from zones.services import resolve_zone_ids
+
     from .services import create_task
 
+    zone_ids = resolve_zone_ids(household, fields.get('zone'), fields.get('zone_ids'))
+
     project = None
-    zone_ids = None
     if anchor:
         anchor_type, anchor_id = anchor
         if anchor_type == 'project':
             project = anchor_id
-        elif anchor_type == 'zone':
-            zone_ids = [anchor_id]
+        elif anchor_type == 'zone' and not zone_ids:
+            zone_ids = [str(anchor_id)]
 
     priority = fields.get('priority')
     return create_task(

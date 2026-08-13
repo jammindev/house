@@ -1231,6 +1231,22 @@ Règles :
   → l'utiliser pour pré-remplir un lien (ancre `project` → item lié au projet).
 - Étendre aussi la **description** du tool `create_entity` (`apps/agent/tools.py`)
   pour lister les champs de la nouvelle entité.
+- **⚠️ L'ancre est un défaut, jamais la seule source d'un rattachement.** Un
+  `create` qui ne lit la zone (ou le projet) que dans l'`anchor` est aveugle dans
+  l'assistant global — le seul chemin depuis que les onglets « Assistant » ont
+  quitté les vues de détail, et où l'ancre vaut toujours `None`. Une note demandée
+  « dans la salle de bain » n'atterrissait dans **aucune** zone : `fields['zone']`
+  n'était pas lu, et le schéma du tool n'annonçant aucun champ de zone, le modèle
+  n'avait rien à remplir. Les deux moitiés comptent — lire `fields` sans le
+  documenter ne sert à rien, et l'inverse non plus. Corollaires : la désignation
+  **par nom** est la règle (un foyer dit « la chambre », jamais un UUID), via
+  `zones.services.resolve_zone` / `resolve_zone_ids` **exclusivement** — un seul
+  endroit décide ce que « la chambre » veut dire, et c'est lui qui borne au foyer ;
+  ce qui est nommé explicitement **prime** sur l'ancre ; l'ambigu lève un
+  `ValueError` qui nomme les candidates plutôt que de ranger au hasard ; et un
+  rattachement introuvable **n'écrit rien**, sinon on reproduit le silence d'origine
+  avec une confirmation par-dessus. Régression :
+  `agent/tests/test_create_entity_zones.py`.
 
 ### Sécurité : créer + Undo
 
