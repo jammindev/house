@@ -144,7 +144,7 @@ msgstr ""
 
 #: apps/accounts/templates/accounts/emails/password_reset.html:6
 #: apps/accounts/templates/accounts/emails/password_reset.txt:3
-msgid "You requested a password reset for your House account."
+msgid "You requested a password reset for your Maisonnée account."
 msgstr ""
 
 #: apps/accounts/templates/accounts/emails/password_reset.html:9
@@ -164,7 +164,7 @@ msgstr ""
 
 #: apps/accounts/templates/accounts/emails/password_reset.html:16
 #: apps/accounts/templates/accounts/emails/password_reset.txt:11
-msgid "— House"
+msgid "— Maisonnée"
 msgstr ""
 
 #: apps/accounts/templates/accounts/emails/password_reset.txt:5
@@ -192,7 +192,7 @@ msgid "Email is required."
 msgstr "L'email est requis."
 
 #: apps/accounts/views/api.py:120
-msgid "Reset your House password"
+msgid "Reset your Maisonnée password"
 msgstr ""
 
 #: apps/accounts/views/api.py:130
@@ -2115,7 +2115,7 @@ msgid "Parent zone must belong to the same household"
 msgstr "La zone parente doit appartenir au même foyer"
 
 #: templates/home.html:4
-msgid "House — Manage your home"
+msgid "Maisonnée — Manage your home"
 msgstr "Maison — Gérez votre maison"
 
 #: templates/home.html:17 templates/login.html:6 templates/login.html:82

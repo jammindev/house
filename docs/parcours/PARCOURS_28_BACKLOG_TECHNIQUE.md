@@ -24,7 +24,7 @@ Issue ombrelle : **#485**
 | 3 | Dégradation propre sans service tiers (IA, SMTP, push, Telegram) | ✅ Livré | #489 |
 | 4 | LICENSE AGPL-3.0 + gouvernance (CONTRIBUTING, SECURITY, DCO, templates) | ✅ Livré (PR #496) | #490 |
 | 5 | Exploitation par un tiers : sauvegarde, restauration testée, mises à jour, releases | ✅ Livré (PR #549, #561) — `v0.1.0` publiée | #491 |
-| 6 | Façade Maisonnée : README bilingue, captures, GIF, identité | ⬜ À faire | #492 |
+| 6 | Façade Maisonnée : README bilingue, captures, identité | ✅ Livré — **sans le GIF d'import** (voir lot 6) | #492 |
 | 7 | Recette pilote (5-10 foyers) puis annonce et mesure de la rétention | ⬜ À faire | #493 |
 | 8 | Identité visuelle : logo, palette de marque, icônes, aperçu social | ✅ Livré — reste l'upload de l'aperçu social (clic GitHub) | #494 |
 

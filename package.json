@@ -19,7 +19,8 @@
     "test:coverage": "TZ=Europe/Paris vitest run --coverage --config ui/vite.config.ts",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
-    "test:e2e:headed": "playwright test --headed"
+    "test:e2e:headed": "playwright test --headed",
+    "screenshots": "TZ=Europe/Paris playwright test --config playwright.screenshots.config.ts"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.15",

@@ -142,3 +142,59 @@ class TestThePwaIconsExistAndAreDistinct:
         for href in re.findall(r'<link[^>]+href="(/static/icons/[^"]+)"', html):
             assert (REPO / href.lstrip("/")).is_file(), f"{href} est lié et absent"
         assert "<title>Maisonnée</title>" in html
+
+
+class TestTheFrontDoorHasNoDeadLinks:
+    """Les deux README sont la seule page que 95 % des visiteurs verront.
+
+    Un lien mort y coûte plus cher que partout ailleurs : c'est la première
+    chose qu'un inconnu clique, et il n'a aucune raison de supposer que le reste
+    du dépôt est plus soigné. Renommer une capture ou déplacer un doc casse le
+    README sans qu'aucun test existant ne s'en aperçoive — le fichier reste
+    parfaitement valide, il pointe simplement dans le vide.
+    """
+
+    READMES = ("README.md", "README.fr.md")
+
+    @pytest.mark.parametrize("readme", READMES)
+    def test_every_relative_link_resolves(self, readme):
+        text = (REPO / readme).read_text()
+        dead = []
+        for target in re.findall(r"\]\(([^)]+)\)", text):
+            target = target.split("#")[0].strip()
+            if not target or target.startswith(("http://", "https://", "mailto:")):
+                continue
+            if not (REPO / target).exists():
+                dead.append(target)
+        assert not dead, f"{readme} pointe dans le vide : {sorted(set(dead))}"
+
+    @pytest.mark.parametrize("readme", READMES)
+    def test_every_image_resolves(self, readme):
+        text = (REPO / readme).read_text()
+        dead = [
+            src
+            for src in re.findall(r"!\[[^\]]*\]\(([^)]+)\)", text)
+            if not src.startswith("http") and not (REPO / src.split("#")[0]).exists()
+        ]
+        # Les balises <img> du bandeau centré comptent aussi.
+        dead += [
+            src
+            for src in re.findall(r'<img[^>]+src="([^"]+)"', text)
+            if not src.startswith("http") and not (REPO / src).exists()
+        ]
+        assert not dead, f"{readme} affiche des images absentes : {sorted(set(dead))}"
+
+    def test_the_screenshots_are_the_six_the_harness_produces(self):
+        """Les captures versionnées sont celles que `npm run screenshots` écrit.
+
+        Sans ce contrôle, une capture ajoutée à la main — donc venue d'un vrai
+        foyer — passerait inaperçue. C'est le critère 3 du lot 6 : aucune donnée
+        d'un foyer réel dans `docs/assets/`.
+        """
+        spec = (REPO / "scripts/screenshots/capture.spec.ts").read_text()
+        declared = set(re.findall(r"name: '([^']+)'", spec))
+        on_disk = {p.stem for p in (REPO / "docs/assets/screenshots").glob("*.png")}
+        assert declared == on_disk, (
+            f"déclarées par le harnais : {sorted(declared)} ; "
+            f"présentes sur disque : {sorted(on_disk)}"
+        )

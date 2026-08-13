@@ -1442,7 +1442,7 @@
           },
           "chores": {
             "title": "Nie mehr überlegen, wann zuletzt gemistet wurde",
-            "body": "Trag die wiederkehrenden Arbeiten ein — Stall ausmisten, Futtertrog reinigen — mit dem Abstand in Tagen. Häkchen bei « Erledigt » setzen, und House zählt ab da neu; aktiviere die Erinnerung unter Einstellungen › Proaktive Nachrichten, dann meldet sie sich morgens, wenn etwas liegen bleibt."
+            "body": "Trag die wiederkehrenden Arbeiten ein — Stall ausmisten, Futtertrog reinigen — mit dem Abstand in Tagen. Häkchen bei « Erledigt » setzen, und Maisonnée zählt ab da neu; aktiviere die Erinnerung unter Einstellungen › Proaktive Nachrichten, dann meldet sie sich morgens, wenn etwas liegen bleibt."
           },
           "stats": {
             "title": "Legeleistung und Kosten verfolgen",
@@ -1672,7 +1672,7 @@
           },
           "invite": {
             "title": "Den Haushalt einladen",
-            "body": "Einladen erzeugt einen Link — House versendet keine E-Mail. Kopieren Sie ihn und geben Sie ihn weiter, wie Sie möchten: wer ihn öffnet, wählt ein Passwort und landet direkt im Haushalt, ohne vorher ein Konto zu brauchen. Die E-Mail-Adresse ist optional und adressiert lediglich die Einladung. Ein Link gilt eine Woche und kann jederzeit widerrufen werden."
+            "body": "Einladen erzeugt einen Link — Maisonnée versendet keine E-Mail. Kopieren Sie ihn und geben Sie ihn weiter, wie Sie möchten: wer ihn öffnet, wählt ein Passwort und landet direkt im Haushalt, ohne vorher ein Konto zu brauchen. Die E-Mail-Adresse ist optional und adressiert lediglich die Einladung. Ein Link gilt eine Woche und kann jederzeit widerrufen werden."
           },
           "modules": {
             "title": "Die richtigen Module aktivieren",
@@ -1738,7 +1738,7 @@
           },
           "sheet": {
             "title": "Das Blatt eines Budgets öffnen",
-            "body": "Tippe auf ein Budget, um sein Blatt zu öffnen. Wähle den Zeitraum — die vier Kürzel oder zwei freie Daten — und alles wird neu berechnet. Unter dem Betrag steht der Vergleich mit dem entsprechenden Vorzeitraum: ein Monat mit dem Vormonat, ein Jahr mit dem Vorjahr, ein freies Fenster mit derselben Dauer unmittelbar davor. Darunter der Ausgabenrhythmus Tag für Tag (bei langen Fenstern Monat für Monat) und der Anteil jedes Lieferanten in Prozent. Wurde zuvor nichts ausgegeben, schreibt House, dass es keinen Vergleich gibt, statt einen Prozentsatz zu erfinden. « Ohne Budget » öffnet sich genauso.\n\nUnten wird die Ausgabenliste des Zeitraums Seite für Seite durchblättert. Mit « Auswählen » hakst du mehrere Zeilen ab, dann ändert « Korrigieren… » Lieferant oder Budget auf einmal — so verschiebst du, was im falschen Budget liegt. Verschobene Zeilen verlassen das Blatt sofort: sie zählen jetzt anderswo. Die Pillen über der Liste verengen sie — eine Art, ein Lieferant oder « ohne Lieferant », um zu finden, was noch fehlt. Die Summe oben lassen sie unberührt: sie bleibt die des ganzen Zeitraums, denn sie ist es, die mit dem Limit verglichen wird."
+            "body": "Tippe auf ein Budget, um sein Blatt zu öffnen. Wähle den Zeitraum — die vier Kürzel oder zwei freie Daten — und alles wird neu berechnet. Unter dem Betrag steht der Vergleich mit dem entsprechenden Vorzeitraum: ein Monat mit dem Vormonat, ein Jahr mit dem Vorjahr, ein freies Fenster mit derselben Dauer unmittelbar davor. Darunter der Ausgabenrhythmus Tag für Tag (bei langen Fenstern Monat für Monat) und der Anteil jedes Lieferanten in Prozent. Wurde zuvor nichts ausgegeben, schreibt Maisonnée, dass es keinen Vergleich gibt, statt einen Prozentsatz zu erfinden. « Ohne Budget » öffnet sich genauso.\n\nUnten wird die Ausgabenliste des Zeitraums Seite für Seite durchblättert. Mit « Auswählen » hakst du mehrere Zeilen ab, dann ändert « Korrigieren… » Lieferant oder Budget auf einmal — so verschiebst du, was im falschen Budget liegt. Verschobene Zeilen verlassen das Blatt sofort: sie zählen jetzt anderswo. Die Pillen über der Liste verengen sie — eine Art, ein Lieferant oder « ohne Lieferant », um zu finden, was noch fehlt. Die Summe oben lassen sie unberührt: sie bleibt die des ganzen Zeitraums, denn sie ist es, die mit dem Limit verglichen wird."
           },
           "analysis": {
             "title": "Sehen, wohin es wirklich geht",
@@ -1780,11 +1780,11 @@
           },
           "balance": {
             "title": "Saldo prüfen",
-            "body": "Jedes Konto zeigt seinen Saldo, berechnet beim Lesen — nie in der Datenbank eingefroren. Exportiert deine Bank eine Saldo-Spalte, verankert House sich daran und prüft nebenbei die Auszugskette: Fehlen Buchungen, siehst du „Kette unterbrochen“ mit Zeitraum und fehlendem Betrag statt einer plausiblen, aber falschen Zahl. Das ist der beste Test deiner Importe: Stimmt der angezeigte Saldo mit deinem Papierauszug überein, passt alles. Für Bargeld öffne das Journal und nutze „Ins Bargeld buchen“ bei einer Abhebung — sie verlässt die Ausgabensummen und speist den Saldo deines Bargeldkontos."
+            "body": "Jedes Konto zeigt seinen Saldo, berechnet beim Lesen — nie in der Datenbank eingefroren. Exportiert deine Bank eine Saldo-Spalte, verankert Maisonnée sich daran und prüft nebenbei die Auszugskette: Fehlen Buchungen, siehst du „Kette unterbrochen“ mit Zeitraum und fehlendem Betrag statt einer plausiblen, aber falschen Zahl. Das ist der beste Test deiner Importe: Stimmt der angezeigte Saldo mit deinem Papierauszug überein, passt alles. Für Bargeld öffne das Journal und nutze „Ins Bargeld buchen“ bei einer Abhebung — sie verlässt die Ausgabensummen und speist den Saldo deines Bargeldkontos."
           },
           "sheet": {
             "title": "Die Kontoseite öffnen",
-            "body": "Tippe auf den Namen eines Kontos, um seine Seite zu öffnen. Dort ist alles versammelt, was House darüber weiß: der Saldo und woher er kommt, der **geprüfte Zeitraum** (außerhalb verlangt House nichts — davor ist Geschichte, danach fehlt der Auszug noch), die Zeiträume, die kein Auszug je abgedeckt hat, die vollständige Import-Historie mit dem, was jeder Import angelegt, übersprungen und selbst zugeordnet hat, sowie die Zahl der Umsätze, die auf diesem Konto noch auf Zuordnung warten. Wenn die Seite meldet, dass für dieses Konto keine Prüfung gilt, korrigiere es genau dort: Es ist die eine Einstellung, die alle anderen Prüfungen erst messbar macht."
+            "body": "Tippe auf den Namen eines Kontos, um seine Seite zu öffnen. Dort ist alles versammelt, was Maisonnée darüber weiß: der Saldo und woher er kommt, der **geprüfte Zeitraum** (außerhalb verlangt Maisonnée nichts — davor ist Geschichte, danach fehlt der Auszug noch), die Zeiträume, die kein Auszug je abgedeckt hat, die vollständige Import-Historie mit dem, was jeder Import angelegt, übersprungen und selbst zugeordnet hat, sowie die Zahl der Umsätze, die auf diesem Konto noch auf Zuordnung warten. Wenn die Seite meldet, dass für dieses Konto keine Prüfung gilt, korrigiere es genau dort: Es ist die eine Einstellung, die alle anderen Prüfungen erst messbar macht."
           }
         }
       },
@@ -1824,11 +1824,11 @@
       },
       "recap": {
         "title": "Ihr Monatsrückblick",
-        "intro": "Jedes Modul in House verlangt etwas von Ihnen. Dies ist die eine Seite, die etwas zurückgibt: einmal im Monat der Monat Ihres Haushalts, in einigen Karten erzählt.",
+        "intro": "Jedes Modul in Maisonnée verlangt etwas von Ihnen. Dies ist die eine Seite, die etwas zurückgibt: einmal im Monat der Monat Ihres Haushalts, in einigen Karten erzählt.",
         "steps": {
           "what": {
             "title": "Was das ist",
-            "body": "Am 5. Werktag des Monats schließt House den vergangenen Monat ab und erzählt ihn: was Sie ausgegeben, was Sie geschafft, was das Haus verbraucht und was Sie fotografiert haben. Die ersten Tage des Monats lassen Ihnen Zeit, die letzten Belege zu erfassen — danach gibt es nichts einzutragen, alles entsteht aus dem, was Sie schon erfasst haben."
+            "body": "Am 5. Werktag des Monats schließt Maisonnée den vergangenen Monat ab und erzählt ihn: was Sie ausgegeben, was Sie geschafft, was das Haus verbraucht und was Sie fotografiert haben. Die ersten Tage des Monats lassen Ihnen Zeit, die letzten Belege zu erfassen — danach gibt es nichts einzutragen, alles entsteht aus dem, was Sie schon erfasst haben."
           },
           "story": {
             "title": "Liest sich wie eine Story",
@@ -1840,7 +1840,7 @@
           },
           "appointment": {
             "title": "Benachrichtigt werden",
-            "body": "Aktivieren Sie die Erinnerung, und House schreibt Ihnen am 5. Werktag des Monats mit einem Link. Standardmäßig aus: wenn Sie schon den Monatsbericht erhalten, bekämen Sie sonst zwei Nachrichten an diesem Morgen."
+            "body": "Aktivieren Sie die Erinnerung, und Maisonnée schreibt Ihnen am 5. Werktag des Monats mit einem Link. Standardmäßig aus: wenn Sie schon den Monatsbericht erhalten, bekämen Sie sonst zwei Nachrichten an diesem Morgen."
           },
           "frozen": {
             "title": "Warum die Zahlen sich nicht mehr ändern",
@@ -2890,7 +2890,7 @@
     "expiresOn": "Gültig bis {{date}}",
     "pendingLinks_one": "{{count}} offener Link",
     "pendingLinks_other": "{{count}} offene Links",
-    "alsoNotifiedInApp": "Diese Adresse hat bereits ein House-Konto — die Person wurde auch in der App benachrichtigt.",
+    "alsoNotifiedInApp": "Diese Adresse hat bereits ein Maisonnée-Konto — die Person wurde auch in der App benachrichtigt.",
     "linkInvalidTitle": "Ungültiger Link",
     "linkInvalid": "Dieser Einladungslink ist nicht gültig. Möglicherweise wurde er bereits verwendet oder widerrufen.",
     "expiredTitle": "Einladung abgelaufen",
@@ -3055,7 +3055,7 @@
     },
     "chores": {
       "title": "Aufgaben",
-      "empty": "Noch keine wiederkehrende Aufgabe. Trag ein, was du regelmäßig machst — Stall ausmisten, Futtertrog reinigen — und House sagt dir, wenn es liegen bleibt.",
+      "empty": "Noch keine wiederkehrende Aufgabe. Trag ein, was du regelmäßig machst — Stall ausmisten, Futtertrog reinigen — und Maisonnée sagt dir, wenn es liegen bleibt.",
       "created": "Aufgabe hinzugefügt",
       "updated": "Aufgabe geändert",
       "deleted": "Aufgabe gelöscht",
@@ -3901,10 +3901,10 @@
     "anchor": {
       "title": "Eröffnungssaldo ermitteln",
       "action": "Eröffnungssaldo ermitteln",
-      "intro": "Deine Bank exportiert in ihren Auszügen keinen Saldo. Gib den Saldo an, den du heute abliest: House zieht die Bewegungen ab und ermittelt den Startsaldo.",
+      "intro": "Deine Bank exportiert in ihren Auszügen keinen Saldo. Gib den Saldo an, den du heute abliest: Maisonnée zieht die Bewegungen ab und ermittelt den Startsaldo.",
       "noLines": "Dieses Konto enthält keine Buchung. Importiere zuerst einen Auszug oder trage den Eröffnungssaldo direkt im Konto ein.",
       "fromStatement": "Dein Auszug enthält den Saldo — nichts einzugeben.",
-      "fromStatementDetail": "House hat {{amount}} am {{date}} in deinen Buchungen gelesen. Nichts geschätzt: Das ist die Zahl der Bank.",
+      "fromStatementDetail": "Maisonnée hat {{amount}} am {{date}} in deinen Buchungen gelesen. Nichts geschätzt: Das ist die Zahl der Bank.",
       "apply": "Übernehmen",
       "applied": "Eröffnungssaldo gespeichert.",
       "balanceLabel": "Bei deiner Bank abgelesener Saldo",
@@ -3972,7 +3972,7 @@
       "balanceUnavailable": "Für dieses Konto wurde kein Saldo berechnet.",
       "coverageTitle": "Geprüfter Zeitraum",
       "coverageWindow": "Vom {{from}} bis {{to}}",
-      "coverageHint": "Außerhalb verlangt House nichts: davor ist Geschichte, danach fehlt der Auszug noch.",
+      "coverageHint": "Außerhalb verlangt Maisonnée nichts: davor ist Geschichte, danach fehlt der Auszug noch.",
       "coverageNone": {
         "no_opening_date": "Kein Datum für den Anfangssaldo: Für dieses Konto gilt keine Prüfung.",
         "opening_date_after_data": "Das Datum deines Anfangssaldos ({{openingDate}}) liegt nach deinem ältesten Umsatz ({{earliestLine}}): Der geprüfte Zeitraum ist leer, also gilt für dieses Konto keine Prüfung.",
