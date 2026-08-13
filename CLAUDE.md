@@ -860,6 +860,19 @@ Toujours utiliser les tokens CSS du design-system, jamais des classes Tailwind �
 
 Tokens disponibles : `bg-card`, `bg-background`, `bg-muted`, `bg-primary/10`, `bg-destructive/10`, `text-foreground`, `text-muted-foreground`, `text-primary`, `text-destructive`, `border-border`, `border-destructive/30`.
 
+### La marque n'est pas une couleur de thème
+
+Le logo passe par `Logo` de `@/design-system/logo`, en **`currentColor`**, jamais
+en `--primary` : les 17 thèmes de `themes.css` repeindraient la marque, qui
+serait donc verte chez un foyer et violette chez un autre. La couleur de marque
+(`#3F5741`) ne vit que là où le thème ne va pas — favicon, icônes PWA,
+`theme_color` du manifeste, aperçu social. Règles d'usage et de marque :
+`docs/assets/brand/README.md`. Régressions : `ui/src/design-system/logo.test.tsx`
+et `apps/core/tests/test_brand_assets.py` — ce dernier tient aussi la validité XML
+des SVG (un `--` dans un commentaire rend le fichier invalide et le logo
+invisible, sans un mot) et le fait que les icônes `any` et `maskable` soient deux
+**fichiers** distincts, sans quoi Android rogne dans le dessin.
+
 ### Montants — un seul formatter
 
 Tout affichage de montant passe par **`formatAmount` de `@/lib/format`** (Intl

@@ -1,0 +1,14 @@
+<!--
+  Le bloc horizontal : signe + mot, aligne sur la ligne de base du mot.
+  Meme reserve que pour logo-wordmark.svg sur la fonte.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 340 64" width="340" height="64"
+     role="img" aria-label="Maisonnee">
+  <g transform="translate(0 8) scale(2)">
+    <path fill="currentColor" fill-rule="evenodd"
+          d="M1 21v-7a11 11 0 0 1 22 0v7ZM10.6 19.8c-1-4 .8-8.2 4.6-9.6.9 4.2-1 8.2-4.6 9.6Z" />
+  </g>
+  <text x="66" y="46" fill="currentColor"
+        font-family="Georgia, 'Times New Roman', serif"
+        font-size="44" font-weight="600">Maisonnée</text>
+</svg>

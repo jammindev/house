@@ -1,0 +1,9 @@
+<!--
+  Favicon de Maisonnee. Contrairement a docs/assets/brand/logo-mark.svg, la
+  couleur est ici en dur : un favicon vit dans le chrome du navigateur, ou il
+  n'herite d'aucune couleur de texte, et ou le theme du foyer n'a pas cours.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="32" height="32">
+  <path fill="#3F5741" fill-rule="evenodd"
+        d="M1 21v-7a11 11 0 0 1 22 0v7ZM10.6 19.8c-1-4 .8-8.2 4.6-9.6.9 4.2-1 8.2-4.6 9.6Z" />
+</svg>

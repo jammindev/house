@@ -1,0 +1,13 @@
+<!--
+  Le mot seul. Rendu avec une pile de polices serif plutot qu'en courbes : aucune
+  fonte n'est embarquee dans le depot, donc figer le mot en trace aurait fige une
+  fonte dont on n'a pas la licence. Le rendu varie donc legerement d'une machine a
+  l'autre — c'est un bloc de reference, pas un logotype verrouille. Le jour ou un
+  dessinateur le trace, ce fichier est remplace et rien d'autre ne bouge.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 56" width="260" height="56"
+     role="img" aria-label="Maisonnee">
+  <text x="0" y="40" fill="currentColor"
+        font-family="Georgia, 'Times New Roman', serif"
+        font-size="44" font-weight="600">Maisonnée</text>
+</svg>

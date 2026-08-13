@@ -26,7 +26,7 @@ Issue ombrelle : **#485**
 | 5 | Exploitation par un tiers : sauvegarde, restauration testée, mises à jour, releases | ✅ Livré (PR #549, #561) — `v0.1.0` publiée | #491 |
 | 6 | Façade Maisonnée : README bilingue, captures, GIF, identité | ⬜ À faire | #492 |
 | 7 | Recette pilote (5-10 foyers) puis annonce et mesure de la rétention | ⬜ À faire | #493 |
-| 8 | Identité visuelle : logo, palette de marque, icônes, aperçu social | ⬜ À faire | #494 |
+| 8 | Identité visuelle : logo, palette de marque, icônes, aperçu social | ✅ Livré — reste l'upload de l'aperçu social (clic GitHub) | #494 |
 
 > Le lot 8 porte un numéro tardif mais s'exécute **avant le lot 6** : les captures
 > d'écran contiennent le logo et les icônes.
