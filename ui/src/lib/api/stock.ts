@@ -185,6 +185,10 @@ export async function purchaseStockItem(
     remaining_before: payload.remaining_before ?? null,
     occurred_at: payload.occurred_at ?? null,
     notes: payload.notes ?? '',
+    // Le budget était typé, accepté par le serveur… et jamais envoyé : chaque
+    // achat de stock naissait en écart `expense_without_budget`, malgré une
+    // enveloppe choisie à la saisie.
+    budget_id: payload.budget_id ?? null,
   });
   return data as StockPurchaseResponse;
 }

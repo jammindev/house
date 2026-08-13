@@ -205,6 +205,8 @@ export async function registerEquipmentPurchase(
     supplier: payload.supplier ?? '',
     occurred_at: payload.occurred_at ?? null,
     notes: payload.notes ?? '',
+    // Même oubli que côté stock : l'enveloppe choisie n'arrivait pas au serveur.
+    budget_id: payload.budget_id ?? null,
   });
   return data as EquipmentPurchaseResponse;
 }
