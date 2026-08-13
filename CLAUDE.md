@@ -873,6 +873,26 @@ des SVG (un `--` dans un commentaire rend le fichier invalide et le logo
 invisible, sans un mot) et le fait que les icônes `any` et `maskable` soient deux
 **fichiers** distincts, sans quoi Android rogne dans le dessin.
 
+**Une image de marque qui porte du texte se régénère, elle ne se retouche pas.**
+`docs/assets/brand/social-preview.png` répète l'accroche et le sous-titre du
+`README.md` : c'est un deuxième exemplaire d'un texte, donc ça dérive — et ça a
+dérivé dans la journée, le README étant recadré pendant que l'image restait sur
+la promesse d'avant. Le texte se corrige dans `scripts/brand/social-preview.html`,
+`npm run brand:social` réécrit le PNG, et un test compare la **source du harnais**
+au README (`test_the_social_preview_says_what_the_readme_says`) — jamais le PNG,
+un pixel ne disant pas ce qu'il raconte. Corollaire général : une image de marque
+qu'on ne sait pas refaire **en une commande** ne se corrige jamais, on la garde
+parce que la refaire coûte trop cher.
+
+**Ce qui est promis hors du dépôt se vérifie hors du dépôt.** La première ligne du
+README — `docker compose up` — dépend d'une image de registre qu'aucun test ne
+peut atteindre, et deux réglages GitHub la ferment par défaut (un paquet `ghcr.io`
+neuf est privé même poussé depuis un dépôt public ; une politique d'org peut
+interdire les paquets publics). Le contrôle consiste à se mettre dans la position
+du lecteur — `docker logout ghcr.io && docker pull …` — et non à relire le
+workflow. Même famille que « une sauvegarde jamais restaurée n'est pas une
+sauvegarde ». Le cours : `docs/fiches/DISTRIBUTION_ET_REGISTRE.md`.
+
 ### Montants — un seul formatter
 
 Tout affichage de montant passe par **`formatAmount` de `@/lib/format`** (Intl

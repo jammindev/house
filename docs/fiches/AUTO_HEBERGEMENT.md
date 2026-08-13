@@ -115,6 +115,20 @@ sauvegarde), et la règle déjà tenue en interne — **une migration destructiv
 livre en deux fois** — devient une promesse publique de compatibilité, puisque
 personne ne contrôle plus quand ses utilisateurs mettent à jour.
 
+### 3.5 La promesse d'installation vit hors du dépôt
+
+Le README ouvre sur trois lignes dont la deuxième est `docker compose up`, et
+cette ligne ne dépend d'**aucun fichier du dépôt** : elle dépend d'un artefact
+hébergé dans un registre, sous un modèle de permissions qui n'a rien à voir avec
+celui du dépôt. C'est le seul énoncé du projet qu'aucun test ne peut tenir.
+
+D'où la règle, qui prolonge exactement celle du § 3.4 : *une promesse dont la
+vérité vit hors du dépôt se vérifie **de dehors**, dans la position du lecteur* —
+en tirant l'image sans être authentifié, jamais en relisant le workflow qui la
+pousse. Le détail (index multi-architecture, tag contre empreinte, et les trois
+étages de permissions de GitHub Packages, dont deux fermés par défaut) est dans
+sa propre fiche : [DISTRIBUTION_ET_REGISTRE.md](DISTRIBUTION_ET_REGISTRE.md).
+
 ## 4. Pourquoi cette implémentation — décisions et trade-offs
 
 **AGPL-3.0 plutôt qu'une licence permissive.** Le copyleft *réseau* — l'obligation

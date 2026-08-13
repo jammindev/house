@@ -1,12 +1,16 @@
 # Parcours 28 — Backlog technique : ouvrir Maisonnée
 
-> **État au 2026-08-05** — lots 0, 1, 2, 3, 4 et 5 livrés ; lot 1bis partiel.
-> Première release publiée : **`v0.1.0`**.
+> **État au 2026-08-13** — lots 0, 1, 1ter, 2, 3, 4, 5, 6 et 8 livrés ; lot 1bis
+> partiel ; **il ne reste que le lot 7** (recette pilote).
+> Première release publiée : **`v0.1.0`**, et l'image est **publique depuis le
+> 2026-08-13** : `docker pull ghcr.io/jammindev/maisonnee:latest` répond sans
+> aucun compte, en `amd64` et `arm64`. Les trois lignes du README sont vraies.
 > Chantier technique transverse : rendre le projet publiable, installable par un
 > tiers et défendable une fois exposé. Aucune feature métier.
 
 Doc produit : [PARCOURS_28_OUVRIR_MAISONNEE.md](./PARCOURS_28_OUVRIR_MAISONNEE.md)
-Fiche concept (le cours) : [docs/fiches/AUTO_HEBERGEMENT.md](../fiches/AUTO_HEBERGEMENT.md)
+Fiches concept (le cours) : [docs/fiches/AUTO_HEBERGEMENT.md](../fiches/AUTO_HEBERGEMENT.md)
+et [docs/fiches/DISTRIBUTION_ET_REGISTRE.md](../fiches/DISTRIBUTION_ET_REGISTRE.md)
 Socle dont on hérite : `DEPLOYMENT.md` (§3.4 résilience du proxy), `CLAUDE.md`
 (§ Déploiement), `nginx/test-resilience.sh`, `apps/core/management/commands/seed_demo_data.py`
 
@@ -24,9 +28,9 @@ Issue ombrelle : **#485**
 | 3 | Dégradation propre sans service tiers (IA, SMTP, push, Telegram) | ✅ Livré | #489 |
 | 4 | LICENSE AGPL-3.0 + gouvernance (CONTRIBUTING, SECURITY, DCO, templates) | ✅ Livré (PR #496) | #490 |
 | 5 | Exploitation par un tiers : sauvegarde, restauration testée, mises à jour, releases | ✅ Livré (PR #549, #561) — `v0.1.0` publiée | #491 |
-| 6 | Façade Maisonnée : README bilingue, captures, identité | ✅ Livré — **sans le GIF d'import** (voir lot 6) | #492 |
-| 7 | Recette pilote (5-10 foyers) puis annonce et mesure de la rétention | ⬜ À faire | #493 |
-| 8 | Identité visuelle : logo, palette de marque, icônes, aperçu social | ✅ Livré — reste l'upload de l'aperçu social (clic GitHub) | #494 |
+| 6 | Façade Maisonnée : README bilingue, captures, identité | ✅ Livré (PR #572, #574) — **sans le GIF d'import** (voir lot 6) | #492 |
+| 7 | Recette pilote (5-10 foyers) puis annonce et mesure de la rétention | ⬜ À faire — **débloqué** depuis la publication de l'image | #493 |
+| 8 | Identité visuelle : logo, palette de marque, icônes, aperçu social | ✅ Livré (PR #571, #573, #581) — reste l'upload de l'aperçu social (clic GitHub) | #494 |
 
 > Le lot 8 porte un numéro tardif mais s'exécute **avant le lot 6** : les captures
 > d'écran contiennent le logo et les icônes.
@@ -850,6 +854,22 @@ plutôt qu'une n-ième maison stylisée.
 6. L'aperçu social GitHub s'affiche correctement quand on colle le lien du dépôt
    dans Slack, Discord et Mastodon — vérifié en collant réellement.
 
+**Appris en livrant (PR #581) : l'aperçu social est un deuxième exemplaire du
+README, donc il dérive.** Le README a été recadré sur l'assistant le 13 août
+(PR #574) ; l'image, faite trois heures plus tôt, ouvrait encore sa liste sur
+l'argent et s'arrêtait avant « *and a memory that can answer for it* » — la moitié
+de la promesse qui distingue le produit. Rien n'a rougi : une image reste une
+image valide. Or c'est elle que voit en premier quelqu'un à qui on partage le
+lien, avant un README qu'il n'ouvrira peut-être jamais.
+
+D'où trois choses, du même genre que `LOGO_MARK_PATH` vs `logo-mark.svg` :
+le texte se corrige dans **`scripts/brand/social-preview.html`** et jamais dans un
+éditeur d'image ; `npm run brand:social` réécrit le PNG versionné (une image de
+marque qu'on ne sait pas refaire en une commande ne se corrige jamais, on la
+garde) ; et `test_brand_assets.py::test_the_social_preview_says_what_the_readme_says`
+compare la **source du harnais** au `README.md` — jamais le PNG, un pixel ne
+disant pas ce qu'il raconte.
+
 ---
 
 ## Ordre recommandé d'implémentation
@@ -904,6 +924,18 @@ ils rattrapent une exposition en cours et passent devant tout le reste.
 - **La compatibilité devient une promesse publique.** Une fois des instances
   tierces en service, un changement destructif se livre en deux étapes — la règle
   interne du deploy devient une règle de release.
+- **La première ligne du README n'est tenue par aucun test.** `docker compose up`
+  dépend d'un artefact qui vit **hors du dépôt**, dans un registre au modèle de
+  permissions indépendant de celui du dépôt. Deux portes s'y ferment par défaut, et
+  aucune n'est visible depuis le code : un paquet `ghcr.io` neuf est **privé** même
+  poussé depuis un dépôt public, et une **politique d'organisation** peut interdire
+  les paquets publics en grisant le bouton sous un message qui ne nomme ni le
+  réglage ni la page (`Org → Settings → Packages → Package creation`). Les deux
+  étaient fermées ; l'image n'était donc tirable par personne pendant les neuf
+  jours qui ont suivi `v0.1.0`. La vérification se fait **sans être
+  authentifié** — `docker logout ghcr.io && docker pull …` — et porte aussi sur ce
+  qu'il y a derrière : les deux architectures, et l'URL brute du
+  `docker-compose.yml`. Le cours : [DISTRIBUTION_ET_REGISTRE.md](../fiches/DISTRIBUTION_ET_REGISTRE.md).
 - **Ne pas confondre installer et revenir.** Le succès du lot 7 se mesure à S+6.
 - **La seed de démo est aussi une vitrine.** Elle doit montrer le module Argent en
   premier : c'est la seule partie avec une promesse que personne d'autre ne tient.
