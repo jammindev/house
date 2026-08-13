@@ -162,6 +162,7 @@ class Command(BaseCommand):
             self._create_trackers(household, antoine)
             self._create_directory(household, claire)
             self._create_journal(household, claire, antoine, zones, equipment, projects)
+            self._create_agent_conversation(household, claire, projects)
 
         self.stdout.write(self.style.SUCCESS("Demo data seeded successfully."))
 
@@ -2435,3 +2436,101 @@ class Command(BaseCommand):
             f"(notes, entretiens, rénovation), "
             f"{Tag.objects.filter(household=household).count()} étiquettes"
         )
+
+    # ------------------------------------------------------------------
+    # Assistant
+    # ------------------------------------------------------------------
+
+    def _create_agent_conversation(self, household, claire, projects):
+        """Une conversation déjà tenue — le seul module que la démo ne montrait pas.
+
+        Semer une conversation peut sembler contredire la règle du haut de ce
+        fichier (« les récaps, bilans et alertes sont **dérivés**, les semer les
+        figerait »). Ce n'en est pas un : un échange n'est pas une valeur
+        recalculée à la lecture, c'est un **fait daté**, au même titre qu'une
+        note du journal. Rien ne le recalcule, donc rien ne peut diverger.
+
+        Ce qu'elle démontre est précisément ce que le carnet de rénovation
+        existe pour résoudre — la question à laquelle personne ne sait répondre
+        trois ans plus tard. La réponse cite ses sources, et les citations
+        pointent sur des entités **réellement semées** : cliquer dessus ouvre la
+        fiche, sinon la démo montrerait un lien mort.
+
+        Aucun appel au fournisseur : le contenu est écrit ici. C'est ce qui rend
+        la capture reproductible et gratuite, et c'est pour ça que le foyer de
+        démonstration montre l'assistant même sur une instance sans clé.
+        """
+        from agent.models import AgentConversation, AgentMessage
+
+        if AgentConversation.objects.filter(household=household).exists():
+            return
+
+        carrelage = Interaction.objects.filter(
+            household=household, subject="Carrelage de la salle de bain"
+        ).first()
+        projet = projects.get("sdb") if isinstance(projects, dict) else None
+        if projet is None:
+            projet = Project.objects.filter(
+                household=household, title="Rénovation salle de bain"
+            ).first()
+        if carrelage is None or projet is None:
+            return
+
+        now = timezone.now()
+        conversation = AgentConversation.objects.create(
+            household=household,
+            # L'appartenance passe par `created_by` : c'est ce que filtre
+            # `AgentConversationViewSet.get_queryset`. Une conversation est
+            # privée à la personne qui l'a tenue, pas partagée au foyer.
+            title="Le carrelage de la salle de bain",
+            last_message_at=now,
+            created_by=claire,
+            updated_by=claire,
+        )
+
+        AgentMessage.objects.create(
+            conversation=conversation,
+            role=AgentMessage.Role.USER,
+            content=(
+                "On veut refaire le sol des WC dans le même carrelage que la "
+                "salle de bain. C'était quoi la référence, et est-ce qu'il en "
+                "reste ?"
+            ),
+        )
+        AgentMessage.objects.create(
+            conversation=conversation,
+            role=AgentMessage.Role.AGENT,
+            content=(
+                "C'est un grès cérame 60 × 60 anthracite de chez **Novoceram**, "
+                "référence **NOV-6060-ANT**, posé pendant la rénovation de la "
+                "salle de bain [1].\n\n"
+                "Et oui, il en reste : **deux boîtes de rechange sont rangées à "
+                "la cave, sous l'établi** [1].\n\n"
+                "Le chantier est encore ouvert, donc si tu en rachètes, la "
+                "dépense peut aller directement dessus [2]."
+            ),
+            citations=[
+                {
+                    "entity_type": "renovation",
+                    "id": str(carrelage.id),
+                    "label": carrelage.subject,
+                    "snippet": (
+                        "Grès cérame 60 × 60 anthracite — Novoceram NOV-6060-ANT. "
+                        "Deux boîtes de rechange rangées à la cave, sous l'établi."
+                    ),
+                    "url_path": f"/app/interactions/{carrelage.id}",
+                },
+                {
+                    "entity_type": "project",
+                    "id": str(projet.id),
+                    "label": projet.title,
+                    "snippet": (
+                        "Remplacement complet de la salle de bain du RDC : douche "
+                        "à l'italienne, nouveau carrelage, meuble vasque suspendu."
+                    ),
+                    "url_path": f"/app/projects/{projet.id}",
+                },
+            ],
+        )
+
+        self.stdout.write("  Assistant : 1 conversation (2 messages, 2 citations)")
