@@ -38,11 +38,33 @@ non.
 | `logo-mark.svg` | Le signe seul, en `currentColor`. C'est la source. |
 | `logo.svg` | Signe + mot, en bloc horizontal. |
 | `logo-wordmark.svg` | Le mot seul. |
-| `social-preview.png` | 1280×640, l'aperçu GitHub / Slack / Mastodon. |
+| `social-preview.png` | 1280×640, l'aperçu GitHub / Slack / Mastodon. Rendu par `npm run brand:social`. |
 
 Les icônes dérivées vivent ailleurs, parce qu'elles sont servies par l'app :
 `static/icons/` (PWA, apple-touch, favicon). Elles se **régénèrent** depuis
 `logo-mark.svg` — voir « Régénérer les icônes » plus bas.
+
+### L'aperçu social répète le README, donc il en dérive
+
+L'image est la **première** chose que voit quelqu'un à qui on partage le lien —
+avant le README, qu'il n'ouvrira peut-être jamais. Elle porte donc l'accroche et
+le sous-titre de `README.md`, mot pour mot, et c'est un deuxième exemplaire d'un
+texte : ça dérive toujours.
+
+Ça a dérivé le jour même. Le README a été recadré sur l'assistant — « *and a
+memory that can answer for it* », l'argent redescendu dans la liste — et l'image
+est restée sur la version d'avant, qui ouvrait sur l'argent et s'arrêtait avant
+la moitié de la promesse. Rien n'a rougi : une image reste une image valide.
+
+D'où la règle, et l'outil qui la tient :
+
+1. le texte se corrige dans **`scripts/brand/social-preview.html`**, jamais dans
+   un éditeur d'image ;
+2. `npm run brand:social` réécrit le PNG versionné ;
+3. `apps/core/tests/test_brand_assets.py::test_the_social_preview_says_what_the_readme_says`
+   compare la source du harnais au `README.md` et **échoue** si les deux
+   divergent. Il lit le harnais, pas le PNG : un pixel ne dit pas ce qu'il
+   raconte.
 
 ## Le signe
 
