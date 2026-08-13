@@ -39,6 +39,18 @@ class LoginEmailRateThrottle(SimpleRateThrottle):
         }
 
 
+class SignupRateThrottle(AnonRateThrottle):
+    """5 account creations per hour per IP address.
+
+    Le seul endpoint qui crée une ligne sans qu'aucun compte n'existe derrière.
+    Sans ce cap, un dépôt public suffit à savoir où pointer un script : chaque
+    compte créé peut ensuite acheter des embeddings et de l'OCR sur la clé de
+    l'instance. Volontairement bas — créer un compte est un geste rare, et
+    l'auto-hébergeur qui installe son foyer en crée un, pas cinquante.
+    """
+    scope = "signup"
+
+
 class ChangePasswordRateThrottle(UserRateThrottle):
     """5 password changes per hour per authenticated user."""
     scope = "change_password"

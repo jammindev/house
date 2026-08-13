@@ -76,6 +76,12 @@ _primary_host = ALLOWED_HOSTS[0] if ALLOWED_HOSTS else "localhost"
 DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default=f"noreply@{_primary_host}")
 FRONTEND_URL = env("FRONTEND_URL", default=f"https://{_primary_host}")
 
+# Inscription ouverte. Laisser à True sur une instance personnelle ou neuve (il
+# faut bien créer le premier compte) ; poser False dès qu'elle est joignable
+# depuis Internet et que les foyers qui devaient y entrer y sont — le reste des
+# arrivées passe alors par une invitation, qui est nominative et révocable.
+ALLOW_OPEN_SIGNUP = env.bool("ALLOW_OPEN_SIGNUP", default=True)
+
 # Anthropic API key — must be set in .env for LLM features (OCR, agent).
 ANTHROPIC_API_KEY = env("ANTHROPIC_API_KEY", default="")
 

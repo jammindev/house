@@ -235,6 +235,78 @@ Le test vérifie aussi que les portées déclarées sont **réellement branchée
 la vue de connexion : une portée définie mais jamais utilisée ne protège rien et
 se lit comme une protection.
 
+#### Le plancher — ce qu'un compte coûte, par défaut
+
+> Ajouté après le constat que les limites ci-dessus étaient les **seules**.
+
+`DEFAULT_THROTTLE_CLASSES` n'était pas posé : tout endpoint qui ne déclarait pas
+son propre cap servait sans aucun. Ça ne se lit pas en revue — le diff d'une vue
+bornée et celui d'une vue nue sont identiques, et la vue nue est celle qu'on écrit
+sans y penser. Sur une instance dont les sources sont publiques, ça coûtait deux
+choses : **des euros** (toute écriture d'entité déclenche un embedding, donc un
+appel fournisseur) et **du disque**.
+
+Désormais `core.throttles` pose `user_burst` / `user_sustained` / `anon` par
+défaut, et deux caps nommés couvrent l'endpoint le plus cher de l'API :
+`document_upload` (l'envoi déclenche un appel de vision **synchrone**) et
+`ocr_reprocess` (une relance ne coûte rien en disque et tout en fournisseur).
+Une vue qui déclare ses propres classes **remplace** le plancher : les caps
+serrés de l'agent et de la connexion restent seuls maîtres chez eux.
+
+`core/tests/test_rate_limits.py` refuse toute vue sans plafond, et toute portée
+sans tarif — ce second contrôle a d'abord été écrit faux : il lisait
+`cls.throttle_classes` et ne voyait donc **aucun** throttle posé par un
+`get_throttles()` par action, c'est-à-dire précisément les nouveaux. Vérifié par
+sabotage, comme au #487.
+
+#### ⚠️ Un throttle vaut ce que vaut son cache
+
+DRF compte dans `django.core.cache`, qui n'était pas configuré : donc
+`LocMemCache`, **un compteur par process**. Avec quatre workers gunicorn, « 5
+tentatives de connexion par minute » en autorisait vingt, « 100 questions à
+l'agent par heure » quatre cents, et tout repartait à zéro à chaque deploy. Les
+limites n'étaient pas fausses de peu — elles l'étaient d'un facteur égal au
+nombre de workers, sans que rien ne le signale. C'est « un compteur ne peut pas
+avoir deux définitions » appliqué au débit ; il en avait quatre.
+
+Le cache est donc partagé (`DatabaseCache`, table créée par la migration
+`core.0003`) : dans Postgres plutôt que dans un service de plus, parce qu'il est
+déjà sauvegardé avec le reste et ne coûte pas de RAM. La suite de tests garde
+`LocMemCache` — elle tourne dans un seul process, donc le compteur y est juste.
+
+### L'inscription — ouverte par défaut, fermable par `.env`
+
+`POST /api/accounts/users/` est en `AllowAny`, et le dépôt est public depuis le
+2025-09-21 : n'importe qui pouvait créer un compte sur n'importe quelle instance
+joignable, **sans validation de mot de passe** (`abc` passait — `set_password`
+hache n'importe quoi, et rien n'appelait `validate_password` sur ce chemin) et
+sans cap de débit. Chaque compte né là pouvait ensuite dépenser la clé de
+l'instance.
+
+Trois verrous, et ils visent des choses différentes :
+
+- **`validate_password` à la création** — l'app était plus stricte sur un
+  changement de mot de passe que sur le premier, ce qui est l'inverse de ce qu'il
+  faut ;
+- **`signup` (5/h par IP)** — le seul geste anonyme qui *écrit* ;
+- **`ALLOW_OPEN_SIGNUP`** — deux publics, un seul code. L'auto-hébergeur qui
+  lance `docker compose up` doit créer son premier compte sans lire un guide ;
+  l'instance déjà en service ne doit pas laisser un inconnu s'en créer un. Ouvert
+  par défaut, parce que le cas nominal du projet est l'auto-hébergement.
+
+Deux détails qui ont chacun leur raison d'être :
+
+- le refus se dit en **403**, pas en 401. DRF convertit tout refus de permission
+  en 401 dès qu'un authenticator annonce un `WWW-Authenticate` — ce que fait
+  `JWTAuthentication`. Or 401 veut dire « identifie-toi et recommence », et
+  aucune paire d'identifiants n'ouvrira une inscription fermée ;
+- `GET /api/accounts/signup-availability/` est **public**, seule lecture des
+  comptes à l'être. L'écran de connexion doit pouvoir *ne pas* proposer « créer
+  un compte » — sinon l'interface promet et le clic dément, exactement le défaut
+  que le lot 3 a passé un lot entier à supprimer. Il n'expose rien que la
+  première tentative ne dirait déjà en 403, contrairement à `/api/capabilities/`
+  qui reste authentifié pour cette raison précise.
+
 ## Ce que tout ça ne prouve pas
 
 Le lot ferme les classes de failles **connues** et installe les contrôles qui les

@@ -192,17 +192,76 @@ REST_FRAMEWORK = {
         "rest_framework.permissions.IsAuthenticated",
     ],
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    # Plancher appliqué à toute vue qui ne déclare pas ses propres classes — voir
+    # `apps/core/throttles.py` pour le pourquoi. Une vue qui en déclare
+    # **remplace** cette liste : les caps serrés de l'agent et de la connexion
+    # restent seuls maîtres chez eux.
+    "DEFAULT_THROTTLE_CLASSES": [
+        "core.throttles.GlobalUserBurstThrottle",
+        "core.throttles.GlobalUserSustainedThrottle",
+        "core.throttles.GlobalAnonThrottle",
+    ],
     "DEFAULT_THROTTLE_RATES": {
+        # Plancher global — large à dessein : un humain ne l'atteint pas, un
+        # script emballé oui.
+        "user_burst": "240/min",
+        "user_sustained": "3000/hour",
+        "anon": "120/hour",
         "login_ip": "20/min",
         "login_email": "5/min",
+        "signup": "5/hour",
         "change_password": "5/hour",
         "password_reset": "3/hour",
         "invitation_join": "20/hour",
         "agent_burst": "10/min",
         "agent_sustained": "100/hour",
         "search": "120/min",
+        # L'envoi d'un document non-photo déclenche un appel de vision
+        # **synchrone** (`documents/views.py::_run_extraction`) : ce cap borne
+        # une facture, pas seulement un disque.
+        "document_upload": "120/hour",
+        "ocr_reprocess": "20/hour",
     },
 }
+
+# Cache — partagé entre les workers, et c'est structurant.
+#
+# DRF compte les débits dans `django.core.cache`. Le défaut de Django est
+# `LocMemCache`, c'est-à-dire **un compteur par process** : avec quatre workers
+# gunicorn (voir le `Dockerfile`), « 5 tentatives de connexion par minute » en
+# autorisait vingt, « 100 questions à l'agent par heure » quatre cents, et tout
+# repartait à zéro à chaque deploy. Les limites n'étaient pas fausses de peu :
+# elles étaient fausses d'un facteur égal au nombre de workers, sans que rien ne
+# le signale.
+#
+# La table de cache vit dans Postgres (migration `core.0003`) plutôt que dans un
+# service de plus : elle est déjà sauvegardée avec le reste, elle ne coûte pas de
+# RAM sur une machine qui n'en a plus, et le volume d'écritures d'un foyer est
+# sans commune mesure avec ce qu'une table Postgres encaisse. Passer à Redis un
+# jour ne demande que de changer ces lignes.
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.db.DatabaseCache",
+        "LOCATION": "django_cache",
+        "OPTIONS": {
+            # Un compteur de débit par (utilisateur, portée) : le défaut de 300
+            # purgerait des compteurs vivants dès quelques dizaines de comptes,
+            # ce qui **desserre** la limite en silence.
+            "MAX_ENTRIES": 20000,
+        },
+    }
+}
+
+# Inscription ouverte — l'auto-hébergeur en a besoin, l'instance de l'auteur non.
+#
+# `POST /api/accounts/users/` est en `AllowAny` : c'est la seule façon pour
+# quelqu'un qui vient de lancer `docker compose up` de créer son premier compte.
+# Sur une instance publique déjà en service, c'est une porte ouverte. Le réglage
+# distingue les deux cas sans forker le code, et il est **ouvert par défaut**
+# parce que le cas nominal du projet est l'auto-hébergement : une instance neuve
+# doit s'installer sans lire un guide, celle qui héberge déjà des foyers pose
+# `ALLOW_OPEN_SIGNUP=False` dans son `.env`.
+ALLOW_OPEN_SIGNUP = True
 
 SPECTACULAR_SETTINGS = {
     "TITLE": "House API",

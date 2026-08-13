@@ -135,6 +135,56 @@ de la CI, bloquant pour le deploy). Ce que tout changement doit préserver :
   healthcheck y sert de porte au `up -d --wait` : un hoquet de postgres marquerait
   `web` malade alors qu'il va bien, et le deploy suivant attendrait pour rien.
 
+## Débit — un compteur par process n'est pas un compteur
+
+Doc : `docs/MODULES/security.md` § Throttling. Régression :
+`apps/core/tests/test_rate_limits.py`.
+
+- **Toute vue DRF a un plafond**, par le plancher `DEFAULT_THROTTLE_CLASSES`
+  (`core.throttles`). Une vue qui déclare ses propres classes **remplace** ce
+  plancher — c'est la sémantique de DRF, donc un `throttle_classes` posé pour
+  serrer une limite ne doit jamais être posé pour en retirer une.
+- **⚠️ Un throttle vaut ce que vaut son cache.** DRF compte dans
+  `django.core.cache`. Le `LocMemCache` par défaut donne **un compteur par
+  worker** : à quatre workers gunicorn, « 5 tentatives de connexion par minute »
+  en autorisait vingt et tout repartait à zéro à chaque deploy. Ne jamais
+  reconfigurer `CACHES` vers un backend local en production — c'est « un compteur
+  ne peut pas avoir deux définitions » appliqué au débit, et il en avait quatre.
+  La table de cache est créée par la migration `core.0003`, pas par une commande
+  à lancer : sans elle l'API tombe à la première requête.
+- **Ajouter un throttle = ajouter son tarif** dans `DEFAULT_THROTTLE_RATES`.
+  Une portée sans tarif lève `ImproperlyConfigured` à la **première requête**,
+  donc en production. Le test l'attrape — mais seulement depuis qu'il balaye les
+  classes du projet et non `cls.throttle_classes`, qui ne voit rien de ce qu'un
+  `get_throttles()` par action installe.
+- **Ce qui coûte de l'argent se borne à part de ce qui coûte une requête.** Un
+  envoi de document déclenche un appel de vision **synchrone** et une écriture
+  d'entité un embedding : `document_upload` et `ocr_reprocess` existent pour ça.
+  Le plancher compte des requêtes, pas des euros.
+
+## L'inscription — ouverte par défaut, fermable par `.env`
+
+`POST /api/accounts/users/` est en `AllowAny` : c'est la seule façon pour un
+auto-hébergeur de créer son premier compte. `ALLOW_OPEN_SIGNUP` (défaut `True`)
+permet à une instance déjà en service de fermer la porte sans forker le code.
+
+- **`validate_password` est appelé à la création comme à la mise à jour.**
+  `set_password` hache n'importe quoi : sans cet appel, `AUTH_PASSWORD_VALIDATORS`
+  n'était consulté nulle part sur le chemin d'inscription et `abc` était accepté
+  en production. L'app était plus stricte sur un changement que sur le premier
+  mot de passe — l'inverse de ce qu'il faut.
+- **Un refus d'inscription se dit en 403, jamais en 401.** DRF convertit tout
+  refus de permission en 401 dès qu'un authenticator annonce un
+  `WWW-Authenticate` (`JWTAuthentication` le fait) ; or 401 veut dire
+  « identifie-toi et recommence », et aucun identifiant n'ouvrira une inscription
+  fermée. D'où le `permission_denied` surchargé sur l'action `create`.
+- **`GET /api/accounts/signup-availability/` est public**, seule lecture des
+  comptes à l'être : l'écran de connexion doit pouvoir *ne pas* proposer « créer
+  un compte ». Sinon l'interface promet et le clic dément — le défaut que le lot 3
+  du parcours 28 a supprimé partout ailleurs. Il n'expose rien que la première
+  tentative ne dirait déjà en 403, contrairement à `/api/capabilities/` qui reste
+  authentifié pour cette raison précise.
+
 ## Commandes utiles
 
 ### Backend Django

@@ -46,6 +46,8 @@ from .services import (
 from interactions.models import Interaction
 from zones.models import Zone
 
+from .throttles import DocumentUploadThrottle, OcrReprocessThrottle
+
 logger = logging.getLogger(__name__)
 
 
@@ -186,6 +188,19 @@ class DocumentViewSet(viewsets.ModelViewSet):
     search_fields = ['name', 'notes', 'ocr_text']
     ordering_fields = ['created_at', 'name', 'type', 'taken_at', 'effective_date']
     ordering = ['-created_at']
+
+    def get_throttles(self):
+        """L'envoi et la relance d'OCR ont leur propre cap — voir `throttles.py`.
+
+        Le plancher global suffirait à arrêter une boucle, mais pas à borner une
+        **facture** : il compte des requêtes, or ici toutes ne coûtent pas la
+        même chose. Un envoi vaut un appel de vision ; une lecture ne vaut rien.
+        """
+        if self.action == 'upload':
+            return [DocumentUploadThrottle()]
+        if self.action == 'reprocess_ocr':
+            return [OcrReprocessThrottle()]
+        return super().get_throttles()
 
     def get_queryset(self):
         """Filter documents to households where current user is a member.
