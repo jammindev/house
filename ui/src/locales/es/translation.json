@@ -2708,7 +2708,13 @@
     "resetSubmit": "Restablecer contraseña",
     "resetting": "Restableciendo…",
     "tokenInvalid": "Este enlace no es válido o ha expirado. Solicita uno nuevo.",
-    "passwordResetSuccess": "Contraseña restablecida. Ahora puedes iniciar sesión."
+    "passwordResetSuccess": "Contraseña restablecida. Ahora puedes iniciar sesión.",
+    "setupTitle": "Bienvenido",
+    "setupIntro": "Esta instancia es nueva. Crea la cuenta que la administrará y da un nombre a tu hogar.",
+    "setupHouseholdName": "Nombre del hogar (opcional)",
+    "setupSubmit": "Crear mi cuenta",
+    "setupPending": "Creando…",
+    "setupFailed": "La configuración ha fallado. Revisa los datos introducidos."
   },
   "projects": {
     "app_title": "Mini-app Proyectos",

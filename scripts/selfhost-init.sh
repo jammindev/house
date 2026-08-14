@@ -46,15 +46,43 @@ done
 echo "   base disponible"
 
 # ── 2. Le schéma ─────────────────────────────────────────────────────────────
-python manage.py migrate --noinput
+#
+# `-v 0` : une quarantaine de lignes « Applying trackers.0003_remove_… OK » sont
+# rassurantes pour qui a écrit les migrations, et alarmantes pour tout le monde
+# d'autre — c'est la première chose qu'un inconnu voit du produit. En cas
+# d'échec, `set -e` arrête tout et la trace Django reste complète : on ne perd
+# que le bruit du succès.
+echo "   mise à jour du schéma…"
+python manage.py migrate --noinput -v 0
+echo "   schéma à jour"
 
 # ── 3. Le premier compte ─────────────────────────────────────────────────────
 #
-# Idempotent : ne fait rien si un compte existe (voir core/management/commands).
+# Ne crée quelque chose que si `MAISONNEE_ADMIN_PASSWORD` est fourni, c'est-à-dire
+# en installation non surveillée. Sinon il ne se passe rien ici, et le premier
+# visiteur configure l'instance dans l'interface (issue #591).
+#
+# Idempotent dans les deux cas : ne fait rien si un compte existe.
 python manage.py create_admin
 
 # Le foyer de démonstration n'est PAS ici : il est un service à part, sous le
 # profil `demo` du compose. Le semer d'office réveillerait « Famille Mercier »
 # dans l'instance de quelqu'un qui a commencé à saisir ses vraies données.
 
-echo "✓ Instance prête"
+# ── 4. Où aller ──────────────────────────────────────────────────────────────
+#
+# La dernière ligne que l'installateur lit doit être une adresse, pas un statut.
+# `MAISONNEE_PUBLIC_URL` gagne quand elle est posée — l'instance est alors
+# derrière un proxy, et `localhost` y serait un mensonge.
+url="${MAISONNEE_PUBLIC_URL:-http://localhost:${MAISONNEE_PORT:-8000}}"
+line="────────────────────────────────────────────────────────────────"
+echo ""
+echo "$line"
+echo "  Maisonnée est prête."
+echo ""
+echo "  Ouvre  $url"
+if [ -z "${MAISONNEE_ADMIN_PASSWORD:-}" ]; then
+    echo "  et crée ton compte : c'est la première chose que l'écran demande."
+fi
+echo "$line"
+echo ""

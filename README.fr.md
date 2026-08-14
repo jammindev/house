@@ -61,14 +61,14 @@ question.
 
 ```bash
 curl -O https://raw.githubusercontent.com/jammindev/house/main/docker-compose.yml
-docker compose up
+docker compose up -d
 open http://localhost:8000
 ```
 
 Pas de Python, pas de Node, pas de `git clone`, aucune clé à souscrire. Le
-premier démarrage tire l'image, crée la base, applique le schéma et crée le
-premier compte — le mot de passe s'affiche une seule fois dans la sortie, donc on
-le copie.
+premier démarrage tire l'image, crée la base et applique le schéma. Le navigateur
+demande ensuite le reste — votre e-mail, votre mot de passe, un nom pour votre
+foyer. Rien à recopier depuis un terminal.
 
 Tourne en `amd64` et `arm64` : un Raspberry Pi 4/5, un boîtier N100 ou un
 Synology suffisent. Environ 2 Go de RAM et 5 Go de disque.

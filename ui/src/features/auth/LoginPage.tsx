@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
-import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { Link, Navigate, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/lib/auth/useAuth';
+import { api } from '@/lib/axios';
 import { Button } from '../../design-system/button';
 import { Input } from '../../design-system/input';
 import { Logo } from '../../design-system/logo';
@@ -31,11 +32,26 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  // Une instance qui n'a aucun compte n'a pas d'écran de connexion à offrir :
+  // aucun mot de passe ne l'ouvrira. On demande donc au serveur, et on redirige
+  // vers la configuration initiale. `null` = pas encore de réponse ; afficher le
+  // formulaire en attendant le ferait clignoter avant de disparaître.
+  const [setupRequired, setSetupRequired] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    api
+      .get<{ required: boolean }>('/accounts/setup/')
+      .then((res) => setSetupRequired(res.data.required))
+      .catch(() => setSetupRequired(false));
+  }, []);
 
   if (user) {
     navigate(next);
     return null;
   }
+
+  if (setupRequired === null) return null;
+  if (setupRequired) return <Navigate to="/setup" replace />;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();

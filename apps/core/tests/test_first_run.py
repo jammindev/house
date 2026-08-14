@@ -35,17 +35,38 @@ class TestTheFirstAccountOpensAUsableApp:
         ).exists()
         assert user.active_household_id == household.id
 
-    def test_a_generated_password_is_printed_where_it_cannot_be_missed(self, capsys):
-        """Un mot de passe généré qui défile entre deux migrations est perdu.
+    def test_without_a_password_it_creates_nothing_and_says_where_to_go(self, capsys):
+        """Le renversement du parcours : plus aucun secret dans les logs.
 
-        Et un mot de passe perdu se répare, chez l'utilisateur, par un
-        ``docker compose down -v`` — c'est-à-dire en détruisant son volume.
+        Cette commande générait un mot de passe et l'imprimait dans un cadre —
+        que les logs de gunicorn faisaient défiler en une quinzaine de secondes.
+        Elle nommait elle-même le risque : un mot de passe perdu se répare, chez
+        l'utilisateur, par un ``docker compose down -v``, c'est-à-dire en
+        détruisant son volume.
+
+        Elle ne crée donc plus rien sans ``MAISONNEE_ADMIN_PASSWORD``, et
+        l'instance reste ouverte à l'assistant de premier démarrage (#591). Le
+        test tient les deux moitiés : rien n'est créé, **et** la sortie le dit —
+        une commande qui ne fait rien en silence se lit comme une commande
+        cassée.
         """
-        call_command("create_admin", email="pilote@exemple.fr")
+        call_command("create_admin", email="pilote@exemple.fr", password="")
+
+        assert User.objects.count() == 0
+        assert Household.objects.count() == 0
+        assert "interface" in capsys.readouterr().out
+
+    def test_with_a_password_it_announces_without_printing_it(self, capsys):
+        """L'installation non surveillée : celui qui l'a lancée connaît déjà le mot
+        de passe, puisqu'il l'a écrit. Le réimprimer ne l'aiderait pas et
+        laisserait un secret dans les journaux du conteneur."""
+        call_command(
+            "create_admin", email="pilote@exemple.fr", password="un-mot-de-passe-solide-42"
+        )
 
         out = capsys.readouterr().out
         assert "pilote@exemple.fr" in out
-        assert "Mot de passe" in out
+        assert "un-mot-de-passe-solide-42" not in out
 
     def test_running_it_again_changes_nothing(self):
         call_command("create_admin", email="pilote@exemple.fr", password="s3cret-de-test")
@@ -65,7 +86,9 @@ class TestTheFirstAccountOpensAUsableApp:
         User.objects.filter(email="admin@maisonnee.local").delete()
         vrai = User.objects.create_user(email="claire@exemple.fr", password="y")
 
-        call_command("create_admin")
+        # Avec un mot de passe : sans lui, la commande sortirait de toute façon,
+        # et le test passerait sans rien prouver de la garde qu'il vise.
+        call_command("create_admin", password="x")
 
         assert list(User.objects.values_list("email", flat=True)) == [vrai.email]
 

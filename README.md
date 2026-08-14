@@ -55,13 +55,14 @@ so it already knows the context before you start typing.
 
 ```bash
 curl -O https://raw.githubusercontent.com/jammindev/house/main/docker-compose.yml
-docker compose up
+docker compose up -d
 open http://localhost:8000
 ```
 
 No Python, no Node, no `git clone`, no key to subscribe to. The first start
-pulls the image, creates the database, applies the schema and creates your first
-account — the password is printed once in the output, so copy it.
+pulls the image, creates the database and applies the schema. Then the browser
+asks you for the rest — your email, your password, a name for your household.
+Nothing to copy out of a terminal.
 
 Runs on `amd64` and `arm64`: a Raspberry Pi 4/5, an N100 box or a Synology are
 all enough. About 2 GB of RAM and 5 GB of disk to start.

@@ -4,6 +4,7 @@ import ModuleRoute from './components/ModuleRoute';
 import MoneyTabRedirect from './components/MoneyTabRedirect';
 import PreserveQueryRedirect from './components/PreserveQueryRedirect';
 import LoginPage from './features/auth/LoginPage';
+import SetupPage from './features/auth/SetupPage';
 import ForgotPasswordPage from './features/auth/ForgotPasswordPage';
 import ResetPasswordPage from './features/auth/ResetPasswordPage';
 import JoinHouseholdPage from './features/auth/JoinHouseholdPage';
@@ -77,6 +78,13 @@ export const router = createBrowserRouter([
   {
     path: '/login',
     element: <LoginPage />,
+  },
+  {
+    // Public par nécessité : c'est le seul chemin d'entrée d'une instance qui
+    // n'a encore aucun compte. La page se referme d'elle-même dès qu'un compte
+    // existe — le serveur reste l'autorité, la redirection n'est qu'un confort.
+    path: '/setup',
+    element: <SetupPage />,
   },
   {
     path: '/forgot-password',
