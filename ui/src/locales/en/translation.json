@@ -831,6 +831,30 @@
       "projects_title": "Active projects",
       "projects_empty": "No active projects for this zone.",
       "documents_empty": "No documents linked to this zone yet."
+    },
+    "qr": {
+      "openPrintSheet": "QR labels",
+      "printTitle": "Zone QR labels",
+      "printIntro": "Print this sheet, cut out the labels and stick one in each room. Scanning a label with your phone camera opens that room in House.",
+      "printButton": "Print",
+      "printEmpty": "No zones to label yet.",
+      "scanning": "Reading the label…",
+      "backToZones": "Back to zones",
+      "failure": {
+        "unknown": {
+          "title": "Unknown label",
+          "body": "This label does not match any room. It was probably replaced by a newer one — print the sheet again."
+        },
+        "other-household": {
+          "title": "Another household’s label",
+          "body": "This label belongs to a different household. Switch household, or use a label printed from this one."
+        },
+        "generic": {
+          "title": "Could not read the label",
+          "body": "Something went wrong on the way. Check your connection and scan again."
+        }
+      },
+      "rotated": "New label generated — reprint this room."
     }
   },
   "tasks": {

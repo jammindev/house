@@ -831,6 +831,30 @@
       "projects_title": "Aktive Projekte",
       "projects_empty": "Keine aktiven Projekte für diese Zone.",
       "documents_empty": "Keine Dokumente mit dieser Zone verknüpft."
+    },
+    "qr": {
+      "openPrintSheet": "QR-Etiketten",
+      "printTitle": "QR-Etiketten der Räume",
+      "printIntro": "Drucken Sie diesen Bogen, schneiden Sie die Etiketten aus und kleben Sie eines in jeden Raum. Wer ein Etikett mit der Handykamera scannt, öffnet den Raum in House.",
+      "printButton": "Drucken",
+      "printEmpty": "Noch keine Räume zum Etikettieren.",
+      "scanning": "Etikett wird gelesen…",
+      "backToZones": "Zurück zu den Räumen",
+      "failure": {
+        "unknown": {
+          "title": "Unbekanntes Etikett",
+          "body": "Dieses Etikett gehört zu keinem Raum. Wahrscheinlich wurde es ersetzt — drucken Sie den Bogen erneut."
+        },
+        "other-household": {
+          "title": "Etikett eines anderen Haushalts",
+          "body": "Dieses Etikett gehört zu einem anderen Haushalt. Wechseln Sie den Haushalt oder nutzen Sie ein hier gedrucktes Etikett."
+        },
+        "generic": {
+          "title": "Etikett nicht lesbar",
+          "body": "Unterwegs ist etwas schiefgelaufen. Prüfen Sie die Verbindung und scannen Sie erneut."
+        }
+      },
+      "rotated": "Neues Etikett erzeugt — diesen Raum neu drucken."
     }
   },
   "tasks": {
