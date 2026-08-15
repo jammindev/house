@@ -4414,5 +4414,135 @@
       "without": "Der Telegram-Kanal ist aus. Benachrichtigungen bleiben in der App.",
       "enabled": "Der Haushalt kann über Telegram mit dem Assistenten sprechen."
     }
+  },
+  "orchard": {
+    "title": "Obstgarten",
+    "new": "Pflanze hinzufügen",
+    "created": "Pflanze hinzugefügt",
+    "updated": "Pflanze aktualisiert",
+    "deleted": "Pflanze gelöscht",
+    "filters": {
+      "living": "Vorhanden",
+      "all": "Alle",
+      "gone": "Entfernt"
+    },
+    "empty": {
+      "title": "Noch keine Pflanze im Obstgarten",
+      "description": "Füge deine Bäume, Sträucher und Reben hinzu, um Pflege und Ernte zu verfolgen.",
+      "noZone": "Lege zuerst einen Außenbereich an: Jede Pflanze gehört zu einem Ort.",
+      "createZone": "Bereich anlegen"
+    },
+    "journal": {
+      "title": "Pflegetagebuch",
+      "empty": "Noch nichts eingetragen."
+    },
+    "kind": {
+      "fruit_tree": "Obstbaum",
+      "berry_bush": "Beerenstrauch",
+      "vine": "Rebe",
+      "ornamental": "Zierpflanze"
+    },
+    "status": {
+      "alive": "Lebend",
+      "ailing": "Kränkelnd",
+      "dead": "Tot",
+      "removed": "Entfernt"
+    },
+    "eventType": {
+      "pruning": "Schnitt",
+      "treatment": "Behandlung",
+      "fertilizing": "Düngung",
+      "watering": "Bewässerung",
+      "training": "Erziehung",
+      "observation": "Beobachtung",
+      "flowering": "Blüte",
+      "other": "Sonstiges"
+    },
+    "unit": {
+      "kg": "kg",
+      "piece": "Stück",
+      "litre": "L"
+    },
+    "card": {
+      "age_one": "{{count}} Jahr",
+      "age_other": "{{count}} Jahre"
+    },
+    "dialog": {
+      "newTitle": "Neue Pflanze",
+      "editTitle": "Pflanze bearbeiten"
+    },
+    "tabs": {
+      "info": "Steckbrief",
+      "events": "Pflege",
+      "harvests": "Ernten"
+    },
+    "fields": {
+      "name": "Name",
+      "zone": "Bereich",
+      "kind": "Art",
+      "species": "Sorte",
+      "rootstock": "Unterlage",
+      "plantedOn": "Pflanzdatum",
+      "plantedOnHint": "Leer lassen, wenn unbekannt.",
+      "plantedUnknown": "Unbekannt",
+      "floweringStart": "Blüte — von",
+      "floweringEnd": "Blüte — bis",
+      "flowering": "Blüte",
+      "floweringNotSet": "Nicht angegeben",
+      "notSet": "Nicht angegeben",
+      "status": "Zustand",
+      "notes": "Notizen",
+      "tree": "Pflanze",
+      "eventType": "Art",
+      "occurredOn": "Datum",
+      "title": "Titel",
+      "quantity": "Menge",
+      "unit": "Einheit",
+      "harvestedOn": "Erntedatum"
+    },
+    "errors": {
+      "zoneRequired": "Wähle einen Bereich: Eine Pflanze ohne Ort findet niemand wieder.",
+      "floweringIncomplete": "Gib Beginn **und** Ende der Blüte an — oder keines von beiden."
+    },
+    "event": {
+      "new": "Pflege eintragen",
+      "newTitle": "Neuer Pflegeeintrag",
+      "editTitle": "Pflegeeintrag bearbeiten",
+      "created": "Pflege eingetragen",
+      "updated": "Pflegeeintrag aktualisiert",
+      "deleted": "Pflegeeintrag gelöscht"
+    },
+    "harvest": {
+      "new": "Ernte hinzufügen",
+      "newTitle": "Neue Ernte",
+      "editTitle": "Ernte bearbeiten",
+      "created": "Ernte erfasst",
+      "updated": "Ernte aktualisiert",
+      "deleted": "Ernte gelöscht",
+      "empty": "Noch keine Ernte erfasst."
+    },
+    "series": {
+      "title": "Ernten nach Saison",
+      "seasonTitle": "Ernte {{season}}",
+      "empty": "Noch keine Ernte erfasst.",
+      "currentSeason": "laufend",
+      "singleSeason": "Eine einzige Saison ist noch kein Vergleich — Obstbäume tragen wechselnd."
+    },
+    "floweringPrompt": "Die Blütezeit ist nicht angegeben: Ohne sie kann kein Frostalarm diese Pflanze erfassen.",
+    "floweringPromptAction": "Blütezeit angeben",
+    "months": {
+      "1": "Januar",
+      "2": "Februar",
+      "3": "März",
+      "4": "April",
+      "5": "Mai",
+      "6": "Juni",
+      "7": "Juli",
+      "8": "August",
+      "9": "September",
+      "10": "Oktober",
+      "11": "November",
+      "12": "Dezember"
+    }
   }
 }

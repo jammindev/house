@@ -4414,5 +4414,135 @@
       "without": "El canal de Telegram está apagado. Las notificaciones se quedan en la aplicación.",
       "enabled": "El hogar puede hablar con el asistente desde Telegram."
     }
+  },
+  "orchard": {
+    "title": "Huerto",
+    "new": "Añadir un ejemplar",
+    "created": "Ejemplar añadido",
+    "updated": "Ejemplar actualizado",
+    "deleted": "Ejemplar eliminado",
+    "filters": {
+      "living": "En pie",
+      "all": "Todos",
+      "gone": "Desaparecidos"
+    },
+    "empty": {
+      "title": "Todavía no hay ejemplares en el huerto",
+      "description": "Añade tus árboles, arbustos y vides para seguir su cuidado y sus cosechas.",
+      "noZone": "Crea primero una zona exterior: cada ejemplar del huerto pertenece a un lugar.",
+      "createZone": "Crear una zona"
+    },
+    "journal": {
+      "title": "Diario de cuidados",
+      "empty": "Nada registrado todavía."
+    },
+    "kind": {
+      "fruit_tree": "Árbol frutal",
+      "berry_bush": "Arbusto de frutos",
+      "vine": "Vid",
+      "ornamental": "Ornamental"
+    },
+    "status": {
+      "alive": "Vivo",
+      "ailing": "Enfermo",
+      "dead": "Muerto",
+      "removed": "Arrancado"
+    },
+    "eventType": {
+      "pruning": "Poda",
+      "treatment": "Tratamiento",
+      "fertilizing": "Abonado",
+      "watering": "Riego",
+      "training": "Entutorado",
+      "observation": "Observación",
+      "flowering": "Floración",
+      "other": "Otro"
+    },
+    "unit": {
+      "kg": "kg",
+      "piece": "piezas",
+      "litre": "L"
+    },
+    "card": {
+      "age_one": "{{count}} año",
+      "age_other": "{{count}} años"
+    },
+    "dialog": {
+      "newTitle": "Nuevo ejemplar",
+      "editTitle": "Editar ejemplar"
+    },
+    "tabs": {
+      "info": "Ficha",
+      "events": "Cuidados",
+      "harvests": "Cosechas"
+    },
+    "fields": {
+      "name": "Nombre",
+      "zone": "Zona",
+      "kind": "Tipo",
+      "species": "Variedad",
+      "rootstock": "Portainjerto",
+      "plantedOn": "Fecha de plantación",
+      "plantedOnHint": "Déjalo vacío si no la conoces.",
+      "plantedUnknown": "Desconocida",
+      "floweringStart": "Floración — desde",
+      "floweringEnd": "Floración — hasta",
+      "flowering": "Floración",
+      "floweringNotSet": "Sin indicar",
+      "notSet": "Sin indicar",
+      "status": "Estado",
+      "notes": "Notas",
+      "tree": "Ejemplar",
+      "eventType": "Tipo",
+      "occurredOn": "Fecha",
+      "title": "Título",
+      "quantity": "Cantidad",
+      "unit": "Unidad",
+      "harvestedOn": "Fecha de cosecha"
+    },
+    "errors": {
+      "zoneRequired": "Elige una zona: un ejemplar sin lugar es un ejemplar que nadie vuelve a encontrar.",
+      "floweringIncomplete": "Indica el inicio **y** el fin de la floración, o ninguno de los dos."
+    },
+    "event": {
+      "new": "Registrar un cuidado",
+      "newTitle": "Nuevo cuidado",
+      "editTitle": "Editar el cuidado",
+      "created": "Cuidado registrado",
+      "updated": "Cuidado actualizado",
+      "deleted": "Cuidado eliminado"
+    },
+    "harvest": {
+      "new": "Añadir una cosecha",
+      "newTitle": "Nueva cosecha",
+      "editTitle": "Editar la cosecha",
+      "created": "Cosecha registrada",
+      "updated": "Cosecha actualizada",
+      "deleted": "Cosecha eliminada",
+      "empty": "Ninguna cosecha registrada."
+    },
+    "series": {
+      "title": "Cosechas por temporada",
+      "seasonTitle": "Cosecha {{season}}",
+      "empty": "Ninguna cosecha registrada todavía.",
+      "currentSeason": "en curso",
+      "singleSeason": "Una sola temporada aún no permite comparar — un frutal alterna."
+    },
+    "floweringPrompt": "El periodo de floración no está indicado: sin él, ninguna alerta de helada puede señalar este ejemplar.",
+    "floweringPromptAction": "Indicar la floración",
+    "months": {
+      "1": "enero",
+      "2": "febrero",
+      "3": "marzo",
+      "4": "abril",
+      "5": "mayo",
+      "6": "junio",
+      "7": "julio",
+      "8": "agosto",
+      "9": "septiembre",
+      "10": "octubre",
+      "11": "noviembre",
+      "12": "diciembre"
+    }
   }
 }

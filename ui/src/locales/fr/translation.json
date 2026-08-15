@@ -4414,5 +4414,135 @@
       "without": "Le canal Telegram est éteint. Les notifications restent dans l'application.",
       "enabled": "Le foyer peut parler à l'assistant depuis Telegram."
     }
+  },
+  "orchard": {
+    "title": "Verger",
+    "new": "Ajouter un sujet",
+    "created": "Sujet ajouté",
+    "updated": "Sujet mis à jour",
+    "deleted": "Sujet supprimé",
+    "filters": {
+      "living": "Sur pied",
+      "all": "Tous",
+      "gone": "Disparus"
+    },
+    "empty": {
+      "title": "Aucun sujet dans le verger",
+      "description": "Ajoute tes arbres, arbustes et vignes pour suivre leur entretien et leurs récoltes.",
+      "noZone": "Crée d'abord une zone extérieure : chaque sujet du verger est rattaché à un endroit.",
+      "createZone": "Créer une zone"
+    },
+    "journal": {
+      "title": "Journal d'entretien",
+      "empty": "Rien de consigné pour l'instant."
+    },
+    "kind": {
+      "fruit_tree": "Arbre fruitier",
+      "berry_bush": "Petits fruits",
+      "vine": "Vigne",
+      "ornamental": "Ornemental"
+    },
+    "status": {
+      "alive": "Vivant",
+      "ailing": "Souffrant",
+      "dead": "Mort",
+      "removed": "Arraché"
+    },
+    "eventType": {
+      "pruning": "Taille",
+      "treatment": "Traitement",
+      "fertilizing": "Fertilisation",
+      "watering": "Arrosage",
+      "training": "Palissage",
+      "observation": "Observation",
+      "flowering": "Floraison",
+      "other": "Autre"
+    },
+    "unit": {
+      "kg": "kg",
+      "piece": "pièces",
+      "litre": "L"
+    },
+    "card": {
+      "age_one": "{{count}} an",
+      "age_other": "{{count}} ans"
+    },
+    "dialog": {
+      "newTitle": "Nouveau sujet",
+      "editTitle": "Modifier le sujet"
+    },
+    "tabs": {
+      "info": "Fiche",
+      "events": "Entretien",
+      "harvests": "Récoltes"
+    },
+    "fields": {
+      "name": "Nom",
+      "zone": "Zone",
+      "kind": "Type",
+      "species": "Variété",
+      "rootstock": "Porte-greffe",
+      "plantedOn": "Date de plantation",
+      "plantedOnHint": "Laisse vide si tu ne la connais pas.",
+      "plantedUnknown": "Inconnue",
+      "floweringStart": "Floraison — début",
+      "floweringEnd": "Floraison — fin",
+      "flowering": "Floraison",
+      "floweringNotSet": "Non renseignée",
+      "notSet": "Non renseigné",
+      "status": "État",
+      "notes": "Notes",
+      "tree": "Sujet",
+      "eventType": "Type",
+      "occurredOn": "Date",
+      "title": "Intitulé",
+      "quantity": "Quantité",
+      "unit": "Unité",
+      "harvestedOn": "Date de récolte"
+    },
+    "errors": {
+      "zoneRequired": "Choisis une zone : un sujet sans endroit ne se retrouve pas.",
+      "floweringIncomplete": "Indique le début **et** la fin de la floraison, ou aucun des deux."
+    },
+    "event": {
+      "new": "Consigner un entretien",
+      "newTitle": "Nouvel entretien",
+      "editTitle": "Modifier l'entretien",
+      "created": "Entretien consigné",
+      "updated": "Entretien mis à jour",
+      "deleted": "Entretien supprimé"
+    },
+    "harvest": {
+      "new": "Ajouter une récolte",
+      "newTitle": "Nouvelle récolte",
+      "editTitle": "Modifier la récolte",
+      "created": "Récolte enregistrée",
+      "updated": "Récolte mise à jour",
+      "deleted": "Récolte supprimée",
+      "empty": "Aucune récolte enregistrée."
+    },
+    "series": {
+      "title": "Récoltes par saison",
+      "seasonTitle": "Récolte {{season}}",
+      "empty": "Aucune récolte enregistrée pour l'instant.",
+      "currentSeason": "en cours",
+      "singleSeason": "Une seule saison ne permet pas encore de comparaison — un fruitier alterne."
+    },
+    "floweringPrompt": "La période de floraison n'est pas renseignée : sans elle, aucune alerte de gel ne peut viser ce sujet.",
+    "floweringPromptAction": "Renseigner la floraison",
+    "months": {
+      "1": "janvier",
+      "2": "février",
+      "3": "mars",
+      "4": "avril",
+      "5": "mai",
+      "6": "juin",
+      "7": "juillet",
+      "8": "août",
+      "9": "septembre",
+      "10": "octobre",
+      "11": "novembre",
+      "12": "décembre"
+    }
   }
 }

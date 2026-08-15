@@ -5,11 +5,13 @@ Every business write delegates to ``orchard.services`` — the same functions th
 agent writables call — so REST and agent cannot drift apart.
 """
 from rest_framework import viewsets
+from rest_framework.decorators import action
+from rest_framework.response import Response
 
 from core.permissions import IsHouseholdMember
 from documents.mixins import DocumentLinkActionsMixin
 
-from . import services
+from . import queries, services
 from .models import Harvest, Tree, TreeEvent
 from .serializers import HarvestSerializer, TreeEventSerializer, TreeSerializer
 
@@ -197,3 +199,31 @@ class HarvestViewSet(viewsets.ModelViewSet):
 
     def perform_destroy(self, instance):
         services.delete_harvest(self.request.household, self.request.user, instance)
+
+    @action(detail=False, methods=['get'], url_path='summary')
+    def summary(self, request):
+        """Season series — orchard-wide, or for one subject with ``?tree=``.
+
+        One endpoint for both readings: the page shows the orchard's current
+        season, the subject sheet shows its own history. Two endpoints would be
+        two definitions of the same total.
+        """
+        tree_id = request.query_params.get('tree')
+        try:
+            seasons = int(request.query_params.get('seasons', queries.DEFAULT_SEASON_COUNT))
+        except (TypeError, ValueError):
+            seasons = queries.DEFAULT_SEASON_COUNT
+
+        if tree_id:
+            # Scope check before aggregating: an unscoped id would leak another
+            # household's totals through a filter.
+            if not Tree.objects.filter(
+                household_id=request.household.id, pk=tree_id
+            ).exists():
+                return Response({'detail': 'Unknown subject.'}, status=404)
+
+        return Response(
+            queries.harvest_series(
+                request.household, tree=tree_id or None, seasons=max(1, min(seasons, 20))
+            )
+        )

@@ -35,6 +35,8 @@ const WeatherPage = lazyWithReload(() => import('./features/weather/WeatherPage'
 const TrackersPage = lazyWithReload(() => import('./features/trackers/TrackersPage'));
 const ChickensPage = lazyWithReload(() => import('./features/chickens/ChickensPage'));
 const ChickenDetailPage = lazyWithReload(() => import('./features/chickens/ChickenDetailPage'));
+const OrchardPage = lazyWithReload(() => import('./features/orchard/OrchardPage'));
+const TreeDetailPage = lazyWithReload(() => import('./features/orchard/TreeDetailPage'));
 const TrackerDetailPage = lazyWithReload(() => import('./features/trackers/TrackerDetailPage'));
 const TrackerEntryRedirect = lazyWithReload(() => import('./features/trackers/TrackerEntryRedirect'));
 const InsurancePage = lazyWithReload(() => import('./features/insurance/InsurancePage'));
@@ -158,6 +160,8 @@ export const router = createBrowserRouter([
       { path: 'weather', element: <ModuleRoute moduleKey="weather"><WeatherPage /></ModuleRoute> },
       { path: 'chickens', element: <ModuleRoute moduleKey="chickens"><ChickensPage /></ModuleRoute> },
       { path: 'chickens/:id', element: <ModuleRoute moduleKey="chickens"><ChickenDetailPage /></ModuleRoute> },
+      { path: 'orchard', element: <ModuleRoute moduleKey="orchard"><OrchardPage /></ModuleRoute> },
+      { path: 'orchard/:id', element: <ModuleRoute moduleKey="orchard"><TreeDetailPage /></ModuleRoute> },
       { path: 'trackers', element: <ModuleRoute moduleKey="trackers"><TrackersPage /></ModuleRoute> },
       { path: 'trackers/:id', element: <ModuleRoute moduleKey="trackers"><TrackerDetailPage /></ModuleRoute> },
       { path: 'tracker-entries/:id', element: <ModuleRoute moduleKey="trackers"><TrackerEntryRedirect /></ModuleRoute> },

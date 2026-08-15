@@ -4414,5 +4414,135 @@
       "without": "The Telegram channel is off. Notifications stay inside the app.",
       "enabled": "Your household can talk to the assistant from Telegram."
     }
+  },
+  "orchard": {
+    "title": "Orchard",
+    "new": "Add a subject",
+    "created": "Subject added",
+    "updated": "Subject updated",
+    "deleted": "Subject deleted",
+    "filters": {
+      "living": "Standing",
+      "all": "All",
+      "gone": "Gone"
+    },
+    "empty": {
+      "title": "No subject in the orchard yet",
+      "description": "Add your trees, bushes and vines to track their care and their harvests.",
+      "noZone": "Create an outdoor zone first: every orchard subject belongs to a place.",
+      "createZone": "Create a zone"
+    },
+    "journal": {
+      "title": "Care journal",
+      "empty": "Nothing logged yet."
+    },
+    "kind": {
+      "fruit_tree": "Fruit tree",
+      "berry_bush": "Berry bush",
+      "vine": "Vine",
+      "ornamental": "Ornamental"
+    },
+    "status": {
+      "alive": "Alive",
+      "ailing": "Ailing",
+      "dead": "Dead",
+      "removed": "Removed"
+    },
+    "eventType": {
+      "pruning": "Pruning",
+      "treatment": "Treatment",
+      "fertilizing": "Fertilizing",
+      "watering": "Watering",
+      "training": "Training",
+      "observation": "Observation",
+      "flowering": "Flowering",
+      "other": "Other"
+    },
+    "unit": {
+      "kg": "kg",
+      "piece": "pieces",
+      "litre": "L"
+    },
+    "card": {
+      "age_one": "{{count}} year",
+      "age_other": "{{count}} years"
+    },
+    "dialog": {
+      "newTitle": "New subject",
+      "editTitle": "Edit subject"
+    },
+    "tabs": {
+      "info": "Details",
+      "events": "Care",
+      "harvests": "Harvests"
+    },
+    "fields": {
+      "name": "Name",
+      "zone": "Zone",
+      "kind": "Kind",
+      "species": "Variety",
+      "rootstock": "Rootstock",
+      "plantedOn": "Planting date",
+      "plantedOnHint": "Leave empty if you do not know it.",
+      "plantedUnknown": "Unknown",
+      "floweringStart": "Flowering — from",
+      "floweringEnd": "Flowering — to",
+      "flowering": "Flowering",
+      "floweringNotSet": "Not set",
+      "notSet": "Not set",
+      "status": "Status",
+      "notes": "Notes",
+      "tree": "Subject",
+      "eventType": "Type",
+      "occurredOn": "Date",
+      "title": "Title",
+      "quantity": "Quantity",
+      "unit": "Unit",
+      "harvestedOn": "Harvest date"
+    },
+    "errors": {
+      "zoneRequired": "Pick a zone: a subject with no place is a subject nobody finds again.",
+      "floweringIncomplete": "Set both the start and the end of flowering, or neither."
+    },
+    "event": {
+      "new": "Log care",
+      "newTitle": "New care entry",
+      "editTitle": "Edit care entry",
+      "created": "Care logged",
+      "updated": "Care entry updated",
+      "deleted": "Care entry deleted"
+    },
+    "harvest": {
+      "new": "Add a harvest",
+      "newTitle": "New harvest",
+      "editTitle": "Edit harvest",
+      "created": "Harvest recorded",
+      "updated": "Harvest updated",
+      "deleted": "Harvest deleted",
+      "empty": "No harvest recorded yet."
+    },
+    "series": {
+      "title": "Harvests by season",
+      "seasonTitle": "{{season}} harvest",
+      "empty": "No harvest recorded yet.",
+      "currentSeason": "current",
+      "singleSeason": "One season is not a comparison yet — fruit trees alternate."
+    },
+    "floweringPrompt": "The flowering window is not set: without it, no frost alert can target this subject.",
+    "floweringPromptAction": "Set the flowering window",
+    "months": {
+      "1": "January",
+      "2": "February",
+      "3": "March",
+      "4": "April",
+      "5": "May",
+      "6": "June",
+      "7": "July",
+      "8": "August",
+      "9": "September",
+      "10": "October",
+      "11": "November",
+      "12": "December"
+    }
   }
 }
