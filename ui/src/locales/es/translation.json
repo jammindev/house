@@ -4039,6 +4039,14 @@
         "months_other": "{{count}} meses",
         "all": "Todo"
       }
+    },
+    "transfer": {
+      "action": "Vincular con otra operación",
+      "title": "La otra parte de esta transferencia",
+      "hint": "«{{label}}» es un movimiento interno: el dinero salió de esta cuenta hacia otra. Indique la operación que lo recibió — ambas contarán como un solo movimiento y no como un gasto.",
+      "empty": "Ninguna operación coincide. Puede faltar la otra cuenta, o su extracto aún no se ha importado.",
+      "confirm": "Vincular ambas operaciones",
+      "linked": "Ambas operaciones son ahora una sola."
     }
   },
   "pwa": {

@@ -561,6 +561,69 @@ def unlink_counterpart(*, user, transaction) -> None:
             )
 
 
+def link_counterpart(*, user, transaction, counterpart) -> None:
+    """Declare two **imported** lines as the two legs of one internal movement.
+
+    The missing half of the money model. ``record_cash_withdrawal`` *creates* the
+    other leg, and only ever on a cash account; ``unlink_counterpart`` undoes a
+    link. Nothing could ever **make** one between two lines that both already
+    exist — which is the ordinary case as soon as a household imports more than
+    one account. A transfer to a savings account therefore stayed
+    ``internal_without_counterpart`` for ever: an `error` in the control, every
+    month, resolvable only by an arbitration that comes back stale each time the
+    next transfer lands. The detector was right; there was simply no way to obey
+    it.
+
+    What is refused is only what House can **refute** on its own — a pairing that
+    could not be one movement:
+
+    - two lines of the same account (money does not move by staying put);
+    - amounts that are not exact opposites, or two different currencies;
+    - a line that already has a counterpart (unlink first — silently stealing a
+      leg would leave its former partner an orphan, which is the very state this
+      whole module exists to abolish).
+
+    Deliberately **not** refused: a gap between the two dates. A transfer is
+    debited and credited on different days, sometimes several, and House cannot
+    know which delay is legitimate for which bank. That is an attestation the
+    user makes, not an arithmetic House can check — same line as the parcours 26
+    draws between what is refuted and what is asked.
+
+    Both legs are flagged ``is_internal``: money changing pocket is not spending,
+    and counting it once, later, when the cash is actually spent, is the rule the
+    rest of the module already follows.
+    """
+    if counterpart is None:
+        raise ValidationError({"counterpart": "A counterpart operation is required."})
+    if counterpart.pk == transaction.pk:
+        raise ValidationError({"counterpart": "An operation cannot be its own counterpart."})
+    if counterpart.household_id != transaction.household_id:
+        raise ValidationError({"counterpart": "Operation belongs to another household."})
+    if counterpart.account_id == transaction.account_id:
+        raise ValidationError(
+            {"counterpart": "Both legs are on the same account: nothing moved between accounts."}
+        )
+    if transaction.transfer_counterpart_id is not None:
+        raise ValidationError({"transaction": "This operation already has a counterpart."})
+    if counterpart.transfer_counterpart_id is not None:
+        raise ValidationError({"counterpart": "This operation already has a counterpart."})
+    if transaction.currency != counterpart.currency:
+        raise ValidationError({"counterpart": "Both legs must share the same currency."})
+    if transaction.amount != -counterpart.amount:
+        raise ValidationError(
+            {"counterpart": "Both legs must be exact opposites of one another."}
+        )
+
+    with atomic():
+        for leg, other in ((transaction, counterpart), (counterpart, transaction)):
+            leg.transfer_counterpart = other
+            leg.is_internal = True
+            leg.updated_by = user
+            leg.save(
+                update_fields=["transfer_counterpart", "is_internal", "updated_by", "updated_at"]
+            )
+
+
 # --- Allocations (lot 5) -----------------------------------------------------
 
 

@@ -4039,6 +4039,14 @@
         "months_other": "{{count}} months",
         "all": "All"
       }
+    },
+    "transfer": {
+      "action": "Link to another operation",
+      "title": "The other leg of this transfer",
+      "hint": "“{{label}}” is an internal movement: the money left this account for another one. Point to the operation that received it — both will count as a single movement rather than as spending.",
+      "empty": "No operation matches. The other account may be missing, or its statement not imported yet.",
+      "confirm": "Link both operations",
+      "linked": "Both operations are now one."
     }
   },
   "pwa": {

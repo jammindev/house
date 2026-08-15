@@ -4,6 +4,7 @@ from calendar import monthrange
 from datetime import date
 from decimal import Decimal, InvalidOperation
 
+from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db.models import F, Value
 
 from rest_framework import mixins, status, viewsets
@@ -76,6 +77,7 @@ from .services import (
     import_statement_file,
     record_cash_deposit,
     record_cash_expense,
+    link_counterpart,
     link_interaction,
     preview_statement_file,
     record_cash_withdrawal,
@@ -772,6 +774,64 @@ class BankTransactionViewSet(viewsets.ReadOnlyModelViewSet):
             amount=request.data.get("amount"),
         )
         return Response(self.get_serializer(mirror).data)
+
+    @action(detail=True, methods=["get"], url_path="transfer-candidates")
+    def transfer_candidates(self, request, pk=None):
+        """Les autres jambes plausibles de ce virement.
+
+        C'est le serveur qui dit ce qui est plausible, jamais le client : les
+        critères sont ceux de ``link_counterpart``, et deux définitions du même
+        test finissent par diverger — proposer un candidat que le POST refuse est
+        pire que n'en proposer aucun.
+
+        L'écart de dates ne **filtre** pas, il **ordonne**. Un virement peut mettre
+        plusieurs jours à être crédité, et une fenêtre dure cacherait précisément
+        les cas lents que l'utilisateur vient résoudre ici ; les trier par
+        proximité met le bon candidat en tête sans rendre les autres invisibles.
+        """
+        instance = self.get_object()
+        candidates = list(
+            self.filter_queryset(self.get_queryset())
+            .exclude(pk=instance.pk)
+            .exclude(account_id=instance.account_id)
+            .filter(
+                amount=-instance.amount,
+                currency=instance.currency,
+                transfer_counterpart__isnull=True,
+            )
+        )
+        candidates.sort(key=lambda txn: abs((txn.booked_on - instance.booked_on).days))
+        return Response(self.get_serializer(candidates[:20], many=True).data)
+
+    @action(detail=True, methods=["post"], url_path="link-transfer")
+    def link_transfer(self, request, pk=None):
+        """Déclarer qu'une autre opération est l'autre jambe de ce virement.
+
+        Le pendant manquant de `unlink-cash` : le module savait **délier** un
+        virement qu'il ne savait pas **lier**, donc tout foyer qui importe un
+        compte courant et un livret voyait chaque virement d'épargne rester en
+        erreur au Contrôle, tous les mois, sans issue.
+
+        La contrepartie est résolue **dans le queryset du foyer** : l'id vient du
+        client, et le chercher ailleurs laisserait rattacher une opération d'un
+        autre foyer — la même règle que `resolve_allocation_source`.
+        """
+        instance = self.get_object()
+        counterpart_id = request.data.get("counterpart_id")
+        try:
+            counterpart = (
+                self.filter_queryset(self.get_queryset()).filter(pk=counterpart_id).first()
+            )
+        except (DjangoValidationError, ValueError, TypeError):
+            # Un id qui n'est pas un UUID fait lever le champ lui-même : sans ce
+            # filet, une faute de frappe côté client donnerait un 500 sur une
+            # simple erreur de saisie.
+            counterpart = None
+        if counterpart is None:
+            raise ValidationError({"counterpart_id": "Unknown operation."})
+        link_counterpart(user=request.user, transaction=instance, counterpart=counterpart)
+        instance.refresh_from_db()
+        return Response(self.get_serializer(instance).data)
 
     @action(detail=True, methods=["delete"], url_path="unlink-cash")
     def unlink_cash(self, request, pk=None):

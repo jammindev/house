@@ -29,6 +29,8 @@ import {
   type RefundAllocationLine,
   setBalanceAnchor,
   unlinkAllocation,
+  fetchTransferCandidates,
+  linkTransferCounterpart,
   unlinkCashCounterpart,
   updateBankAccount,
   withdrawToCash,
@@ -59,6 +61,8 @@ export const bankingKeys = {
     [...bankingKeys.all, 'allocations', transactionId] as const,
   suggestions: (transactionId: string) =>
     [...bankingKeys.all, 'suggestions', transactionId] as const,
+  transferCandidates: (transactionId: string) =>
+    [...bankingKeys.all, 'transfer-candidates', transactionId] as const,
   anchor: (accountId: string) => [...bankingKeys.all, 'anchor', accountId] as const,
   coverage: (accountId: string) => [...bankingKeys.all, 'coverage', accountId] as const,
   balanceHistory: (accountId: string, params: BalanceHistoryParams) =>
@@ -311,6 +315,35 @@ export function useUnlinkCashCounterpart() {
     onSuccess: () => {
       invalidate();
       toast({ description: t('banking.withdraw.unlinked'), variant: 'success' });
+    },
+    onError: () => toast({ description: t('common.saveFailed'), variant: 'destructive' }),
+  });
+}
+
+// --- Virement entre deux comptes ---------------------------------------------
+
+export function useTransferCandidates(transactionId: string | undefined) {
+  return useQuery({
+    queryKey: bankingKeys.transferCandidates(transactionId ?? ''),
+    queryFn: () => fetchTransferCandidates(transactionId as string),
+    enabled: Boolean(transactionId),
+  });
+}
+
+export function useLinkTransferCounterpart() {
+  const invalidate = useInvalidateMoney();
+  const { t } = useTranslation();
+  return useMutation({
+    mutationFn: ({
+      transactionId,
+      counterpartId,
+    }: {
+      transactionId: string;
+      counterpartId: string;
+    }) => linkTransferCounterpart(transactionId, counterpartId),
+    onSuccess: () => {
+      invalidate();
+      toast({ description: t('banking.transfer.linked'), variant: 'success' });
     },
     onError: () => toast({ description: t('common.saveFailed'), variant: 'destructive' }),
   });

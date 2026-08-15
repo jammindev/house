@@ -28,6 +28,7 @@ import WithdrawToCashDialog from './WithdrawToCashDialog';
 import AllocationDialog from './AllocationDialog';
 import SuggestionsDialog from './SuggestionsDialog';
 import ClassifyInflowDialog from './ClassifyInflowDialog';
+import TransferLinkDialog from './TransferLinkDialog';
 
 const PAGE_SIZE = 50;
 const NO_FILTERS: Filters = {};
@@ -70,6 +71,7 @@ export default function TransactionsPage() {
   const [allocationTarget, setAllocationTarget] = React.useState<BankTransaction | null>(null);
   const [suggestTarget, setSuggestTarget] = React.useState<BankTransaction | null>(null);
   const [classifyTarget, setClassifyTarget] = React.useState<BankTransaction | null>(null);
+  const [transferTarget, setTransferTarget] = React.useState<BankTransaction | null>(null);
   const reconcileMutation = useReconcile();
 
   const cashAccounts = (accountsQuery.data ?? []).filter((a) => a.kind === 'cash');
@@ -148,6 +150,7 @@ export default function TransactionsPage() {
           onEditNote={openNote}
           onFeedCash={setCashTarget}
           onUnlinkCash={(transaction) => unlinkCashMutation.mutate(transaction.id)}
+          onLinkTransfer={setTransferTarget}
           onAllocate={setAllocationTarget}
           onSuggest={setSuggestTarget}
           onClassify={setClassifyTarget}
@@ -177,6 +180,15 @@ export default function TransactionsPage() {
           open
           onOpenChange={(next) => !next && setClassifyTarget(null)}
           transaction={classifyTarget}
+        />
+      ) : null}
+
+      {transferTarget ? (
+        <TransferLinkDialog
+          open
+          onOpenChange={(next) => !next && setTransferTarget(null)}
+          transactionId={transferTarget.id}
+          label={transferTarget.label_raw}
         />
       ) : null}
 
