@@ -42,6 +42,31 @@ DATABASES = {
 # appeler le fournisseur.
 ANTHROPIC_API_KEY = env("ANTHROPIC_API_KEY", default="")
 
+# Plancher de débit desserré — et **seulement** le plancher.
+#
+# Le cap global (`core.throttles`, 240 requêtes/min/utilisateur) existe pour
+# qu'une boucle emballée s'arrête avant la facture : « un humain derrière un
+# navigateur ne l'atteint pas, un script l'atteint en quelques secondes ». Or une
+# suite Playwright *est* ce script, et elle conduit un seul utilisateur à travers
+# des centaines d'écrans à la minute. Au quatrième fichier de spec, le compteur
+# passait la barre et l'API répondait 429 à tout — y compris à
+# `/api/accounts/me/`, que le front lit comme « pas connecté ». Les specs
+# tombaient donc sur une **redirection vers le login**, ce qui ne ressemble à
+# aucun défaut réel et se lit comme de l'instabilité.
+#
+# Les caps **nommés** restent intacts (connexion, inscription, invitation,
+# agent…) : ce sont eux qui portent une règle métier, et une suite E2E doit
+# continuer à les rencontrer.
+REST_FRAMEWORK = {  # noqa: F405
+    **REST_FRAMEWORK,  # noqa: F405
+    "DEFAULT_THROTTLE_RATES": {
+        **REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"],  # noqa: F405
+        "user_burst": "10000/min",
+        "user_sustained": "100000/hour",
+        "anon": "10000/hour",
+    },
+}
+
 SESSION_COOKIE_SECURE = False
 CSRF_COOKIE_SECURE = False
 SECURE_SSL_REDIRECT = False

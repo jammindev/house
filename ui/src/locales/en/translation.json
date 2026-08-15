@@ -1049,7 +1049,8 @@
         "daily_digest": "Daily digest",
         "recurring_due": "Recurring expense due",
         "monthly_budget_report": "Monthly budget report",
-        "chicken_chore": "Coop chore reminder"
+        "chicken_chore": "Coop chore reminder",
+        "hunt_suggestion": "Rainy-weekend hunt suggestion"
       }
     },
     "theme": "Theme",
@@ -1901,6 +1902,32 @@
           "agent": {
             "title": "Ask the assistant",
             "body": "« How many kilos of apples this year? », or dictate « log 12 kg of apples on the far apple tree »."
+          }
+        }
+      },
+      "games": {
+        "title": "Play a treasure hunt",
+        "intro": "The one game that is not played on a screen: the app writes the trail, the house holds it.",
+        "steps": {
+          "labels": {
+            "title": "Print and stick the labels",
+            "body": "One QR label per room, printed from the Rooms page and taped to the wall. Nothing works without them — scanning one outside a game simply opens that room."
+          },
+          "compose": {
+            "title": "Compose a trail",
+            "body": "Pick a few rooms, one riddle each, and write what is hidden at the end. The order of the list is the order of the game."
+          },
+          "riddles": {
+            "title": "Ask for riddles",
+            "body": "The assistant writes one riddle per room, tuned to the players' age. You read them over and fix what you want before saving. No key configured? Write them yourself — everything else is the same."
+          },
+          "play": {
+            "title": "Hand over the phone",
+            "body": "Start the hunt and give the phone away. Each correct scan reveals the next riddle; a wrong room says nothing. The last one reveals the treasure."
+          },
+          "replay": {
+            "title": "Bring it back out",
+            "body": "A finished hunt replays in a shuffled order, as a new draft. The original stays untouched — it is the trace that you played."
           }
         }
       }
@@ -2955,7 +2982,8 @@
       "stock_low": "Low stock",
       "stock_out": "Out of stock",
       "weather_alert": "Weather alert",
-      "chicken_chore_due": "Coop chore due"
+      "chicken_chore_due": "Coop chore due",
+      "hunt_suggestion": "Treasure hunt suggestion"
     }
   },
   "invitations": {
@@ -4709,6 +4737,8 @@
       "needRooms": "Pick the rooms first — the riddles are written from them.",
       "done": "Riddles suggested — read them over and adjust.",
       "failed": "The riddles could not be written. Try again, or write them yourself."
-    }
+    },
+    "replay": "Replay",
+    "replayed": "Hunt ready to play again, in a new order"
   }
 }

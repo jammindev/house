@@ -23,6 +23,7 @@ class Notification(models.Model):
         STOCK_OUT = "stock_out", _("Out of stock")
         WEATHER_ALERT = "weather_alert", _("Weather alert")
         CHICKEN_CHORE_DUE = "chicken_chore_due", _("Coop chore due")
+        HUNT_SUGGESTION = "hunt_suggestion", _("Treasure hunt suggestion")
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(
@@ -102,4 +103,8 @@ MUTABLE_TYPES = frozenset({
     # or the reminder that helps for a month becomes the one that trains the
     # household to ignore the bell.
     Notification.Type.CHICKEN_CHORE_DUE,
+    # The archetype this set exists for: an invitation to play is pleasant,
+    # frequent-ish, and asks for nothing. A household that never plays must be
+    # able to stop hearing about it without losing anything it needed.
+    Notification.Type.HUNT_SUGGESTION,
 })

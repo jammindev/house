@@ -97,8 +97,8 @@ story peut traverser trois specs, une spec peut couvrir zéro story.
 | CHAS-10 | En tant que foyer, je veux qu'une seule chasse soit active à la fois, afin que deux parties lancées en parallèle ne se mélangent pas | ✅ | `e2e/hunt.spec.ts` |
 | CHAS-11 | En tant que parent, je veux demander des énigmes à l'assistant puis les relire et les corriger, afin de préparer une chasse en deux minutes au lieu de vingt | ✅ | `e2e/hunt-riddles.spec.ts` |
 | CHAS-12 | En tant qu'auto-hébergeur sans clé Anthropic, je veux que l'écran ne me propose pas la génération et me laisse tout saisir, afin de jouer quand même | ✅ | `e2e/hunt-riddles.spec.ts` |
-| CHAS-13 | En tant que parent, je veux rejouer une chasse terminée dans un ordre mélangé, afin de la ressortir sans tout ressaisir | ⬜ | — |
-| CHAS-14 | En tant que foyer, je veux être invité à jouer un week-end pluvieux, afin d'y penser au bon moment | ⬜ | — |
+| CHAS-13 | En tant que parent, je veux rejouer une chasse terminée dans un ordre mélangé, afin de la ressortir sans tout ressaisir | ✅ | `e2e/hunt-replay.spec.ts` |
+| CHAS-14 | En tant que foyer, je veux être invité à jouer un week-end pluvieux, afin d'y penser au bon moment | ✅ | `apps/games/tests/test_replay_and_ping.py` |
 | CHAS-15 | En tant qu'owner, je veux désactiver le module Jeux, afin que ma sidebar ne porte pas ce que mon foyer n'utilise pas | ⬜ | — |
 | CHAS-16 | En tant que membre non anglophone, je veux le module dans ma langue, afin de l'utiliser comme le reste de l'app | ⬜ | — |
 

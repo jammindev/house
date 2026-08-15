@@ -1049,7 +1049,8 @@
         "daily_digest": "Tägliche Zusammenfassung",
         "recurring_due": "Fällige wiederkehrende Ausgabe",
         "monthly_budget_report": "Monatlicher Budgetbericht",
-        "chicken_chore": "Erinnerung an Stallaufgaben"
+        "chicken_chore": "Erinnerung an Stallaufgaben",
+        "hunt_suggestion": "Vorschlag für eine Schatzsuche"
       }
     },
     "theme": "Design",
@@ -1901,6 +1902,32 @@
           "agent": {
             "title": "Den Assistenten fragen",
             "body": "« Wie viele Kilo Äpfel dieses Jahr? », oder diktieren Sie « notiere 12 kg Äpfel am hinteren Apfelbaum »."
+          }
+        }
+      },
+      "games": {
+        "title": "Eine Schatzsuche spielen",
+        "intro": "Das einzige Spiel, das nicht auf einem Bildschirm stattfindet: die App schreibt den Weg, das Haus trägt ihn.",
+        "steps": {
+          "labels": {
+            "title": "Etiketten drucken und aufkleben",
+            "body": "Ein QR-Etikett pro Raum, gedruckt auf der Seite „Räume“ und an die Wand geklebt. Ohne sie geht nichts — außerhalb eines Spiels öffnet ein Scan einfach den Raum."
+          },
+          "compose": {
+            "title": "Einen Weg zusammenstellen",
+            "body": "Ein paar Räume, ein Rätsel pro Raum, und was am Ende versteckt ist. Die Reihenfolge der Liste ist die Reihenfolge des Spiels."
+          },
+          "riddles": {
+            "title": "Rätsel vorschlagen lassen",
+            "body": "Der Assistent schreibt ein Rätsel pro Raum, passend zum Alter der Mitspielenden. Vor dem Speichern lest ihr sie durch und ändert, was ihr wollt. Kein Schlüssel eingerichtet? Dann schreibt ihr sie selbst — alles andere bleibt gleich."
+          },
+          "play": {
+            "title": "Das Handy weitergeben",
+            "body": "Startet die Suche und gebt das Gerät weiter. Jeder richtige Scan zeigt das nächste Rätsel; ein falscher Raum verrät nichts. Der letzte enthüllt den Schatz."
+          },
+          "replay": {
+            "title": "Sie wieder hervorholen",
+            "body": "Eine beendete Schatzsuche lässt sich in neuer Reihenfolge als Entwurf wiederholen. Das Original bleibt unangetastet — es ist die Spur, dass ihr gespielt habt."
           }
         }
       }
@@ -2955,7 +2982,8 @@
       "stock_low": "Geringer Bestand",
       "stock_out": "Nicht mehr vorrätig",
       "weather_alert": "Wetterwarnung",
-      "chicken_chore_due": "Stallaufgabe fällig"
+      "chicken_chore_due": "Stallaufgabe fällig",
+      "hunt_suggestion": "Vorschlag für eine Schatzsuche"
     }
   },
   "invitations": {
@@ -4709,6 +4737,8 @@
       "needRooms": "Wählt zuerst die Räume — daraus entstehen die Rätsel.",
       "done": "Rätsel vorgeschlagen — lest sie durch und passt sie an.",
       "failed": "Die Rätsel konnten nicht geschrieben werden. Versucht es erneut oder schreibt sie selbst."
-    }
+    },
+    "replay": "Nochmal spielen",
+    "replayed": "Schatzsuche bereit für eine neue Runde, in neuer Reihenfolge"
   }
 }

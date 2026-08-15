@@ -12,6 +12,7 @@ import {
   fetchHuntPlay,
   fetchHunts,
   generateRiddles,
+  replayHunt,
   startHunt,
   updateHunt,
   type HuntPayload,
@@ -133,6 +134,20 @@ export function useGenerateRiddles() {
       generateRiddles(zones, age),
     onError: () =>
       toast({ description: t('games.riddles.failed'), variant: 'destructive' }),
+  });
+}
+
+/** Rejouer une chasse terminée : une copie mélangée, en brouillon. */
+export function useReplayHunt() {
+  const invalidate = useInvalidate();
+  const { t } = useTranslation();
+  return useMutation({
+    mutationFn: (id: string) => replayHunt(id),
+    onSuccess: () => {
+      invalidate('games');
+      toast({ description: t('games.replayed'), variant: 'success' });
+    },
+    onError: () => toast({ description: t('common.saveFailed'), variant: 'destructive' }),
   });
 }
 

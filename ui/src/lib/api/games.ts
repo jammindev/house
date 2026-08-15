@@ -106,6 +106,17 @@ export async function abandonHunt(id: string): Promise<HuntPlay> {
 }
 
 /**
+ * Ressort une chasse jouée, mélangée, en brouillon.
+ *
+ * Rend la **nouvelle** chasse : l'ancienne n'est jamais touchée, sinon le foyer
+ * perdrait la trace qu'il a joué.
+ */
+export async function replayHunt(id: string): Promise<Hunt> {
+  const { data } = await api.post(`/games/hunts/${id}/replay/`);
+  return data as Hunt;
+}
+
+/**
  * La vue de partie d'une chasse désignée.
  *
  * `fetchActiveHunt` ne peut pas servir l'écran de victoire : la dernière étape

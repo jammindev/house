@@ -1049,7 +1049,8 @@
         "daily_digest": "Résumé quotidien",
         "recurring_due": "Échéance de dépense récurrente",
         "monthly_budget_report": "Bilan mensuel du budget",
-        "chicken_chore": "Rappel des corvées du poulailler"
+        "chicken_chore": "Rappel des corvées du poulailler",
+        "hunt_suggestion": "Invitation à une chasse au trésor"
       }
     },
     "theme": "Thème",
@@ -1901,6 +1902,32 @@
           "agent": {
             "title": "Demander à l'assistant",
             "body": "« Combien de kilos de pommes cette année ? », ou dictez « note 12 kg de pommes sur le pommier du fond »."
+          }
+        }
+      },
+      "games": {
+        "title": "Jouer une chasse au trésor",
+        "intro": "Le seul jeu qui ne se joue pas sur un écran : l'app écrit le parcours, la maison le porte.",
+        "steps": {
+          "labels": {
+            "title": "Imprimer et coller les étiquettes",
+            "body": "Une étiquette QR par pièce, imprimée depuis la page Zones et scotchée au mur. Rien ne marche sans elles — en scanner une hors partie ouvre simplement la pièce."
+          },
+          "compose": {
+            "title": "Composer un parcours",
+            "body": "Quelques pièces, une énigme pour chacune, et ce qui est caché au bout. L'ordre de la liste est l'ordre du jeu."
+          },
+          "riddles": {
+            "title": "Demander les énigmes",
+            "body": "L'assistant écrit une énigme par pièce, au niveau des joueurs. Vous relisez et corrigez ce que vous voulez avant d'enregistrer. Pas de clé configurée ? Écrivez-les vous-même — le reste est identique."
+          },
+          "play": {
+            "title": "Tendre le téléphone",
+            "body": "Lancez, puis passez l'appareil. Chaque bon scan dévoile l'énigme suivante ; une mauvaise pièce ne dit rien. La dernière révèle le trésor."
+          },
+          "replay": {
+            "title": "La ressortir",
+            "body": "Une chasse terminée se rejoue dans un ordre mélangé, en brouillon. L'originale n'est pas touchée : c'est la trace que vous avez joué."
           }
         }
       }
@@ -2955,7 +2982,8 @@
       "stock_low": "Stock bas",
       "stock_out": "Stock épuisé",
       "weather_alert": "Alerte météo",
-      "chicken_chore_due": "Corvée du poulailler à faire"
+      "chicken_chore_due": "Corvée du poulailler à faire",
+      "hunt_suggestion": "Invitation à une chasse au trésor"
     }
   },
   "invitations": {
@@ -4709,6 +4737,8 @@
       "needRooms": "Choisissez d’abord les pièces — c’est à partir d’elles que les énigmes s’écrivent.",
       "done": "Énigmes proposées — relisez-les et ajustez.",
       "failed": "Les énigmes n’ont pas pu être écrites. Réessayez, ou saisissez-les vous-même."
-    }
+    },
+    "replay": "Rejouer",
+    "replayed": "Chasse prête à rejouer, dans un nouvel ordre"
   }
 }

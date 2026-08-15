@@ -6,7 +6,8 @@
 - Doc produit : [PARCOURS_31_LA_CHASSE_AU_TRESOR.md](../parcours/PARCOURS_31_LA_CHASSE_AU_TRESOR.md)
 - Fiche concept : [ANCRAGE_PHYSIQUE.md](../fiches/ANCRAGE_PHYSIQUE.md)
 - User stories : `CHAS-04` → `CHAS-10` — spec `e2e/hunt.spec.ts` ;
-  `CHAS-11`/`CHAS-12` — spec `e2e/hunt-riddles.spec.ts`
+  `CHAS-11`/`CHAS-12` — spec `e2e/hunt-riddles.spec.ts` ;
+  `CHAS-13` — spec `e2e/hunt-replay.spec.ts` ; `CHAS-14` — serveur seulement
 
 ## État
 
@@ -15,7 +16,7 @@
 | 1 | Étiquettes QR de zone (dans `apps/zones`) | ✅ livré |
 | 2 | La chasse — modèles, session, avancement par scan | ✅ livré |
 | 3 | Énigmes proposées par l'assistant | ✅ livré |
-| 4 | Rejouer + ping du samedi pluvieux | ⬜ à faire (#611) |
+| 4 | Rejouer + ping du samedi pluvieux | ✅ livré |
 
 Module **optionnel** (`games` dans `OPTIONAL_MODULES` et `PINNABLE_MODULES`),
 groupe **Maison**. Le lot 1 vit dans les zones et reste actif même module coupé.
@@ -99,6 +100,46 @@ composeur — exactement comme une énigme tapée à la main.
 - Le recollement se fait **par rang** (`index`), jamais par zone : deux étapes ont
   le droit de désigner la même pièce (un aller-retour dans une chasse).
 
+## Faire revenir le jeu (lot 4)
+
+### Rejouer
+
+`replay_hunt` crée une chasse **neuve** en `draft`, mêmes pièces, mêmes énigmes,
+**ordre mélangé** — et ne touche jamais l'originale.
+
+- **L'originale est la seule trace que le foyer a joué.** Un « rejouer » qui
+  remettrait les `found_at` à zéro l'effacerait, et ça ne se voit qu'après.
+- **L'ordre change vraiment** : `random.shuffle` a le droit de rendre la
+  permutation identité (une chance sur deux à deux étapes), et le bouton
+  n'aurait alors rien fait sans le dire. On retire, borné à vingt fois — le
+  hasard n'est pas une garantie de terminaison, et une boucle infinie dans une
+  requête HTTP coûte un worker. Régression :
+  `test_a_shuffle_that_lands_on_itself_is_retried`.
+- Le bouton n'apparaît que sur une chasse **terminée** : sur un brouillon il n'y
+  a rien à ressortir, sur une partie en cours il faudrait d'abord la finir.
+
+### Le ping du samedi pluvieux
+
+`PingSpec('hunt_suggestion')`, module `games`, 10 h locales. `build_message`
+rend `None` — donc n'envoie rien — sauf si **les quatre** sont vraies : week-end
+(fuseau du foyer), pluie annoncée (≥ 60 %), au moins **trois** zones, et
+**aucune** chasse active.
+
+- **Le ping propose, il n'engage rien.** Il n'écrit aucune chasse : il mène à
+  `/app/games`. Une chasse créée par une notification serait une chasse que
+  personne n'a voulue, avec des pièces que personne n'a choisies.
+- **Le seuil de pluie est haut à dessein.** À 30 %, l'invitation part presque
+  tous les week-ends et redevient le rappel périodique qu'on voulait éviter — un
+  bruit qui emporte avec lui la notification rare qui comptait.
+- **Tout inconnu vaut non** : pas de localisation, module météo coupé,
+  fournisseur injoignable → silence. Une invitation à jouer n'est jamais assez
+  importante pour lever une erreur.
+- **`hunt_suggestion` est dans `Notification.Type` *et* dans `MUTABLE_TYPES`** —
+  l'archétype du fréquent non actionnable. Rappel du piège : `choices` n'est pas
+  contraint en base et `.create()` ne fait pas de `full_clean`, donc une string
+  littérale persisterait très bien tout en restant invisible à l'admin et à la
+  page de préférences (c'est ce qui est arrivé à `weather_alert`).
+
 ## API
 
 | Route | Rôle |
@@ -109,6 +150,7 @@ composeur — exactement comme une énigme tapée à la main.
 | `GET /hunts/active/` | la partie en cours, `{hunt: null}` sinon |
 | `GET /hunts/{id}/play/` | la vue de partie d'une chasse désignée |
 | `POST /hunts/generate-riddles/` | propose une énigme par pièce — **n'écrit rien** |
+| `POST /hunts/{id}/replay/` | ressort une copie mélangée en brouillon (201) |
 
 **L'avancement n'est pas ici** : il passe par `POST /api/zones/scan/`, la porte
 unique du scan, que ce module *étend* sans la dupliquer.
@@ -138,3 +180,15 @@ unique du scan, que ce module *étend* sans la dupliquer.
   base, ça faisait tomber `zone-qr.spec.ts` dès qu'il tournait *après*
   `hunt.spec.ts` — vert seul, rouge à deux. D'où l'`afterEach` : nettoyer avant
   ne suffit pas, il faut aussi nettoyer après.
+- **⚠️ Enchaîner des scans par `page.goto` sans attendre coupe le scan en vol.**
+  Attendre l'URL ne sert à rien — elle vaut déjà `/app/games/play` au tour
+  précédent, donc l'assertion passe sans rien attendre. C'est le **compteur
+  d'avancement** qu'il faut attendre : il ne bouge qu'une fois la réponse du
+  serveur arrivée.
+- **Le plancher de débit global tombait sur la suite E2E, pas sur le produit.**
+  Au quatrième fichier de spec, un seul utilisateur dépassait les 240
+  requêtes/min et l'API répondait 429 à tout — y compris `/api/accounts/me/`,
+  que le front lit comme « pas connecté ». Les specs échouaient donc sur une
+  **redirection vers le login**, ce qui ne ressemble à aucun défaut réel. Le
+  plancher est desserré dans `config/settings/e2e.py` ; les caps **nommés**
+  restent intacts.
