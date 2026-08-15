@@ -3209,7 +3209,10 @@
       "meter": "Compteurs",
       "tracker": "Trackers",
       "shopping_item": "Liste de courses",
-      "chicken_chore": "Corvées du poulailler"
+      "chicken_chore": "Corvées du poulailler",
+      "tree": "Verger",
+      "tree_event": "Entretien du verger",
+      "harvest": "Récoltes"
     }
   },
   "agent": {
@@ -4482,7 +4485,9 @@
     "tabs": {
       "info": "Fiche",
       "events": "Entretien",
-      "harvests": "Récoltes"
+      "harvests": "Récoltes",
+      "documents": "Documents",
+      "photos": "Photos"
     },
     "fields": {
       "name": "Nom",
@@ -4506,7 +4511,8 @@
       "title": "Intitulé",
       "quantity": "Quantité",
       "unit": "Unité",
-      "harvestedOn": "Date de récolte"
+      "harvestedOn": "Date de récolte",
+      "emoji": "Emoji"
     },
     "errors": {
       "zoneRequired": "Choisis une zone : un sujet sans endroit ne se retrouve pas.",
@@ -4551,6 +4557,34 @@
       "10": "octobre",
       "11": "novembre",
       "12": "décembre"
+    },
+    "care": {
+      "new": "Nouvelle règle",
+      "newTitle": "Nouvelle règle d'entretien",
+      "editTitle": "Modifier la règle",
+      "created": "Règle créée",
+      "updated": "Règle mise à jour",
+      "deleted": "Règle supprimée",
+      "completed": "Entretien consigné",
+      "seasonTitle": "Ce que la saison réclame",
+      "markDone": "C'est fait",
+      "missedHint": "Fenêtre passée — à reprendre la saison prochaine.",
+      "windowOpen": "À faire avant le {{date}}",
+      "windowClosed": "La fenêtre s'est refermée le {{date}}",
+      "windowStart": "Du mois de",
+      "windowEnd": "Au mois de",
+      "windowHint": "Une fenêtre peut être à cheval sur deux années — « novembre → mars » est le cas normal d'un verger.",
+      "eventType": "Type d'entrée consignée",
+      "scope": "Portée",
+      "scopeKind": "Tous les sujets d'un type",
+      "scopeTree": "Un sujet précis",
+      "createTask": "Créer une tâche",
+      "taskCreated": "Tâche créée"
+    },
+    "purchase": {
+      "action": "Déclarer un achat",
+      "title": "Achat — {{name}}",
+      "created": "Achat enregistré"
     }
   }
 }

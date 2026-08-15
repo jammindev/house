@@ -3209,7 +3209,10 @@
       "meter": "Zähler",
       "tracker": "Tracker",
       "shopping_item": "Einkaufsliste",
-      "chicken_chore": "Stallaufgaben"
+      "chicken_chore": "Stallaufgaben",
+      "tree": "Obstgarten",
+      "tree_event": "Obstgarten-Pflege",
+      "harvest": "Ernten"
     }
   },
   "agent": {
@@ -4482,7 +4485,9 @@
     "tabs": {
       "info": "Steckbrief",
       "events": "Pflege",
-      "harvests": "Ernten"
+      "harvests": "Ernten",
+      "documents": "Dokumente",
+      "photos": "Fotos"
     },
     "fields": {
       "name": "Name",
@@ -4506,7 +4511,8 @@
       "title": "Titel",
       "quantity": "Menge",
       "unit": "Einheit",
-      "harvestedOn": "Erntedatum"
+      "harvestedOn": "Erntedatum",
+      "emoji": "Emoji"
     },
     "errors": {
       "zoneRequired": "Wähle einen Bereich: Eine Pflanze ohne Ort findet niemand wieder.",
@@ -4551,6 +4557,34 @@
       "10": "Oktober",
       "11": "November",
       "12": "Dezember"
+    },
+    "care": {
+      "new": "Neue Regel",
+      "newTitle": "Neue Pflegeregel",
+      "editTitle": "Regel bearbeiten",
+      "created": "Regel erstellt",
+      "updated": "Regel aktualisiert",
+      "deleted": "Regel gelöscht",
+      "completed": "Pflege eingetragen",
+      "seasonTitle": "Was die Saison verlangt",
+      "markDone": "Erledigt",
+      "missedHint": "Zeitfenster vorbei — nächste Saison wieder aufnehmen.",
+      "windowOpen": "Fällig vor dem {{date}}",
+      "windowClosed": "Das Zeitfenster schloss am {{date}}",
+      "windowStart": "Von",
+      "windowEnd": "Bis",
+      "windowHint": "Ein Zeitfenster darf den Jahreswechsel überspannen — « November → März » ist im Obstgarten der Normalfall.",
+      "eventType": "Art des Tagebucheintrags",
+      "scope": "Geltungsbereich",
+      "scopeKind": "Alle Pflanzen einer Art",
+      "scopeTree": "Eine Pflanze",
+      "createTask": "Aufgabe erstellen",
+      "taskCreated": "Aufgabe erstellt"
+    },
+    "purchase": {
+      "action": "Kauf erfassen",
+      "title": "Kauf — {{name}}",
+      "created": "Kauf erfasst"
     }
   }
 }

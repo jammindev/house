@@ -3209,7 +3209,10 @@
       "meter": "Meters",
       "tracker": "Trackers",
       "shopping_item": "Shopping list",
-      "chicken_chore": "Coop chores"
+      "chicken_chore": "Coop chores",
+      "tree": "Orchard",
+      "tree_event": "Orchard care",
+      "harvest": "Harvests"
     }
   },
   "agent": {
@@ -4482,7 +4485,9 @@
     "tabs": {
       "info": "Details",
       "events": "Care",
-      "harvests": "Harvests"
+      "harvests": "Harvests",
+      "documents": "Documents",
+      "photos": "Photos"
     },
     "fields": {
       "name": "Name",
@@ -4506,7 +4511,8 @@
       "title": "Title",
       "quantity": "Quantity",
       "unit": "Unit",
-      "harvestedOn": "Harvest date"
+      "harvestedOn": "Harvest date",
+      "emoji": "Emoji"
     },
     "errors": {
       "zoneRequired": "Pick a zone: a subject with no place is a subject nobody finds again.",
@@ -4551,6 +4557,34 @@
       "10": "October",
       "11": "November",
       "12": "December"
+    },
+    "care": {
+      "new": "New rule",
+      "newTitle": "New care rule",
+      "editTitle": "Edit rule",
+      "created": "Rule created",
+      "updated": "Rule updated",
+      "deleted": "Rule deleted",
+      "completed": "Care logged",
+      "seasonTitle": "What the season asks for",
+      "markDone": "Done",
+      "missedHint": "Window closed — pick it up next season.",
+      "windowOpen": "Due before {{date}}",
+      "windowClosed": "The window closed on {{date}}",
+      "windowStart": "From",
+      "windowEnd": "To",
+      "windowHint": "A window may cross New Year — « November → March » is the normal shape in an orchard.",
+      "eventType": "Journal entry type",
+      "scope": "Scope",
+      "scopeKind": "Every subject of a kind",
+      "scopeTree": "One subject",
+      "createTask": "Create a task",
+      "taskCreated": "Task created"
+    },
+    "purchase": {
+      "action": "Declare a purchase",
+      "title": "Purchase — {{name}}",
+      "created": "Purchase recorded"
     }
   }
 }

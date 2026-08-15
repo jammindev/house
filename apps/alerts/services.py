@@ -263,6 +263,60 @@ def household_has_content(household) -> bool:
         for model in (Equipment, Task, Interaction, BankAccount)
     )
 
+def _due_orchard_care(household, today: date) -> list[dict]:
+    """Seasonal care windows open or already shut, one row per (rule, subject).
+
+    A kind-scoped rule is **not** one alert but one per subject: having pruned
+    one of five apple trees does not make the season done, and folding them into
+    a single flag would let four trees go unpruned behind a green tick.
+
+    `missed` is critical and `due` is a warning — a shut window cannot be caught
+    up, which is exactly why it is the one worth saying out loud.
+    """
+    from orchard.queries import rule_states
+
+    items = []
+    for state in rule_states(household, today=today):
+        if state["state"] not in ("due", "missed"):
+            continue
+        rule, tree = state["rule"], state["tree"]
+        items.append(
+            {
+                "id": f"{rule.id}:{tree.id}",
+                "title": f"{rule.name} — {tree.name}",
+                "window_end": state["window_end"].isoformat(),
+                "state": state["state"],
+                "entity_url": f"/app/orchard/{tree.id}",
+                "severity": "critical" if state["state"] == "missed" else "warning",
+            }
+        )
+    return items
+
+
+def _orchard_frost(household) -> list[dict]:
+    """Frost nights that threaten subjects in declared bloom (parcours 30, lot 7).
+
+    No threshold is redefined here: `weather.alerts` owns them. The orchard only
+    contributes « which subjects are in flower », which the household declared.
+    """
+    from orchard.alerts import frost_alerts_for_orchard
+
+    items = []
+    for alert in frost_alerts_for_orchard(household):
+        names = ", ".join(tree["name"] for tree in alert["trees"])
+        items.append(
+            {
+                "id": f"frost:{alert['date']}",
+                "title": names,
+                "date": alert["date"],
+                "value": alert["value"],
+                "unit": alert["unit"],
+                "entity_url": "/app/orchard",
+                "severity": "critical",
+            }
+        )
+    return items
+
 
 def build_alerts_summary(household, today: date | None = None) -> dict:
     today = today or timezone.localdate()
@@ -273,6 +327,8 @@ def build_alerts_summary(household, today: date | None = None) -> dict:
     weather_alerts = _weather_alerts(household)
     egg_drop_alerts = _egg_drop_alerts(household, today)
     due_chores = _due_chores(household, today)
+    due_orchard_care = _due_orchard_care(household, today)
+    orchard_frost = _orchard_frost(household)
     return {
         "overdue_tasks": overdue_tasks,
         "expiring_warranties": expiring_warranties,
@@ -281,6 +337,8 @@ def build_alerts_summary(household, today: date | None = None) -> dict:
         "weather_alerts": weather_alerts,
         "egg_drop_alerts": egg_drop_alerts,
         "due_chores": due_chores,
+        "due_orchard_care": due_orchard_care,
+        "orchard_frost": orchard_frost,
         "total": (
             len(overdue_tasks)
             + len(expiring_warranties)
@@ -289,6 +347,8 @@ def build_alerts_summary(household, today: date | None = None) -> dict:
             + len(weather_alerts)
             + len(egg_drop_alerts)
             + len(due_chores)
+            + len(due_orchard_care)
+            + len(orchard_frost)
         ),
         # La raison qui accompagne le zéro. Voir `household_has_content`.
         "household_is_empty": not household_has_content(household),

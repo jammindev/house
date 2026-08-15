@@ -461,3 +461,30 @@ class TestHarvests:
         stranger = _make_owner(other_hh)
         response = _client_for(stranger).get(reverse("orchard-harvest-list"))
         assert response.data == []
+
+
+@pytest.mark.django_db
+class TestDeclaringWhatASubjectCost:
+    """ORCH-09 — the money has one write path, and the orchard uses it."""
+
+    def test_it_creates_an_expense_through_the_shared_service(self):
+        from interactions.models import Interaction
+
+        hh, owner, zone = _setup()
+        tree = TreeFactory(household=hh, zone=zone, created_by=owner, name="Le gros pommier")
+
+        response = _client_for(owner).post(
+            reverse("orchard-tree-purchase", args=[tree.id]),
+            {"amount": "39.00", "supplier": "Pépinière du coin"},
+            format="json",
+        )
+        assert response.status_code == status.HTTP_201_CREATED
+
+        interaction = Interaction.objects.get(id=response.data["interaction_id"])
+        # The queried money fields are real columns, never JSON.
+        assert interaction.amount == Decimal("39.00")
+        assert interaction.kind == "orchard_purchase"
+        assert interaction.supplier == "Pépinière du coin"
+        assert interaction.source == tree
+        # The subject's zone rides along, so the expense is placed like the tree.
+        assert zone in interaction.zones.all()

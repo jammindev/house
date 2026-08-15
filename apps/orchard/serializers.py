@@ -6,7 +6,7 @@ from rest_framework import serializers
 from core.timezones import household_today
 from zones.models import Zone
 
-from .models import Harvest, Tree, TreeEvent
+from .models import CareRule, Harvest, Tree, TreeEvent
 
 
 class TreeSerializer(serializers.ModelSerializer):
@@ -134,7 +134,7 @@ class TreeEventSerializer(_TreeScopedSerializer):
         model = TreeEvent
         fields = [
             'id', 'household',
-            'tree', 'tree_name', 'type', 'occurred_on', 'title', 'notes',
+            'tree', 'tree_name', 'care_rule', 'type', 'occurred_on', 'title', 'notes',
             'created_at', 'updated_at', 'created_by',
         ]
         read_only_fields = ['id', 'household', 'created_at', 'updated_at', 'created_by']
@@ -146,6 +146,12 @@ class TreeEventSerializer(_TreeScopedSerializer):
         if not value or not value.strip():
             raise serializers.ValidationError("Title cannot be blank.")
         return value.strip()
+
+    def validate_care_rule(self, value):
+        household_id = self.context.get('household_id')
+        if value is not None and household_id and value.household_id != household_id:
+            raise serializers.ValidationError("Rule does not belong to the household.")
+        return value
 
 
 class HarvestSerializer(_TreeScopedSerializer):
@@ -176,3 +182,92 @@ class HarvestSerializer(_TreeScopedSerializer):
         if value is None or value <= 0:
             raise serializers.ValidationError("Quantity must be greater than zero.")
         return value
+
+
+class CareRuleSerializer(serializers.ModelSerializer):
+    """Read/write serializer for seasonal care rules.
+
+    ``targets`` carries the derived state of each (rule, subject) pair. It is
+    **never** a stored column: an echéance written down drifts the first time an
+    event is edited, and a reminder firing on a stale date is worse than none.
+    """
+
+    tree_name = serializers.SerializerMethodField()
+    targets = serializers.SerializerMethodField()
+
+    class Meta:
+        model = CareRule
+        fields = [
+            'id', 'household',
+            'name', 'emoji', 'start_month', 'end_month', 'event_type',
+            'tree', 'tree_name', 'kind', 'is_active', 'notes', 'targets',
+            'created_at', 'updated_at', 'created_by',
+        ]
+        read_only_fields = ['id', 'household', 'created_at', 'updated_at', 'created_by']
+
+    def get_tree_name(self, obj):
+        return obj.tree.name if obj.tree_id else None
+
+    def get_targets(self, obj):
+        from .queries import rule_states
+
+        states = self.context.get('rule_states')
+        if states is None:
+            states = rule_states(obj.household, rules=[obj])
+        return [
+            {
+                'tree': str(state['tree'].id),
+                'tree_name': state['tree'].name,
+                'state': state['state'],
+                'season': state['season'],
+                'window_start': state['window_start'],
+                'window_end': state['window_end'],
+                'next_window_start': state['next_window_start'],
+                'last_done_on': state['last_done_on'],
+            }
+            for state in states
+            if state['rule'].pk == obj.pk
+        ]
+
+    def validate_name(self, value):
+        if not value or not value.strip():
+            raise serializers.ValidationError("Name cannot be blank.")
+        return value.strip()
+
+    def validate_tree(self, value):
+        household_id = self.context.get('household_id')
+        if value is not None and household_id and value.household_id != household_id:
+            raise serializers.ValidationError("Tree does not belong to the household.")
+        return value
+
+    def validate(self, attrs):
+        for field in ('start_month', 'end_month'):
+            value = attrs.get(field, getattr(self.instance, field, None))
+            if value is None or not 1 <= value <= 12:
+                raise serializers.ValidationError({field: "Month must be between 1 and 12."})
+
+        tree = attrs.get('tree', getattr(self.instance, 'tree', None))
+        kind = attrs.get('kind', getattr(self.instance, 'kind', ''))
+        # One scope or the other: a rule that is two rules at once cannot be
+        # satisfied by one journal entry.
+        if tree is not None and kind:
+            raise serializers.ValidationError(
+                "A rule targets one subject or one kind, never both."
+            )
+        return attrs
+
+
+class TreePurchaseSerializer(serializers.Serializer):
+    """Payload of « déclarer un achat » on a subject.
+
+    Deliberately thin: the expense itself is built by
+    ``interactions.services.create_expense_interaction``, which owns the columns,
+    the metadata shape and the zone attachment. Re-implementing any of it here
+    would give the money a second definition.
+    """
+
+    amount = serializers.DecimalField(max_digits=14, decimal_places=2, min_value=0)
+    supplier = serializers.CharField(required=False, allow_blank=True)
+    occurred_at = serializers.DateTimeField(required=False, allow_null=True)
+    notes = serializers.CharField(required=False, allow_blank=True)
+    budget_id = serializers.UUIDField(required=False, allow_null=True)

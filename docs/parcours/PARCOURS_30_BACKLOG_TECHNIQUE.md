@@ -1,8 +1,11 @@
 # Parcours 30 — Backlog technique V1
 
-> **Cadré le 2026-08-15. Aucune ligne de code écrite.** L'implémentation d'un lot
-> se fait avec le skill `/new-feature`, qui consomme ce document comme point de
-> départ.
+> **Cadré et livré le 2026-08-15**, en quatre PR (#604, #605, #612, #613).
+> Compte rendu d'exécution — décisions prises en chemin, pièges rencontrés et ce
+> qui a été laissé de côté : [CR_PARCOURS_30_VERGER.md](../comptes-rendus/CR_PARCOURS_30_VERGER.md).
+>
+> **Reste ouvert** : le widget dashboard (ORCH-11), les specs Playwright des lots
+> 6 à 8, et le guide « Verger » de la page Tutoriel.
 
 ## Tableau de bord
 
@@ -10,14 +13,14 @@ Issue parente : **#593**.
 
 | Lot | Sujet | Statut | Issue |
 |---|---|---|---|
-| 1 | Socle backend `apps/orchard` — modèles `Tree` / `TreeEvent` / `Harvest`, clé de module | ⬜ À faire | #594 |
-| 2 | Services + API DRF — point d'écriture unique viewset + agent | ⬜ À faire | #595 |
-| 3 | Frontend « Verger » — page, cards par zone, fiche du sujet, journal | ⬜ À faire | #596 |
-| 4 | Récoltes et séries par saison | ⬜ À faire | #597 |
-| 5 | Entretien saisonnier — `CareRule`, échéance dérivée, tâche en un clic | ⬜ À faire | #598 |
-| 6 | Argent et photos — achat, coût cumulé, onglets Documents/Photos | ⬜ À faire | #599 |
-| 7 | Le verger hors du module — widget dashboard, alerte gel × floraison | ⬜ À faire | #600 |
-| 8 | Intégration agent — Searchable / Listable / Writable + `get_harvest_stats` | ⬜ À faire | #601 |
+| 1 | Socle backend `apps/orchard` — modèles `Tree` / `TreeEvent` / `Harvest`, clé de module | ✅ Livré (#604) | #594 |
+| 2 | Services + API DRF — point d'écriture unique viewset + agent | ✅ Livré (#604) | #595 |
+| 3 | Frontend « Verger » — page, cards par zone, fiche du sujet, journal | ✅ Livré (#605) | #596 |
+| 4 | Récoltes et séries par saison | ✅ Livré (#605) | #597 |
+| 5 | Entretien saisonnier — `CareRule`, échéance dérivée, tâche en un clic | ✅ Livré (#612) | #598 |
+| 6 | Argent et photos — achat, coût cumulé, onglets Documents/Photos | ✅ Livré (#613) | #599 |
+| 7 | Le verger hors du module — widget dashboard, alerte gel × floraison | ✅ Livré (#613) | #600 |
+| 8 | Intégration agent — Searchable / Listable / Writable + `get_harvest_stats` | ✅ Livré (#613) | #601 |
 
 **Issue annexe** : **#602** — sujets V1.1 / V2 délibérément différés (DAR après
 traitement, pollinisation croisée, base de variétés, plan du verger, crédit de la

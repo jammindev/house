@@ -98,6 +98,7 @@ AUTO_SUBJECT_TEMPLATES: dict[str, Any] = {
     "equipment_purchase": _("Purchase — {name}"),
     "project_purchase": _("Purchase — {name}"),
     "chickens_purchase": _("Purchase — {name}"),
+    "orchard_purchase": _("Purchase — {name}"),
 }
 
 
