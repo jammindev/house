@@ -1360,6 +1360,30 @@ globale ».
   nouveau type arrive dans la palette avec un glyphe générique et une clé i18n brute.
   Vérifié depuis Python, seul côté qui connaît la liste des `entity_type` :
   `test_global_search.py::TestThePaletteCoversTheRegistry`.
+- **⚠️ Un `url_template` est une promesse d'adresse, et le registre est le seul à
+  savoir quels liens l'app fabrique.** Citation de l'agent, résultat de la palette,
+  lien du toast « Annuler » : aucun n'est écrit en dur dans le front, donc aucun
+  contrôle du front ne les voit — et en revue un template faux ressemble
+  exactement à un template juste. Cinq liens morts vivaient en prod :
+  `contact`, `structure` et `insurance_contract` visaient des pages de détail qui
+  n'ont **jamais existé** (ces modules n'ont que des cartes et un dialogue) → 404 ;
+  `tree_event` et `harvest` avaient recopié le template de l'**arbre**, donc la
+  page chargeait un `Tree` avec l'uuid d'un événement, n'en trouvait aucun, et
+  rendait un écran **blanc**. D'où deux garde-fous, et il faut les deux —
+  `test_registry.py::TestEveryLinkTheAgentProducesLandsSomewhere` :
+  - le chemin résout vers une route déclarée de `ui/src/router.tsx` (« cette
+    adresse existe ») ;
+  - un `{id}` **dans le chemin** n'appartient qu'à un seul modèle (« cette adresse
+    est à toi ») — sans quoi le premier contrôle passe et la page reste vide.
+- **Une entité sans page à elle se redirige, elle ne se décore pas.** Le lien porte
+  l'id de l'entité *citée*, jamais celui de son parent : la bonne forme est une
+  route qui résout l'entrée et renvoie vers son sujet (`TrackerEntryRedirect`,
+  `TreeEntryRedirect`), pas un `?event={id}` sur la page de liste. Un paramètre que
+  personne ne lit se recopie dans un favori en promettant le contraire — même
+  raison que le `?tab=` de la famille argent.
+- **Un `search_fields` ne contient que des champs locaux.** `_search_one` annote
+  un `SearchHeadline` par champ et Django refuse un `__` dans un alias
+  d'annotation : un `tree__name` ne dégrade pas, il lève.
 
 ---
 

@@ -4488,6 +4488,7 @@
   },
   "orchard": {
     "title": "Obstgarten",
+    "notFound": "Dieses Exemplar wurde nicht gefunden.",
     "new": "Pflanze hinzufügen",
     "created": "Pflanze hinzugefügt",
     "updated": "Pflanze aktualisiert",

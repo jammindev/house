@@ -11,8 +11,10 @@ GROUP BY on a FK — exactly what the project forbids doing from ``metadata`` (s
 CLAUDE.md, « Interaction vs modèle dédié »). The event ``type`` is filtered and
 constrained too, where a ``metadata.kind`` is stringly-typed. The accepted cost
 is that orchard entries do not show in the household activity feed, same as the
-coop today — a cross-cutting subject (issue #509), not a reason to duplicate the
-journal.
+coop today: the feed reads ``Interaction`` and nothing else, so a finished task, a
+meter reading and an egg count are absent from it too. The fix is an activity
+**registry** each app feeds — the shape ``agent.searchables`` already has — not a
+migration of these tables into ``Interaction``. Cross-cutting, no issue open yet.
 """
 import uuid
 

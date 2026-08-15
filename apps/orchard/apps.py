@@ -29,13 +29,36 @@ class OrchardConfig(AppConfig):
 
         # Journal entries are citable on their own — « quand a-t-on taillé le gros
         # pommier ? » must find *the entry*, not just the subject.
+        #
+        # `/events/{id}` and not `/{id}`: `/app/orchard/{id}` is the **subject's**
+        # page, which loads a `Tree` by that id — pointing an entry there sent an
+        # entry uuid to a lookup that finds no tree, and rendered a blank screen.
+        # The route resolves the entry and forwards to its subject
+        # (`TreeEntryRedirect`), the shape `tracker-entries/:id` already uses. Not
+        # a `?event=` on the list: a parameter that pilots nothing gets copied
+        # into a bookmark while promising the opposite.
         register(SearchableSpec(
             entity_type='tree_event',
             module='orchard',
             model=TreeEvent,
             search_fields=('title', 'notes'),
             label_attr='title',
-            url_template='/app/orchard/{id}',
+            url_template='/app/orchard/events/{id}',
+        ))
+
+        # A harvest is a number **and** a note. The number is answered by
+        # `get_harvest_stats` and `list_entities`; the note (« beaucoup de vers
+        # cette année ») was findable nowhere until this spec existed. Only local
+        # text fields: `_search_one` annotates one headline per field and Django
+        # forbids `__` in an annotation alias, so a related lookup would crash.
+        # A harvest with no note simply never matches — there is no text to find.
+        register(SearchableSpec(
+            entity_type='harvest',
+            module='orchard',
+            model=Harvest,
+            search_fields=('notes',),
+            label_attr=lambda h: f"{h.tree.name} — {h.quantity} {h.unit}",
+            url_template='/app/orchard/harvests/{id}',
         ))
 
         register_listable(ListableSpec(
@@ -84,7 +107,7 @@ class OrchardConfig(AppConfig):
             resolve=_resolve_event_for_agent,
             delete=_delete_event_from_agent,
             label_attr='title',
-            url_template='/app/orchard/{id}',
+            url_template='/app/orchard/events/{id}',
         ))
 
         register_writable(WritableSpec(
@@ -94,7 +117,7 @@ class OrchardConfig(AppConfig):
             resolve=_resolve_harvest_for_agent,
             delete=_delete_harvest_from_agent,
             label_attr=lambda h: f"{h.tree.name} — {h.quantity} {h.unit}",
-            url_template='/app/orchard/{id}',
+            url_template='/app/orchard/harvests/{id}',
         ))
 
         # Aggregates are not listable rows: « combien de kilos de pommes cette

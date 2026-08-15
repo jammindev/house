@@ -4488,6 +4488,7 @@
   },
   "orchard": {
     "title": "Orchard",
+    "notFound": "This subject cannot be found.",
     "new": "Add a subject",
     "created": "Subject added",
     "updated": "Subject updated",

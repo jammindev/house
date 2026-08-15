@@ -3,6 +3,10 @@ import ProtectedLayout from './components/ProtectedLayout';
 import ModuleRoute from './components/ModuleRoute';
 import MoneyTabRedirect from './components/MoneyTabRedirect';
 import PreserveQueryRedirect from './components/PreserveQueryRedirect';
+// Statique et non `lazyWithReload`, comme les deux redirections ci-dessus :
+// le helper type ses composants en `ComponentType<unknown>` et efface donc
+// leurs props.
+import TreeEntryRedirect from './features/orchard/TreeEntryRedirect';
 import LoginPage from './features/auth/LoginPage';
 import SetupPage from './features/auth/SetupPage';
 import ForgotPasswordPage from './features/auth/ForgotPasswordPage';
@@ -177,6 +181,12 @@ export const router = createBrowserRouter([
       { path: 'chickens', element: <ModuleRoute moduleKey="chickens"><ChickensPage /></ModuleRoute> },
       { path: 'chickens/:id', element: <ModuleRoute moduleKey="chickens"><ChickenDetailPage /></ModuleRoute> },
       { path: 'orchard', element: <ModuleRoute moduleKey="orchard"><OrchardPage /></ModuleRoute> },
+      // Une entrée de journal et une récolte n'ont pas de page à elles, mais
+      // l'agent les cite par leur propre id : ces deux routes résolvent l'entrée
+      // et renvoient vers son sujet. Sans elles le lien tapait `orchard/:id`,
+      // qui charge un arbre — et rendait un écran blanc.
+      { path: 'orchard/events/:id', element: <ModuleRoute moduleKey="orchard"><TreeEntryRedirect kind="events" /></ModuleRoute> },
+      { path: 'orchard/harvests/:id', element: <ModuleRoute moduleKey="orchard"><TreeEntryRedirect kind="harvests" /></ModuleRoute> },
       { path: 'orchard/:id', element: <ModuleRoute moduleKey="orchard"><TreeDetailPage /></ModuleRoute> },
       { path: 'games', element: <ModuleRoute moduleKey="games"><HuntsPage /></ModuleRoute> },
       { path: 'games/play', element: <ModuleRoute moduleKey="games"><HuntPlayPage /></ModuleRoute> },

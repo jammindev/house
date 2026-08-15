@@ -15,5 +15,7 @@ class InsuranceConfig(AppConfig):
             model=InsuranceContract,
             search_fields=('name', 'provider', 'coverage_summary', 'notes'),
             label_attr='name',
-            url_template='/app/insurance/{id}',
+            # No `/app/insurance/:id` route exists — contracts are cards plus a
+            # dialog. `/{id}` sent every citation to the app's 404.
+            url_template='/app/insurance?contract={id}',
         ))

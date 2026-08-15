@@ -142,3 +142,111 @@ class TestBootRegistry:
                 )
         # Sans ça, renommer une entité rendrait ce test muet au lieu de rouge.
         assert seen == money, f"entités de la famille argent introuvables : {money - seen}"
+
+
+class TestEveryLinkTheAgentProducesLandsSomewhere:
+    """Un `url_template` est une **promesse d'adresse**, et rien ne la vérifiait.
+
+    Le registre est la seule chose qui sait quels liens l'app fabrique : citation
+    de l'agent, résultat de la palette ⌘K, lien du toast « Annuler » d'une création.
+    Aucun d'eux n'est écrit en dur dans le front, donc aucun contrôle du front ne
+    les voit — ni le lint, ni TypeScript, ni une relecture de diff, où un template
+    faux ressemble exactement à un template juste.
+
+    Cinq liens morts vivaient en prod le jour où ce test a été écrit :
+
+    - `contact` → `/app/directory/{id}` et `structure` →
+      `/app/directory/structures/{id}` : l'annuaire n'a **jamais eu** de page de
+      détail. Résultat, le 404 de l'app.
+    - `insurance_contract` → `/app/insurance/{id}` : idem.
+    - `tree_event` et `harvest` → `/app/orchard/{id}`, le template de l'**arbre**
+      recopié sur ses enfants. Celui-là est pire : la route existe, donc le
+      premier contrôle passe. La page charge un `Tree` avec l'uuid d'un événement,
+      n'en trouve aucun, et rend un écran **blanc**.
+
+    D'où deux contrôles, et il faut les deux : le premier dit « cette adresse
+    existe », le second « cette adresse est à toi ».
+    """
+
+    @staticmethod
+    def _declared_routes() -> set[str]:
+        """Les chemins déclarés dans `ui/src/router.tsx`, en absolu."""
+        import re
+        from pathlib import Path
+
+        source = (
+            Path(__file__).resolve().parents[3] / "ui/src/router.tsx"
+        ).read_text(encoding="utf-8")
+        # Le parseur suppose un seul niveau d'imbrication (`/app`), ce qui est vrai
+        # aujourd'hui. Si un second `children:` apparaît, les chemins relatifs
+        # cessent d'être tous sous `/app` et ce test deviendrait faux **en silence**
+        # — donc il refuse de deviner.
+        assert source.count("children:") == 1, (
+            "router.tsx a gagné un niveau d'imbrication : mettre ce parseur à jour "
+            "avant qu'il ne valide des routes qui n'existent pas"
+        )
+        routes: set[str] = set()
+        for raw in re.findall(r"path: '([^']*)'", source):
+            if raw in {"*", "/"}:
+                continue
+            routes.add(raw if raw.startswith("/") else f"/app/{raw}")
+        return routes
+
+    @classmethod
+    def _resolves(cls, template: str, routes: set[str]) -> bool:
+        """Le chemin du template (hors query string) correspond-il à une route ?"""
+        wanted = template.split("?", 1)[0].strip("/").split("/")
+        for route in routes:
+            declared = route.strip("/").split("/")
+            if len(declared) != len(wanted):
+                continue
+            if all(d.startswith(":") or d == w for d, w in zip(declared, wanted)):
+                return True
+        return False
+
+    @staticmethod
+    def _all_specs():
+        from agent.searchables import REGISTRY as SEARCHABLES
+        from agent.writables import REGISTRY as WRITABLES
+
+        writables = (
+            list(WRITABLES.values()) if isinstance(WRITABLES, dict) else list(WRITABLES)
+        )
+        return [("searchable", s) for s in SEARCHABLES] + [
+            ("writable", s) for s in writables
+        ]
+
+    def test_every_url_template_resolves_to_a_declared_route(self):
+        routes = self._declared_routes()
+        dead = [
+            f"{kind} {spec.entity_type} → {spec.url_template}"
+            for kind, spec in self._all_specs()
+            if not self._resolves(spec.url_template, routes)
+        ]
+        assert not dead, (
+            "ces liens ne mènent nulle part — l'agent les cite et la palette les "
+            f"ouvre : {sorted(dead)}"
+        )
+
+    def test_a_detail_route_belongs_to_a_single_entity(self):
+        """Un `{id}` dans le **chemin** dit « cette page me charge par mon id ».
+
+        Deux entités ne peuvent donc pas partager le même chemin de détail : la
+        page en résout une seule, et la seconde arrive avec un id que personne ne
+        sait lire. Un `{id}` en query string ne revendique pas la page — il la
+        traverse — donc il est hors périmètre.
+        """
+        from agent.searchables import REGISTRY
+
+        owners: dict[str, set[str]] = {}
+        for spec in REGISTRY:
+            path = spec.url_template.split("?", 1)[0]
+            if "{id}" not in path:
+                continue
+            owners.setdefault(path, set()).add(spec.model.__name__)
+
+        shared = {path: models for path, models in owners.items() if len(models) > 1}
+        assert not shared, (
+            "un chemin de détail revendiqué par plusieurs modèles — la page en "
+            f"charge un seul, les autres tombent sur une page vide : {shared}"
+        )
