@@ -853,7 +853,8 @@
           "title": "Etikett nicht lesbar",
           "body": "Unterwegs ist etwas schiefgelaufen. Prüfen Sie die Verbindung und scannen Sie erneut."
         }
-      }
+      },
+      "rotated": "Neues Etikett erzeugt — diesen Raum neu drucken."
     }
   },
   "tasks": {

@@ -853,7 +853,8 @@
           "title": "Could not read the label",
           "body": "Something went wrong on the way. Check your connection and scan again."
         }
-      }
+      },
+      "rotated": "New label generated — reprint this room."
     }
   },
   "tasks": {

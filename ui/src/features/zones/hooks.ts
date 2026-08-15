@@ -9,6 +9,9 @@ import {
   deleteZone,
   moveZone,
   reorderZones,
+  scanZoneToken,
+  fetchZonePrintSheet,
+  rotateZoneQr,
   type Zone,
   type ZonePayload,
 } from '@/lib/api/zones';
@@ -484,4 +487,47 @@ export function getDescendantIds(zoneId: string, zones: Zone[]): Set<string> {
     }
   }
   return result;
+}
+
+// ── Ancrage physique : étiquettes QR (parcours 31) ───────────────────────────
+
+export const zoneQrKeys = {
+  printSheet: () => [...zoneKeys.all, 'print-sheet'] as const,
+};
+
+/** La planche d'étiquettes du foyer. */
+export function useZonePrintSheet() {
+  return useQuery({
+    queryKey: zoneQrKeys.printSheet(),
+    queryFn: fetchZonePrintSheet,
+  });
+}
+
+/**
+ * Résout le jeton d'une étiquette scannée.
+ *
+ * C'est un `POST`, donc une mutation aux yeux du garde-fou de
+ * `ui/src/lib/invalidate.ts` — et c'est **bien** une mutation : au lot 2 du
+ * parcours 31, ce même appel fera avancer la chasse en cours côté serveur. Le
+ * mettre ici dès maintenant évite qu'un composant garde un chemin d'écriture en
+ * direct le jour où il faudra invalider `games`.
+ */
+export function useScanZoneToken() {
+  return useMutation({
+    mutationFn: (token: string) => scanZoneToken(token),
+  });
+}
+
+/** Redonne un jeton neuf à une pièce : l'ancienne étiquette devient muette. */
+export function useRotateZoneQr() {
+  const qc = useQueryClient();
+  const { t } = useTranslation();
+  return useMutation({
+    mutationFn: (id: string) => rotateZoneQr(id),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: zoneQrKeys.printSheet() });
+      toast({ description: t('zones.qr.rotated'), variant: 'success' });
+    },
+    onError: () => toast({ description: t('common.saveFailed'), variant: 'destructive' }),
+  });
 }

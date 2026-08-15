@@ -1,5 +1,4 @@
 import { useTranslation } from 'react-i18next';
-import { useQuery } from '@tanstack/react-query';
 import { Printer } from 'lucide-react';
 
 import PageHeader from '@/components/PageHeader';
@@ -7,9 +6,8 @@ import BackLink from '@/components/BackLink';
 import { Button } from '@/design-system/button';
 import { Card } from '@/design-system/card';
 import { useDelayedLoading } from '@/lib/useDelayedLoading';
-import { fetchZonePrintSheet, type ZoneLabel } from '@/lib/api/zones';
-
-const printSheetKey = ['zones', 'print-sheet'] as const;
+import { type ZoneLabel } from '@/lib/api/zones';
+import { useZonePrintSheet } from './hooks';
 
 /**
  * La planche d'étiquettes QR du foyer — une par pièce, à imprimer et à coller.
@@ -20,10 +18,7 @@ const printSheetKey = ['zones', 'print-sheet'] as const;
  */
 export default function ZoneQrPrintPage() {
   const { t } = useTranslation();
-  const { data, isLoading } = useQuery({
-    queryKey: printSheetKey,
-    queryFn: fetchZonePrintSheet,
-  });
+  const { data, isLoading } = useZonePrintSheet();
   const showSkeleton = useDelayedLoading(isLoading);
 
   if (showSkeleton) {

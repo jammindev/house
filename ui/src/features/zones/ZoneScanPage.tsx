@@ -4,8 +4,8 @@ import { useTranslation } from 'react-i18next';
 import { QrCode } from 'lucide-react';
 
 import { useAuth } from '@/lib/auth/useAuth';
-import { scanZoneToken } from '@/lib/api/zones';
 import { Button } from '@/design-system/button';
+import { useScanZoneToken } from './hooks';
 
 type Failure = 'unknown' | 'other-household' | 'generic';
 
@@ -35,6 +35,7 @@ export default function ZoneScanPage() {
   const { user, isLoading: authLoading } = useAuth();
 
   const [failure, setFailure] = React.useState<Failure | null>(null);
+  const { mutateAsync: scan } = useScanZoneToken();
 
   React.useEffect(() => {
     if (authLoading) return;
@@ -48,7 +49,7 @@ export default function ZoneScanPage() {
     }
 
     let cancelled = false;
-    scanZoneToken(token)
+    scan(token)
       .then(({ zone }) => {
         if (cancelled) return;
         navigate(`/app/zones/${zone.id}`, { replace: true });
@@ -61,7 +62,7 @@ export default function ZoneScanPage() {
     return () => {
       cancelled = true;
     };
-  }, [authLoading, user, token, navigate]);
+  }, [authLoading, user, token, navigate, scan]);
 
   if (failure) {
     return (

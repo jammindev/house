@@ -853,7 +853,8 @@
           "title": "No se pudo leer la etiqueta",
           "body": "Algo falló por el camino. Comprueba la conexión y vuelve a escanear."
         }
-      }
+      },
+      "rotated": "Nueva etiqueta generada: vuelve a imprimir esta estancia."
     }
   },
   "tasks": {
