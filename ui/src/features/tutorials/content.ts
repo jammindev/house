@@ -77,6 +77,10 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
   { key: 'shopping', moduleKey: 'shopping', to: '/app/shopping-list', stepIds: ['quickAdd', 'fromStock', 'suggestions', 'check', 'commit', 'agent'] },
   { key: 'chickens', moduleKey: 'chickens', to: '/app/chickens', stepIds: ['flock', 'eggs', 'events', 'chores', 'stats', 'media'] },
   { key: 'orchard', moduleKey: 'orchard', to: '/app/orchard', stepIds: ['subjects', 'journal', 'seasons', 'harvests', 'frost', 'agent'] },
+  // `labels` d'abord, et c'est le point du guide : la chasse est le seul jeu du
+  // produit qui ne se joue **pas** dans l'app. Sans étiquettes collées dans les
+  // pièces, l'écran de composition est un formulaire qui ne mène nulle part.
+  { key: 'games', moduleKey: 'games', to: '/app/games', stepIds: ['labels', 'compose', 'riddles', 'play', 'replay'] },
   { key: 'insurance', moduleKey: 'insurance', to: '/app/insurance', stepIds: ['contracts', 'documents'] },
   { key: 'tasks', moduleKey: 'tasks', to: '/app/tasks', stepIds: ['create', 'organize', 'weather', 'complete'] },
   { key: 'projects', moduleKey: 'projects', to: '/app/projects', stepIds: ['create', 'plan', 'photos', 'budget'] },

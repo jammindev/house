@@ -13,7 +13,7 @@ from core.permissions import IsHouseholdMember
 from .models import Hunt
 from .riddles import generate_riddles
 from .serializers import HuntPlaySerializer, HuntSerializer, RiddleRequestSerializer
-from .services import HuntError, abandon_hunt, active_hunt, start_hunt
+from .services import HuntError, abandon_hunt, active_hunt, replay_hunt, start_hunt
 from .throttles import HuntRiddlesThrottle
 
 logger = logging.getLogger(__name__)
@@ -68,6 +68,22 @@ class HuntViewSet(viewsets.ModelViewSet):
         except HuntError as exc:
             return Response({'detail': str(exc)}, status=status.HTTP_400_BAD_REQUEST)
         return Response(HuntPlaySerializer(hunt).data)
+
+    @action(detail=True, methods=['post'])
+    def replay(self, request, pk=None):
+        """Ressort une chasse jouée dans un ordre mélangé, en brouillon.
+
+        Rend la **nouvelle** chasse, jamais l'ancienne — et l'ancienne n'est pas
+        touchée : la partie de l'an dernier reste dans l'historique du foyer.
+        """
+        try:
+            copy = replay_hunt(self.get_object(), created_by=request.user)
+        except HuntError as exc:
+            return Response({'detail': str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(
+            HuntSerializer(copy, context=self.get_serializer_context()).data,
+            status=status.HTTP_201_CREATED,
+        )
 
     @action(detail=True, methods=['get'])
     def play(self, request, pk=None):

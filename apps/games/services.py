@@ -12,6 +12,8 @@ ici que vivent les deux règles du jeu :
 """
 from __future__ import annotations
 
+import random
+
 from django.db import transaction
 from django.utils import timezone
 
@@ -75,6 +77,67 @@ def abandon_hunt(hunt: Hunt) -> Hunt:
     hunt.finished_at = timezone.now()
     hunt.save(update_fields=['status', 'finished_at', 'updated_at'])
     return hunt
+
+
+@transaction.atomic
+def replay_hunt(hunt: Hunt, *, created_by=None, rng: random.Random | None = None) -> Hunt:
+    """Ressort une chasse jouée, dans un ordre mélangé — sans toucher l'originale.
+
+    Trois choses comptent ici, et chacune répond à une façon de se tromper :
+
+    1. **L'originale n'est jamais modifiée.** Un « rejouer » qui remettrait les
+       `found_at` à zéro effacerait la partie de l'an dernier, et le foyer perdrait
+       la seule trace qu'il a jouée. On crée une chasse neuve, en `draft`.
+    2. **L'ordre diffère.** Rejouer à l'identique n'est pas rejouer : les enfants
+       connaissent la suite, et le jeu est terminé au premier scan. Une chasse
+       d'une seule étape ne peut évidemment pas être mélangée — on ne s'acharne
+       pas, et on ne fait pas boucler l'algorithme pour rien.
+    3. **Le brouillon reste modifiable.** C'est le point du lot : ressortir sans
+       tout ressaisir, pas relancer aveuglément. Le parent peut corriger les
+       énigmes avant de lancer.
+    """
+    steps = list(hunt.steps.all().order_by('position'))
+    if not steps:
+        raise HuntError("A hunt without steps cannot be replayed.")
+
+    copy = Hunt.objects.create(
+        household=hunt.household,
+        name=hunt.name,
+        treasure_text=hunt.treasure_text,
+        status=Hunt.Status.DRAFT,
+        created_by=created_by,
+    )
+    for position, step in enumerate(_shuffled(steps, rng)):
+        HuntStep.objects.create(
+            household=copy.household,
+            hunt=copy,
+            position=position,
+            zone=step.zone,
+            riddle=step.riddle,
+        )
+    return copy
+
+
+def _shuffled(steps: list[HuntStep], rng: random.Random | None) -> list[HuntStep]:
+    """Un ordre **effectivement** différent quand c'est possible.
+
+    ``random.shuffle`` a le droit de rendre la permutation identique — une chance
+    sur deux à deux étapes, et le bouton n'aurait alors rien fait sans le dire. On
+    retire donc tant que l'ordre ne bouge pas, avec une borne : le hasard n'est
+    pas une garantie de terminaison, et une boucle infinie dans une requête HTTP
+    coûte un worker.
+    """
+    picker = rng or random
+    if len(steps) < 2:
+        return list(steps)
+    order = list(steps)
+    for _attempt in range(20):
+        picker.shuffle(order)
+        if [s.id for s in order] != [s.id for s in steps]:
+            return order
+    # Vingt tirages identiques d'affilée n'arrivent pas ; si le générateur est
+    # fixé par un test, une rotation reste un ordre différent.
+    return steps[1:] + steps[:1]
 
 
 def current_step(hunt: Hunt) -> HuntStep | None:

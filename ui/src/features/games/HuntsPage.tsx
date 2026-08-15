@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Compass, Pencil, Play, Trash2 } from 'lucide-react';
+import { Compass, Pencil, Play, RotateCcw, Trash2 } from 'lucide-react';
 
 import PageHeader from '@/components/PageHeader';
 import EmptyState from '@/components/EmptyState';
@@ -11,7 +11,7 @@ import { Card, CardTitle } from '@/design-system/card';
 import { useDelayedLoading } from '@/lib/useDelayedLoading';
 import { useDeleteWithUndo } from '@/lib/useDeleteWithUndo';
 import HuntComposerDialog from './HuntComposerDialog';
-import { useActiveHunt, useDeleteHunt, useHunts, useStartHunt } from './hooks';
+import { useActiveHunt, useDeleteHunt, useHunts, useReplayHunt, useStartHunt } from './hooks';
 import type { Hunt } from '@/lib/api/games';
 
 export default function HuntsPage() {
@@ -20,6 +20,7 @@ export default function HuntsPage() {
   const { data: hunts, isLoading } = useHunts();
   const { data: active } = useActiveHunt();
   const startMutation = useStartHunt();
+  const replayMutation = useReplayHunt();
   const deleteMutation = useDeleteHunt();
   const showSkeleton = useDelayedLoading(isLoading);
 
@@ -122,6 +123,20 @@ export default function HuntsPage() {
                       >
                         <Play className="mr-1 h-4 w-4" aria-hidden />
                         {t('games.start')}
+                      </Button>
+                    )}
+                    {/* Rejouer ne s'offre que sur une chasse **finie** : sur un
+                        brouillon il n'y a rien à ressortir, et sur une partie en
+                        cours il faudrait d'abord la terminer. */}
+                    {hunt.status === 'done' && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => replayMutation.mutate(hunt.id)}
+                        disabled={replayMutation.isPending}
+                      >
+                        <RotateCcw className="mr-1 h-4 w-4" aria-hidden />
+                        {t('games.replay')}
                       </Button>
                     )}
                     <CardActions actions={actions} />

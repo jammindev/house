@@ -12,7 +12,7 @@ Issue parente : **#607**.
 | 1 | Étiquettes QR de zone — jeton, planche d'impression, route de scan | ✅ Livré | #608 |
 | 2 | La chasse — `apps/games`, session serveur, avancement par scan | ✅ Livré | #609 |
 | 3 | Énigmes par l'assistant — capability, génération, relecture | ✅ Livré | #610 |
-| 4 | Rejouer + ping du samedi pluvieux | ⬜ À faire | #611 |
+| 4 | Rejouer + ping du samedi pluvieux | ✅ Livré | #611 |
 
 ## Doc associée
 
