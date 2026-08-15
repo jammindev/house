@@ -80,6 +80,13 @@ export interface AlertsSummary {
   egg_drop_alerts: EggDropAlert[];
   due_chores: DueChoreAlert[];
   total: number;
+  /**
+   * La raison qui accompagne le zéro. `total === 0` a deux sens — « rien à
+   * signaler » et « rien à évaluer » — et sans ce booléen l'écran rendait la
+   * phrase rassurante dans les deux cas, y compris à un foyer né trente
+   * secondes plus tôt.
+   */
+  household_is_empty: boolean;
 }
 
 export type WeatherAlertKind = 'frost' | 'heatwave' | 'wind' | 'storm';

@@ -220,6 +220,50 @@ def _due_chores(household, today: date) -> list[dict]:
     return items
 
 
+def household_has_content(household) -> bool:
+    """Ce foyer contient-il quoi que ce soit ?
+
+    ⚠️ **Un total d'alertes à zéro a deux sens**, et les confondre a produit un
+    écran qui annonce « tout est sous contrôle » à quelqu'un dont le foyer est né
+    trente secondes plus tôt. C'est le même défaut que la coche verte du Contrôle
+    sur une fenêtre de conformité vide : ``coverage.window_status()`` renvoie une
+    **raison** et jamais un simple ``None``, précisément pour ça.
+
+    D'où ce booléen **à côté** du compteur, servi par le même appel : un zéro
+    accompagné de « rien n'a encore été saisi » ne peut plus se lire comme « rien
+    à signaler ».
+
+    **Mesuré, jamais déclaré.** La progression du tutoriel
+    (``User.completed_tutorials``) dirait ce que l'utilisateur a coché, pas ce que
+    le foyer contient — et les deux divergent au premier oubli comme à la première
+    case cochée par curiosité.
+
+    Les cinq tables sont celles que la checklist « Bien démarrer » fait remplir,
+    dans son ordre : une zone, un équipement, une tâche, une entrée de journal,
+    un compte bancaire. Chacune est un ``EXISTS`` scopé au foyer, et l'évaluation
+    s'arrête à la première qui répond — un foyer qui vit ne paie donc qu'une
+    requête.
+
+    ⚠️ **La zone racine ne compte pas.** Un ``post_save`` sur ``Household`` crée
+    une zone « Maison » à la naissance du foyer : un ``EXISTS`` naïf sur ``Zone``
+    serait donc vrai pour tout le monde, et ce booléen serait mort-né sans que
+    rien ne le dise. On ne compte que les zones **posées par quelqu'un**, et le
+    critère est solide parce que le modèle le garantit : ``Zone.save()``
+    rattache toute zone sans parent à la racine, donc la racine est la seule à
+    n'en avoir pas.
+    """
+    from banking.models import BankAccount
+    from interactions.models import Interaction
+    from zones.models import Zone
+
+    if Zone.objects.filter(household=household, parent__isnull=False).exists():
+        return True
+    return any(
+        model.objects.filter(household=household).exists()
+        for model in (Equipment, Task, Interaction, BankAccount)
+    )
+
+
 def build_alerts_summary(household, today: date | None = None) -> dict:
     today = today or timezone.localdate()
     overdue_tasks = _overdue_tasks(household, today)
@@ -246,4 +290,6 @@ def build_alerts_summary(household, today: date | None = None) -> dict:
             + len(egg_drop_alerts)
             + len(due_chores)
         ),
+        # La raison qui accompagne le zéro. Voir `household_has_content`.
+        "household_is_empty": not household_has_content(household),
     }
