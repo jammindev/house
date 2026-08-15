@@ -4506,7 +4506,8 @@
       "title": "Título",
       "quantity": "Cantidad",
       "unit": "Unidad",
-      "harvestedOn": "Fecha de cosecha"
+      "harvestedOn": "Fecha de cosecha",
+      "emoji": "Emoji"
     },
     "errors": {
       "zoneRequired": "Elige una zona: un ejemplar sin lugar es un ejemplar que nadie vuelve a encontrar.",
@@ -4551,6 +4552,29 @@
       "10": "octubre",
       "11": "noviembre",
       "12": "diciembre"
+    },
+    "care": {
+      "new": "Nueva regla",
+      "newTitle": "Nueva regla de cuidado",
+      "editTitle": "Editar la regla",
+      "created": "Regla creada",
+      "updated": "Regla actualizada",
+      "deleted": "Regla eliminada",
+      "completed": "Cuidado registrado",
+      "seasonTitle": "Lo que pide la temporada",
+      "markDone": "Hecho",
+      "missedHint": "Ventana cerrada — retomarlo la próxima temporada.",
+      "windowOpen": "Antes del {{date}}",
+      "windowClosed": "La ventana se cerró el {{date}}",
+      "windowStart": "Desde",
+      "windowEnd": "Hasta",
+      "windowHint": "Una ventana puede cruzar el año — « noviembre → marzo » es lo normal en un huerto.",
+      "eventType": "Tipo de entrada registrada",
+      "scope": "Alcance",
+      "scopeKind": "Todos los ejemplares de un tipo",
+      "scopeTree": "Un ejemplar",
+      "createTask": "Crear una tarea",
+      "taskCreated": "Tarea creada"
     }
   }
 }

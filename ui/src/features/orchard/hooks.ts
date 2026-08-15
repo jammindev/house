@@ -1,20 +1,28 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import {
+  completeCareRule,
+  createCareRule,
+  createCareTask,
   createHarvest,
   createTree,
   createTreeEvent,
+  deleteCareRule,
   deleteHarvest,
   deleteTree,
   deleteTreeEvent,
+  fetchCareRules,
   fetchHarvestSeries,
   fetchHarvests,
+  fetchSeasonPanel,
   fetchTree,
   fetchTreeEvents,
   fetchTrees,
+  updateCareRule,
   updateHarvest,
   updateTree,
   updateTreeEvent,
+  type CareRulePayload,
   type HarvestPayload,
   type TreeEventPayload,
   type TreePayload,
@@ -33,6 +41,8 @@ export const orchardKeys = {
     [...orchardKeys.all, 'harvests', filters] as const,
   series: (filters?: { tree?: string; seasons?: number }) =>
     [...orchardKeys.all, 'series', filters] as const,
+  rules: () => [...orchardKeys.all, 'rules'] as const,
+  season: () => [...orchardKeys.all, 'season'] as const,
 };
 
 // --- reads ------------------------------------------------------------------
@@ -181,5 +191,79 @@ export function useDeleteHarvest() {
   return useMutation({
     mutationFn: (id: string) => deleteHarvest(id),
     onSuccess: () => invalidate('orchard'),
+  });
+}
+
+// --- seasonal care rules ------------------------------------------------------
+
+export function useCareRules() {
+  return useQuery({ queryKey: orchardKeys.rules(), queryFn: fetchCareRules });
+}
+
+export function useSeasonPanel() {
+  return useQuery({ queryKey: orchardKeys.season(), queryFn: fetchSeasonPanel });
+}
+
+export function useCreateCareRule() {
+  const invalidate = useInvalidate();
+  const { t } = useTranslation();
+  return useMutation({
+    mutationFn: (payload: CareRulePayload) => createCareRule(payload),
+    onSuccess: () => {
+      invalidate('orchard');
+      toast({ description: t('orchard.care.created'), variant: 'success' });
+    },
+    onError: () => toast({ description: t('common.saveFailed'), variant: 'destructive' }),
+  });
+}
+
+export function useUpdateCareRule() {
+  const invalidate = useInvalidate();
+  const { t } = useTranslation();
+  return useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: Partial<CareRulePayload> }) =>
+      updateCareRule(id, payload),
+    onSuccess: () => {
+      invalidate('orchard');
+      toast({ description: t('orchard.care.updated'), variant: 'success' });
+    },
+    onError: () => toast({ description: t('common.saveFailed'), variant: 'destructive' }),
+  });
+}
+
+export function useDeleteCareRule() {
+  const invalidate = useInvalidate();
+  return useMutation({
+    mutationFn: (id: string) => deleteCareRule(id),
+    onSuccess: () => invalidate('orchard'),
+  });
+}
+
+export function useCompleteCareRule() {
+  const invalidate = useInvalidate();
+  const { t } = useTranslation();
+  return useMutation({
+    mutationFn: ({ id, tree, occurredOn }: { id: string; tree: string; occurredOn?: string }) =>
+      completeCareRule(id, { tree, occurred_on: occurredOn }),
+    onSuccess: () => {
+      invalidate('orchard');
+      toast({ description: t('orchard.care.completed'), variant: 'success' });
+    },
+    onError: () => toast({ description: t('common.saveFailed'), variant: 'destructive' }),
+  });
+}
+
+export function useCreateCareTask() {
+  const invalidate = useInvalidate();
+  const { t } = useTranslation();
+  return useMutation({
+    mutationFn: ({ id, tree }: { id: string; tree: string }) => createCareTask(id, { tree }),
+    onSuccess: () => {
+      // Writes a Task, not an orchard row — the reminder lives in the tasks
+      // module, which is exactly the point of not inventing a fourth one.
+      invalidate('tasks');
+      toast({ description: t('orchard.care.taskCreated'), variant: 'success' });
+    },
+    onError: () => toast({ description: t('common.saveFailed'), variant: 'destructive' }),
   });
 }

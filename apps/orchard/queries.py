@@ -68,3 +68,63 @@ def harvest_series(household, *, tree=None, seasons: int = DEFAULT_SEASON_COUNT)
         'current_season': current,
         'seasons': [{'season': year, 'totals': grouped[year]} for year in ordered],
     }
+
+
+def rule_targets(rule):
+    """The subjects a rule concerns — one, or every living subject of a kind."""
+    from .models import Tree
+
+    if rule.tree_id:
+        return Tree.objects.filter(pk=rule.tree_id)
+    qs = Tree.objects.filter(
+        household_id=rule.household_id, status__in=Tree.LIVING_STATUSES
+    )
+    return qs.filter(kind=rule.kind) if rule.kind else qs
+
+
+def rule_states(household, *, rules=None, today=None) -> list[dict]:
+    """State of every (rule, subject) pair — derived, never stored.
+
+    A kind-scoped rule (« taille d'hiver de tous les fruitiers ») is **not** one
+    state but one per subject: having pruned one of five apple trees does not
+    make the season done. Folding them into a single flag would let four trees
+    go unpruned behind a green tick.
+
+    Two queries whatever the size of the orchard: one for the subjects, one for
+    the last completion of each (rule, subject) pair.
+    """
+    from django.db.models import Max
+
+    from core.timezones import household_today
+
+    from .models import CareRule, TreeEvent
+    from .seasons import rule_status
+
+    today = today or household_today(household)
+    if rules is None:
+        rules = list(
+            CareRule.objects.filter(household_id=household.id, is_active=True)
+        )
+    if not rules:
+        return []
+
+    trees_by_id = {}
+    for rule in rules:
+        for tree in rule_targets(rule):
+            trees_by_id[tree.id] = tree
+
+    last_done = {
+        (row['care_rule'], row['tree']): row['last']
+        for row in TreeEvent.objects.filter(care_rule__in=[r.pk for r in rules])
+        .values('care_rule', 'tree')
+        .annotate(last=Max('occurred_on'))
+    }
+
+    states = []
+    for rule in rules:
+        for tree in rule_targets(rule):
+            status = rule_status(
+                rule, today=today, last_event_on=last_done.get((rule.pk, tree.id))
+            )
+            states.append({'rule': rule, 'tree': trees_by_id[tree.id], **status})
+    return states

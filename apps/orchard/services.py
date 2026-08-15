@@ -12,8 +12,13 @@ from uuid import UUID
 
 from core.timezones import household_today
 
-from .models import Harvest, Tree, TreeEvent
-from .serializers import HarvestSerializer, TreeEventSerializer, TreeSerializer
+from .models import CareRule, Harvest, Tree, TreeEvent
+from .serializers import (
+    CareRuleSerializer,
+    HarvestSerializer,
+    TreeEventSerializer,
+    TreeSerializer,
+)
 
 
 # --- subjects -----------------------------------------------------------------
@@ -135,6 +140,7 @@ def create_event(
     title: str,
     occurred_on=None,
     notes: str = '',
+    care_rule=None,
 ) -> TreeEvent:
     """Add a journal entry. ``occurred_on`` defaults to **the household's** today."""
     payload = {
@@ -144,6 +150,8 @@ def create_event(
         'occurred_on': occurred_on or household_today(household),
         'notes': notes or '',
     }
+    if care_rule is not None:
+        payload['care_rule'] = getattr(care_rule, 'pk', care_rule)
     serializer = TreeEventSerializer(data=payload, context={'household_id': household.id})
     serializer.is_valid(raise_exception=True)
     return serializer.save(household=household, created_by=user)
@@ -213,3 +221,87 @@ def delete_harvest(household, user, harvest: Harvest) -> None:
     if harvest.household_id != household.id:
         raise ValueError("delete_harvest: harvest belongs to another household")
     harvest.delete()
+
+
+# --- seasonal care rules ------------------------------------------------------
+
+
+def create_rule(
+    household,
+    user,
+    *,
+    name: str,
+    start_month: int,
+    end_month: int,
+    event_type: str | None = None,
+    tree=None,
+    kind: str = '',
+    emoji: str = '',
+    notes: str = '',
+) -> CareRule:
+    """Create a seasonal rule (REST + agent)."""
+    payload: dict = {
+        'name': name,
+        'start_month': start_month,
+        'end_month': end_month,
+        'kind': kind or '',
+        'emoji': emoji or '',
+        'notes': notes or '',
+    }
+    if event_type:
+        payload['event_type'] = event_type
+    if tree is not None:
+        payload['tree'] = getattr(tree, 'pk', tree)
+
+    serializer = CareRuleSerializer(data=payload, context={'household_id': household.id})
+    serializer.is_valid(raise_exception=True)
+    return serializer.save(household=household, created_by=user)
+
+
+RULE_UPDATABLE_FIELDS = frozenset({
+    'name', 'emoji', 'start_month', 'end_month', 'event_type', 'tree', 'kind',
+    'is_active', 'notes',
+})
+
+
+def update_rule(household, user, rule: CareRule, *, fields: dict) -> CareRule:
+    payload = {k: v for k, v in fields.items() if k in RULE_UPDATABLE_FIELDS}
+    serializer = CareRuleSerializer(
+        rule, data=payload, partial=True, context={'household_id': household.id}
+    )
+    serializer.is_valid(raise_exception=True)
+    return serializer.save(updated_by=user)
+
+
+def delete_rule(household, user, rule: CareRule) -> None:
+    """Drop a cadence. Its journal entries survive (``care_rule`` is SET_NULL)."""
+    if rule.household_id != household.id:
+        raise ValueError("delete_rule: rule belongs to another household")
+    rule.delete()
+
+
+def complete_rule(household, user, rule: CareRule, tree, *, occurred_on=None, notes: str = ''):
+    """« C'est fait » — writes the journal entry that satisfies the rule.
+
+    This is the **only** path that satisfies a rule, and it does so by adding a
+    fact to the journal rather than by stamping a date on the cadence. The due
+    state then rolls back on its own when that entry is deleted, because it was
+    never stored (same design as ``ChickenChore``).
+    """
+    from .queries import rule_targets
+
+    tree_id = getattr(tree, 'pk', tree)
+    if not rule_targets(rule).filter(pk=tree_id).exists():
+        raise ValueError("complete_rule: this rule does not concern that subject")
+
+    resolved = Tree.objects.get(pk=tree_id)
+    return create_event(
+        household,
+        user,
+        tree=resolved,
+        type=rule.event_type,
+        title=f"{rule.name} — {resolved.name}",
+        occurred_on=occurred_on,
+        notes=notes,
+        care_rule=rule,
+    )

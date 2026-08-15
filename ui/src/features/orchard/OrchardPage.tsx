@@ -24,6 +24,8 @@ import TreeCard from './TreeCard';
 import TreeDialog from './TreeDialog';
 import TreeEventDialog from './TreeEventDialog';
 import EventTimeline from './EventTimeline';
+import SeasonPanel from './SeasonPanel';
+import CareRuleDialog from './CareRuleDialog';
 import { formatTotals } from './format';
 
 type FilterKey = 'living' | 'all' | 'gone';
@@ -47,6 +49,7 @@ export default function OrchardPage() {
   const [editingTree, setEditingTree] = React.useState<Tree | null>(null);
   const [eventDialogOpen, setEventDialogOpen] = React.useState(false);
   const [editingEvent, setEditingEvent] = React.useState<TreeEvent | null>(null);
+  const [ruleDialogOpen, setRuleDialogOpen] = React.useState(false);
 
   const { data: trees = [], isLoading } = useTrees(FILTER_PARAMS[activeFilter]);
   const { data: allTrees = [] } = useTrees({ status: 'all' });
@@ -142,8 +145,13 @@ export default function OrchardPage() {
   return (
     <div>
       <PageHeader title={t('orchard.title')}>
+        <Button variant="outline" onClick={() => setRuleDialogOpen(true)}>
+          {t('orchard.care.new')}
+        </Button>
         <Button onClick={handleNew}>{t('orchard.new')}</Button>
       </PageHeader>
+
+      <SeasonPanel />
 
       {currentSeason ? (
         <Card className="mb-4 p-4">
@@ -240,6 +248,11 @@ export default function OrchardPage() {
         open={dialogOpen}
         onOpenChange={setDialogOpen}
         existing={editingTree ?? undefined}
+      />
+      <CareRuleDialog
+        open={ruleDialogOpen}
+        onOpenChange={setRuleDialogOpen}
+        trees={allTrees}
       />
       <TreeEventDialog
         open={eventDialogOpen}
