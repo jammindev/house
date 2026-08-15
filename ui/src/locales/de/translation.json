@@ -1873,6 +1873,36 @@
             "body": "Ein Rückblick wird beim ersten Lesen eingefroren und nie neu berechnet. Korrigieren Sie im August eine Ausgabe vom Juni: der Juni-Rückblick behält seine Zahlen — genau das macht ihn zu einer Erinnerung und nicht zu einer Abfrage."
           }
         }
+      },
+      "orchard": {
+        "title": "Den Obstgarten führen",
+        "intro": "Was Sie an jedem Baum getan haben, was er gab, und was die Saison verlangt.",
+        "steps": {
+          "subjects": {
+            "title": "Pflanzen anlegen",
+            "body": "Ein Eintrag je Baum, Strauch oder Rebe. Ein Bereich ist Pflicht: einen Obstgarten findet man über den Ort."
+          },
+          "journal": {
+            "title": "Festhalten, was Sie tun",
+            "body": "Schnitt, Behandlung, Beobachtung — datiert und typisiert. Ein Baum antwortet ein Jahr später, Ihr Gedächtnis nicht."
+          },
+          "seasons": {
+            "title": "Sagen wann, nicht wie oft",
+            "body": "« Winterschnitt: November bis März. » Die Seite öffnet mit dem, was die Saison verlangt; als erledigt markieren oder in eine Aufgabe verwandeln."
+          },
+          "harvests": {
+            "title": "Ernten wiegen",
+            "body": "Jede Ernte erfassen. Obstbäume tragen wechselnd: es spricht die Reihe der Saisons, nie ein einzelnes Jahr."
+          },
+          "frost": {
+            "title": "Blüten vor Frost schützen",
+            "body": "Blütezeit einer Pflanze angeben: eine in diesem Zeitraum angekündigte Frostnacht wird am Vortag gemeldet. Ohne sie kein Alarm."
+          },
+          "agent": {
+            "title": "Den Assistenten fragen",
+            "body": "« Wie viele Kilo Äpfel dieses Jahr? », oder diktieren Sie « notiere 12 kg Äpfel am hinteren Apfelbaum »."
+          }
+        }
       }
     }
   },

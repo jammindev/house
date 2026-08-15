@@ -177,8 +177,10 @@ son travail.
   est prouvé, pas ce qu'on croit avoir fait.
 - **Le crédit d'une récolte au stock** — différé au cadrage (conversion d'unités,
   idempotence de la suppression).
-- **Les tutoriels** (`/tutorials`) — le guide « Verger » n'a pas été ajouté à la
-  page Tutoriel. C'est une dette explicite de la définition de done.
+- ~~**Les tutoriels** (`/tutorials`)~~ — **rattrapé** : le guide « Verger » (six
+  étapes) a été ajouté après la livraison, sur signalement de Ben. C'était une
+  dette explicite de la définition de done, et elle n'aurait pas dû sortir de la
+  session sans être payée.
 
 ## 5. Ce que l'exécution a confirmé du cadrage
 

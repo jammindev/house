@@ -1873,6 +1873,36 @@
             "body": "A recap is frozen the first time it is read, and never recomputed. Correct an expense from June in August and June's recap keeps the figures it had — that is what makes it a memory rather than a query."
           }
         }
+      },
+      "orchard": {
+        "title": "Keep your orchard",
+        "intro": "What you did to each tree, what it gave, and what the season is asking for.",
+        "steps": {
+          "subjects": {
+            "title": "Plant your subjects",
+            "body": "One record per tree, bush or vine. A zone is required: an orchard is found by place."
+          },
+          "journal": {
+            "title": "Log what you do",
+            "body": "Pruning, treatment, observation — dated and typed. A tree answers a year later; your memory does not."
+          },
+          "seasons": {
+            "title": "Say when, not how often",
+            "body": "« Winter pruning runs November to March. » The page opens on what the season asks for; mark it done, or turn it into a task."
+          },
+          "harvests": {
+            "title": "Weigh your harvests",
+            "body": "Record every picking. Fruit trees alternate: it is the run of seasons that speaks, never a single year."
+          },
+          "frost": {
+            "title": "Protect blossom from frost",
+            "body": "Set a subject's flowering window: a frost night forecast during it is flagged the day before. Without it, no alert."
+          },
+          "agent": {
+            "title": "Ask the assistant",
+            "body": "« How many kilos of apples this year? », or dictate « log 12 kg of apples on the far apple tree »."
+          }
+        }
       }
     }
   },
