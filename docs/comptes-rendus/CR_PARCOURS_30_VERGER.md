@@ -167,6 +167,55 @@ Enfin, à force de rejouer la suite, le **throttle global** (240 req/min) a
 répondu 429. Ce n'est pas un défaut : c'est le plancher `core.throttles` qui fait
 son travail.
 
+### 3.7 Les liens de l'agent menaient à un écran blanc — même famille que 3.5
+
+Trouvé après la livraison, en répondant à une question de Ben (« la table a été
+ajoutée dans le RAG ? »). Oui, elle l'était — mais en le vérifiant ligne à ligne,
+les `url_template` de `tree_event` et `harvest` disaient `/app/orchard/{id}`.
+
+C'est le template de l'**arbre**, recopié sur ses enfants. Or
+`agent/retrieval.py` fait `url_template.format(id=instance.pk)` : le seul
+placeholder disponible est `{id}`, et c'est celui de l'**événement**. La route
+`/app/orchard/:id` charge un `Tree` par cet id, n'en trouve aucun, et
+`TreeDetailPage` faisait `if (!tree) return null` — un écran **blanc**, sans un
+mot. Trois chemins y menaient : une citation de l'agent, un résultat de la
+palette ⌘K, le lien du toast « Annuler » d'une récolte créée par l'agent.
+
+**Tranché** en refusant la solution la plus rapide. Le poulailler règle le cas par
+un `?event={id}` sur la page de liste, qui a le mérite d'atterrir quelque part —
+mais c'est un paramètre que **personne ne lit**, et le CLAUDE.md condamne déjà
+cette forme pour le `?tab=` de la famille argent : un paramètre qui ne pilote rien
+se recopie dans un favori en promettant le contraire. Le dépôt avait déjà la bonne
+réponse ailleurs — `TrackerEntryRedirect`, dont le docstring décrit *exactement* ce
+bug. D'où `/app/orchard/events/:id` et `/app/orchard/harvests/:id`, qui résolvent
+l'entrée et redirigent vers son sujet. Le lien mène maintenant à l'arbre concerné,
+pas à une liste.
+
+**Le garde-fou manquant était transverse**, et il a rapporté plus que prévu :
+`TestEveryLinkTheAgentProducesLandsSomewhere` a trouvé **trois liens morts
+antérieurs au verger** — `contact`, `structure` et `insurance_contract` visaient
+des pages de détail qui n'ont jamais existé (ces modules n'ont que des cartes et
+un dialogue). Corrigés dans la même PR : livrer un test qui naît rouge en
+exemptant trois modules l'aurait vidé de son sens.
+
+Il a fallu **deux** contrôles, et c'est le point à retenir : « le chemin existe »
+n'aurait pas vu le bug du verger, puisque `/app/orchard/:id` **est** une route
+déclarée. Le second contrôle dit « ce chemin est à toi » — un `{id}` dans le
+chemin n'appartient qu'à un seul modèle. Les deux ont été vérifiés **rouges** sur
+les anciens templates avant d'être gardés : un garde-fou qui n'a jamais échoué ne
+prouve rien.
+
+**La leçon rejoint celle de 3.5** : un mécanisme déclaratif rend l'ajout d'un
+module gratuit, et c'est précisément ce qui rend ses erreurs invisibles. Un
+`url_template` faux ressemble exactement à un `url_template` juste, aucun test du
+front ne voit ces liens puisqu'aucun n'est écrit dans le front, et le seul endroit
+qui connaît la liste est le registre — donc le contrôle appartient au registre.
+
+**Au passage** : `Harvest` est devenu searchable. Le chiffre était couvert
+(`get_harvest_stats`, `list_entities`), mais la note d'une récolte n'était
+trouvable nulle part. Ce n'était pas un arbitrage, c'était un angle mort — je ne
+me suis pas posé la question à la livraison.
+
 ## 4. Ce qui a été volontairement laissé de côté
 
 - **Le widget dashboard** (ORCH-11) — non livré. L'alerte gel remonte dans le
@@ -196,5 +245,15 @@ Deux paris du cadrage se sont vérifiés à l'usage :
   proprement.
 
 Un pari reste ouvert : la contrepartie assumée — le verger n'apparaît pas dans le
-fil d'activité du foyer, comme le poulailler. C'est le sujet transverse #509, et
-il concerne maintenant **deux** modules, ce qui le rend plus urgent qu'avant.
+fil d'activité du foyer, comme le poulailler. Le fil (`ActivityTimeline` du
+dashboard et la page `/app/interactions`) lit `Interaction` **et rien d'autre** :
+tout ce qui vit dans une table dédiée en est absent, et ça dépasse largement ces
+deux modules — une tâche terminée, un relevé de compteur, une ponte, un mouvement
+de stock n'y seront jamais non plus. La bonne forme est donc un **registre**
+d'activité alimenté par chaque app, comme `agent.searchables` l'est pour la
+recherche, et non un déménagement de tables vers `Interaction`. Sujet transverse,
+sans issue ouverte à ce jour.
+
+> Le CR citait ici l'issue #509 à tort — elle porte sur le « carnet de la maison »,
+> la vue transversale des rénovations, pas sur le fil d'activité. La même citation
+> fausse figurait dans le docstring de `orchard/models.py` ; corrigée avec lui.

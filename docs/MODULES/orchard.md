@@ -80,6 +80,32 @@ dérivant la liste du registre `agent.searchables` et en **refusant** un type
 inconnu. Les deux onglets passent désormais par la forme non ambiguë
 `?linked_to=tree:<id>`. Régression : `documents/tests/test_entity_filter.py`.
 
+**Et l'intégration agent a coûté deux routes, découvertes de la même façon.**
+`tree_event` et `harvest` avaient hérité du `url_template` de l'arbre,
+`/app/orchard/{id}` — or cette page charge un `Tree` **par cet id**. Une citation
+de l'agent sur une entrée de journal, un résultat de palette, le lien du toast
+« Annuler » d'une récolte : tous envoyaient l'uuid d'un enfant à une page qui
+cherche un parent, n'en trouvait aucun, et rendaient un **écran blanc** (la page
+faisait `if (!tree) return null`). Trois défauts distincts, une seule cause.
+
+Corrigé comme `tracker-entries/:id` le faisait déjà : `/app/orchard/events/:id` et
+`/app/orchard/harvests/:id` résolvent l'entrée et redirigent vers son sujet
+(`TreeEntryRedirect`). **Pas** un `?event={id}` sur la liste — un paramètre que
+personne ne lit se recopie dans un favori en promettant le contraire. La page de
+détail, elle, dit désormais « introuvable » au lieu de ne rien rendre.
+
+Le garde-fou qui manquait est transverse et vit avec le registre :
+`agent/tests/test_registry.py::TestEveryLinkTheAgentProducesLandsSomewhere`. Il a
+trouvé du même coup trois liens morts **antérieurs au verger** — `contact`,
+`structure` et `insurance_contract` visaient des pages de détail qui n'ont jamais
+existé.
+
+`Harvest` est aussi devenu **searchable** à cette occasion : le chiffre avait déjà
+`get_harvest_stats` et `list_entities`, mais la note (« beaucoup de vers cette
+année ») n'était trouvable nulle part. `search_fields=('notes',)` seulement — un
+champ de relation lève dans `_search_one`, et une récolte sans note n'a rien à
+faire trouver.
+
 ## API
 
 ```

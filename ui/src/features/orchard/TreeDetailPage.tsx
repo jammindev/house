@@ -32,6 +32,7 @@ import SeasonSeries from './SeasonSeries';
 import TreePurchaseDialog from './TreePurchaseDialog';
 import EntityDocumentsTab from '@/features/documents/EntityDocumentsTab';
 import EntityPhotosTab from '@/features/photos/EntityPhotosTab';
+import LoadError from '@/components/LoadError';
 
 type Tab = 'info' | 'events' | 'harvests' | 'documents' | 'photos';
 
@@ -41,7 +42,7 @@ export default function TreeDetailPage() {
   const qc = useQueryClient();
   const navigateBack = useNavigateBack('/app/orchard');
 
-  const { data: tree, isLoading } = useTree(id);
+  const { data: tree, isLoading, error } = useTree(id);
   const { data: events = [] } = useTreeEvents({ tree: id });
   const { data: harvests = [] } = useHarvests({ tree: id });
   const { data: series } = useHarvestSeries({ tree: id });
@@ -114,7 +115,18 @@ export default function TreeDetailPage() {
     );
   }
 
-  if (!tree) return null;
+  // Jamais `return null` : un id qui ne désigne aucun sujet rendait un écran
+  // **blanc**, sans un mot — et c'est très exactement ce qu'on atteignait en
+  // cliquant une citation de l'agent, dont le lien portait l'uuid d'une entrée
+  // de journal (voir `orchard/apps.py`). Un trou se montre.
+  if (error || !tree) {
+    return (
+      <LoadError
+        message={t('orchard.notFound')}
+        link={{ to: '/app/orchard', label: t('orchard.title') }}
+      />
+    );
+  }
 
   // An ornamental never yields — an empty harvest tab would promise something
   // the subject cannot deliver.

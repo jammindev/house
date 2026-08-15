@@ -4482,6 +4482,7 @@
   },
   "orchard": {
     "title": "Huerto",
+    "notFound": "No se encuentra este ejemplar.",
     "new": "Añadir un ejemplar",
     "created": "Ejemplar añadido",
     "updated": "Ejemplar actualizado",
