@@ -216,3 +216,113 @@ export async function fetchHarvestSeries(
   const { data } = await api.get('/orchard/harvests/summary/', { params: filters });
   return data;
 }
+
+// --- seasonal care rules ------------------------------------------------------
+
+export type CareRuleState = 'upcoming' | 'due' | 'done' | 'missed';
+
+/** State of one (rule, subject) pair — always derived server-side, never stored. */
+export interface CareRuleTarget {
+  tree: string;
+  tree_name: string;
+  state: CareRuleState;
+  season: number;
+  window_start: string;
+  window_end: string;
+  next_window_start: string;
+  last_done_on: string | null;
+}
+
+export interface CareRule {
+  id: string;
+  household: string;
+  name: string;
+  emoji: string;
+  start_month: number;
+  end_month: number;
+  event_type: TreeEventType;
+  /** Scope: one subject… */
+  tree: string | null;
+  tree_name: string | null;
+  /** …or every living subject of a kind. Never both. */
+  kind: TreeKind | '';
+  is_active: boolean;
+  notes: string;
+  targets: CareRuleTarget[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CareRulePayload {
+  name: string;
+  start_month: number;
+  end_month: number;
+  event_type?: TreeEventType;
+  tree?: string | null;
+  kind?: TreeKind | '';
+  emoji?: string;
+  notes?: string;
+  is_active?: boolean;
+}
+
+/** One line of « ce que la saison réclame ». */
+export interface SeasonRow {
+  rule: string;
+  rule_name: string;
+  emoji: string;
+  tree: string;
+  tree_name: string;
+  state: 'due' | 'missed';
+  season: number;
+  window_start: string;
+  window_end: string;
+  last_done_on: string | null;
+}
+
+export interface SeasonPanel {
+  rows: SeasonRow[];
+  total: number;
+}
+
+export async function fetchCareRules(): Promise<CareRule[]> {
+  const { data } = await api.get('/orchard/care-rules/');
+  return data;
+}
+
+export async function createCareRule(payload: CareRulePayload): Promise<CareRule> {
+  const { data } = await api.post('/orchard/care-rules/', payload);
+  return data;
+}
+
+export async function updateCareRule(
+  id: string,
+  payload: Partial<CareRulePayload>,
+): Promise<CareRule> {
+  const { data } = await api.patch(`/orchard/care-rules/${id}/`, payload);
+  return data;
+}
+
+export async function deleteCareRule(id: string): Promise<void> {
+  await api.delete(`/orchard/care-rules/${id}/`);
+}
+
+export async function completeCareRule(
+  id: string,
+  payload: { tree: string; occurred_on?: string; notes?: string },
+): Promise<TreeEvent> {
+  const { data } = await api.post(`/orchard/care-rules/${id}/complete/`, payload);
+  return data;
+}
+
+export async function fetchSeasonPanel(): Promise<SeasonPanel> {
+  const { data } = await api.get('/orchard/care-rules/season/');
+  return data;
+}
+
+export async function createCareTask(
+  id: string,
+  payload: { tree: string },
+): Promise<{ id: string; subject: string }> {
+  const { data } = await api.post(`/orchard/care-rules/${id}/create-task/`, payload);
+  return data;
+}

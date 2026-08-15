@@ -4498,7 +4498,8 @@
       "title": "Intitulé",
       "quantity": "Quantité",
       "unit": "Unité",
-      "harvestedOn": "Date de récolte"
+      "harvestedOn": "Date de récolte",
+      "emoji": "Emoji"
     },
     "errors": {
       "zoneRequired": "Choisis une zone : un sujet sans endroit ne se retrouve pas.",
@@ -4543,6 +4544,29 @@
       "10": "octobre",
       "11": "novembre",
       "12": "décembre"
+    },
+    "care": {
+      "new": "Nouvelle règle",
+      "newTitle": "Nouvelle règle d'entretien",
+      "editTitle": "Modifier la règle",
+      "created": "Règle créée",
+      "updated": "Règle mise à jour",
+      "deleted": "Règle supprimée",
+      "completed": "Entretien consigné",
+      "seasonTitle": "Ce que la saison réclame",
+      "markDone": "C'est fait",
+      "missedHint": "Fenêtre passée — à reprendre la saison prochaine.",
+      "windowOpen": "À faire avant le {{date}}",
+      "windowClosed": "La fenêtre s'est refermée le {{date}}",
+      "windowStart": "Du mois de",
+      "windowEnd": "Au mois de",
+      "windowHint": "Une fenêtre peut être à cheval sur deux années — « novembre → mars » est le cas normal d'un verger.",
+      "eventType": "Type d'entrée consignée",
+      "scope": "Portée",
+      "scopeKind": "Tous les sujets d'un type",
+      "scopeTree": "Un sujet précis",
+      "createTask": "Créer une tâche",
+      "taskCreated": "Tâche créée"
     }
   }
 }

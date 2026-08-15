@@ -139,6 +139,17 @@ class TreeEvent(HouseholdScopedModel):
         related_name='events',
         db_column='tree_id',
     )
+    # Set when this entry is what satisfied a seasonal rule. SET_NULL, not
+    # CASCADE: dropping a cadence the household no longer follows must not erase
+    # the proof that the work was done — the journal outlives the rule.
+    care_rule = models.ForeignKey(
+        'CareRule',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='completions',
+        db_column='care_rule_id',
+    )
     type = models.CharField(max_length=20, choices=Type.choices)
     occurred_on = models.DateField()
     title = models.CharField(max_length=300)
@@ -152,6 +163,7 @@ class TreeEvent(HouseholdScopedModel):
         indexes = [
             models.Index(fields=['household', 'occurred_on'], name='idx_tree_event_hh_date'),
             models.Index(fields=['tree', '-occurred_on'], name='idx_tree_event_tree_date'),
+            models.Index(fields=['care_rule', '-occurred_on'], name='idx_tree_event_rule_date'),
         ]
 
     def __str__(self):
@@ -206,3 +218,72 @@ class Harvest(HouseholdScopedModel):
 
     def __str__(self):
         return f"{self.quantity} {self.unit} — {self.harvested_on}"
+
+
+class CareRule(HouseholdScopedModel):
+    """A recurring care gesture, expressed as a **window of months**.
+
+    « La taille d'hiver, c'est entre novembre et mars » — not « every 365 days ».
+    The three cadences already in the app are intervals, and an interval
+    *remembers lateness*: pruned two weeks late once, the next due date shifts,
+    and five years later the app asks for winter pruning in April — at bud break,
+    exactly when it must not happen.
+
+    ``next_due`` is **never stored**: it is derived at read time from the last
+    linked ``TreeEvent`` (``orchard.seasons.rule_status``). See
+    ``docs/fiches/CADENCE_SAISONNIERE.md``.
+    """
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=200)
+    emoji = models.CharField(max_length=16, blank=True, default='')
+    start_month = models.PositiveSmallIntegerField()
+    end_month = models.PositiveSmallIntegerField()
+    # The journal entry a completion writes. « Bouillie bordelaise » must land as
+    # a treatment, not as a pruning: the journal is filtered by type, so a rule
+    # that always wrote the same type would make that filter lie.
+    event_type = models.CharField(
+        max_length=20,
+        choices=TreeEvent.Type.choices,
+        default=TreeEvent.Type.PRUNING,
+    )
+    # Scope: one subject, or every subject of a kind. Never both — a rule that is
+    # two rules at once cannot be satisfied by one journal entry.
+    tree = models.ForeignKey(
+        Tree,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='care_rules',
+        db_column='tree_id',
+    )
+    kind = models.CharField(max_length=20, choices=Tree.Kind.choices, blank=True, default='')
+    is_active = models.BooleanField(default=True)
+    notes = models.TextField(blank=True, default='')
+
+    objects = HouseholdScopedManager()
+
+    class Meta:
+        db_table = 'orchard_care_rules'
+        ordering = ['start_month', 'name']
+        indexes = [
+            models.Index(fields=['household', 'is_active'], name='idx_care_rule_hh_active'),
+            models.Index(fields=['tree'], name='idx_care_rule_tree'),
+        ]
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(
+                    start_month__gte=1, start_month__lte=12,
+                    end_month__gte=1, end_month__lte=12,
+                ),
+                name='orchard_rule_months_range',
+            ),
+            # One scope or the other, never both.
+            models.CheckConstraint(
+                condition=~(models.Q(tree__isnull=False) & ~models.Q(kind='')),
+                name='orchard_rule_single_scope',
+            ),
+        ]
+
+    def __str__(self):
+        return self.name
