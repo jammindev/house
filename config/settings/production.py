@@ -100,6 +100,33 @@ DEMO_MODE = env.bool("DEMO_MODE", default=False)
 DEMO_EMAIL = env("DEMO_EMAIL", default="")
 DEMO_PASSWORD = env("DEMO_PASSWORD", default="")
 
+if DEMO_MODE:
+    # L'assistant tourne sur la clé de l'hébergeur, pas sur celle du visiteur :
+    # chaque question coûte de l'argent à quelqu'un qui n'est pas celui qui la
+    # pose. C'est la seule différence de fond entre une démonstration et une
+    # instance, et elle mérite son plafond.
+    #
+    # Le plafond est **global de fait**, et c'est voulu : tous les visiteurs
+    # entrent par le même compte, or DRF compte par utilisateur. « 60 par heure »
+    # veut donc dire soixante questions par heure pour tout le monde réuni — une
+    # borne sur la facture, pas sur le confort d'un visiteur. La cohue d'un jour
+    # d'annonce se traduira par des refus polis plutôt que par une note à trois
+    # chiffres, et c'est le bon arbitrage : personne n'évalue un produit en lui
+    # posant soixante questions.
+    #
+    # ⚠️ Ça ne remplace pas un plafond de dépense chez le fournisseur. Un
+    # compteur applicatif ne protège que de ce qu'il voit passer.
+    REST_FRAMEWORK = {
+        **REST_FRAMEWORK,
+        "DEFAULT_THROTTLE_RATES": {
+            **REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"],
+            "agent_burst": env("DEMO_AGENT_BURST", default="5/min"),
+            "agent_sustained": env("DEMO_AGENT_SUSTAINED", default="60/hour"),
+            "document_upload": "20/hour",
+            "ocr_reprocess": "5/hour",
+        },
+    }
+
 # Anthropic API key — must be set in .env for LLM features (OCR, agent).
 ANTHROPIC_API_KEY = env("ANTHROPIC_API_KEY", default="")
 
