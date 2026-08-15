@@ -11,7 +11,7 @@ Issue parente : **#607**.
 |---|---|---|---|
 | 1 | Étiquettes QR de zone — jeton, planche d'impression, route de scan | ✅ Livré | #608 |
 | 2 | La chasse — `apps/games`, session serveur, avancement par scan | ✅ Livré | #609 |
-| 3 | Énigmes par l'assistant — capability, génération, relecture | ⬜ À faire | #610 |
+| 3 | Énigmes par l'assistant — capability, génération, relecture | ✅ Livré | #610 |
 | 4 | Rejouer + ping du samedi pluvieux | ⬜ À faire | #611 |
 
 ## Doc associée
@@ -208,6 +208,15 @@ fois puis jamais.
   après génération ; le bouton est **absent** (pas grisé) si la capacité manque, et
   la saisie manuelle reste le chemin normal.
 - i18n `capabilities.hunt_riddles.*` × 4.
+
+> **Écart assumé à la livraison.** L'endpoint est une action de **liste**
+> (`POST /api/games/hunts/generate-riddles/`, corps `{zones, age}`) et non de
+> détail. Le cadrage prévoyait `{id}/generate-riddles/` ; or le geste a lieu
+> *pendant* la composition, le plus souvent sur une chasse qui n'existe pas encore
+> en base — une route de détail obligerait à enregistrer une chasse vide avant de
+> pouvoir demander de l'aide à l'écrire, ce qui contredit le premier critère du
+> lot. Bénéfice secondaire : la question « rien n'est écrit en base » ne se pose
+> même plus, l'endpoint ne sachant pas où écrire.
 
 ### Critères
 

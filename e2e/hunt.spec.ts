@@ -63,6 +63,20 @@ test.describe('Chasse au trésor', () => {
     await clearHunts(page);
   });
 
+  /**
+   * ⚠️ Nettoyer **après** aussi, et pas seulement avant.
+   *
+   * Une chasse laissée `active` détourne *tous* les scans d'étiquette du foyer :
+   * `ZoneScanPage` mène au jeu au lieu de la pièce, parce que c'est exactement ce
+   * qu'on lui demande de faire pendant une partie. La suite partageant une base
+   * non réinitialisée, `zone-qr.spec.ts` tombait donc dès qu'il tournait après
+   * celui-ci — vert seul, rouge à deux, ce qui se lit comme un test instable
+   * alors que c'est une fuite d'état.
+   */
+  test.afterEach(async ({ page }) => {
+    await clearHunts(page);
+  });
+
   test('CHAS-04 — composer une chasse depuis l\'écran', async ({ page }) => {
     await page.goto('/app/games');
     await page.getByRole('button', { name: 'Nouvelle chasse' }).first().click();
