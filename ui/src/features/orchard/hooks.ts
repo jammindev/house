@@ -18,11 +18,13 @@ import {
   fetchTree,
   fetchTreeEvents,
   fetchTrees,
+  purchaseTree,
   updateCareRule,
   updateHarvest,
   updateTree,
   updateTreeEvent,
   type CareRulePayload,
+  type TreePurchasePayload,
   type HarvestPayload,
   type TreeEventPayload,
   type TreePayload,
@@ -263,6 +265,22 @@ export function useCreateCareTask() {
       // module, which is exactly the point of not inventing a fourth one.
       invalidate('tasks');
       toast({ description: t('orchard.care.taskCreated'), variant: 'success' });
+    },
+    onError: () => toast({ description: t('common.saveFailed'), variant: 'destructive' }),
+  });
+}
+
+export function usePurchaseTree() {
+  const invalidate = useInvalidate();
+  const { t } = useTranslation();
+  return useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: TreePurchasePayload }) =>
+      purchaseTree(id, payload),
+    onSuccess: () => {
+      // Two roots written: the subject's cost, and the household's money.
+      invalidate('orchard');
+      invalidate('interactions');
+      toast({ description: t('orchard.purchase.created'), variant: 'success' });
     },
     onError: () => toast({ description: t('common.saveFailed'), variant: 'destructive' }),
   });

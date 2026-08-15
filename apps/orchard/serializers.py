@@ -255,3 +255,19 @@ class CareRuleSerializer(serializers.ModelSerializer):
                 "A rule targets one subject or one kind, never both."
             )
         return attrs
+
+
+class TreePurchaseSerializer(serializers.Serializer):
+    """Payload of « déclarer un achat » on a subject.
+
+    Deliberately thin: the expense itself is built by
+    ``interactions.services.create_expense_interaction``, which owns the columns,
+    the metadata shape and the zone attachment. Re-implementing any of it here
+    would give the money a second definition.
+    """
+
+    amount = serializers.DecimalField(max_digits=14, decimal_places=2, min_value=0)
+    supplier = serializers.CharField(required=False, allow_blank=True)
+    occurred_at = serializers.DateTimeField(required=False, allow_null=True)
+    notes = serializers.CharField(required=False, allow_blank=True)
+    budget_id = serializers.UUIDField(required=False, allow_null=True)

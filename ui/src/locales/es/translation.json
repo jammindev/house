@@ -3209,7 +3209,10 @@
       "meter": "Contadores",
       "tracker": "Trackers",
       "shopping_item": "Lista de la compra",
-      "chicken_chore": "Tareas del gallinero"
+      "chicken_chore": "Tareas del gallinero",
+      "tree": "Huerto",
+      "tree_event": "Cuidados del huerto",
+      "harvest": "Cosechas"
     }
   },
   "agent": {
@@ -4482,7 +4485,9 @@
     "tabs": {
       "info": "Ficha",
       "events": "Cuidados",
-      "harvests": "Cosechas"
+      "harvests": "Cosechas",
+      "documents": "Documentos",
+      "photos": "Fotos"
     },
     "fields": {
       "name": "Nombre",
@@ -4575,6 +4580,11 @@
       "scopeTree": "Un ejemplar",
       "createTask": "Crear una tarea",
       "taskCreated": "Tarea creada"
+    },
+    "purchase": {
+      "action": "Declarar una compra",
+      "title": "Compra — {{name}}",
+      "created": "Compra registrada"
     }
   }
 }

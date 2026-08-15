@@ -3209,7 +3209,10 @@
       "meter": "Compteurs",
       "tracker": "Trackers",
       "shopping_item": "Liste de courses",
-      "chicken_chore": "Corvées du poulailler"
+      "chicken_chore": "Corvées du poulailler",
+      "tree": "Verger",
+      "tree_event": "Entretien du verger",
+      "harvest": "Récoltes"
     }
   },
   "agent": {
@@ -4482,7 +4485,9 @@
     "tabs": {
       "info": "Fiche",
       "events": "Entretien",
-      "harvests": "Récoltes"
+      "harvests": "Récoltes",
+      "documents": "Documents",
+      "photos": "Photos"
     },
     "fields": {
       "name": "Nom",
@@ -4575,6 +4580,11 @@
       "scopeTree": "Un sujet précis",
       "createTask": "Créer une tâche",
       "taskCreated": "Tâche créée"
+    },
+    "purchase": {
+      "action": "Déclarer un achat",
+      "title": "Achat — {{name}}",
+      "created": "Achat enregistré"
     }
   }
 }
