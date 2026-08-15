@@ -1873,6 +1873,36 @@
             "body": "Un récap est figé à sa première lecture, et jamais recalculé. Corrigez en août une dépense de juin : le récap de juin garde les chiffres qu'il avait — c'est ce qui en fait un souvenir et non une requête."
           }
         }
+      },
+      "orchard": {
+        "title": "Suivre le verger",
+        "intro": "Ce que vous avez fait à chaque arbre, ce qu'il a donné, et ce que la saison réclame.",
+        "steps": {
+          "subjects": {
+            "title": "Planter vos sujets",
+            "body": "Créez une fiche par arbre, arbuste ou vigne. La zone est obligatoire : c'est par l'endroit qu'on retrouve son verger."
+          },
+          "journal": {
+            "title": "Consigner ce que vous faites",
+            "body": "Taille, traitement, observation : daté et typé. Un arbre répond un an plus tard — votre mémoire, non."
+          },
+          "seasons": {
+            "title": "Dire quand, pas tous les combien",
+            "body": "« La taille d'hiver, c'est entre novembre et mars. » La page ouvre sur ce que la saison réclame ; « c'est fait » la solde, ou créez-en une tâche."
+          },
+          "harvests": {
+            "title": "Peser vos récoltes",
+            "body": "Notez chaque cueillette. Un fruitier alterne : c'est la série des saisons qui parle, jamais une année seule."
+          },
+          "frost": {
+            "title": "Protéger vos fleurs du gel",
+            "body": "Renseignez la période de floraison d'un sujet : une nuit de gel annoncée pendant celle-ci vous sera signalée la veille. Sans elle, aucune alerte."
+          },
+          "agent": {
+            "title": "Demander à l'assistant",
+            "body": "« Combien de kilos de pommes cette année ? », ou dictez « note 12 kg de pommes sur le pommier du fond »."
+          }
+        }
       }
     }
   },

@@ -1873,6 +1873,36 @@
             "body": "Un resumen se congela la primera vez que se lee, y nunca se recalcula. Corrige en agosto un gasto de junio: el resumen de junio conserva sus cifras — eso es lo que lo convierte en un recuerdo y no en una consulta."
           }
         }
+      },
+      "orchard": {
+        "title": "Llevar el huerto",
+        "intro": "Lo que hizo en cada árbol, lo que dio, y lo que pide la temporada.",
+        "steps": {
+          "subjects": {
+            "title": "Plantar sus ejemplares",
+            "body": "Una ficha por árbol, arbusto o vid. La zona es obligatoria: un huerto se encuentra por el lugar."
+          },
+          "journal": {
+            "title": "Registrar lo que hace",
+            "body": "Poda, tratamiento, observación: fechado y tipificado. Un árbol responde un año después; su memoria, no."
+          },
+          "seasons": {
+            "title": "Decir cuándo, no cada cuánto",
+            "body": "« La poda de invierno va de noviembre a marzo. » La página abre con lo que pide la temporada; márquela como hecha o conviértala en tarea."
+          },
+          "harvests": {
+            "title": "Pesar sus cosechas",
+            "body": "Anote cada recolección. Un frutal alterna: habla la serie de temporadas, nunca un año suelto."
+          },
+          "frost": {
+            "title": "Proteger la flor de la helada",
+            "body": "Indique el periodo de floración de un ejemplar: una noche de helada prevista durante ese periodo se avisa la víspera. Sin él, ninguna alerta."
+          },
+          "agent": {
+            "title": "Preguntar al asistente",
+            "body": "« ¿Cuántos kilos de manzanas este año? », o dicte « anota 12 kg de manzanas en el manzano del fondo »."
+          }
+        }
       }
     }
   },
