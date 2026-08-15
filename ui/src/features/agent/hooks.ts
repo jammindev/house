@@ -219,11 +219,19 @@ export function useRenameConversation() {
  * query keys to invalidate so lists refresh after create AND after undo. Adding
  * a new creatable entity here = one entry (mirrors the backend writables registry).
  */
+import { deleteHarvest, deleteTree, deleteTreeEvent } from '@/lib/api/orchard';
+
 const UNDO_HANDLERS: Record<
   string,
   { remove: (id: string) => Promise<void>; keys: readonly unknown[][] }
 > = {
   task: { remove: (id) => deleteTask(id), keys: [taskKeys.all as unknown as unknown[]] },
+  // Le verger : une écriture de l'agent est un effet de bord **réversible**, donc
+  // chaque type créable a son undo. Sans l'entrée ici, le toast « Annuler »
+  // n'apparaît pas et l'écriture devient irrattrapable depuis le chat.
+  tree: { remove: (id) => deleteTree(id), keys: [['orchard']] },
+  tree_event: { remove: (id) => deleteTreeEvent(id), keys: [['orchard']] },
+  harvest: { remove: (id) => deleteHarvest(id), keys: [['orchard']] },
   note: {
     remove: (id) => deleteInteraction(id),
     keys: [interactionKeys.all as unknown as unknown[]],

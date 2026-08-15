@@ -326,3 +326,16 @@ export async function createCareTask(
   const { data } = await api.post(`/orchard/care-rules/${id}/create-task/`, payload);
   return data;
 }
+
+export interface TreePurchasePayload {
+  amount: string;
+  supplier?: string;
+  occurred_at?: string;
+  notes?: string;
+  budget_id?: string | null;
+}
+
+export async function purchaseTree(id: string, payload: TreePurchasePayload): Promise<Tree> {
+  const { data } = await api.post(`/orchard/trees/${id}/purchase/`, payload);
+  return data;
+}

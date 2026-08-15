@@ -29,8 +29,11 @@ import EventTimeline from './EventTimeline';
 import HarvestDialog from './HarvestDialog';
 import HarvestList from './HarvestList';
 import SeasonSeries from './SeasonSeries';
+import TreePurchaseDialog from './TreePurchaseDialog';
+import EntityDocumentsTab from '@/features/documents/EntityDocumentsTab';
+import EntityPhotosTab from '@/features/photos/EntityPhotosTab';
 
-type Tab = 'info' | 'events' | 'harvests';
+type Tab = 'info' | 'events' | 'harvests' | 'documents' | 'photos';
 
 export default function TreeDetailPage() {
   const { id = '' } = useParams();
@@ -48,6 +51,7 @@ export default function TreeDetailPage() {
   const [editingEvent, setEditingEvent] = React.useState<TreeEvent | null>(null);
   const [harvestDialogOpen, setHarvestDialogOpen] = React.useState(false);
   const [editingHarvest, setEditingHarvest] = React.useState<Harvest | null>(null);
+  const [purchaseOpen, setPurchaseOpen] = React.useState(false);
 
   const deleteTreeMutation = useDeleteTree();
   const deleteEventMutation = useDeleteTreeEvent();
@@ -122,6 +126,11 @@ export default function TreeDetailPage() {
     ...(harvestsSupported
       ? [{ key: 'harvests' as const, label: t('orchard.tabs.harvests'), badge: harvests.length }]
       : []),
+    // Documents et photos marchent sans une ligne de backend : le filtre
+    // `?tree=<id>` de l'API documents est générique, résolu via le registre
+    // `agent.searchables` — enregistrer le SearchableSpec les a ouverts.
+    { key: 'documents', label: t('orchard.tabs.documents') },
+    { key: 'photos', label: t('orchard.tabs.photos') },
   ];
 
   return (
@@ -129,6 +138,9 @@ export default function TreeDetailPage() {
       <BackLink fallback="/app/orchard" fallbackLabel={t('orchard.title')} />
 
       <PageHeader title={tree.name}>
+        <Button variant="outline" onClick={() => setPurchaseOpen(true)}>
+          {t('orchard.purchase.action')}
+        </Button>
         <Button variant="outline" onClick={() => setEditOpen(true)}>
           {t('common.edit')}
         </Button>
@@ -256,11 +268,19 @@ export default function TreeDetailPage() {
                 )}
               </div>
             ) : null}
+            {activeTab === 'documents' ? (
+              <EntityDocumentsTab entityType="tree" objectId={tree.id} />
+            ) : null}
+
+            {activeTab === 'photos' ? (
+              <EntityPhotosTab entityType="tree" objectId={tree.id} />
+            ) : null}
           </>
         )}
       </TabShell>
 
       <TreeDialog open={editOpen} onOpenChange={setEditOpen} existing={tree} />
+      <TreePurchaseDialog open={purchaseOpen} onOpenChange={setPurchaseOpen} tree={tree} />
       <TreeEventDialog
         open={eventDialogOpen}
         onOpenChange={setEventDialogOpen}

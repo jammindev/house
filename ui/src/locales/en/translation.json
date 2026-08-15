@@ -3201,7 +3201,10 @@
       "meter": "Meters",
       "tracker": "Trackers",
       "shopping_item": "Shopping list",
-      "chicken_chore": "Coop chores"
+      "chicken_chore": "Coop chores",
+      "tree": "Orchard",
+      "tree_event": "Orchard care",
+      "harvest": "Harvests"
     }
   },
   "agent": {
@@ -4474,7 +4477,9 @@
     "tabs": {
       "info": "Details",
       "events": "Care",
-      "harvests": "Harvests"
+      "harvests": "Harvests",
+      "documents": "Documents",
+      "photos": "Photos"
     },
     "fields": {
       "name": "Name",
@@ -4567,6 +4572,11 @@
       "scopeTree": "One subject",
       "createTask": "Create a task",
       "taskCreated": "Task created"
+    },
+    "purchase": {
+      "action": "Declare a purchase",
+      "title": "Purchase — {{name}}",
+      "created": "Purchase recorded"
     }
   }
 }

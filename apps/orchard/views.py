@@ -15,6 +15,7 @@ from . import queries, services
 from .models import CareRule, Harvest, Tree, TreeEvent
 from .serializers import (
     CareRuleSerializer,
+    TreePurchaseSerializer,
     HarvestSerializer,
     TreeEventSerializer,
     TreeSerializer,
@@ -93,6 +94,41 @@ class TreeViewSet(DocumentLinkActionsMixin, viewsets.ModelViewSet):
 
     def perform_destroy(self, instance):
         services.delete_tree(self.request.household, self.request.user, instance)
+
+    @action(detail=True, methods=['post'], url_path='purchase')
+    def purchase(self, request, pk=None):
+        """Declare what a subject cost — through the shared expense service.
+
+        A tree bought 39 € is a household expense like any other: it must land in
+        `/app/money/expenses`, count against a budget, and carry the subject's
+        zone. Building an `Interaction` by hand here would give the money a second
+        write path, which is exactly what `create_expense_interaction` exists to
+        prevent.
+        """
+        from django.utils import timezone
+
+        from interactions.services import create_expense_interaction, validate_expense_budget
+
+        tree = self.get_object()
+        serializer = TreePurchaseSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        budget_id = validate_expense_budget(
+            tree.household_id, serializer.validated_data.get('budget_id')
+        )
+        interaction = create_expense_interaction(
+            source=tree,
+            user=request.user,
+            amount=serializer.validated_data.get('amount'),
+            supplier=serializer.validated_data.get('supplier', '') or '',
+            occurred_at=serializer.validated_data.get('occurred_at') or timezone.now(),
+            notes=serializer.validated_data.get('notes', '') or '',
+            kind='orchard_purchase',
+            budget_id=budget_id,
+        )
+        payload = TreeSerializer(tree, context=self.get_serializer_context()).data
+        payload['interaction_id'] = str(interaction.id)
+        return Response(payload, status=201)
 
 
 class TreeEventViewSet(viewsets.ModelViewSet):

@@ -250,6 +250,31 @@ def _due_orchard_care(household, today: date) -> list[dict]:
     return items
 
 
+def _orchard_frost(household) -> list[dict]:
+    """Frost nights that threaten subjects in declared bloom (parcours 30, lot 7).
+
+    No threshold is redefined here: `weather.alerts` owns them. The orchard only
+    contributes « which subjects are in flower », which the household declared.
+    """
+    from orchard.alerts import frost_alerts_for_orchard
+
+    items = []
+    for alert in frost_alerts_for_orchard(household):
+        names = ", ".join(tree["name"] for tree in alert["trees"])
+        items.append(
+            {
+                "id": f"frost:{alert['date']}",
+                "title": names,
+                "date": alert["date"],
+                "value": alert["value"],
+                "unit": alert["unit"],
+                "entity_url": "/app/orchard",
+                "severity": "critical",
+            }
+        )
+    return items
+
+
 def build_alerts_summary(household, today: date | None = None) -> dict:
     today = today or timezone.localdate()
     overdue_tasks = _overdue_tasks(household, today)
@@ -260,6 +285,7 @@ def build_alerts_summary(household, today: date | None = None) -> dict:
     egg_drop_alerts = _egg_drop_alerts(household, today)
     due_chores = _due_chores(household, today)
     due_orchard_care = _due_orchard_care(household, today)
+    orchard_frost = _orchard_frost(household)
     return {
         "overdue_tasks": overdue_tasks,
         "expiring_warranties": expiring_warranties,
@@ -269,6 +295,7 @@ def build_alerts_summary(household, today: date | None = None) -> dict:
         "egg_drop_alerts": egg_drop_alerts,
         "due_chores": due_chores,
         "due_orchard_care": due_orchard_care,
+        "orchard_frost": orchard_frost,
         "total": (
             len(overdue_tasks)
             + len(expiring_warranties)
@@ -278,5 +305,6 @@ def build_alerts_summary(household, today: date | None = None) -> dict:
             + len(egg_drop_alerts)
             + len(due_chores)
             + len(due_orchard_care)
+            + len(orchard_frost)
         ),
     }

@@ -3201,7 +3201,10 @@
       "meter": "Zähler",
       "tracker": "Tracker",
       "shopping_item": "Einkaufsliste",
-      "chicken_chore": "Stallaufgaben"
+      "chicken_chore": "Stallaufgaben",
+      "tree": "Obstgarten",
+      "tree_event": "Obstgarten-Pflege",
+      "harvest": "Ernten"
     }
   },
   "agent": {
@@ -4474,7 +4477,9 @@
     "tabs": {
       "info": "Steckbrief",
       "events": "Pflege",
-      "harvests": "Ernten"
+      "harvests": "Ernten",
+      "documents": "Dokumente",
+      "photos": "Fotos"
     },
     "fields": {
       "name": "Name",
@@ -4567,6 +4572,11 @@
       "scopeTree": "Eine Pflanze",
       "createTask": "Aufgabe erstellen",
       "taskCreated": "Aufgabe erstellt"
+    },
+    "purchase": {
+      "action": "Kauf erfassen",
+      "title": "Kauf — {{name}}",
+      "created": "Kauf erfasst"
     }
   }
 }
