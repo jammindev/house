@@ -38,6 +38,8 @@ const TrackersPage = lazyWithReload(() => import('./features/trackers/TrackersPa
 const ChickensPage = lazyWithReload(() => import('./features/chickens/ChickensPage'));
 const ChickenDetailPage = lazyWithReload(() => import('./features/chickens/ChickenDetailPage'));
 const OrchardPage = lazyWithReload(() => import('./features/orchard/OrchardPage'));
+const HuntsPage = lazyWithReload(() => import('./features/games/HuntsPage'));
+const HuntPlayPage = lazyWithReload(() => import('./features/games/HuntPlayPage'));
 const TreeDetailPage = lazyWithReload(() => import('./features/orchard/TreeDetailPage'));
 const TrackerDetailPage = lazyWithReload(() => import('./features/trackers/TrackerDetailPage'));
 const TrackerEntryRedirect = lazyWithReload(() => import('./features/trackers/TrackerEntryRedirect'));
@@ -176,6 +178,8 @@ export const router = createBrowserRouter([
       { path: 'chickens/:id', element: <ModuleRoute moduleKey="chickens"><ChickenDetailPage /></ModuleRoute> },
       { path: 'orchard', element: <ModuleRoute moduleKey="orchard"><OrchardPage /></ModuleRoute> },
       { path: 'orchard/:id', element: <ModuleRoute moduleKey="orchard"><TreeDetailPage /></ModuleRoute> },
+      { path: 'games', element: <ModuleRoute moduleKey="games"><HuntsPage /></ModuleRoute> },
+      { path: 'games/play', element: <ModuleRoute moduleKey="games"><HuntPlayPage /></ModuleRoute> },
       { path: 'trackers', element: <ModuleRoute moduleKey="trackers"><TrackersPage /></ModuleRoute> },
       { path: 'trackers/:id', element: <ModuleRoute moduleKey="trackers"><TrackerDetailPage /></ModuleRoute> },
       { path: 'tracker-entries/:id', element: <ModuleRoute moduleKey="trackers"><TrackerEntryRedirect /></ModuleRoute> },

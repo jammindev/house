@@ -4610,5 +4610,55 @@
       "title": "Purchase — {{name}}",
       "created": "Purchase recorded"
     }
+  },
+  "games": {
+    "title": "Treasure hunt",
+    "new": "New hunt",
+    "newTitle": "Compose a hunt",
+    "editTitle": "Edit the hunt",
+    "created": "Hunt saved",
+    "updated": "Hunt updated",
+    "deleted": "Hunt deleted",
+    "none": "No hunt yet",
+    "emptyDescription": "Pick a few rooms, write a riddle for each, hide something at the end — and hand over the phone.",
+    "composerHint": "The order of the steps is the order of the game. Each riddle should point at the room that comes next.",
+    "fieldName": "Name",
+    "namePlaceholder": "Rainy Sunday hunt",
+    "fieldSteps": "Steps",
+    "stepNumber": "Step {{number}}",
+    "removeStep": "Remove this step",
+    "addStep": "Add a step",
+    "pickRoom": "Which room?",
+    "riddlePlaceholder": "I am where the water sings in the morning…",
+    "riddleLabel": "Riddle for step {{number}}",
+    "fieldTreasure": "The treasure",
+    "treasurePlaceholder": "The cake is in the switched-off oven",
+    "start": "Start",
+    "startFailed": "Could not start the hunt",
+    "resume": "Resume",
+    "abandon": "Abandon the hunt",
+    "stepCount_one": "{{count}} step",
+    "stepCount_other": "{{count}} steps",
+    "progress": "{{found}} of {{total}} found",
+    "playTitle": "Hunt in progress",
+    "noActive": "No hunt running",
+    "noActiveDescription": "Start one from the hunt list, then hand the phone to the players.",
+    "backToHunts": "Back to hunts",
+    "noRiddle": "No riddle for this step — head to the next room.",
+    "scanHint": "Scan the QR label in the room with your camera",
+    "won": "Found it!",
+    "status": {
+      "draft": "Draft",
+      "active": "Running",
+      "done": "Finished",
+      "abandoned": "Abandoned"
+    },
+    "scan": {
+      "advanced": "Found! Here comes the next riddle.",
+      "finished": "That was the last one — the treasure is yours!",
+      "wrong_zone": "Not here. Read the riddle again.",
+      "already_found": "Already found — keep going.",
+      "no_hunt": "No hunt running."
+    }
   }
 }

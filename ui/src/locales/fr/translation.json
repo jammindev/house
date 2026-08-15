@@ -4610,5 +4610,55 @@
       "title": "Achat — {{name}}",
       "created": "Achat enregistré"
     }
+  },
+  "games": {
+    "title": "Chasse au trésor",
+    "new": "Nouvelle chasse",
+    "newTitle": "Composer une chasse",
+    "editTitle": "Modifier la chasse",
+    "created": "Chasse enregistrée",
+    "updated": "Chasse mise à jour",
+    "deleted": "Chasse supprimée",
+    "none": "Aucune chasse pour l’instant",
+    "emptyDescription": "Choisissez quelques pièces, écrivez une énigme pour chacune, cachez quelque chose au bout — et tendez le téléphone.",
+    "composerHint": "L’ordre des étapes est l’ordre du jeu. Chaque énigme doit désigner la pièce suivante.",
+    "fieldName": "Nom",
+    "namePlaceholder": "Chasse du dimanche pluvieux",
+    "fieldSteps": "Étapes",
+    "stepNumber": "Étape {{number}}",
+    "removeStep": "Retirer cette étape",
+    "addStep": "Ajouter une étape",
+    "pickRoom": "Quelle pièce ?",
+    "riddlePlaceholder": "Je suis là où l’eau chante le matin…",
+    "riddleLabel": "Énigme de l’étape {{number}}",
+    "fieldTreasure": "Le trésor",
+    "treasurePlaceholder": "Le gâteau est dans le four éteint",
+    "start": "Lancer",
+    "startFailed": "Impossible de lancer la chasse",
+    "resume": "Reprendre",
+    "abandon": "Abandonner la chasse",
+    "stepCount_one": "{{count}} étape",
+    "stepCount_other": "{{count}} étapes",
+    "progress": "{{found}} sur {{total}} trouvées",
+    "playTitle": "Chasse en cours",
+    "noActive": "Aucune chasse en cours",
+    "noActiveDescription": "Lancez-en une depuis la liste, puis tendez le téléphone aux joueurs.",
+    "backToHunts": "Retour aux chasses",
+    "noRiddle": "Pas d’énigme pour cette étape — filez à la pièce suivante.",
+    "scanHint": "Scannez l’étiquette QR de la pièce avec l’appareil photo",
+    "won": "Trouvé !",
+    "status": {
+      "draft": "Brouillon",
+      "active": "En cours",
+      "done": "Terminée",
+      "abandoned": "Abandonnée"
+    },
+    "scan": {
+      "advanced": "Trouvé ! Voici l’énigme suivante.",
+      "finished": "C’était la dernière — le trésor est à vous !",
+      "wrong_zone": "Pas ici. Relisez l’énigme.",
+      "already_found": "Déjà trouvée — continuez.",
+      "no_hunt": "Aucune chasse en cours."
+    }
   }
 }

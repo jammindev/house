@@ -10,7 +10,7 @@ Issue parente : **#607**.
 | Lot | Sujet | Statut | Issue |
 |---|---|---|---|
 | 1 | Étiquettes QR de zone — jeton, planche d'impression, route de scan | ✅ Livré | #608 |
-| 2 | La chasse — `apps/games`, session serveur, avancement par scan | ⬜ À faire | #609 |
+| 2 | La chasse — `apps/games`, session serveur, avancement par scan | ✅ Livré | #609 |
 | 3 | Énigmes par l'assistant — capability, génération, relecture | ⬜ À faire | #610 |
 | 4 | Rejouer + ping du samedi pluvieux | ⬜ À faire | #611 |
 

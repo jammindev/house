@@ -329,7 +329,30 @@ class ZoneViewSet(DocumentLinkActionsMixin, viewsets.ModelViewSet):
             )
 
         zone = self.get_queryset().filter(pk=zone.pk).first() or zone
-        return Response({'zone': ZoneSerializer(zone, context={'request': request}).data})
+        payload = {'zone': ZoneSerializer(zone, context={'request': request}).data}
+
+        # La chasse au trésor (parcours 31, lot 2) **étend** cette réponse, elle
+        # n'ouvre pas un second endpoint de scan. L'import est local : le module
+        # Jeux est optionnel, et l'ancrage des zones doit continuer à marcher
+        # chez un foyer qui l'a désactivé.
+        from games.services import record_scan
+        from games.serializers import HuntPlaySerializer
+
+        outcome = record_scan(household, zone)
+        payload['verdict'] = outcome['verdict']
+        payload['hunt'] = (
+            HuntPlaySerializer(outcome['hunt']).data if outcome['hunt'] else None
+        )
+        payload['next_step'] = (
+            {
+                'id': str(outcome['step'].id),
+                'position': outcome['step'].position,
+                'riddle': outcome['step'].riddle,
+            }
+            if outcome['step']
+            else None
+        )
+        return Response(payload)
 
     @action(detail=True, methods=['post'], url_path='rotate-qr')
     def rotate_qr(self, request, pk=None):

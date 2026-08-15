@@ -4,10 +4,21 @@ import { useTranslation } from 'react-i18next';
 import { QrCode } from 'lucide-react';
 
 import { useAuth } from '@/lib/auth/useAuth';
+import { toast } from '@/lib/toast';
 import { Button } from '@/design-system/button';
+import type { ScanVerdict } from '@/lib/api/games';
 import { useScanZoneToken } from './hooks';
 
 type Failure = 'unknown' | 'other-household' | 'generic';
+
+/** Le ton du retour de scan — trouver, se tromper, gagner ne se disent pas pareil. */
+const SCAN_TONE: Record<ScanVerdict, 'success' | 'destructive' | 'default'> = {
+  no_hunt: 'default',
+  advanced: 'success',
+  finished: 'success',
+  already_found: 'default',
+  wrong_zone: 'destructive',
+};
 
 function failureOf(error: unknown): Failure {
   const status = (error as { response?: { status?: number } })?.response?.status;
@@ -50,8 +61,20 @@ export default function ZoneScanPage() {
 
     let cancelled = false;
     scan(token)
-      .then(({ zone }) => {
+      .then(({ zone, verdict, hunt }) => {
         if (cancelled) return;
+
+        // Hors partie, une étiquette est un raccourci vers sa pièce. Pendant une
+        // chasse, le même geste est un **coup joué** : on renvoie donc vers
+        // l'écran de jeu, qui est la seule vue autorisée à dire où on en est.
+        if (verdict !== 'no_hunt') {
+          toast({ description: t(`games.scan.${verdict}`), variant: SCAN_TONE[verdict] });
+          navigate(hunt ? `/app/games/play?hunt=${hunt.id}` : '/app/games/play', {
+            replace: true,
+          });
+          return;
+        }
+
         navigate(`/app/zones/${zone.id}`, { replace: true });
       })
       .catch((error) => {

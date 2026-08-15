@@ -4610,5 +4610,55 @@
       "title": "Compra — {{name}}",
       "created": "Compra registrada"
     }
+  },
+  "games": {
+    "title": "Búsqueda del tesoro",
+    "new": "Nueva búsqueda",
+    "newTitle": "Componer una búsqueda",
+    "editTitle": "Editar la búsqueda",
+    "created": "Búsqueda guardada",
+    "updated": "Búsqueda actualizada",
+    "deleted": "Búsqueda eliminada",
+    "none": "Aún no hay búsquedas",
+    "emptyDescription": "Elige unas estancias, escribe un acertijo para cada una, esconde algo al final… y pasa el móvil.",
+    "composerHint": "El orden de los pasos es el orden del juego. Cada acertijo debe señalar la estancia siguiente.",
+    "fieldName": "Nombre",
+    "namePlaceholder": "Búsqueda del domingo lluvioso",
+    "fieldSteps": "Pasos",
+    "stepNumber": "Paso {{number}}",
+    "removeStep": "Quitar este paso",
+    "addStep": "Añadir un paso",
+    "pickRoom": "¿Qué estancia?",
+    "riddlePlaceholder": "Estoy donde el agua canta por la mañana…",
+    "riddleLabel": "Acertijo del paso {{number}}",
+    "fieldTreasure": "El tesoro",
+    "treasurePlaceholder": "El pastel está en el horno apagado",
+    "start": "Empezar",
+    "startFailed": "No se pudo empezar la búsqueda",
+    "resume": "Continuar",
+    "abandon": "Abandonar la búsqueda",
+    "stepCount_one": "{{count}} paso",
+    "stepCount_other": "{{count}} pasos",
+    "progress": "{{found}} de {{total}} encontradas",
+    "playTitle": "Búsqueda en curso",
+    "noActive": "No hay ninguna búsqueda en curso",
+    "noActiveDescription": "Empieza una desde la lista y pasa el móvil a quien juegue.",
+    "backToHunts": "Volver a las búsquedas",
+    "noRiddle": "Sin acertijo para este paso: id a la siguiente estancia.",
+    "scanHint": "Escanea la etiqueta QR de la estancia con la cámara",
+    "won": "¡Encontrado!",
+    "status": {
+      "draft": "Borrador",
+      "active": "En curso",
+      "done": "Terminada",
+      "abandoned": "Abandonada"
+    },
+    "scan": {
+      "advanced": "¡Encontrado! Aquí va el siguiente acertijo.",
+      "finished": "Era el último: ¡el tesoro es vuestro!",
+      "wrong_zone": "Aquí no. Volved a leer el acertijo.",
+      "already_found": "Ya encontrada, seguid.",
+      "no_hunt": "No hay ninguna búsqueda en curso."
+    }
   }
 }

@@ -4610,5 +4610,55 @@
       "title": "Kauf — {{name}}",
       "created": "Kauf erfasst"
     }
+  },
+  "games": {
+    "title": "Schatzsuche",
+    "new": "Neue Suche",
+    "newTitle": "Eine Suche zusammenstellen",
+    "editTitle": "Suche bearbeiten",
+    "created": "Suche gespeichert",
+    "updated": "Suche aktualisiert",
+    "deleted": "Suche gelöscht",
+    "none": "Noch keine Schatzsuche",
+    "emptyDescription": "Wählen Sie ein paar Räume, schreiben Sie je ein Rätsel, verstecken Sie etwas am Ende — und reichen Sie das Handy weiter.",
+    "composerHint": "Die Reihenfolge der Schritte ist der Spielverlauf. Jedes Rätsel soll auf den nächsten Raum zeigen.",
+    "fieldName": "Name",
+    "namePlaceholder": "Suche für den Regensonntag",
+    "fieldSteps": "Schritte",
+    "stepNumber": "Schritt {{number}}",
+    "removeStep": "Diesen Schritt entfernen",
+    "addStep": "Schritt hinzufügen",
+    "pickRoom": "Welcher Raum?",
+    "riddlePlaceholder": "Ich bin dort, wo das Wasser morgens singt…",
+    "riddleLabel": "Rätsel für Schritt {{number}}",
+    "fieldTreasure": "Der Schatz",
+    "treasurePlaceholder": "Der Kuchen ist im ausgeschalteten Ofen",
+    "start": "Starten",
+    "startFailed": "Suche konnte nicht gestartet werden",
+    "resume": "Fortsetzen",
+    "abandon": "Suche abbrechen",
+    "stepCount_one": "{{count}} Schritt",
+    "stepCount_other": "{{count}} Schritte",
+    "progress": "{{found}} von {{total}} gefunden",
+    "playTitle": "Laufende Suche",
+    "noActive": "Keine laufende Suche",
+    "noActiveDescription": "Starten Sie eine aus der Liste und reichen Sie das Handy weiter.",
+    "backToHunts": "Zurück zu den Suchen",
+    "noRiddle": "Kein Rätsel für diesen Schritt — weiter zum nächsten Raum.",
+    "scanHint": "Scannen Sie das QR-Etikett im Raum mit der Kamera",
+    "won": "Gefunden!",
+    "status": {
+      "draft": "Entwurf",
+      "active": "Läuft",
+      "done": "Beendet",
+      "abandoned": "Abgebrochen"
+    },
+    "scan": {
+      "advanced": "Gefunden! Hier kommt das nächste Rätsel.",
+      "finished": "Das war das letzte — der Schatz gehört euch!",
+      "wrong_zone": "Nicht hier. Lest das Rätsel noch einmal.",
+      "already_found": "Schon gefunden — weiter geht’s.",
+      "no_hunt": "Keine laufende Suche."
+    }
   }
 }

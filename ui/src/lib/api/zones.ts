@@ -151,9 +151,18 @@ export interface ZonePrintSheet {
  * C'est la **seule** porte de scan : le lot 2 du parcours 31 étend cette réponse
  * du verdict de la chasse en cours plutôt que d'ouvrir un second endpoint.
  */
-export async function scanZoneToken(token: string): Promise<{ zone: Zone }> {
+export interface ScanResult {
+  zone: Zone;
+  /** Verdict de la chasse en cours — `no_hunt` quand aucune partie ne tourne. */
+  verdict: import('./games').ScanVerdict;
+  hunt: import('./games').HuntPlay | null;
+  next_step: { id: string; position: number; riddle: string } | null;
+}
+
+export async function scanZoneToken(token: string): Promise<ScanResult> {
   const { data } = await api.post('/zones/scan/', { token });
-  return { zone: normalizeZone((data as { zone: Zone }).zone) };
+  const payload = data as ScanResult;
+  return { ...payload, zone: normalizeZone(payload.zone) };
 }
 
 /** La planche d'étiquettes du foyer — le seul endpoint qui expose les jetons. */

@@ -63,6 +63,7 @@ INSTALLED_APPS = [
     "releases",
     "chickens",
     "orchard",
+    "games",
     "pings",
     "budget",
     "recap",

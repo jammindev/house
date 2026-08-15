@@ -104,6 +104,7 @@ from budget.models import Budget, BudgetCategory, RecurringExpense
 from interactions.models import Interaction, InteractionZone
 from projects.models import Project
 from shopping.models import ShoppingListItem, ShoppingSuggestionDismissal
+from games.models import Hunt
 from stock.models import StockCategory, StockItem
 from tags.models import Tag, TagLink
 from tasks.models import Task, TaskZone
@@ -222,6 +223,12 @@ class Command(BaseCommand):
             BudgetCategory.objects.filter(household_id__in=household_ids).delete()
             StockItem.objects.filter(household_id__in=household_ids).delete()
             StockCategory.objects.filter(household_id__in=household_ids).delete()
+            # Les chasses au trésor partent **avant les zones** : `HuntStep.zone`
+            # est PROTECT (supprimer une pièce ne doit pas amputer une partie en
+            # silence), donc un foyer qui a joué une seule fois deviendrait
+            # impossible à purger. Même raison que `BankTransaction.account`
+            # ci-dessus — un flush qui ne flushe pas est pire que pas de flush.
+            Hunt.objects.filter(household_id__in=household_ids).delete()
             Zone.objects.filter(household_id__in=household_ids).delete()
             Household.objects.filter(id__in=household_ids).delete()
         users.delete()

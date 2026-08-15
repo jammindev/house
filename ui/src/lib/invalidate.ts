@@ -54,6 +54,7 @@ export const QUERY_ROOTS = [
   'electricity',
   'equipment',
   'expenses',
+  'games',
   'household-members',
   'households',
   'insurance',
