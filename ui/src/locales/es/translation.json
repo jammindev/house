@@ -2337,7 +2337,9 @@
       "greeting": "Hola {{name}}",
       "allClear": "Todo bajo control — nada requiere su atención.",
       "attention_one": "{{count}} cosa requiere su atención.",
-      "attention_other": "{{count}} cosas requieren su atención."
+      "attention_other": "{{count}} cosas requieren su atención.",
+      "welcome": "Bienvenido, {{name}}",
+      "emptyHousehold": "Tu hogar está vacío: por aquí se empieza."
     },
     "triage": {
       "title": "Por tratar",
@@ -2394,6 +2396,11 @@
     "projects": {
       "title": "Proyectos activos",
       "cta": "Todos los proyectos"
+    },
+    "firstSteps": {
+      "title": "Primeros pasos",
+      "hint": "Unos minutos bastan para que la app tenga algo que responder.",
+      "seeGuides": "Todas las guías"
     }
   },
   "insurance": {
@@ -2714,7 +2721,8 @@
     "setupHouseholdName": "Nombre del hogar (opcional)",
     "setupSubmit": "Crear mi cuenta",
     "setupPending": "Creando…",
-    "setupFailed": "La configuración ha fallado. Revisa los datos introducidos."
+    "setupFailed": "La configuración ha fallado. Revisa los datos introducidos.",
+    "setupFirstName": "Tu nombre"
   },
   "projects": {
     "app_title": "Mini-app Proyectos",

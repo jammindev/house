@@ -2337,7 +2337,9 @@
       "greeting": "Bonjour {{name}}",
       "allClear": "Tout est sous contrôle — rien ne demande votre attention.",
       "attention_one": "{{count}} chose demande votre attention.",
-      "attention_other": "{{count}} choses demandent votre attention."
+      "attention_other": "{{count}} choses demandent votre attention.",
+      "welcome": "Bienvenue, {{name}}",
+      "emptyHousehold": "Votre maisonnée est vide — voici par où commencer."
     },
     "triage": {
       "title": "À traiter",
@@ -2394,6 +2396,11 @@
     "projects": {
       "title": "Projets actifs",
       "cta": "Tous les projets"
+    },
+    "firstSteps": {
+      "title": "Premiers pas",
+      "hint": "Quelques minutes suffisent pour que l'app ait de quoi vous répondre.",
+      "seeGuides": "Tous les guides"
     }
   },
   "insurance": {
@@ -2714,7 +2721,8 @@
     "setupHouseholdName": "Nom du foyer (facultatif)",
     "setupSubmit": "Créer mon compte",
     "setupPending": "Création…",
-    "setupFailed": "La création a échoué. Vérifiez les informations saisies."
+    "setupFailed": "La création a échoué. Vérifiez les informations saisies.",
+    "setupFirstName": "Votre prénom"
   },
   "projects": {
     "app_title": "Mini-app Projets",

@@ -51,6 +51,11 @@ class SetupSerializer(serializers.Serializer):
 
     email = serializers.EmailField()
     password = serializers.CharField(write_only=True, style={"input_type": "password"})
+    # Le prénom n'est pas de la coquetterie : sans lui, le nom affiché se dérive
+    # de l'adresse et le premier mot de l'app est « Bonjour benjamin.vandamme ».
+    first_name = serializers.CharField(
+        required=False, allow_blank=True, max_length=150, default=""
+    )
     household_name = serializers.CharField(
         required=False, allow_blank=True, max_length=255, default=""
     )
@@ -126,6 +131,7 @@ class SetupView(APIView):
                 email=data["email"],
                 password=data["password"],
                 household_name=data.get("household_name") or DEFAULT_HOUSEHOLD,
+                first_name=data.get("first_name") or "",
             )
 
         # Aucun jeton renvoyé : le front enchaîne sur son `login()` habituel, qui

@@ -34,6 +34,12 @@ export const EMPTY_ALERTS_SUMMARY: AlertsSummary = {
   egg_drop_alerts: [],
   due_chores: [],
   total: 0,
+  // `false` et non `true` : ce littéral sert de repli quand on ne sait pas
+  // encore. L'inconnu ne doit pas se lire comme « ce foyer est vide », sinon un
+  // foyer bien rempli verrait clignoter l'écran des premiers pas le temps du
+  // chargement. Même défaut sûr que `guess_internal`, qui renvoie `False` sur
+  // l'inconnu plutôt que de deviner.
+  household_is_empty: false,
 };
 
 function weatherTitle(t: Translate, item: WeatherAlert): string {

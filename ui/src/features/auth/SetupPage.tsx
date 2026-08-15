@@ -25,6 +25,7 @@ export default function SetupPage() {
   // le formulaire avant la réponse le ferait clignoter chez quelqu'un dont
   // l'instance est déjà configurée.
   const [required, setRequired] = useState<boolean | null>(null);
+  const [firstName, setFirstName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [household, setHousehold] = useState('');
@@ -49,6 +50,7 @@ export default function SetupPage() {
         email,
         password,
         household_name: household,
+        first_name: firstName,
       });
       // On enchaîne sur le `login()` habituel plutôt que sur des jetons renvoyés
       // par la configuration : un seul chemin d'authentification, donc un seul
@@ -83,6 +85,13 @@ export default function SetupPage() {
           <p className="text-sm text-muted-foreground">{t('auth.setupIntro')}</p>
         </div>
         {error && <p className="text-sm text-destructive">{error}</p>}
+        <Input
+          type="text"
+          placeholder={t('auth.setupFirstName')}
+          value={firstName}
+          onChange={(e) => setFirstName(e.target.value)}
+          autoComplete="given-name"
+        />
         <Input
           type="email"
           placeholder={t('auth.email')}
