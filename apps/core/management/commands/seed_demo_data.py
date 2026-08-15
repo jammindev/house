@@ -155,6 +155,10 @@ class Command(BaseCommand):
             self._create_money(household, claire, projects)
             equipment = self._create_equipment(household, antoine, zones)
             stock = self._create_stock(household, claire, zones)
+            # Après le stock, parce que la dépense n'existe qu'une fois l'achat
+            # semé — et avant tout le reste, parce qu'un écart non résolu ici se
+            # lit dans le Contrôle comme un défaut du produit.
+            self._reconcile_stock_purchase(household, claire)
             self._create_shopping(household, lea, stock)
             self._create_chickens(household, lea, zones, stock)
             self._create_water(household, claire)
@@ -1098,6 +1102,14 @@ class Command(BaseCommand):
             (20, "VIR SEPA EMIS EPARGNE LIVRET A", "-300.00"),
             (22, "CB CARREFOUR MARKET LYON", "-88.15"),
             (24, "VIR SEPA RECU MUTUELLE REMB SOINS", "47.60"),
+            # L'achat de granulés du module Stock, vu par la banque. Il est daté
+            # AVANT le début de la période narrative (offset négatif) : c'est la
+            # date que `_create_stock` calcule. Sans cette ligne, la dépense de
+            # stock est une dépense sans justificatif *dans* la fenêtre de
+            # conformité — un écart fabriqué par la seed. Elle tenait jusqu'ici
+            # parce que la fenêtre commençait après ; depuis qu'elle remonte à
+            # trois ans, plus rien n'est « avant ».
+            (-5, "CB GAMM VERT LYON", "-26.25"),
             (32, "VIR SEPA RECU SALAIRE MERCIER C", "2410.00"),
             (33, "PRLV CREDIT IMMOBILIER CM", "-892.40"),
             (34, "PRLV EDF ENERGIE", "-141.75"),
@@ -1123,6 +1135,10 @@ class Command(BaseCommand):
         # relevé : une chaîne de soldes se lit de bout en bout, ou elle ne prouve
         # rien. C'est aussi ce qui garde `account_chain_broken` muet.
         movements = history + [(d(offset), label, amount) for offset, label, amount in lines]
+        # Trié, et pas seulement concaténé : une ligne narrative peut porter un
+        # offset négatif et tomber au milieu du dernier mois généré. Un relevé
+        # dans le désordre casse la chaîne des soldes imprimés.
+        movements.sort(key=lambda movement: movement[0])
 
         rows = ["Date;Libelle;Montant;Solde"]
         balance = opening_balance
@@ -1547,6 +1563,45 @@ class Command(BaseCommand):
             f"solde {balance:.2f} €"
         )
         return savings
+
+    def _reconcile_stock_purchase(self, household, user):
+        """L'achat de granulés, rattaché à sa ligne de relevé et à son enveloppe.
+
+        Ce rattachement n'existait pas, et n'avait pas à exister : l'achat était
+        daté **avant** la fenêtre de conformité, qui commençait deux mois en
+        arrière. Une dépense hors fenêtre n'est pas un écart — c'est de
+        l'histoire, et le Contrôle n'en réclame rien.
+
+        En reculant le solde d'ouverture de trois ans, la fenêtre a avalé cet
+        achat : il est devenu une dépense sans justificatif et sans enveloppe,
+        donc deux écarts que personne n'avait décidés. Élargir la fenêtre change
+        ce qui est *évaluable*, et tout ce qui y entre doit être résolu ou assumé
+        — c'est la règle du parcours 26 appliquée à la seed elle-même.
+
+        Le rattachement est en plus **plus vrai** : dans un vrai foyer, un sac de
+        granulés payé par carte apparaît sur le relevé. Et il donne à voir une
+        chose que la démonstration ne montrait nulle part — une dépense née dans
+        un autre module, retrouvée par la banque.
+        """
+        from banking.services import link_interaction
+
+        transaction = BankTransaction.objects.filter(
+            household=household, label_raw__icontains="GAMM VERT"
+        ).first()
+        purchase = (
+            Interaction.objects.filter(household=household, kind="stock_purchase")
+            .filter(supplier="Gamm vert")
+            .first()
+        )
+        if transaction is None or purchase is None:
+            return
+
+        if purchase.budget_id is None:
+            purchase.budget = Budget.objects.filter(household=household, name="Courses").first()
+            purchase.save(update_fields=["budget", "updated_at"])
+
+        if purchase.bank_transaction_id is None:
+            link_interaction(user=user, transaction=transaction, interaction=purchase)
 
     def _budget_category(self, household, name, monthly_amount):
         category, _ = BudgetCategory.objects.get_or_create(
