@@ -831,6 +831,30 @@
       "projects_title": "Active projects",
       "projects_empty": "No active projects for this zone.",
       "documents_empty": "No documents linked to this zone yet."
+    },
+    "qr": {
+      "openPrintSheet": "QR labels",
+      "printTitle": "Zone QR labels",
+      "printIntro": "Print this sheet, cut out the labels and stick one in each room. Scanning a label with your phone camera opens that room in House.",
+      "printButton": "Print",
+      "printEmpty": "No zones to label yet.",
+      "scanning": "Reading the label…",
+      "backToZones": "Back to zones",
+      "failure": {
+        "unknown": {
+          "title": "Unknown label",
+          "body": "This label does not match any room. It was probably replaced by a newer one — print the sheet again."
+        },
+        "other-household": {
+          "title": "Another household’s label",
+          "body": "This label belongs to a different household. Switch household, or use a label printed from this one."
+        },
+        "generic": {
+          "title": "Could not read the label",
+          "body": "Something went wrong on the way. Check your connection and scan again."
+        }
+      },
+      "rotated": "New label generated — reprint this room."
     }
   },
   "tasks": {
@@ -1849,6 +1873,36 @@
             "body": "A recap is frozen the first time it is read, and never recomputed. Correct an expense from June in August and June's recap keeps the figures it had — that is what makes it a memory rather than a query."
           }
         }
+      },
+      "orchard": {
+        "title": "Keep your orchard",
+        "intro": "What you did to each tree, what it gave, and what the season is asking for.",
+        "steps": {
+          "subjects": {
+            "title": "Plant your subjects",
+            "body": "One record per tree, bush or vine. A zone is required: an orchard is found by place."
+          },
+          "journal": {
+            "title": "Log what you do",
+            "body": "Pruning, treatment, observation — dated and typed. A tree answers a year later; your memory does not."
+          },
+          "seasons": {
+            "title": "Say when, not how often",
+            "body": "« Winter pruning runs November to March. » The page opens on what the season asks for; mark it done, or turn it into a task."
+          },
+          "harvests": {
+            "title": "Weigh your harvests",
+            "body": "Record every picking. Fruit trees alternate: it is the run of seasons that speaks, never a single year."
+          },
+          "frost": {
+            "title": "Protect blossom from frost",
+            "body": "Set a subject's flowering window: a frost night forecast during it is flagged the day before. Without it, no alert."
+          },
+          "agent": {
+            "title": "Ask the assistant",
+            "body": "« How many kilos of apples this year? », or dictate « log 12 kg of apples on the far apple tree »."
+          }
+        }
       }
     }
   },
@@ -2337,7 +2391,9 @@
       "greeting": "Hello {{name}}",
       "allClear": "Everything is under control — nothing needs your attention.",
       "attention_one": "{{count}} thing needs your attention.",
-      "attention_other": "{{count}} things need your attention."
+      "attention_other": "{{count}} things need your attention.",
+      "welcome": "Welcome, {{name}}",
+      "emptyHousehold": "Your household is empty — here is where to start."
     },
     "triage": {
       "title": "To handle",
@@ -2394,6 +2450,11 @@
     "projects": {
       "title": "Active projects",
       "cta": "All projects"
+    },
+    "firstSteps": {
+      "title": "First steps",
+      "hint": "A few minutes is enough to give the app something to answer with.",
+      "seeGuides": "All guides"
     }
   },
   "insurance": {
@@ -2715,6 +2776,7 @@
     "setupSubmit": "Create my account",
     "setupPending": "Creating…",
     "setupFailed": "Setup failed. Check the details you entered.",
+    "setupFirstName": "Your first name",
     "demo": {
       "title": "Demo instance",
       "body": "You are entering the fictional “Mercier family” household, filled with three years of data. Everything is editable, and everything is reset every night.",
@@ -3206,7 +3268,10 @@
       "meter": "Meters",
       "tracker": "Trackers",
       "shopping_item": "Shopping list",
-      "chicken_chore": "Coop chores"
+      "chicken_chore": "Coop chores",
+      "tree": "Orchard",
+      "tree_event": "Orchard care",
+      "harvest": "Harvests"
     }
   },
   "agent": {
@@ -4426,6 +4491,217 @@
       "unavailable": "The Telegram channel is not configured on this instance.",
       "without": "The Telegram channel is off. Notifications stay inside the app.",
       "enabled": "Your household can talk to the assistant from Telegram."
+    }
+  },
+  "orchard": {
+    "title": "Orchard",
+    "new": "Add a subject",
+    "created": "Subject added",
+    "updated": "Subject updated",
+    "deleted": "Subject deleted",
+    "filters": {
+      "living": "Standing",
+      "all": "All",
+      "gone": "Gone"
+    },
+    "empty": {
+      "title": "No subject in the orchard yet",
+      "description": "Add your trees, bushes and vines to track their care and their harvests.",
+      "noZone": "Create an outdoor zone first: every orchard subject belongs to a place.",
+      "createZone": "Create a zone"
+    },
+    "journal": {
+      "title": "Care journal",
+      "empty": "Nothing logged yet."
+    },
+    "kind": {
+      "fruit_tree": "Fruit tree",
+      "berry_bush": "Berry bush",
+      "vine": "Vine",
+      "ornamental": "Ornamental"
+    },
+    "status": {
+      "alive": "Alive",
+      "ailing": "Ailing",
+      "dead": "Dead",
+      "removed": "Removed"
+    },
+    "eventType": {
+      "pruning": "Pruning",
+      "treatment": "Treatment",
+      "fertilizing": "Fertilizing",
+      "watering": "Watering",
+      "training": "Training",
+      "observation": "Observation",
+      "flowering": "Flowering",
+      "other": "Other"
+    },
+    "unit": {
+      "kg": "kg",
+      "piece": "pieces",
+      "litre": "L"
+    },
+    "card": {
+      "age_one": "{{count}} year",
+      "age_other": "{{count}} years"
+    },
+    "dialog": {
+      "newTitle": "New subject",
+      "editTitle": "Edit subject"
+    },
+    "tabs": {
+      "info": "Details",
+      "events": "Care",
+      "harvests": "Harvests",
+      "documents": "Documents",
+      "photos": "Photos"
+    },
+    "fields": {
+      "name": "Name",
+      "zone": "Zone",
+      "kind": "Kind",
+      "species": "Variety",
+      "rootstock": "Rootstock",
+      "plantedOn": "Planting date",
+      "plantedOnHint": "Leave empty if you do not know it.",
+      "plantedUnknown": "Unknown",
+      "floweringStart": "Flowering — from",
+      "floweringEnd": "Flowering — to",
+      "flowering": "Flowering",
+      "floweringNotSet": "Not set",
+      "notSet": "Not set",
+      "status": "Status",
+      "notes": "Notes",
+      "tree": "Subject",
+      "eventType": "Type",
+      "occurredOn": "Date",
+      "title": "Title",
+      "quantity": "Quantity",
+      "unit": "Unit",
+      "harvestedOn": "Harvest date",
+      "emoji": "Emoji"
+    },
+    "errors": {
+      "zoneRequired": "Pick a zone: a subject with no place is a subject nobody finds again.",
+      "floweringIncomplete": "Set both the start and the end of flowering, or neither."
+    },
+    "event": {
+      "new": "Log care",
+      "newTitle": "New care entry",
+      "editTitle": "Edit care entry",
+      "created": "Care logged",
+      "updated": "Care entry updated",
+      "deleted": "Care entry deleted"
+    },
+    "harvest": {
+      "new": "Add a harvest",
+      "newTitle": "New harvest",
+      "editTitle": "Edit harvest",
+      "created": "Harvest recorded",
+      "updated": "Harvest updated",
+      "deleted": "Harvest deleted",
+      "empty": "No harvest recorded yet."
+    },
+    "series": {
+      "title": "Harvests by season",
+      "seasonTitle": "{{season}} harvest",
+      "empty": "No harvest recorded yet.",
+      "currentSeason": "current",
+      "singleSeason": "One season is not a comparison yet — fruit trees alternate."
+    },
+    "floweringPrompt": "The flowering window is not set: without it, no frost alert can target this subject.",
+    "floweringPromptAction": "Set the flowering window",
+    "months": {
+      "1": "January",
+      "2": "February",
+      "3": "March",
+      "4": "April",
+      "5": "May",
+      "6": "June",
+      "7": "July",
+      "8": "August",
+      "9": "September",
+      "10": "October",
+      "11": "November",
+      "12": "December"
+    },
+    "care": {
+      "new": "New rule",
+      "newTitle": "New care rule",
+      "editTitle": "Edit rule",
+      "created": "Rule created",
+      "updated": "Rule updated",
+      "deleted": "Rule deleted",
+      "completed": "Care logged",
+      "seasonTitle": "What the season asks for",
+      "markDone": "Done",
+      "missedHint": "Window closed — pick it up next season.",
+      "windowOpen": "Due before {{date}}",
+      "windowClosed": "The window closed on {{date}}",
+      "windowStart": "From",
+      "windowEnd": "To",
+      "windowHint": "A window may cross New Year — « November → March » is the normal shape in an orchard.",
+      "eventType": "Journal entry type",
+      "scope": "Scope",
+      "scopeKind": "Every subject of a kind",
+      "scopeTree": "One subject",
+      "createTask": "Create a task",
+      "taskCreated": "Task created"
+    },
+    "purchase": {
+      "action": "Declare a purchase",
+      "title": "Purchase — {{name}}",
+      "created": "Purchase recorded"
+    }
+  },
+  "games": {
+    "title": "Treasure hunt",
+    "new": "New hunt",
+    "newTitle": "Compose a hunt",
+    "editTitle": "Edit the hunt",
+    "created": "Hunt saved",
+    "updated": "Hunt updated",
+    "deleted": "Hunt deleted",
+    "none": "No hunt yet",
+    "emptyDescription": "Pick a few rooms, write a riddle for each, hide something at the end — and hand over the phone.",
+    "composerHint": "The order of the steps is the order of the game. Each riddle should point at the room that comes next.",
+    "fieldName": "Name",
+    "namePlaceholder": "Rainy Sunday hunt",
+    "fieldSteps": "Steps",
+    "stepNumber": "Step {{number}}",
+    "removeStep": "Remove this step",
+    "addStep": "Add a step",
+    "pickRoom": "Which room?",
+    "riddlePlaceholder": "I am where the water sings in the morning…",
+    "riddleLabel": "Riddle for step {{number}}",
+    "fieldTreasure": "The treasure",
+    "treasurePlaceholder": "The cake is in the switched-off oven",
+    "start": "Start",
+    "startFailed": "Could not start the hunt",
+    "resume": "Resume",
+    "abandon": "Abandon the hunt",
+    "stepCount_one": "{{count}} step",
+    "stepCount_other": "{{count}} steps",
+    "progress": "{{found}} of {{total}} found",
+    "playTitle": "Hunt in progress",
+    "noActive": "No hunt running",
+    "noActiveDescription": "Start one from the hunt list, then hand the phone to the players.",
+    "backToHunts": "Back to hunts",
+    "noRiddle": "No riddle for this step — head to the next room.",
+    "scanHint": "Scan the QR label in the room with your camera",
+    "won": "Found it!",
+    "status": {
+      "draft": "Draft",
+      "active": "Running",
+      "done": "Finished",
+      "abandoned": "Abandoned"
+    },
+    "scan": {
+      "advanced": "Found! Here comes the next riddle.",
+      "finished": "That was the last one — the treasure is yours!",
+      "wrong_zone": "Not here. Read the riddle again.",
+      "already_found": "Already found — keep going.",
+      "no_hunt": "No hunt running."
     }
   }
 }

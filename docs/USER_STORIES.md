@@ -55,25 +55,61 @@ story peut traverser trois specs, une spec peut couvrir zéro story.
 
 | ID | Story | Statut | Preuve |
 |---|---|---|---|
-| ORCH-01 | En tant que membre, je veux créer, modifier et supprimer les sujets de mon verger, afin de tenir le registre de ce que je possède | ⬜ | — |
-| ORCH-02 | En tant que membre, je veux que chaque sujet soit rattaché à une zone, afin de retrouver mon verger par l'endroit — et que supprimer une zone occupée me soit refusé plutôt que d'effacer l'historique | ⬜ | — |
-| ORCH-03 | En tant que membre, je veux consigner ce que je fais à un sujet (taille, traitement, observation), afin de m'en souvenir un an plus tard | ⬜ | — |
-| ORCH-04 | En tant que membre, je veux déclarer que « la taille d'hiver, c'est entre novembre et mars », afin de savoir en ouvrant l'app ce que la saison réclame | ⬜ | — |
-| ORCH-05 | En tant que membre, je veux transformer une règle échue en tâche datée, afin de la voir avec le reste de ce que j'ai à faire | ⬜ | — |
-| ORCH-06 | En tant que membre, je veux noter combien j'ai récolté et quand, afin de comparer les années | ⬜ | — |
-| ORCH-07 | En tant que membre, je veux voir ce que chaque sujet a donné année après année, afin de lire une production qui alterne naturellement | ⬜ | — |
-| ORCH-08 | En tant que membre, je veux être prévenu quand un gel menace des sujets en fleur, afin de pouvoir les protéger la veille | ⬜ | — |
-| ORCH-09 | En tant que membre, je veux déclarer le prix d'achat d'un arbre, afin de suivre ce que mon verger m'a coûté sans double saisie | ⬜ | — |
-| ORCH-10 | En tant que membre, je veux attacher des photos à un sujet, afin de le voir changer d'une année sur l'autre | ⬜ | — |
+| ORCH-01 | En tant que membre, je veux créer, modifier et supprimer les sujets de mon verger, afin de tenir le registre de ce que je possède | ✅ | `e2e/orchard.spec.ts` |
+| ORCH-02 | En tant que membre, je veux que chaque sujet soit rattaché à une zone, afin de retrouver mon verger par l'endroit — et que supprimer une zone occupée me soit refusé plutôt que d'effacer l'historique | ✅ | `e2e/orchard.spec.ts` |
+| ORCH-03 | En tant que membre, je veux consigner ce que je fais à un sujet (taille, traitement, observation), afin de m'en souvenir un an plus tard | ✅ | `e2e/orchard.spec.ts` |
+| ORCH-04 | En tant que membre, je veux déclarer que « la taille d'hiver, c'est entre novembre et mars », afin de savoir en ouvrant l'app ce que la saison réclame | ✅ | `e2e/orchard-seasons.spec.ts` |
+| ORCH-05 | En tant que membre, je veux transformer une règle échue en tâche datée, afin de la voir avec le reste de ce que j'ai à faire | ✅ | `e2e/orchard-seasons.spec.ts` |
+| ORCH-06 | En tant que membre, je veux noter combien j'ai récolté et quand, afin de comparer les années | ✅ | `e2e/orchard-harvests.spec.ts` |
+| ORCH-07 | En tant que membre, je veux voir ce que chaque sujet a donné année après année, afin de lire une production qui alterne naturellement | ✅ | `e2e/orchard-harvests.spec.ts` |
+| ORCH-08 | En tant que membre, je veux être prévenu quand un gel menace des sujets en fleur, afin de pouvoir les protéger la veille | 🚧 | _livré, testé en Python — pas de spec Playwright_ |
+| ORCH-09 | En tant que membre, je veux déclarer le prix d'achat d'un arbre, afin de suivre ce que mon verger m'a coûté sans double saisie | 🚧 | _livré, testé en Python — pas de spec Playwright_ |
+| ORCH-10 | En tant que membre, je veux attacher des photos à un sujet, afin de le voir changer d'une année sur l'autre | 🚧 | _livré — pas de spec Playwright_ |
 | ORCH-11 | En tant que membre, je veux voir l'essentiel du verger sur le dashboard, afin de ne pas rater une fenêtre saisonnière | ⬜ | — |
-| ORCH-12 | En tant que membre, je veux interroger l'agent sur mon verger, afin d'obtenir des réponses citées sans naviguer | ⬜ | — |
-| ORCH-13 | En tant que membre, je veux dicter « j'ai taillé le prunier » ou « note 12 kg de pommes », afin de consigner sans ouvrir l'app | ⬜ | — |
-| ORCH-14 | En tant que membre non anglophone, je veux le module dans ma langue, afin de l'utiliser comme le reste de l'app | ⬜ | — |
+| ORCH-12 | En tant que membre, je veux interroger l'agent sur mon verger, afin d'obtenir des réponses citées sans naviguer | 🚧 | _livré, testé en Python — pas de spec Playwright_ |
+| ORCH-13 | En tant que membre, je veux dicter « j'ai taillé le prunier » ou « note 12 kg de pommes », afin de consigner sans ouvrir l'app | 🚧 | _livré, testé en Python — pas de spec Playwright_ |
+| ORCH-14 | En tant que membre non anglophone, je veux le module dans ma langue, afin de l'utiliser comme le reste de l'app | ✅ | `ui/src/locales/keys.test.ts` |
 
+> **ORCH-11 reste ⬜** : l'alerte gel remonte bien dans le résumé d'alertes, mais
+> aucune card ne l'affiche sur le tableau de bord. Le module est utilisable sans,
+> et le tableau dit ce qui est prouvé — pas ce qu'on aurait aimé livrer.
+>
 > `ORCH-14` est la seule story de ce module **volontairement** hors Playwright : la
 > parité des quatre catalogues et l'absence de `defaultValue` sont vérifiées
 > statiquement par `ui/src/locales/keys.test.ts`, qui lit le *code* et pas un rendu.
 > Un test navigateur ne dirait rien de plus et manquerait les clés jamais affichées.
+
+---
+
+## Chasse au trésor (`games`) — [parcours 31](parcours/PARCOURS_31_LA_CHASSE_AU_TRESOR.md)
+
+| ID | Story | Statut | Preuve |
+|---|---|---|---|
+| CHAS-01 | En tant que membre, je veux imprimer une planche d'étiquettes QR, une par pièce, afin d'ancrer mes zones dans la maison en un seul geste | ✅ | `e2e/zone-qr.spec.ts` |
+| CHAS-02 | En tant que membre, je veux que scanner l'étiquette d'une pièce m'ouvre cette pièce dans l'app, afin d'atteindre son contenu sans naviguer | ✅ | `e2e/zone-qr.spec.ts` |
+| CHAS-03 | En tant que membre, je veux régénérer le jeton d'une pièce, afin de réimprimer une étiquette abîmée ou vue par les joueurs | ✅ | `e2e/zone-qr.spec.ts` |
+| CHAS-04 | En tant que parent, je veux composer une chasse — les pièces, leur ordre, les énigmes, le texte du trésor — afin de la préparer avant d'appeler les enfants | ✅ | `e2e/hunt.spec.ts` |
+| CHAS-05 | En tant que parent, je veux lancer la chasse et voir l'énigme courante en grand, afin de tendre le téléphone et laisser jouer | ✅ | `e2e/hunt.spec.ts` |
+| CHAS-06 | En tant que joueur, je veux que scanner la bonne pièce dévoile l'énigme suivante, afin d'avancer sans qu'un adulte arbitre | ✅ | `e2e/hunt.spec.ts` |
+| CHAS-07 | En tant que parent, je veux qu'une mauvaise pièce scannée ne révèle rien et ne fasse pas avancer, afin qu'on ne puisse pas gagner en scannant toute la maison | ✅ | `e2e/hunt.spec.ts` |
+| CHAS-08 | En tant que joueur, je veux que la dernière étape révèle où est caché le trésor, afin que la partie ait une fin | ✅ | `e2e/hunt.spec.ts` |
+| CHAS-09 | En tant que joueur, je veux que la partie survive à un rechargement et au passage sur un autre téléphone, afin qu'une fausse manœuvre ne l'annule pas | ✅ | `e2e/hunt.spec.ts` |
+| CHAS-10 | En tant que foyer, je veux qu'une seule chasse soit active à la fois, afin que deux parties lancées en parallèle ne se mélangent pas | ✅ | `e2e/hunt.spec.ts` |
+| CHAS-11 | En tant que parent, je veux demander des énigmes à l'assistant puis les relire et les corriger, afin de préparer une chasse en deux minutes au lieu de vingt | ⬜ | — |
+| CHAS-12 | En tant qu'auto-hébergeur sans clé Anthropic, je veux que l'écran ne me propose pas la génération et me laisse tout saisir, afin de jouer quand même | ⬜ | — |
+| CHAS-13 | En tant que parent, je veux rejouer une chasse terminée dans un ordre mélangé, afin de la ressortir sans tout ressaisir | ⬜ | — |
+| CHAS-14 | En tant que foyer, je veux être invité à jouer un week-end pluvieux, afin d'y penser au bon moment | ⬜ | — |
+| CHAS-15 | En tant qu'owner, je veux désactiver le module Jeux, afin que ma sidebar ne porte pas ce que mon foyer n'utilise pas | ⬜ | — |
+| CHAS-16 | En tant que membre non anglophone, je veux le module dans ma langue, afin de l'utiliser comme le reste de l'app | ⬜ | — |
+
+> `CHAS-16` suit la même exception que `ORCH-14` : la parité des quatre catalogues
+> et l'absence de `defaultValue` sont vérifiées statiquement par
+> `ui/src/locales/keys.test.ts`, qui lit le *code* et pas un rendu.
+>
+> `CHAS-01` est vérifiable jusqu'à l'API (la planche renvoie un SVG par zone), mais
+> **la lisibilité d'une étiquette imprimée puis scannée ne l'est pas** : c'est une
+> recette manuelle, notée comme telle dans le compte rendu d'implémentation. Un ✅
+> sur cette ligne ne couvre que la génération.
 
 ---
 

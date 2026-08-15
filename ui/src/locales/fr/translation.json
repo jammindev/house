@@ -831,6 +831,30 @@
       "projects_title": "Projets actifs",
       "projects_empty": "Aucun projet actif pour cette zone.",
       "documents_empty": "Aucun document associé à cette zone pour le moment."
+    },
+    "qr": {
+      "openPrintSheet": "Étiquettes QR",
+      "printTitle": "Étiquettes QR des pièces",
+      "printIntro": "Imprimez cette planche, découpez les étiquettes et collez-en une dans chaque pièce. Scanner une étiquette avec l’appareil photo ouvre la pièce dans House.",
+      "printButton": "Imprimer",
+      "printEmpty": "Aucune pièce à étiqueter pour l’instant.",
+      "scanning": "Lecture de l’étiquette…",
+      "backToZones": "Retour aux pièces",
+      "failure": {
+        "unknown": {
+          "title": "Étiquette inconnue",
+          "body": "Cette étiquette ne correspond à aucune pièce. Elle a sans doute été remplacée — réimprimez la planche."
+        },
+        "other-household": {
+          "title": "Étiquette d’un autre foyer",
+          "body": "Cette étiquette appartient à un autre foyer. Changez de foyer, ou utilisez une étiquette imprimée depuis celui-ci."
+        },
+        "generic": {
+          "title": "Lecture impossible",
+          "body": "Quelque chose s’est mal passé en chemin. Vérifiez votre connexion et scannez à nouveau."
+        }
+      },
+      "rotated": "Nouvelle étiquette générée — réimprimez cette pièce."
     }
   },
   "tasks": {
@@ -1849,6 +1873,36 @@
             "body": "Un récap est figé à sa première lecture, et jamais recalculé. Corrigez en août une dépense de juin : le récap de juin garde les chiffres qu'il avait — c'est ce qui en fait un souvenir et non une requête."
           }
         }
+      },
+      "orchard": {
+        "title": "Suivre le verger",
+        "intro": "Ce que vous avez fait à chaque arbre, ce qu'il a donné, et ce que la saison réclame.",
+        "steps": {
+          "subjects": {
+            "title": "Planter vos sujets",
+            "body": "Créez une fiche par arbre, arbuste ou vigne. La zone est obligatoire : c'est par l'endroit qu'on retrouve son verger."
+          },
+          "journal": {
+            "title": "Consigner ce que vous faites",
+            "body": "Taille, traitement, observation : daté et typé. Un arbre répond un an plus tard — votre mémoire, non."
+          },
+          "seasons": {
+            "title": "Dire quand, pas tous les combien",
+            "body": "« La taille d'hiver, c'est entre novembre et mars. » La page ouvre sur ce que la saison réclame ; « c'est fait » la solde, ou créez-en une tâche."
+          },
+          "harvests": {
+            "title": "Peser vos récoltes",
+            "body": "Notez chaque cueillette. Un fruitier alterne : c'est la série des saisons qui parle, jamais une année seule."
+          },
+          "frost": {
+            "title": "Protéger vos fleurs du gel",
+            "body": "Renseignez la période de floraison d'un sujet : une nuit de gel annoncée pendant celle-ci vous sera signalée la veille. Sans elle, aucune alerte."
+          },
+          "agent": {
+            "title": "Demander à l'assistant",
+            "body": "« Combien de kilos de pommes cette année ? », ou dictez « note 12 kg de pommes sur le pommier du fond »."
+          }
+        }
       }
     }
   },
@@ -2337,7 +2391,9 @@
       "greeting": "Bonjour {{name}}",
       "allClear": "Tout est sous contrôle — rien ne demande votre attention.",
       "attention_one": "{{count}} chose demande votre attention.",
-      "attention_other": "{{count}} choses demandent votre attention."
+      "attention_other": "{{count}} choses demandent votre attention.",
+      "welcome": "Bienvenue, {{name}}",
+      "emptyHousehold": "Votre maisonnée est vide — voici par où commencer."
     },
     "triage": {
       "title": "À traiter",
@@ -2394,6 +2450,11 @@
     "projects": {
       "title": "Projets actifs",
       "cta": "Tous les projets"
+    },
+    "firstSteps": {
+      "title": "Premiers pas",
+      "hint": "Quelques minutes suffisent pour que l'app ait de quoi vous répondre.",
+      "seeGuides": "Tous les guides"
     }
   },
   "insurance": {
@@ -2715,6 +2776,7 @@
     "setupSubmit": "Créer mon compte",
     "setupPending": "Création…",
     "setupFailed": "La création a échoué. Vérifiez les informations saisies.",
+    "setupFirstName": "Votre prénom",
     "demo": {
       "title": "Instance de démonstration",
       "body": "Vous entrez dans le foyer fictif « Famille Mercier », rempli de trois ans de données. Tout est modifiable, et tout est remis à zéro chaque nuit.",
@@ -3206,7 +3268,10 @@
       "meter": "Compteurs",
       "tracker": "Trackers",
       "shopping_item": "Liste de courses",
-      "chicken_chore": "Corvées du poulailler"
+      "chicken_chore": "Corvées du poulailler",
+      "tree": "Verger",
+      "tree_event": "Entretien du verger",
+      "harvest": "Récoltes"
     }
   },
   "agent": {
@@ -4426,6 +4491,217 @@
       "unavailable": "Le canal Telegram n'est pas configuré sur cette instance.",
       "without": "Le canal Telegram est éteint. Les notifications restent dans l'application.",
       "enabled": "Le foyer peut parler à l'assistant depuis Telegram."
+    }
+  },
+  "orchard": {
+    "title": "Verger",
+    "new": "Ajouter un sujet",
+    "created": "Sujet ajouté",
+    "updated": "Sujet mis à jour",
+    "deleted": "Sujet supprimé",
+    "filters": {
+      "living": "Sur pied",
+      "all": "Tous",
+      "gone": "Disparus"
+    },
+    "empty": {
+      "title": "Aucun sujet dans le verger",
+      "description": "Ajoute tes arbres, arbustes et vignes pour suivre leur entretien et leurs récoltes.",
+      "noZone": "Crée d'abord une zone extérieure : chaque sujet du verger est rattaché à un endroit.",
+      "createZone": "Créer une zone"
+    },
+    "journal": {
+      "title": "Journal d'entretien",
+      "empty": "Rien de consigné pour l'instant."
+    },
+    "kind": {
+      "fruit_tree": "Arbre fruitier",
+      "berry_bush": "Petits fruits",
+      "vine": "Vigne",
+      "ornamental": "Ornemental"
+    },
+    "status": {
+      "alive": "Vivant",
+      "ailing": "Souffrant",
+      "dead": "Mort",
+      "removed": "Arraché"
+    },
+    "eventType": {
+      "pruning": "Taille",
+      "treatment": "Traitement",
+      "fertilizing": "Fertilisation",
+      "watering": "Arrosage",
+      "training": "Palissage",
+      "observation": "Observation",
+      "flowering": "Floraison",
+      "other": "Autre"
+    },
+    "unit": {
+      "kg": "kg",
+      "piece": "pièces",
+      "litre": "L"
+    },
+    "card": {
+      "age_one": "{{count}} an",
+      "age_other": "{{count}} ans"
+    },
+    "dialog": {
+      "newTitle": "Nouveau sujet",
+      "editTitle": "Modifier le sujet"
+    },
+    "tabs": {
+      "info": "Fiche",
+      "events": "Entretien",
+      "harvests": "Récoltes",
+      "documents": "Documents",
+      "photos": "Photos"
+    },
+    "fields": {
+      "name": "Nom",
+      "zone": "Zone",
+      "kind": "Type",
+      "species": "Variété",
+      "rootstock": "Porte-greffe",
+      "plantedOn": "Date de plantation",
+      "plantedOnHint": "Laisse vide si tu ne la connais pas.",
+      "plantedUnknown": "Inconnue",
+      "floweringStart": "Floraison — début",
+      "floweringEnd": "Floraison — fin",
+      "flowering": "Floraison",
+      "floweringNotSet": "Non renseignée",
+      "notSet": "Non renseigné",
+      "status": "État",
+      "notes": "Notes",
+      "tree": "Sujet",
+      "eventType": "Type",
+      "occurredOn": "Date",
+      "title": "Intitulé",
+      "quantity": "Quantité",
+      "unit": "Unité",
+      "harvestedOn": "Date de récolte",
+      "emoji": "Emoji"
+    },
+    "errors": {
+      "zoneRequired": "Choisis une zone : un sujet sans endroit ne se retrouve pas.",
+      "floweringIncomplete": "Indique le début **et** la fin de la floraison, ou aucun des deux."
+    },
+    "event": {
+      "new": "Consigner un entretien",
+      "newTitle": "Nouvel entretien",
+      "editTitle": "Modifier l'entretien",
+      "created": "Entretien consigné",
+      "updated": "Entretien mis à jour",
+      "deleted": "Entretien supprimé"
+    },
+    "harvest": {
+      "new": "Ajouter une récolte",
+      "newTitle": "Nouvelle récolte",
+      "editTitle": "Modifier la récolte",
+      "created": "Récolte enregistrée",
+      "updated": "Récolte mise à jour",
+      "deleted": "Récolte supprimée",
+      "empty": "Aucune récolte enregistrée."
+    },
+    "series": {
+      "title": "Récoltes par saison",
+      "seasonTitle": "Récolte {{season}}",
+      "empty": "Aucune récolte enregistrée pour l'instant.",
+      "currentSeason": "en cours",
+      "singleSeason": "Une seule saison ne permet pas encore de comparaison — un fruitier alterne."
+    },
+    "floweringPrompt": "La période de floraison n'est pas renseignée : sans elle, aucune alerte de gel ne peut viser ce sujet.",
+    "floweringPromptAction": "Renseigner la floraison",
+    "months": {
+      "1": "janvier",
+      "2": "février",
+      "3": "mars",
+      "4": "avril",
+      "5": "mai",
+      "6": "juin",
+      "7": "juillet",
+      "8": "août",
+      "9": "septembre",
+      "10": "octobre",
+      "11": "novembre",
+      "12": "décembre"
+    },
+    "care": {
+      "new": "Nouvelle règle",
+      "newTitle": "Nouvelle règle d'entretien",
+      "editTitle": "Modifier la règle",
+      "created": "Règle créée",
+      "updated": "Règle mise à jour",
+      "deleted": "Règle supprimée",
+      "completed": "Entretien consigné",
+      "seasonTitle": "Ce que la saison réclame",
+      "markDone": "C'est fait",
+      "missedHint": "Fenêtre passée — à reprendre la saison prochaine.",
+      "windowOpen": "À faire avant le {{date}}",
+      "windowClosed": "La fenêtre s'est refermée le {{date}}",
+      "windowStart": "Du mois de",
+      "windowEnd": "Au mois de",
+      "windowHint": "Une fenêtre peut être à cheval sur deux années — « novembre → mars » est le cas normal d'un verger.",
+      "eventType": "Type d'entrée consignée",
+      "scope": "Portée",
+      "scopeKind": "Tous les sujets d'un type",
+      "scopeTree": "Un sujet précis",
+      "createTask": "Créer une tâche",
+      "taskCreated": "Tâche créée"
+    },
+    "purchase": {
+      "action": "Déclarer un achat",
+      "title": "Achat — {{name}}",
+      "created": "Achat enregistré"
+    }
+  },
+  "games": {
+    "title": "Chasse au trésor",
+    "new": "Nouvelle chasse",
+    "newTitle": "Composer une chasse",
+    "editTitle": "Modifier la chasse",
+    "created": "Chasse enregistrée",
+    "updated": "Chasse mise à jour",
+    "deleted": "Chasse supprimée",
+    "none": "Aucune chasse pour l’instant",
+    "emptyDescription": "Choisissez quelques pièces, écrivez une énigme pour chacune, cachez quelque chose au bout — et tendez le téléphone.",
+    "composerHint": "L’ordre des étapes est l’ordre du jeu. Chaque énigme doit désigner la pièce suivante.",
+    "fieldName": "Nom",
+    "namePlaceholder": "Chasse du dimanche pluvieux",
+    "fieldSteps": "Étapes",
+    "stepNumber": "Étape {{number}}",
+    "removeStep": "Retirer cette étape",
+    "addStep": "Ajouter une étape",
+    "pickRoom": "Quelle pièce ?",
+    "riddlePlaceholder": "Je suis là où l’eau chante le matin…",
+    "riddleLabel": "Énigme de l’étape {{number}}",
+    "fieldTreasure": "Le trésor",
+    "treasurePlaceholder": "Le gâteau est dans le four éteint",
+    "start": "Lancer",
+    "startFailed": "Impossible de lancer la chasse",
+    "resume": "Reprendre",
+    "abandon": "Abandonner la chasse",
+    "stepCount_one": "{{count}} étape",
+    "stepCount_other": "{{count}} étapes",
+    "progress": "{{found}} sur {{total}} trouvées",
+    "playTitle": "Chasse en cours",
+    "noActive": "Aucune chasse en cours",
+    "noActiveDescription": "Lancez-en une depuis la liste, puis tendez le téléphone aux joueurs.",
+    "backToHunts": "Retour aux chasses",
+    "noRiddle": "Pas d’énigme pour cette étape — filez à la pièce suivante.",
+    "scanHint": "Scannez l’étiquette QR de la pièce avec l’appareil photo",
+    "won": "Trouvé !",
+    "status": {
+      "draft": "Brouillon",
+      "active": "En cours",
+      "done": "Terminée",
+      "abandoned": "Abandonnée"
+    },
+    "scan": {
+      "advanced": "Trouvé ! Voici l’énigme suivante.",
+      "finished": "C’était la dernière — le trésor est à vous !",
+      "wrong_zone": "Pas ici. Relisez l’énigme.",
+      "already_found": "Déjà trouvée — continuez.",
+      "no_hunt": "Aucune chasse en cours."
     }
   }
 }

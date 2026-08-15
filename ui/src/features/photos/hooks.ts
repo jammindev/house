@@ -255,7 +255,8 @@ export function useAddPhotosZones() {
 export function useEntityPhotos(entityType: string, objectId: string) {
   return useQuery({
     queryKey: photoKeys.entity(entityType, objectId),
-    queryFn: () => fetchPhotoDocuments({ [entityType]: objectId }),
+    // Même raison que EntityDocumentsTab : la forme générique, jamais le raccourci.
+    queryFn: () => fetchPhotoDocuments({ linked_to: `${entityType}:${objectId}` }),
     enabled: !!objectId,
   });
 }

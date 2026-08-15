@@ -831,6 +831,30 @@
       "projects_title": "Aktive Projekte",
       "projects_empty": "Keine aktiven Projekte für diese Zone.",
       "documents_empty": "Keine Dokumente mit dieser Zone verknüpft."
+    },
+    "qr": {
+      "openPrintSheet": "QR-Etiketten",
+      "printTitle": "QR-Etiketten der Räume",
+      "printIntro": "Drucken Sie diesen Bogen, schneiden Sie die Etiketten aus und kleben Sie eines in jeden Raum. Wer ein Etikett mit der Handykamera scannt, öffnet den Raum in House.",
+      "printButton": "Drucken",
+      "printEmpty": "Noch keine Räume zum Etikettieren.",
+      "scanning": "Etikett wird gelesen…",
+      "backToZones": "Zurück zu den Räumen",
+      "failure": {
+        "unknown": {
+          "title": "Unbekanntes Etikett",
+          "body": "Dieses Etikett gehört zu keinem Raum. Wahrscheinlich wurde es ersetzt — drucken Sie den Bogen erneut."
+        },
+        "other-household": {
+          "title": "Etikett eines anderen Haushalts",
+          "body": "Dieses Etikett gehört zu einem anderen Haushalt. Wechseln Sie den Haushalt oder nutzen Sie ein hier gedrucktes Etikett."
+        },
+        "generic": {
+          "title": "Etikett nicht lesbar",
+          "body": "Unterwegs ist etwas schiefgelaufen. Prüfen Sie die Verbindung und scannen Sie erneut."
+        }
+      },
+      "rotated": "Neues Etikett erzeugt — diesen Raum neu drucken."
     }
   },
   "tasks": {
@@ -1849,6 +1873,36 @@
             "body": "Ein Rückblick wird beim ersten Lesen eingefroren und nie neu berechnet. Korrigieren Sie im August eine Ausgabe vom Juni: der Juni-Rückblick behält seine Zahlen — genau das macht ihn zu einer Erinnerung und nicht zu einer Abfrage."
           }
         }
+      },
+      "orchard": {
+        "title": "Den Obstgarten führen",
+        "intro": "Was Sie an jedem Baum getan haben, was er gab, und was die Saison verlangt.",
+        "steps": {
+          "subjects": {
+            "title": "Pflanzen anlegen",
+            "body": "Ein Eintrag je Baum, Strauch oder Rebe. Ein Bereich ist Pflicht: einen Obstgarten findet man über den Ort."
+          },
+          "journal": {
+            "title": "Festhalten, was Sie tun",
+            "body": "Schnitt, Behandlung, Beobachtung — datiert und typisiert. Ein Baum antwortet ein Jahr später, Ihr Gedächtnis nicht."
+          },
+          "seasons": {
+            "title": "Sagen wann, nicht wie oft",
+            "body": "« Winterschnitt: November bis März. » Die Seite öffnet mit dem, was die Saison verlangt; als erledigt markieren oder in eine Aufgabe verwandeln."
+          },
+          "harvests": {
+            "title": "Ernten wiegen",
+            "body": "Jede Ernte erfassen. Obstbäume tragen wechselnd: es spricht die Reihe der Saisons, nie ein einzelnes Jahr."
+          },
+          "frost": {
+            "title": "Blüten vor Frost schützen",
+            "body": "Blütezeit einer Pflanze angeben: eine in diesem Zeitraum angekündigte Frostnacht wird am Vortag gemeldet. Ohne sie kein Alarm."
+          },
+          "agent": {
+            "title": "Den Assistenten fragen",
+            "body": "« Wie viele Kilo Äpfel dieses Jahr? », oder diktieren Sie « notiere 12 kg Äpfel am hinteren Apfelbaum »."
+          }
+        }
       }
     }
   },
@@ -2337,7 +2391,9 @@
       "greeting": "Hallo {{name}}",
       "allClear": "Alles unter Kontrolle — nichts erfordert Ihre Aufmerksamkeit.",
       "attention_one": "{{count}} Sache erfordert Ihre Aufmerksamkeit.",
-      "attention_other": "{{count}} Dinge erfordern Ihre Aufmerksamkeit."
+      "attention_other": "{{count}} Dinge erfordern Ihre Aufmerksamkeit.",
+      "welcome": "Willkommen, {{name}}",
+      "emptyHousehold": "Dein Haushalt ist leer — hier fängst du an."
     },
     "triage": {
       "title": "Zu erledigen",
@@ -2394,6 +2450,11 @@
     "projects": {
       "title": "Aktive Projekte",
       "cta": "Alle Projekte"
+    },
+    "firstSteps": {
+      "title": "Erste Schritte",
+      "hint": "Ein paar Minuten genügen, damit die App etwas zu antworten hat.",
+      "seeGuides": "Alle Anleitungen"
     }
   },
   "insurance": {
@@ -2715,6 +2776,7 @@
     "setupSubmit": "Konto erstellen",
     "setupPending": "Wird erstellt…",
     "setupFailed": "Die Einrichtung ist fehlgeschlagen. Prüfe deine Angaben.",
+    "setupFirstName": "Dein Vorname",
     "demo": {
       "title": "Demo-Instanz",
       "body": "Sie betreten den fiktiven Haushalt „Familie Mercier“ mit drei Jahren Daten. Alles ist änderbar, und alles wird jede Nacht zurückgesetzt.",
@@ -3206,7 +3268,10 @@
       "meter": "Zähler",
       "tracker": "Tracker",
       "shopping_item": "Einkaufsliste",
-      "chicken_chore": "Stallaufgaben"
+      "chicken_chore": "Stallaufgaben",
+      "tree": "Obstgarten",
+      "tree_event": "Obstgarten-Pflege",
+      "harvest": "Ernten"
     }
   },
   "agent": {
@@ -4426,6 +4491,217 @@
       "unavailable": "Der Telegram-Kanal ist auf dieser Instanz nicht eingerichtet.",
       "without": "Der Telegram-Kanal ist aus. Benachrichtigungen bleiben in der App.",
       "enabled": "Der Haushalt kann über Telegram mit dem Assistenten sprechen."
+    }
+  },
+  "orchard": {
+    "title": "Obstgarten",
+    "new": "Pflanze hinzufügen",
+    "created": "Pflanze hinzugefügt",
+    "updated": "Pflanze aktualisiert",
+    "deleted": "Pflanze gelöscht",
+    "filters": {
+      "living": "Vorhanden",
+      "all": "Alle",
+      "gone": "Entfernt"
+    },
+    "empty": {
+      "title": "Noch keine Pflanze im Obstgarten",
+      "description": "Füge deine Bäume, Sträucher und Reben hinzu, um Pflege und Ernte zu verfolgen.",
+      "noZone": "Lege zuerst einen Außenbereich an: Jede Pflanze gehört zu einem Ort.",
+      "createZone": "Bereich anlegen"
+    },
+    "journal": {
+      "title": "Pflegetagebuch",
+      "empty": "Noch nichts eingetragen."
+    },
+    "kind": {
+      "fruit_tree": "Obstbaum",
+      "berry_bush": "Beerenstrauch",
+      "vine": "Rebe",
+      "ornamental": "Zierpflanze"
+    },
+    "status": {
+      "alive": "Lebend",
+      "ailing": "Kränkelnd",
+      "dead": "Tot",
+      "removed": "Entfernt"
+    },
+    "eventType": {
+      "pruning": "Schnitt",
+      "treatment": "Behandlung",
+      "fertilizing": "Düngung",
+      "watering": "Bewässerung",
+      "training": "Erziehung",
+      "observation": "Beobachtung",
+      "flowering": "Blüte",
+      "other": "Sonstiges"
+    },
+    "unit": {
+      "kg": "kg",
+      "piece": "Stück",
+      "litre": "L"
+    },
+    "card": {
+      "age_one": "{{count}} Jahr",
+      "age_other": "{{count}} Jahre"
+    },
+    "dialog": {
+      "newTitle": "Neue Pflanze",
+      "editTitle": "Pflanze bearbeiten"
+    },
+    "tabs": {
+      "info": "Steckbrief",
+      "events": "Pflege",
+      "harvests": "Ernten",
+      "documents": "Dokumente",
+      "photos": "Fotos"
+    },
+    "fields": {
+      "name": "Name",
+      "zone": "Bereich",
+      "kind": "Art",
+      "species": "Sorte",
+      "rootstock": "Unterlage",
+      "plantedOn": "Pflanzdatum",
+      "plantedOnHint": "Leer lassen, wenn unbekannt.",
+      "plantedUnknown": "Unbekannt",
+      "floweringStart": "Blüte — von",
+      "floweringEnd": "Blüte — bis",
+      "flowering": "Blüte",
+      "floweringNotSet": "Nicht angegeben",
+      "notSet": "Nicht angegeben",
+      "status": "Zustand",
+      "notes": "Notizen",
+      "tree": "Pflanze",
+      "eventType": "Art",
+      "occurredOn": "Datum",
+      "title": "Titel",
+      "quantity": "Menge",
+      "unit": "Einheit",
+      "harvestedOn": "Erntedatum",
+      "emoji": "Emoji"
+    },
+    "errors": {
+      "zoneRequired": "Wähle einen Bereich: Eine Pflanze ohne Ort findet niemand wieder.",
+      "floweringIncomplete": "Gib Beginn **und** Ende der Blüte an — oder keines von beiden."
+    },
+    "event": {
+      "new": "Pflege eintragen",
+      "newTitle": "Neuer Pflegeeintrag",
+      "editTitle": "Pflegeeintrag bearbeiten",
+      "created": "Pflege eingetragen",
+      "updated": "Pflegeeintrag aktualisiert",
+      "deleted": "Pflegeeintrag gelöscht"
+    },
+    "harvest": {
+      "new": "Ernte hinzufügen",
+      "newTitle": "Neue Ernte",
+      "editTitle": "Ernte bearbeiten",
+      "created": "Ernte erfasst",
+      "updated": "Ernte aktualisiert",
+      "deleted": "Ernte gelöscht",
+      "empty": "Noch keine Ernte erfasst."
+    },
+    "series": {
+      "title": "Ernten nach Saison",
+      "seasonTitle": "Ernte {{season}}",
+      "empty": "Noch keine Ernte erfasst.",
+      "currentSeason": "laufend",
+      "singleSeason": "Eine einzige Saison ist noch kein Vergleich — Obstbäume tragen wechselnd."
+    },
+    "floweringPrompt": "Die Blütezeit ist nicht angegeben: Ohne sie kann kein Frostalarm diese Pflanze erfassen.",
+    "floweringPromptAction": "Blütezeit angeben",
+    "months": {
+      "1": "Januar",
+      "2": "Februar",
+      "3": "März",
+      "4": "April",
+      "5": "Mai",
+      "6": "Juni",
+      "7": "Juli",
+      "8": "August",
+      "9": "September",
+      "10": "Oktober",
+      "11": "November",
+      "12": "Dezember"
+    },
+    "care": {
+      "new": "Neue Regel",
+      "newTitle": "Neue Pflegeregel",
+      "editTitle": "Regel bearbeiten",
+      "created": "Regel erstellt",
+      "updated": "Regel aktualisiert",
+      "deleted": "Regel gelöscht",
+      "completed": "Pflege eingetragen",
+      "seasonTitle": "Was die Saison verlangt",
+      "markDone": "Erledigt",
+      "missedHint": "Zeitfenster vorbei — nächste Saison wieder aufnehmen.",
+      "windowOpen": "Fällig vor dem {{date}}",
+      "windowClosed": "Das Zeitfenster schloss am {{date}}",
+      "windowStart": "Von",
+      "windowEnd": "Bis",
+      "windowHint": "Ein Zeitfenster darf den Jahreswechsel überspannen — « November → März » ist im Obstgarten der Normalfall.",
+      "eventType": "Art des Tagebucheintrags",
+      "scope": "Geltungsbereich",
+      "scopeKind": "Alle Pflanzen einer Art",
+      "scopeTree": "Eine Pflanze",
+      "createTask": "Aufgabe erstellen",
+      "taskCreated": "Aufgabe erstellt"
+    },
+    "purchase": {
+      "action": "Kauf erfassen",
+      "title": "Kauf — {{name}}",
+      "created": "Kauf erfasst"
+    }
+  },
+  "games": {
+    "title": "Schatzsuche",
+    "new": "Neue Suche",
+    "newTitle": "Eine Suche zusammenstellen",
+    "editTitle": "Suche bearbeiten",
+    "created": "Suche gespeichert",
+    "updated": "Suche aktualisiert",
+    "deleted": "Suche gelöscht",
+    "none": "Noch keine Schatzsuche",
+    "emptyDescription": "Wählen Sie ein paar Räume, schreiben Sie je ein Rätsel, verstecken Sie etwas am Ende — und reichen Sie das Handy weiter.",
+    "composerHint": "Die Reihenfolge der Schritte ist der Spielverlauf. Jedes Rätsel soll auf den nächsten Raum zeigen.",
+    "fieldName": "Name",
+    "namePlaceholder": "Suche für den Regensonntag",
+    "fieldSteps": "Schritte",
+    "stepNumber": "Schritt {{number}}",
+    "removeStep": "Diesen Schritt entfernen",
+    "addStep": "Schritt hinzufügen",
+    "pickRoom": "Welcher Raum?",
+    "riddlePlaceholder": "Ich bin dort, wo das Wasser morgens singt…",
+    "riddleLabel": "Rätsel für Schritt {{number}}",
+    "fieldTreasure": "Der Schatz",
+    "treasurePlaceholder": "Der Kuchen ist im ausgeschalteten Ofen",
+    "start": "Starten",
+    "startFailed": "Suche konnte nicht gestartet werden",
+    "resume": "Fortsetzen",
+    "abandon": "Suche abbrechen",
+    "stepCount_one": "{{count}} Schritt",
+    "stepCount_other": "{{count}} Schritte",
+    "progress": "{{found}} von {{total}} gefunden",
+    "playTitle": "Laufende Suche",
+    "noActive": "Keine laufende Suche",
+    "noActiveDescription": "Starten Sie eine aus der Liste und reichen Sie das Handy weiter.",
+    "backToHunts": "Zurück zu den Suchen",
+    "noRiddle": "Kein Rätsel für diesen Schritt — weiter zum nächsten Raum.",
+    "scanHint": "Scannen Sie das QR-Etikett im Raum mit der Kamera",
+    "won": "Gefunden!",
+    "status": {
+      "draft": "Entwurf",
+      "active": "Läuft",
+      "done": "Beendet",
+      "abandoned": "Abgebrochen"
+    },
+    "scan": {
+      "advanced": "Gefunden! Hier kommt das nächste Rätsel.",
+      "finished": "Das war das letzte — der Schatz gehört euch!",
+      "wrong_zone": "Nicht hier. Lest das Rätsel noch einmal.",
+      "already_found": "Schon gefunden — weiter geht’s.",
+      "no_hunt": "Keine laufende Suche."
     }
   }
 }

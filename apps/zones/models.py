@@ -1,6 +1,7 @@
 """
 Zones models - hierarchical spatial organization.
 """
+import secrets
 import uuid
 from django.db import models
 from django.contrib.contenttypes.fields import GenericRelation
@@ -8,6 +9,15 @@ from django.core.validators import RegexValidator
 from django.utils.translation import gettext_lazy as _
 from core.models import TimestampedModel, HouseholdScopedModel
 from core.managers import HouseholdScopedManager
+
+
+def generate_zone_token():
+    """Unguessable token printed on a zone's QR label (~43 url-safe chars).
+
+    Même patron que ``households.models.generate_invitation_token`` : dans les
+    deux cas le jeton **est** l'identifiant, et le détenir suffit.
+    """
+    return secrets.token_urlsafe(32)
 
 
 class Zone(HouseholdScopedModel):
@@ -51,6 +61,22 @@ class Zone(HouseholdScopedModel):
         help_text="Hex color code for zone display"
     )
     document_links = GenericRelation("documents.DocumentLink")
+    # Ancrage physique de la pièce (parcours 31) : ce jeton est imprimé sur une
+    # étiquette QR collée dans la pièce, et le présenter vaut preuve d'y être.
+    #
+    # ⚠️ Il est **distinct de `id`**, et ce n'est pas un détail d'implémentation.
+    # L'UUID d'une zone circule déjà dans les URLs de l'app, dans les payloads
+    # d'API et dans les liens que produit l'agent : s'en servir comme preuve de
+    # présence reviendrait à publier la réponse du jeu dans la barre d'adresse.
+    # Corollaire tenu par un test : ce champ ne sort **que** par
+    # `ZoneViewSet.print_sheet`, jamais par le CRUD.
+    qr_token = models.CharField(
+        max_length=64,
+        unique=True,
+        editable=False,
+        default=generate_zone_token,
+        help_text="Opaque token encoded in the zone's printed QR label",
+    )
 
     objects = HouseholdScopedManager()
 

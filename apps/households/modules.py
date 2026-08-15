@@ -21,6 +21,8 @@ OPTIONAL_MODULES = frozenset({
     'stock',
     'shopping',
     'chickens',
+    'orchard',
+    'games',
     'insurance',
     'trackers',
     'photos',
@@ -37,6 +39,8 @@ PINNABLE_MODULES = frozenset({
     'stock',
     'shopping',
     'chickens',
+    'orchard',
+    'games',
     'insurance',
     # groupe Suivi
     'tasks',

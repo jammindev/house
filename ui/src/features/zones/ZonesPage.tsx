@@ -1,5 +1,6 @@
 import * as React from 'react';
-import { ChevronsDownUp, ChevronsUpDown, MapPin, Search, X } from 'lucide-react';
+import { ChevronsDownUp, ChevronsUpDown, MapPin, QrCode, Search, X } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
 import ListPage from '@/components/ListPage';
@@ -21,6 +22,7 @@ import type { Zone } from '@/lib/api/zones';
 export default function ZonesPage() {
   const { t } = useTranslation();
   const qc = useQueryClient();
+  const navigate = useNavigate();
 
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [editing, setEditing] = React.useState<Zone | undefined>(undefined);
@@ -188,7 +190,15 @@ export default function ZonesPage() {
           description: t('zones.empty_description'),
           action: { label: t('zones.new'), onClick: handleCreate },
         }}
-        actions={<Button onClick={handleCreate}>{t('zones.new')}</Button>}
+        actions={
+          <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={() => navigate('/app/zones/print-qr')}>
+              <QrCode className="mr-2 h-4 w-4" aria-hidden />
+              {t('zones.qr.openPrintSheet')}
+            </Button>
+            <Button onClick={handleCreate}>{t('zones.new')}</Button>
+          </div>
+        }
       >
         {error ? (
           <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">

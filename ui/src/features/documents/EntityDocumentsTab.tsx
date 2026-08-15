@@ -29,7 +29,14 @@ export default function EntityDocumentsTab({ entityType, objectId }: Props) {
   const { t } = useTranslation();
   const qc = useQueryClient();
 
-  const filters = React.useMemo(() => ({ [entityType]: objectId }), [entityType, objectId]);
+  // `linked_to=<type>:<id>` et non `{[entityType]: id}` : les raccourcis par
+  // entité de l'API sont une liste close (`interaction` y est déjà pris par la FK
+  // du document), donc un type absent de cette liste était **ignoré en silence**
+  // — et l'onglet affichait alors tous les documents du foyer.
+  const filters = React.useMemo(
+    () => ({ linked_to: `${entityType}:${objectId}` }),
+    [entityType, objectId],
+  );
   const { data: documents = [], isLoading, error } = useDocuments(filters);
   const attachMutation = useAttachEntityDocument(entityType, objectId);
   const detachMutation = useDetachEntityDocument(entityType, objectId);

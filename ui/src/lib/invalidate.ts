@@ -54,11 +54,13 @@ export const QUERY_ROOTS = [
   'electricity',
   'equipment',
   'expenses',
+  'games',
   'household-members',
   'households',
   'insurance',
   'interactions',
   'notifications',
+  'orchard',
   'photos',
   'projects',
   'recap',
@@ -93,20 +95,25 @@ const MONEY_ROOTS = ['banking', 'interactions', 'expenses', 'budget', 'complianc
  */
 const DERIVED_FROM: Partial<Record<QueryRoot, readonly QueryRoot[]>> = {
   /** « Ma semaine », l'activité récente, les projets actifs. */
-  dashboard: ['tasks', 'interactions', 'projects'],
+  dashboard: ['tasks', 'interactions', 'projects', 'orchard'],
   /**
    * Retards, garanties, entretiens, seuils de stock — `apps/alerts/services.py`.
    * `chickens` y entre avec les corvées récurrentes : cocher « nettoyé » repousse
    * l'échéance, donc retire l'alerte. Sans cette ligne, la pastille reste rouge
    * jusqu'à l'expiration du `staleTime`, et le foyer apprend à ne plus la croire.
    */
-  alerts: ['tasks', 'equipment', 'stock', 'chickens'],
+  alerts: ['tasks', 'equipment', 'stock', 'chickens', 'orchard'],
   /** `actual_cost` = somme des dépenses ; `tab_counts` compte les tâches. */
   projects: ['interactions', 'tasks'],
   /** Le carnet de rénovation *est* une liste d'`Interaction` (kind=renovation). */
   renovation: ['interactions'],
-  /** La fiche d'une zone montre son activité, ses tâches et ses photos. */
-  zones: ['interactions', 'tasks', 'photos'],
+  /**
+   * La fiche d'une zone montre son activité, ses tâches et ses photos — et,
+   * depuis le parcours 30, les sujets du verger qu'elle contient. Un arbre y
+   * pointe par une FK **obligatoire** : planter ou arracher change ce que la
+   * zone affiche, et le compteur qui refuse sa suppression.
+   */
+  zones: ['interactions', 'tasks', 'photos', 'orchard'],
   /** Une photo est un `Document` : les deux vues lisent la même table. */
   photos: ['documents'],
   documents: ['photos'],

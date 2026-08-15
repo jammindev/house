@@ -7,24 +7,47 @@ from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated
 from django.core.exceptions import ValidationError as DjangoValidationError
+from django.db.models import ProtectedError
 from django.utils.dateparse import parse_datetime
 from django.utils import timezone
 
 from django.contrib.contenttypes.models import ContentType
 
+from . import qr
 from .models import Zone
 from .queries import with_content_counts
 from .serializers import ZoneSerializer, ZoneTreeSerializer, ZoneDocumentSerializer
 from .services import (
+    UnknownZoneToken,
     move_zone,
     place_at_end,
     reorder_siblings,
+    resolve_qr_token,
+    rotate_qr_token,
     shift_positions_after_removal,
 )
 from core.permissions import IsHouseholdMember
 from documents.models import Document, DocumentLink
 from documents.mixins import DocumentLinkActionsMixin
 from documents.services import link_document
+
+
+def _protected_zone_message(exc: ProtectedError) -> str:
+    """Name what blocks the deletion, and how many — never a bare refusal.
+
+    « Impossible de supprimer » without saying what holds the zone forces the
+    user to hunt; the count and the kind are exactly what turns the refusal into
+    a next step.
+    """
+    counts: dict[str, int] = {}
+    for obj in exc.protected_objects:
+        label = str(obj._meta.verbose_name_plural)
+        counts[label] = counts.get(label, 0) + 1
+    detail = ', '.join(f"{n} {label}" for label, n in sorted(counts.items()))
+    return (
+        f"Cannot delete zone: it still holds {detail}. "
+        "Move or delete them first."
+    )
 
 
 class ZoneViewSet(DocumentLinkActionsMixin, viewsets.ModelViewSet):
@@ -118,7 +141,7 @@ class ZoneViewSet(DocumentLinkActionsMixin, viewsets.ModelViewSet):
         return self.update(request, *args, **kwargs)
 
     def destroy(self, request, *args, **kwargs):
-        """Block deletion when zone still has children."""
+        """Block deletion when zone still has children — or protected content."""
         zone = self.get_object()
         if zone.children.exists():
             return Response(
@@ -126,7 +149,20 @@ class ZoneViewSet(DocumentLinkActionsMixin, viewsets.ModelViewSet):
                 status=status.HTTP_409_CONFLICT,
             )
         household_id, parent_id, position = zone.household_id, zone.parent_id, zone.position
-        response = super().destroy(request, *args, **kwargs)
+        try:
+            response = super().destroy(request, *args, **kwargs)
+        except ProtectedError as exc:
+            # A zone is a container, its contents are possessions: `orchard.Tree`
+            # points here with PROTECT so that deleting "Garden" cannot wipe
+            # fifteen years of harvests in silence. A named refusal beats a silent
+            # loss — and it must never surface as a 500 on an ordinary gesture.
+            return Response(
+                {
+                    'detail': _protected_zone_message(exc),
+                    'protected_count': len(exc.protected_objects),
+                },
+                status=status.HTTP_409_CONFLICT,
+            )
         # Referme le trou : sans ça les rangs d'une fratrie se creusent au fil des
         # suppressions, et un « Descendre » finit par ne plus rien déplacer.
         shift_positions_after_removal(household_id, parent_id, position)
@@ -261,3 +297,82 @@ class ZoneViewSet(DocumentLinkActionsMixin, viewsets.ModelViewSet):
         )
         serializer = ZoneDocumentSerializer(link)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    # --- Ancrage physique (parcours 31) --------------------------------------
+
+    @action(detail=False, methods=['post'])
+    def scan(self, request):
+        """Résoudre le jeton d'une étiquette QR — **la seule porte de scan**.
+
+        Le lot 2 du parcours 31 *étend* cette réponse du verdict de la chasse en
+        cours ; il n'ouvre pas un second endpoint. Deux portes de scan finiraient
+        par se contredire sur ce qu'est un scan valide, et c'est l'utilisateur
+        qui arbitrerait.
+        """
+        token = request.data.get('token')
+        try:
+            zone = resolve_qr_token(token)
+        except UnknownZoneToken:
+            return Response(
+                {"detail": "Unknown label."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        household = getattr(request, 'household', None)
+        if household is None or zone.household_id != household.id:
+            # 403 et non 404 : le jeton existe, il n'est simplement pas d'ici. Le
+            # dire permet de comprendre qu'on a scanné l'étiquette d'un autre
+            # foyer — un 404 enverrait chercher une étiquette abîmée.
+            return Response(
+                {"detail": "This label belongs to another household."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        zone = self.get_queryset().filter(pk=zone.pk).first() or zone
+        payload = {'zone': ZoneSerializer(zone, context={'request': request}).data}
+
+        # La chasse au trésor (parcours 31, lot 2) **étend** cette réponse, elle
+        # n'ouvre pas un second endpoint de scan. L'import est local : le module
+        # Jeux est optionnel, et l'ancrage des zones doit continuer à marcher
+        # chez un foyer qui l'a désactivé.
+        from games.services import record_scan
+        from games.serializers import HuntPlaySerializer
+
+        outcome = record_scan(household, zone)
+        payload['verdict'] = outcome['verdict']
+        payload['hunt'] = (
+            HuntPlaySerializer(outcome['hunt']).data if outcome['hunt'] else None
+        )
+        payload['next_step'] = (
+            {
+                'id': str(outcome['step'].id),
+                'position': outcome['step'].position,
+                'riddle': outcome['step'].riddle,
+            }
+            if outcome['step']
+            else None
+        )
+        return Response(payload)
+
+    @action(detail=True, methods=['post'], url_path='rotate-qr')
+    def rotate_qr(self, request, pk=None):
+        """Redonner un jeton neuf à une pièce — l'ancienne étiquette devient muette."""
+        zone = self.get_object()
+        rotate_qr_token(zone)
+        return Response(qr.label_for(zone))
+
+    @action(detail=False, methods=['get'], url_path='print-sheet')
+    def print_sheet(self, request):
+        """La planche d'étiquettes du foyer — **le seul endpoint qui expose les jetons**.
+
+        Toute autre lecture d'une zone doit rester muette là-dessus : un jeton qui
+        sort par le CRUD est un jeton lisible sans se déplacer, donc plus une
+        preuve de présence.
+        """
+        household = getattr(request, 'household', None)
+        if household is None:
+            raise ValidationError({'household_id': 'A valid household_id is required.'})
+
+        zones = Zone.objects.filter(household=household).select_related('parent')
+        labels = [qr.label_for(zone) for zone in zones]
+        return Response({'count': len(labels), 'labels': labels})
