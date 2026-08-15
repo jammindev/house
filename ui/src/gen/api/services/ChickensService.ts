@@ -3,9 +3,11 @@
 /* tslint:disable */
 /* eslint-disable */
 import type { Chicken } from '../models/Chicken';
+import type { ChickenChore } from '../models/ChickenChore';
 import type { ChickenEvent } from '../models/ChickenEvent';
 import type { EggLog } from '../models/EggLog';
 import type { PatchedChicken } from '../models/PatchedChicken';
+import type { PatchedChickenChore } from '../models/PatchedChickenChore';
 import type { PatchedChickenEvent } from '../models/PatchedChickenEvent';
 import type { PatchedEggLog } from '../models/PatchedEggLog';
 import type { CancelablePromise } from '../core/CancelablePromise';
@@ -195,6 +197,130 @@ export class ChickensService {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/chickens/{id}/set_document_phase/',
+            path: {
+                'id': id,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
+     * Recurring coop chores — CRUD plus the one action that matters: "done".
+     * @returns ChickenChore
+     * @throws ApiError
+     */
+    public static chickensChoresList(): CancelablePromise<Array<ChickenChore>> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/chickens/chores/',
+        });
+    }
+    /**
+     * Recurring coop chores — CRUD plus the one action that matters: "done".
+     * @param requestBody
+     * @returns ChickenChore
+     * @throws ApiError
+     */
+    public static chickensChoresCreate(
+        requestBody: ChickenChore,
+    ): CancelablePromise<ChickenChore> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/chickens/chores/',
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
+     * Recurring coop chores — CRUD plus the one action that matters: "done".
+     * @param id
+     * @returns ChickenChore
+     * @throws ApiError
+     */
+    public static chickensChoresRetrieve(
+        id: string,
+    ): CancelablePromise<ChickenChore> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/chickens/chores/{id}/',
+            path: {
+                'id': id,
+            },
+        });
+    }
+    /**
+     * Recurring coop chores — CRUD plus the one action that matters: "done".
+     * @param id
+     * @param requestBody
+     * @returns ChickenChore
+     * @throws ApiError
+     */
+    public static chickensChoresUpdate(
+        id: string,
+        requestBody: ChickenChore,
+    ): CancelablePromise<ChickenChore> {
+        return __request(OpenAPI, {
+            method: 'PUT',
+            url: '/api/chickens/chores/{id}/',
+            path: {
+                'id': id,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
+     * Recurring coop chores — CRUD plus the one action that matters: "done".
+     * @param id
+     * @param requestBody
+     * @returns ChickenChore
+     * @throws ApiError
+     */
+    public static chickensChoresPartialUpdate(
+        id: string,
+        requestBody?: PatchedChickenChore,
+    ): CancelablePromise<ChickenChore> {
+        return __request(OpenAPI, {
+            method: 'PATCH',
+            url: '/api/chickens/chores/{id}/',
+            path: {
+                'id': id,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
+     * Recurring coop chores — CRUD plus the one action that matters: "done".
+     * @param id
+     * @returns void
+     * @throws ApiError
+     */
+    public static chickensChoresDestroy(
+        id: string,
+    ): CancelablePromise<void> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/api/chickens/chores/{id}/',
+            path: {
+                'id': id,
+            },
+        });
+    }
+    /**
+     * Mark the chore done today (or on a given day) — writes the journal entry.
+     * @param id
+     * @param requestBody
+     * @returns ChickenChore
+     * @throws ApiError
+     */
+    public static chickensChoresCompleteCreate(
+        id: string,
+        requestBody: ChickenChore,
+    ): CancelablePromise<ChickenChore> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/chickens/chores/{id}/complete/',
             path: {
                 'id': id,
             },

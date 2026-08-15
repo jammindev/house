@@ -6,5 +6,6 @@
  * * `pending` - Pending
  * * `accepted` - Accepted
  * * `declined` - Declined
+ * * `revoked` - Revoked
  */
-export type HouseholdInvitationStatusEnum = 'pending' | 'accepted' | 'declined';
+export type HouseholdInvitationStatusEnum = 'pending' | 'accepted' | 'declined' | 'revoked';

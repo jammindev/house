@@ -4,8 +4,10 @@
 /* eslint-disable */
 import type { PatchedStockCategory } from '../models/PatchedStockCategory';
 import type { PatchedStockItem } from '../models/PatchedStockItem';
+import type { PatchedStockLevelReading } from '../models/PatchedStockLevelReading';
 import type { StockCategory } from '../models/StockCategory';
 import type { StockItem } from '../models/StockItem';
+import type { StockLevelReading } from '../models/StockLevelReading';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
@@ -322,6 +324,114 @@ export class StockService {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/stock/categories/summary/',
+        });
+    }
+    /**
+     * Lire et corriger les relevés de niveau d'un article.
+     *
+     * Pas de création ici : un relevé naît d'un geste métier (achat, inventaire,
+     * édition de la quantité), jamais d'un POST nu — c'est ce qui garantit que la
+     * quantité, le statut et la notification suivent. Ne restent que les trois
+     * verbes qui manquaient : lire, rectifier, supprimer.
+     *
+     * Les écritures passent par ``services.revise_reading`` / ``delete_reading``,
+     * qui réalignent l'article sur sa dernière lecture.
+     * @param ordering Which field to use when ordering the results.
+     * @returns StockLevelReading
+     * @throws ApiError
+     */
+    public static stockReadingsList(
+        ordering?: string,
+    ): CancelablePromise<Array<StockLevelReading>> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/stock/readings/',
+            query: {
+                'ordering': ordering,
+            },
+        });
+    }
+    /**
+     * Lire et corriger les relevés de niveau d'un article.
+     *
+     * Pas de création ici : un relevé naît d'un geste métier (achat, inventaire,
+     * édition de la quantité), jamais d'un POST nu — c'est ce qui garantit que la
+     * quantité, le statut et la notification suivent. Ne restent que les trois
+     * verbes qui manquaient : lire, rectifier, supprimer.
+     *
+     * Les écritures passent par ``services.revise_reading`` / ``delete_reading``,
+     * qui réalignent l'article sur sa dernière lecture.
+     * @param id
+     * @param requestBody
+     * @returns StockLevelReading
+     * @throws ApiError
+     */
+    public static stockReadingsUpdate(
+        id: string,
+        requestBody: StockLevelReading,
+    ): CancelablePromise<StockLevelReading> {
+        return __request(OpenAPI, {
+            method: 'PUT',
+            url: '/api/stock/readings/{id}/',
+            path: {
+                'id': id,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
+     * Lire et corriger les relevés de niveau d'un article.
+     *
+     * Pas de création ici : un relevé naît d'un geste métier (achat, inventaire,
+     * édition de la quantité), jamais d'un POST nu — c'est ce qui garantit que la
+     * quantité, le statut et la notification suivent. Ne restent que les trois
+     * verbes qui manquaient : lire, rectifier, supprimer.
+     *
+     * Les écritures passent par ``services.revise_reading`` / ``delete_reading``,
+     * qui réalignent l'article sur sa dernière lecture.
+     * @param id
+     * @param requestBody
+     * @returns StockLevelReading
+     * @throws ApiError
+     */
+    public static stockReadingsPartialUpdate(
+        id: string,
+        requestBody?: PatchedStockLevelReading,
+    ): CancelablePromise<StockLevelReading> {
+        return __request(OpenAPI, {
+            method: 'PATCH',
+            url: '/api/stock/readings/{id}/',
+            path: {
+                'id': id,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
+     * Lire et corriger les relevés de niveau d'un article.
+     *
+     * Pas de création ici : un relevé naît d'un geste métier (achat, inventaire,
+     * édition de la quantité), jamais d'un POST nu — c'est ce qui garantit que la
+     * quantité, le statut et la notification suivent. Ne restent que les trois
+     * verbes qui manquaient : lire, rectifier, supprimer.
+     *
+     * Les écritures passent par ``services.revise_reading`` / ``delete_reading``,
+     * qui réalignent l'article sur sa dernière lecture.
+     * @param id
+     * @returns void
+     * @throws ApiError
+     */
+    public static stockReadingsDestroy(
+        id: string,
+    ): CancelablePromise<void> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/api/stock/readings/{id}/',
+            path: {
+                'id': id,
+            },
         });
     }
     /**

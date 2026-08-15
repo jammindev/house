@@ -3,8 +3,10 @@
 /* tslint:disable */
 /* eslint-disable */
 import type { Budget } from '../models/Budget';
+import type { BudgetCategory } from '../models/BudgetCategory';
 import type { BudgetReport } from '../models/BudgetReport';
 import type { PatchedBudget } from '../models/PatchedBudget';
+import type { PatchedBudgetCategory } from '../models/PatchedBudgetCategory';
 import type { PatchedRecurringExpense } from '../models/PatchedRecurringExpense';
 import type { RecurringExpense } from '../models/RecurringExpense';
 import type { CancelablePromise } from '../core/CancelablePromise';
@@ -153,10 +155,53 @@ export class BudgetService {
         });
     }
     /**
-     * GET /api/budget/budgets/overview/
+     * GET /api/budget/budgets/insights/?budget=<id|none>&category=<id>&from=&to=
      *
-     * The month's budgets with spent/ceiling, the "hors budget" total and the
-     * optional global cap. Empty-but-valid shape when no household context.
+     * De quoi la fiche d'une enveloppe est faite : le total de la période, le
+     * même total sur la période **précédente équivalente** avec l'écart, la
+     * série jour par jour (ou mois par mois sur une longue fenêtre) et la
+     * répartition par fournisseur.
+     *
+     * Tout part d'un seul appel : refaire ces quatre lectures dans le
+     * navigateur imposerait d'y charger toutes les dépenses de la fenêtre, et
+     * donnerait au compteur déjà affiché une seconde définition.
+     *
+     * ``budget=none`` ouvre le seau « hors budget » — même page, même geste.
+     * Sans période, on répond sur le mois en cours **chez le foyer** : ouvrir
+     * une enveloppe doit afficher le total sur lequel on vient de cliquer.
+     *
+     * ``category=<id>`` ouvre la fiche d'une **catégorie** : mêmes lectures sur
+     * toutes ses enveloppes, plus la répartition entre elles (``budgets``).
+     * C'est ici que ça se joue et non sur ``BudgetCategoryViewSet``, qui ne
+     * porte aucune agrégation : le sous-total d'une catégorie n'a le droit
+     * d'exister qu'à un seul endroit, sinon la fiche et le panneau finissent
+     * par répondre chacun le sien à « combien a-t-on dépensé ? ».
+     * @returns Budget
+     * @throws ApiError
+     */
+    public static budgetBudgetsInsightsRetrieve(): CancelablePromise<Budget> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/budget/budgets/insights/',
+        });
+    }
+    /**
+     * GET /api/budget/budgets/overview/?month=YYYY-MM | ?from=&to=
+     *
+     * The budgets with spent/ceiling over a window, the "hors budget" total and
+     * the optional global cap. Empty-but-valid shape when no household context.
+     *
+     * Trois façons de demander, et une seule à la fois (issue #516) :
+     *
+     * - ``month=YYYY-MM`` — un mois, celui du sélecteur ;
+     * - ``from``/``to`` (dates nues) — une fenêtre libre : trente jours, une
+     * année, du 3 au 9 février. Hors mois entier les plafonds se taisent
+     * (``amount: null``), un plafond mensuel n'ayant pas d'échelle en face ;
+     * - rien — le mois en cours.
+     *
+     * Tout paramètre illisible est un **400** : servir le mois en cours à qui a
+     * demandé « 2026-13 » afficherait des chiffres justes sur une fenêtre que
+     * personne n'a choisie, sans rien qui le signale.
      * @returns Budget
      * @throws ApiError
      */
@@ -164,6 +209,145 @@ export class BudgetService {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/budget/budgets/overview/',
+        });
+    }
+    /**
+     * CRUD for budget categories — the headings budgets are filed under.
+     *
+     * Deliberately plain: a category holds no money, so there is no overview action
+     * and no aggregation here. Its total lives in the budget overview, computed
+     * once alongside the envelopes it groups (one query, one definition of
+     * « dépensé »), never recomputed on a second endpoint that would eventually
+     * disagree with the first.
+     * @returns BudgetCategory
+     * @throws ApiError
+     */
+    public static budgetCategoriesList(): CancelablePromise<Array<BudgetCategory>> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/budget/categories/',
+        });
+    }
+    /**
+     * CRUD for budget categories — the headings budgets are filed under.
+     *
+     * Deliberately plain: a category holds no money, so there is no overview action
+     * and no aggregation here. Its total lives in the budget overview, computed
+     * once alongside the envelopes it groups (one query, one definition of
+     * « dépensé »), never recomputed on a second endpoint that would eventually
+     * disagree with the first.
+     * @param requestBody
+     * @returns BudgetCategory
+     * @throws ApiError
+     */
+    public static budgetCategoriesCreate(
+        requestBody: BudgetCategory,
+    ): CancelablePromise<BudgetCategory> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/budget/categories/',
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
+     * CRUD for budget categories — the headings budgets are filed under.
+     *
+     * Deliberately plain: a category holds no money, so there is no overview action
+     * and no aggregation here. Its total lives in the budget overview, computed
+     * once alongside the envelopes it groups (one query, one definition of
+     * « dépensé »), never recomputed on a second endpoint that would eventually
+     * disagree with the first.
+     * @param id
+     * @returns BudgetCategory
+     * @throws ApiError
+     */
+    public static budgetCategoriesRetrieve(
+        id: string,
+    ): CancelablePromise<BudgetCategory> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/budget/categories/{id}/',
+            path: {
+                'id': id,
+            },
+        });
+    }
+    /**
+     * CRUD for budget categories — the headings budgets are filed under.
+     *
+     * Deliberately plain: a category holds no money, so there is no overview action
+     * and no aggregation here. Its total lives in the budget overview, computed
+     * once alongside the envelopes it groups (one query, one definition of
+     * « dépensé »), never recomputed on a second endpoint that would eventually
+     * disagree with the first.
+     * @param id
+     * @param requestBody
+     * @returns BudgetCategory
+     * @throws ApiError
+     */
+    public static budgetCategoriesUpdate(
+        id: string,
+        requestBody: BudgetCategory,
+    ): CancelablePromise<BudgetCategory> {
+        return __request(OpenAPI, {
+            method: 'PUT',
+            url: '/api/budget/categories/{id}/',
+            path: {
+                'id': id,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
+     * CRUD for budget categories — the headings budgets are filed under.
+     *
+     * Deliberately plain: a category holds no money, so there is no overview action
+     * and no aggregation here. Its total lives in the budget overview, computed
+     * once alongside the envelopes it groups (one query, one definition of
+     * « dépensé »), never recomputed on a second endpoint that would eventually
+     * disagree with the first.
+     * @param id
+     * @param requestBody
+     * @returns BudgetCategory
+     * @throws ApiError
+     */
+    public static budgetCategoriesPartialUpdate(
+        id: string,
+        requestBody?: PatchedBudgetCategory,
+    ): CancelablePromise<BudgetCategory> {
+        return __request(OpenAPI, {
+            method: 'PATCH',
+            url: '/api/budget/categories/{id}/',
+            path: {
+                'id': id,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
+     * CRUD for budget categories — the headings budgets are filed under.
+     *
+     * Deliberately plain: a category holds no money, so there is no overview action
+     * and no aggregation here. Its total lives in the budget overview, computed
+     * once alongside the envelopes it groups (one query, one definition of
+     * « dépensé »), never recomputed on a second endpoint that would eventually
+     * disagree with the first.
+     * @param id
+     * @returns void
+     * @throws ApiError
+     */
+    public static budgetCategoriesDestroy(
+        id: string,
+    ): CancelablePromise<void> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/api/budget/categories/{id}/',
+            path: {
+                'id': id,
+            },
         });
     }
     /**

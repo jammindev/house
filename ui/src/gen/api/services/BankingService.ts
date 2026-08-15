@@ -240,6 +240,70 @@ export class BankingService {
         });
     }
     /**
+     * The same balance, day by day, so its shape can be read.
+     *
+     * Unwound backwards from :func:`compute_balance` rather than recomputed —
+     * see :mod:`banking.history` for why the curve must end on the figure the
+     * card already shows.
+     * @param id
+     * @returns BankAccount
+     * @throws ApiError
+     */
+    public static bankingAccountsBalanceHistoryRetrieve2(
+        id: string,
+    ): CancelablePromise<BankAccount> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/banking/accounts/{id}/balance-history/',
+            path: {
+                'id': id,
+            },
+        });
+    }
+    /**
+     * What the conformity control can — or cannot — assert about this account.
+     *
+     * Its own endpoint rather than fields on the account: the window is derived
+     * from the imports and the lines, so it changes without the account row ever
+     * being written, and serializing it inline would make every list of accounts
+     * pay two aggregates per row.
+     *
+     * ⚠️ It answers with a **reason**, never a bare "no window". An account
+     * nobody has imported anything into is normal; an account whose opening
+     * balance date postdates its own statements is invisible to every control,
+     * and must say so — that confusion once shipped a green checkmark over an
+     * unchecked account (see ``banking.coverage``).
+     * @param id
+     * @returns BankAccount
+     * @throws ApiError
+     */
+    public static bankingAccountsCoverageRetrieve(
+        id: string,
+    ): CancelablePromise<BankAccount> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/banking/accounts/{id}/coverage/',
+            path: {
+                'id': id,
+            },
+        });
+    }
+    /**
+     * Every live account on one shared axis, plus the household total.
+     *
+     * A list route because the shared axis is the product: curves sampled
+     * account by account would land on different days and could not be read
+     * against each other, let alone summed.
+     * @returns BankAccount
+     * @throws ApiError
+     */
+    public static bankingAccountsBalanceHistoryRetrieve(): CancelablePromise<BankAccount> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/banking/accounts/balance-history/',
+        });
+    }
+    /**
      * The conformity control — every écart the app knows how to detect.
      *
      * Two endpoints, and the split between them is a performance decision, not a
@@ -493,6 +557,33 @@ export class BankingService {
         });
     }
     /**
+     * Créditer une seule enveloppe depuis ce remboursement.
+     *
+     * ``POST`` d'une paire (budget, montant) et non le ``PUT`` complet d'à
+     * côté : ce geste part d'**une** dépense et ne connaît que son enveloppe.
+     * Passer par le ``PUT`` effacerait ce que les autres dépenses ont déjà
+     * rattaché à la même recette — voir
+     * :func:`banking.services.credit_budget_from_refund`.
+     * @param id
+     * @param requestBody
+     * @returns BankTransaction
+     * @throws ApiError
+     */
+    public static bankingTransactionsCreditBudgetCreate(
+        id: string,
+        requestBody?: BankTransaction,
+    ): CancelablePromise<BankTransaction> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/banking/transactions/{id}/credit-budget/',
+            path: {
+                'id': id,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
      * Attach an existing expense to this operation (manual reconciliation).
      * @param id
      * @param requestBody
@@ -506,6 +597,36 @@ export class BankingService {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/banking/transactions/{id}/link/',
+            path: {
+                'id': id,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
+     * Déclarer qu'une autre opération est l'autre jambe de ce virement.
+     *
+     * Le pendant manquant de `unlink-cash` : le module savait **délier** un
+     * virement qu'il ne savait pas **lier**, donc tout foyer qui importe un
+     * compte courant et un livret voyait chaque virement d'épargne rester en
+     * erreur au Contrôle, tous les mois, sans issue.
+     *
+     * La contrepartie est résolue **dans le queryset du foyer** : l'id vient du
+     * client, et le chercher ailleurs laisserait rattacher une opération d'un
+     * autre foyer — la même règle que `resolve_allocation_source`.
+     * @param id
+     * @param requestBody
+     * @returns BankTransaction
+     * @throws ApiError
+     */
+    public static bankingTransactionsLinkTransferCreate(
+        id: string,
+        requestBody?: BankTransaction,
+    ): CancelablePromise<BankTransaction> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/banking/transactions/{id}/link-transfer/',
             path: {
                 'id': id,
             },
@@ -574,6 +695,33 @@ export class BankingService {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/banking/transactions/{id}/suggestions/',
+            path: {
+                'id': id,
+            },
+        });
+    }
+    /**
+     * Les autres jambes plausibles de ce virement.
+     *
+     * C'est le serveur qui dit ce qui est plausible, jamais le client : les
+     * critères sont ceux de ``link_counterpart``, et deux définitions du même
+     * test finissent par diverger — proposer un candidat que le POST refuse est
+     * pire que n'en proposer aucun.
+     *
+     * L'écart de dates ne **filtre** pas, il **ordonne**. Un virement peut mettre
+     * plusieurs jours à être crédité, et une fenêtre dure cacherait précisément
+     * les cas lents que l'utilisateur vient résoudre ici ; les trier par
+     * proximité met le bon candidat en tête sans rendre les autres invisibles.
+     * @param id
+     * @returns BankTransaction
+     * @throws ApiError
+     */
+    public static bankingTransactionsTransferCandidatesRetrieve(
+        id: string,
+    ): CancelablePromise<BankTransaction> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/banking/transactions/{id}/transfer-candidates/',
             path: {
                 'id': id,
             },

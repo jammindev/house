@@ -277,9 +277,15 @@ export class AgentService {
     /**
      * Full-text search over the household's entities, for the context picker.
      *
-     * Query param ``q``. Reuses the exact retrieval the ``search_household`` tool
-     * uses (same ranking, same disabled-module filtering), so the picker surfaces
-     * precisely what the agent could find. Returns a light list of candidates.
+     * Query param ``q``. Delegates to ``search_api.search_household_entities`` —
+     * the same entry point the global search box uses — so the picker, the palette
+     * and the agent's ``search_household`` tool can never drift into three
+     * rankings or three payload shapes. Kept as a bare list (not
+     * ``{"results": …}``) because that is the shape its client already reads.
+     *
+     * Conséquence du partage : le plancher de deux caractères s'applique ici aussi
+     * (avant, une requête d'un caractère cherchait). Le picker le respectait déjà
+     * côté client.
      * @returns ConversationDetail
      * @throws ApiError
      */
