@@ -46,6 +46,7 @@ urlpatterns = [
     path("api/telegram/", include("telegram.urls")),
     path("api/releases/", include("releases.urls")),
     path("api/chickens/", include("chickens.urls")),
+    path("api/orchard/", include("orchard.urls")),
     path("api/pings/", include("pings.urls")),
     path("api/budget/", include("budget.urls")),
     path("api/recap/", include("recap.urls")),
