@@ -103,16 +103,43 @@ Je ne l'avais pas lancé en local : j'avais joué `keys.test.ts` et
 `npx vitest run` en entier avant de pousser, pas seulement les garde-fous qu'on a
 en tête.
 
-### 3.5 Les onglets Documents et Photos étaient déjà gratuits
+### 3.5 Les onglets Documents et Photos affichaient TOUT — et je l'ai écrit faux
 
 Le backlog prévoyait du travail au lot 6 pour les brancher. En lisant
-`apps/documents/views.py`, il s'est avéré que le filtre `?<entity>=<id>` est
-**générique**, résolu via `agent.searchables.find_spec`. Enregistrer le
-`SearchableSpec('tree')` au lot 8 avait donc déjà ouvert les deux onglets.
+`apps/documents/views.py`, j'ai vu la branche `?linked_to=<type>:<uuid>` qui
+résout via `agent.searchables.find_spec`, et j'en ai conclu — **à tort** — que le
+filtre par entité était générique. Les onglets ont donc été branchés en trois
+lignes, et cette conclusion écrite dans la fiche du module.
 
-**Effet de bord de l'ordre des lots** : les onglets avaient été retirés du lot 3
-faute de savoir si le filtre existait. Les remettre au lot 6 a coûté trois lignes.
-À refaire, la vérification se ferait au cadrage.
+**Elle était fausse.** Juste au-dessus, la liste des raccourcis par entité était
+**écrite en dur** : `('zone', 'project', 'equipment', 'task', 'chicken')`. Le
+front envoyait `?tree=<id>`, qui n'y figurait pas — et un paramètre inconnu
+tombait dans un `continue`. Or **un filtre ignoré ne rend pas moins de documents,
+il les rend tous** : l'onglet Documents d'un arbre affichait la photothèque
+entière du foyer. C'est Ben qui l'a vu à l'usage, pas moi.
+
+**Tranché** en trois temps :
+1. la liste des raccourcis **dérive du registre** — elle ne peut plus prendre de
+   retard sur `agent.searchables` ;
+2. un type inconnu **refuse en 400** au lieu de retomber sur « pas de filtre ».
+   Sur-partager en silence est pire que refuser — c'est exactement la règle déjà
+   posée pour `?purpose=` : « un paramètre oublié ne doit pas pouvoir se lire
+   comme un filtre » ;
+3. les deux onglets génériques passent par `?linked_to=<type>:<id>`, forme sans
+   risque de collision.
+
+**Une collision découverte par le test au passage** : dériver la liste du registre
+a fait rougir `?interaction=`, qui est déjà un `filterset_fields` sur la FK
+`Document.interaction`. Un paramètre ne peut pas porter deux sens : ce type-là est
+exclu des raccourcis, nommément et par constante documentée.
+
+**La leçon, et elle vaut au-delà de ce bug** : j'ai lu une branche générique et
+généralisé au fichier. Un mécanisme n'est générique que si on a vu **ce qui se
+passe pour une valeur inconnue** — ici, un `continue` silencieux. Et je l'ai écrit
+dans la doc comme un fait acquis, ce qui aurait propagé l'erreur.
+
+Régression : `documents/tests/test_entity_filter.py`, dont un garde-fou dérivé du
+registre qui rougira pour le **prochain** module, pas seulement pour le verger.
 
 ### 3.6 L'environnement E2E local était cassé — deux fois
 

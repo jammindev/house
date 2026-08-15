@@ -67,6 +67,12 @@ def _run_extraction(document: Document, *, feature: str = "ocr_upload", user=Non
     document.save(update_fields=["ocr_text", "metadata", "updated_at"])
 
 
+#: Types searchables dont le nom est déjà pris par un autre filtre de cet
+#: endpoint — ils ne se filtrent donc que par la forme générique `linked_to`.
+#: `interaction` est un `filterset_fields` sur la FK `Document.interaction`.
+_PARAMS_RESERVED_BY_ANOTHER_FILTER = frozenset({'interaction'})
+
+
 def get_documents_queryset_for_request(request):
     query_params = getattr(request, 'query_params', request.GET)
     queryset = Document.objects.filter(
@@ -129,25 +135,48 @@ def get_documents_queryset_for_request(request):
                 )
             })
 
-    # Legacy per-entity params (?zone= / ?project= / ?equipment=) + generic
-    # ?linked_to=<entity_type>:<uuid> all resolve to a DocumentLink filter.
+    # Deux formes pour le même filtre : les raccourcis historiques
+    # (`?zone=` / `?project=`…) et la forme générique `?linked_to=<type>:<uuid>`.
+    #
+    # ⚠️ **La liste des raccourcis dérive du registre**, elle n'est plus écrite en
+    # dur. Une liste figée (`zone, project, equipment, task, chicken`) ignorait en
+    # silence tout type ajouté depuis — et un filtre ignoré ne rend pas *moins* de
+    # documents, il les rend **tous**. L'onglet Documents du verger montrait ainsi
+    # la photothèque entière du foyer. C'est le pendant de la règle des photos :
+    # « un paramètre oublié ne doit pas pouvoir se lire comme un filtre ».
+    #
+    # `interaction` est la seule exception, et elle est structurelle : c'est déjà
+    # un `filterset_fields` sur la FK `Document.interaction`. Un paramètre ne peut
+    # pas porter deux sens, donc ce type-là ne se filtre que par `linked_to`.
     from agent import searchables
 
     entity_filters = []
-    for param in ('zone', 'project', 'equipment', 'task', 'chicken'):
-        value = (query_params.get(param) or '').strip()
+    for spec in searchables.REGISTRY:
+        if spec.entity_type in _PARAMS_RESERVED_BY_ANOTHER_FILTER:
+            continue
+        value = (query_params.get(spec.entity_type) or '').strip()
         if value:
-            entity_filters.append((param, value))
+            entity_filters.append((spec.entity_type, value))
+
     linked_to = (query_params.get('linked_to') or '').strip()
-    if linked_to and ':' in linked_to:
+    if linked_to:
         etype, _, oid = linked_to.partition(':')
-        if etype.strip() and oid.strip():
-            entity_filters.append((etype.strip(), oid.strip()))
+        etype, oid = etype.strip(), oid.strip()
+        if not etype or not oid:
+            raise ValidationError({
+                'linked_to': 'Expected the form <entity_type>:<uuid>.'
+            })
+        entity_filters.append((etype, oid))
 
     for entity_type, object_id in entity_filters:
         spec = searchables.find_spec(entity_type)
         if spec is None:
-            continue
+            # Ne jamais retomber sur « pas de filtre » : demander les documents
+            # d'une entité qu'on ne sait pas résoudre doit **refuser**, pas
+            # répondre « tous ». Un silence ici sur-partage.
+            raise ValidationError({
+                'linked_to': f'Unknown entity type: {entity_type!r}.'
+            })
         ct = ContentType.objects.get_for_model(spec.model)
         queryset = queryset.filter(links__content_type=ct, links__object_id=object_id)
 

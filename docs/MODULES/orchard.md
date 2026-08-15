@@ -72,9 +72,13 @@ Le minimum à savoir avant de toucher `apps/orchard/seasons.py` :
 | `documents` / `photos` | `DocumentLink` polymorphe + onglets génériques |
 | `agent` | 3 registries + `get_harvest_stats`, déclarés depuis `apps.py::ready()` |
 
-**Les onglets Documents et Photos n'ont coûté aucune ligne de backend** : le
-filtre `?tree=<id>` de l'API documents est générique, résolu via
-`agent.searchables.find_spec`. Enregistrer le `SearchableSpec` les a ouverts.
+**Les onglets Documents et Photos ont coûté une ligne de backend**, découverte
+après coup : le filtre par entité de l'API documents était une **liste blanche
+écrite en dur**, pas un mécanisme générique. `?tree=` y était donc ignoré — et un
+filtre ignoré ne rend pas *moins* de documents, il les rend **tous**. Corrigé en
+dérivant la liste du registre `agent.searchables` et en **refusant** un type
+inconnu. Les deux onglets passent désormais par la forme non ambiguë
+`?linked_to=tree:<id>`. Régression : `documents/tests/test_entity_filter.py`.
 
 ## API
 
