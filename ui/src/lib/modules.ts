@@ -1,5 +1,5 @@
 import {
-  Bird, Box, CloudSun, Droplets, FileText, FolderKanban, Image, Landmark, ListTodo, MapPin,
+  Bird, Box, CloudSun, Compass, Droplets, FileText, FolderKanban, Image, Landmark, ListTodo, MapPin,
   Notebook, PiggyBank, Receipt, ShoppingCart, TreeDeciduous, TrendingUp, Umbrella, Users,
   Wrench, Zap,
   type LucideIcon,
@@ -46,6 +46,7 @@ export const MODULES: ModuleDef[] = [
   { key: 'stock',        to: '/app/stock',        labelKey: 'stock.title',        Icon: Box,          group: 'home',      optional: true  },
   { key: 'chickens',     to: '/app/chickens',     labelKey: 'chickens.title',     Icon: Bird,         group: 'home',      optional: true  },
   { key: 'orchard',      to: '/app/orchard',      labelKey: 'orchard.title',      Icon: TreeDeciduous, group: 'home',     optional: true  },
+  { key: 'games',        to: '/app/games',        labelKey: 'games.title',        Icon: Compass,      group: 'home',      optional: true  },
   { key: 'insurance',    to: '/app/insurance',    labelKey: 'insurance.title',    Icon: Umbrella,     group: 'home',      optional: true  },
   { key: 'tasks',        to: '/app/tasks',        labelKey: 'tasks.title',        Icon: ListTodo,     group: 'tracking',  optional: false },
   { key: 'projects',     to: '/app/projects',     labelKey: 'projects.title',     Icon: FolderKanban, group: 'tracking',  optional: false },
