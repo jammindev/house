@@ -7,10 +7,12 @@ from .api import (
     signup_availability_view,
 )
 from .devices import DeviceTokenViewSet
+from .setup import SetupView
 
 __all__ = [
     'AuthViewSet',
     'DeviceTokenViewSet',
+    'SetupView',
     'TokenObtainPairWithSessionView',
     'UserViewSet',
     'me_view',

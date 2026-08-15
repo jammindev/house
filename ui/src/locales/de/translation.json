@@ -2708,7 +2708,13 @@
     "resetSubmit": "Passwort zurücksetzen",
     "resetting": "Zurücksetzen…",
     "tokenInvalid": "Dieser Link ist ungültig oder abgelaufen. Bitte fordern Sie einen neuen an.",
-    "passwordResetSuccess": "Passwort zurückgesetzt. Sie können sich jetzt anmelden."
+    "passwordResetSuccess": "Passwort zurückgesetzt. Sie können sich jetzt anmelden.",
+    "setupTitle": "Willkommen",
+    "setupIntro": "Diese Instanz ist neu. Erstelle das Konto, das sie verwaltet, und gib deinem Haushalt einen Namen.",
+    "setupHouseholdName": "Name des Haushalts (optional)",
+    "setupSubmit": "Konto erstellen",
+    "setupPending": "Wird erstellt…",
+    "setupFailed": "Die Einrichtung ist fehlgeschlagen. Prüfe deine Angaben."
   },
   "projects": {
     "app_title": "Projekte-Mini-App",

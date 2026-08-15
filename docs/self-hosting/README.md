@@ -19,16 +19,17 @@ These pages are the operator's manual. They assume Docker and nothing else.
 
 ```bash
 curl -O https://raw.githubusercontent.com/jammindev/house/main/docker-compose.yml
-docker compose up
+docker compose up -d
 ```
 
-Then open <http://localhost:8000>. The first account's credentials are printed in
-the output, in a box. Nothing to edit, no key to sign up for.
+Then open <http://localhost:8000>, where the screen asks you to create your
+account. Nothing to edit, no key to sign up for, nothing to copy out of a
+terminal.
 
 To look around a filled-in household before typing anything of your own:
 
 ```bash
-docker compose --profile demo up
+docker compose --profile demo up -d
 ```
 
 ## The two things to know before you trust it with your data

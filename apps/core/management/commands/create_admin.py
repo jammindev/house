@@ -1,15 +1,22 @@
-"""Le premier compte d'une instance, créé sans que personne n'ait rien à saisir.
+"""Le premier compte d'une **installation non surveillée**.
 
-Il n'y a **pas d'inscription ouverte** dans Maisonnée : on entre dans un foyer
-par invitation. C'est la bonne règle pour un foyer, et elle laisse un trou d'une
-seule case — le premier compte, celui qui n'a personne pour l'inviter. Sans cette
-commande, une installation neuve affiche un écran de connexion qu'aucun mot de
-passe n'ouvre, et le lecteur en déduit que le produit est cassé.
+Le chemin normal n'est plus ici : c'est l'assistant de premier démarrage
+(`accounts.views.setup`, issue #591), où la personne ouvre l'adresse et choisit
+ses identifiants dans l'interface. Cette commande ne sert plus qu'au cas où
+personne ne regardera l'écran — un déploiement scripté, une instance provisionnée
+d'avance — et elle le reconnaît à une seule chose : **`MAISONNEE_ADMIN_PASSWORD`
+est fourni.**
 
-Ce que la commande crée, elle le crée **entier** : un compte *et* un foyer *et*
-l'appartenance qui les relie, avec le foyer actif positionné. Un compte sans
-foyer se connecte et arrive sur une application vide de tout — c'est un
-demi-succès qui ressemble exactement à un échec.
+Sans ce mot de passe, elle ne crée rien. C'est le changement qui compte : avant,
+elle en générait un et l'imprimait dans la sortie de `docker compose up`, où il
+défilait sous les logs de gunicorn en une quinzaine de secondes. Le cadre était
+soigné, la consigne (« note-le, il n'est stocké nulle part ») restait la phrase la
+moins accueillante du parcours, et le risque était écrit ici même : un mot de
+passe perdu, et le lecteur fait un `down -v` qui détruit son volume.
+
+Ce qu'elle crée, elle le crée **entier** — compte, foyer, appartenance, foyer
+actif — et par le même service que l'assistant (`accounts.services`), pour que les
+deux chemins ne puissent pas diverger.
 
 Idempotente par la même règle que le reste du projet : relancée, elle ne fait
 rien et le dit. Le conteneur ``init`` du ``docker-compose.yml`` l'appelle à
@@ -18,16 +25,11 @@ rien et le dit. Le conteneur ``init`` du ``docker-compose.yml`` l'appelle à
 from __future__ import annotations
 
 import os
-import secrets
 
 from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand
-from django.db import transaction
 
-from households.models import Household, HouseholdMember
-
-DEFAULT_EMAIL = "admin@maisonnee.local"
-DEFAULT_HOUSEHOLD = "Ma maisonnée"
+from accounts.services import DEFAULT_EMAIL, DEFAULT_HOUSEHOLD, create_first_account
 
 
 class Command(BaseCommand):
@@ -42,7 +44,6 @@ class Command(BaseCommand):
             "--household", default=os.environ.get("MAISONNEE_HOUSEHOLD_NAME", "")
         )
 
-    @transaction.atomic
     def handle(self, *args, **options):
         User = get_user_model()
 
@@ -54,36 +55,31 @@ class Command(BaseCommand):
             self.stdout.write("create_admin: un compte existe déjà, rien à faire.")
             return
 
-        email = (options["email"] or DEFAULT_EMAIL).strip().lower()
-        household_name = options["household"] or DEFAULT_HOUSEHOLD
         password = options["password"]
-        generated = not password
-        if generated:
-            # Assez court pour être retapé depuis les logs, assez long pour ne
-            # pas être deviné (~77 bits).
-            password = secrets.token_urlsafe(12)
+        if not password:
+            # Le cas normal, et il est **silencieux**. Générer un mot de passe
+            # ici reviendrait à réinventer ce que l'assistant vient de supprimer :
+            # un secret imprimé dans un flot de logs, illisible dix secondes plus
+            # tard. L'instance reste sans compte, et le premier visiteur la
+            # configure.
+            self.stdout.write(
+                "create_admin: aucun MAISONNEE_ADMIN_PASSWORD — "
+                "le premier compte se créera dans l'interface."
+            )
+            return
 
-        user = User.objects.create_superuser(
-            email=email,
+        user = create_first_account(
+            email=options["email"] or DEFAULT_EMAIL,
             password=password,
-            first_name="",
-            display_name=email.split("@")[0],
+            household_name=options["household"] or DEFAULT_HOUSEHOLD,
         )
-        household = Household.objects.create(name=household_name)
-        HouseholdMember.objects.create(
-            household=household, user=user, role=HouseholdMember.Role.OWNER
-        )
-        user.active_household = household
-        user.save(update_fields=["active_household"])
+        self._announce(user.email)
 
-        self._announce(email, password, generated)
+    def _announce(self, email: str) -> None:
+        """Ce qui reste à dire tient en deux lignes.
 
-    def _announce(self, email: str, password: str, generated: bool) -> None:
-        """Les identifiants doivent sauter aux yeux dans le flot de `compose up`.
-
-        Un mot de passe généré qui défile entre deux lignes de migration est un
-        mot de passe perdu : le lecteur ferait un ``docker compose down -v`` pour
-        recommencer, et détruirait son volume.
+        Le mot de passe n'est plus imprimé : il vient de l'environnement, donc
+        celui qui a lancé l'installation l'a déjà.
         """
         line = "─" * 64
         self.stdout.write("")
@@ -91,16 +87,6 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS("  Maisonnée — premier compte créé"))
         self.stdout.write(self.style.SUCCESS(line))
         self.stdout.write(f"  Identifiant : {email}")
-        if generated:
-            self.stdout.write(f"  Mot de passe : {password}")
-            self.stdout.write("")
-            self.stdout.write(
-                "  Note-le : il est généré une seule fois et n'est stocké nulle part."
-            )
-            self.stdout.write(
-                "  Pour le choisir toi-même : MAISONNEE_ADMIN_PASSWORD dans l'environnement."
-            )
-        else:
-            self.stdout.write("  Mot de passe : celui de MAISONNEE_ADMIN_PASSWORD.")
+        self.stdout.write("  Mot de passe : celui de MAISONNEE_ADMIN_PASSWORD.")
         self.stdout.write(self.style.SUCCESS(line))
         self.stdout.write("")

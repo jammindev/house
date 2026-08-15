@@ -2708,7 +2708,13 @@
     "resetSubmit": "Réinitialiser",
     "resetting": "Réinitialisation…",
     "tokenInvalid": "Ce lien est invalide ou a expiré. Demandez un nouveau lien.",
-    "passwordResetSuccess": "Mot de passe réinitialisé. Vous pouvez maintenant vous connecter."
+    "passwordResetSuccess": "Mot de passe réinitialisé. Vous pouvez maintenant vous connecter.",
+    "setupTitle": "Bienvenue",
+    "setupIntro": "Cette instance est neuve. Créez le compte qui l'administrera, et donnez un nom à votre foyer.",
+    "setupHouseholdName": "Nom du foyer (facultatif)",
+    "setupSubmit": "Créer mon compte",
+    "setupPending": "Création…",
+    "setupFailed": "La création a échoué. Vérifiez les informations saisies."
   },
   "projects": {
     "app_title": "Mini-app Projets",

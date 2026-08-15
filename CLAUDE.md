@@ -162,6 +162,38 @@ Doc : `docs/MODULES/security.md` § Throttling. Régression :
   d'entité un embedding : `document_upload` et `ocr_reprocess` existent pour ça.
   Le plancher compte des requêtes, pas des euros.
 
+## Le premier compte — dans l'interface, jamais dans les logs
+
+`GET|POST /api/accounts/setup/` (`AllowAny`) est l'assistant de premier
+démarrage : une instance neuve n'a aucun compte, et le premier visiteur crée le
+sien à l'écran. Avant, `create_admin` générait un mot de passe et l'imprimait
+dans la sortie de `docker compose up` — où les logs de gunicorn le faisaient
+défiler en quinze secondes, avec pour consigne « note-le, il n'est stocké nulle
+part ». Le terminal était devenu une **étape du parcours**, alors que le README
+promet que tout se fait depuis l'interface. Doc : `docs/self-hosting/install.md`.
+
+- **La garde est « aucun compte n'existe », jamais « ce compte n'existe pas ».**
+  Une configuration initiale qui se rouvre est une prise de contrôle offerte à
+  qui trouve l'URL. Elle est prise **sous `pg_advisory_xact_lock`** dans la
+  transaction : deux `POST` simultanés verraient tous deux zéro compte et
+  créeraient deux administrateurs dans deux foyers différents, dont un fantôme.
+- **Le refus se dit en 403, jamais en 401** — même raison que le refus
+  d'inscription : 401 veut dire « recommence avec des identifiants », et aucun
+  identifiant n'ouvrira une configuration déjà faite.
+- **Seul le `POST` est serré** (`SignupRateThrottle`, 5/h/IP) ; le `GET` retombe
+  sur le plancher global. L'écran de connexion l'interroge à chaque visite pour
+  savoir s'il doit rediriger — le serrer casserait la page.
+- **Une seule définition du premier compte** :
+  `accounts.services.create_first_account` crée compte **+** foyer **+**
+  appartenance **+** foyer actif, et les deux appelants (l'assistant et
+  `create_admin`) passent par elle. Un compte sans foyer arrive sur une app vide
+  de tout — « un demi-succès qui ressemble exactement à un échec ». Régression :
+  `test_setup.py::TestTheUnattendedPathAgreesWithTheAssistant`.
+- **`MAISONNEE_ADMIN_PASSWORD` reste le chemin non surveillé**, et il ne laisse
+  aucune fenêtre : le compte existe avant le premier visiteur. Sans lui,
+  `create_admin` ne crée **rien** — ne jamais réintroduire un mot de passe généré,
+  c'est exactement ce que cet écran supprime.
+
 ## L'inscription — ouverte par défaut, fermable par `.env`
 
 `POST /api/accounts/users/` est en `AllowAny` : c'est la seule façon pour un

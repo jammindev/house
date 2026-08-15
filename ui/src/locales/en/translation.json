@@ -2708,7 +2708,13 @@
     "resetSubmit": "Reset password",
     "resetting": "Resetting…",
     "tokenInvalid": "This link is invalid or has expired. Please request a new one.",
-    "passwordResetSuccess": "Password reset. You can now sign in."
+    "passwordResetSuccess": "Password reset. You can now sign in.",
+    "setupTitle": "Welcome",
+    "setupIntro": "This instance is brand new. Create the account that will run it, and name your household.",
+    "setupHouseholdName": "Household name (optional)",
+    "setupSubmit": "Create my account",
+    "setupPending": "Creating…",
+    "setupFailed": "Setup failed. Check the details you entered."
   },
   "projects": {
     "app_title": "Projects mini-app",

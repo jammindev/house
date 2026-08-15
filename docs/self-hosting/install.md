@@ -12,26 +12,44 @@ Nothing else. No Python, no Node, no `git clone`.
 
 ```bash
 curl -O https://raw.githubusercontent.com/jammindev/house/main/docker-compose.yml
-docker compose up
+docker compose up -d
 open http://localhost:8000
 ```
 
-The first start pulls the image, creates the database, applies the schema, and
-creates the first account — whose email and password are printed in a box in the
-output. **Copy the password**: it is generated once and never shown again.
+The first start pulls the image, creates the database and applies the schema.
+Then **the browser asks you for the rest**: your email, your password, and a name
+for your household. Nothing to copy out of a terminal, nothing that scrolls away.
 
-Run it in the background once you're satisfied it starts:
+Watch it happen if you like — `docker compose logs -f` — but you don't need to.
+
+## Unattended install
+
+Set `MAISONNEE_ADMIN_PASSWORD` before the first start and the account is created
+for you, with no setup screen at all:
 
 ```bash
-docker compose up -d
+# .env
+MAISONNEE_ADMIN_EMAIL=me@example.org
+MAISONNEE_ADMIN_PASSWORD=a-long-password-you-chose
+MAISONNEE_HOUSEHOLD_NAME=Our house
 ```
+
+Use this when nobody will be watching the screen — a scripted deployment, an
+instance provisioned ahead of time.
+
+> **The setup screen is open until it is used.** Between the first start and your
+> first visit, anyone who can reach the port can claim the instance. On a laptop
+> or a home LAN that window is theoretical; if you are exposing the port to the
+> internet before you have configured it, use the unattended install above, which
+> leaves no window at all. The screen closes permanently the moment one account
+> exists — it answers `403` from then on, never a login prompt.
 
 ## What is running
 
 | Service | Role |
 |---|---|
 | `db` | PostgreSQL 16 with the `vector` extension. Not published outside the compose network. |
-| `init` | Runs once per start: waits for the database, migrates, creates the first account, exits. `web` waits for it to succeed. |
+| `init` | Runs once per start: waits for the database, migrates, exits. `web` waits for it to succeed. |
 | `web` | The application, on port 8000. Serves its own static files and its own protected media — there is no Nginx in this stack. |
 | `scheduler`, `scheduler-briefings` | Proactive reminders and briefings. Idle until someone schedules something. |
 
@@ -48,9 +66,9 @@ All have a working default. Put them in a `.env` file next to
 |---|---|---|
 | `MAISONNEE_PORT` | `8000` | Port published on the host |
 | `MAISONNEE_PUBLIC_URL` | — | The public address, if the instance has one. See below. |
-| `MAISONNEE_ADMIN_EMAIL` | `admin@maisonnee.local` | First account's login |
-| `MAISONNEE_ADMIN_PASSWORD` | generated | First account's password |
-| `MAISONNEE_HOUSEHOLD_NAME` | — | Name of the household created on first start |
+| `MAISONNEE_ADMIN_EMAIL` | `admin@maisonnee.local` | First account's login, unattended install only |
+| `MAISONNEE_ADMIN_PASSWORD` | — | Set it to skip the setup screen entirely. Unset, the browser asks. |
+| `MAISONNEE_HOUSEHOLD_NAME` | `Ma maisonnée` | Household name, unattended install only |
 | `MAISONNEE_IMAGE` | `ghcr.io/jammindev/maisonnee:latest` | Pin a version — see [releases.md](releases.md) |
 | `POSTGRES_PASSWORD` | `maisonnee` | Database password. Set it **before** the first start. |
 | `GUNICORN_WORKERS` | `2` | Raise it on a machine that isn't a Pi |

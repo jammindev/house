@@ -1,10 +1,14 @@
 # Maisonnée — auto-hébergement, en une commande.
 #
 #   curl -O https://raw.githubusercontent.com/jammindev/house/main/docker-compose.yml
-#   docker compose up
+#   docker compose up -d
 #
-# Puis http://localhost:8000. Les identifiants du premier compte s'affichent dans
-# la sortie de la commande, encadrés. Rien à éditer, aucune clé à souscrire.
+# Puis http://localhost:8000, où l'écran demande de créer le premier compte.
+# Rien à éditer, aucune clé à souscrire, rien à recopier depuis un terminal.
+#
+# Pour une installation non surveillée — personne ne regardera l'écran — poser
+# `MAISONNEE_ADMIN_PASSWORD` : le compte est alors créé au démarrage et l'écran
+# de configuration ne s'affiche jamais.
 #
 # Avec un foyer de démonstration pré-rempli, pour visiter avant de saisir :
 #   docker compose --profile demo up
@@ -28,10 +32,11 @@
 #                          se termine dans TON reverse proxy (Caddy, Traefik…) —
 #                          cette pile sert en clair sur le port publié.
 #   MAISONNEE_PORT         port publié sur l'hôte (défaut : 8000)
-#   MAISONNEE_ADMIN_EMAIL  identifiant du premier compte (défaut :
-#                          admin@maisonnee.local)
-#   MAISONNEE_ADMIN_PASSWORD  son mot de passe (défaut : généré et affiché une
-#                          seule fois au premier démarrage)
+#   MAISONNEE_ADMIN_EMAIL  identifiant du premier compte, en installation non
+#                          surveillée seulement (défaut : admin@maisonnee.local)
+#   MAISONNEE_ADMIN_PASSWORD  posé, le premier compte est créé au démarrage et
+#                          l'écran de configuration ne s'affiche jamais. Absent,
+#                          c'est le navigateur qui demande.
 #   MAISONNEE_IMAGE        image à utiliser (défaut : ghcr.io/jammindev/maisonnee:latest)
 #   POSTGRES_PASSWORD      mot de passe de la base. La base n'est jamais publiée
 #                          hors du réseau interne ; le changer avant le premier
