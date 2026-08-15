@@ -15,6 +15,8 @@ const TasksPage = lazyWithReload(() => import('./features/tasks/TasksPage'));
 const TaskDetailPage = lazyWithReload(() => import('./features/tasks/TaskDetailPage'));
 const ZonesPage = lazyWithReload(() => import('./features/zones/ZonesPage'));
 const ZoneDetailPage = lazyWithReload(() => import('./features/zones/ZoneDetailPage'));
+const ZoneScanPage = lazyWithReload(() => import('./features/zones/ZoneScanPage'));
+const ZoneQrPrintPage = lazyWithReload(() => import('./features/zones/ZoneQrPrintPage'));
 const InteractionsPage = lazyWithReload(() => import('./features/interactions/InteractionsPage'));
 const InteractionDetailPage = lazyWithReload(() => import('./features/interactions/InteractionDetailPage'));
 const InteractionNewPage = lazyWithReload(() => import('./features/interactions/InteractionNewPage'));
@@ -101,6 +103,15 @@ export const router = createBrowserRouter([
     element: <JoinHouseholdPage />,
   },
   {
+    // Public par nécessité : c'est l'appareil photo natif du téléphone qui ouvre
+    // cette URL depuis une étiquette QR collée dans une pièce, et rien ne dit
+    // que le navigateur qui s'ouvre est connecté. La page redirige alors vers le
+    // login **en conservant la destination** — sans quoi l'étiquette ne
+    // marcherait que pour qui est déjà dans l'app (parcours 31).
+    path: '/z/:token',
+    element: <ZoneScanPage />,
+  },
+  {
     path: '/app',
     element: <ProtectedLayout />,
     children: [
@@ -109,6 +120,9 @@ export const router = createBrowserRouter([
       { path: 'tasks', element: <TasksPage /> },
       { path: 'tasks/:id', element: <TaskDetailPage /> },
       { path: 'zones', element: <ZonesPage /> },
+      // Avant `zones/:id` : segment statique, pour qu'aucun classement de routes
+      // ne puisse le lire comme l'identifiant d'une zone nommée « print-qr ».
+      { path: 'zones/print-qr', element: <ZoneQrPrintPage /> },
       { path: 'zones/:id', element: <ZoneDetailPage /> },
       { path: 'interactions', element: <InteractionsPage /> },
       { path: 'interactions/new', element: <InteractionNewPage /> },

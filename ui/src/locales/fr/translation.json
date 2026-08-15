@@ -831,6 +831,29 @@
       "projects_title": "Projets actifs",
       "projects_empty": "Aucun projet actif pour cette zone.",
       "documents_empty": "Aucun document associé à cette zone pour le moment."
+    },
+    "qr": {
+      "openPrintSheet": "Étiquettes QR",
+      "printTitle": "Étiquettes QR des pièces",
+      "printIntro": "Imprimez cette planche, découpez les étiquettes et collez-en une dans chaque pièce. Scanner une étiquette avec l’appareil photo ouvre la pièce dans House.",
+      "printButton": "Imprimer",
+      "printEmpty": "Aucune pièce à étiqueter pour l’instant.",
+      "scanning": "Lecture de l’étiquette…",
+      "backToZones": "Retour aux pièces",
+      "failure": {
+        "unknown": {
+          "title": "Étiquette inconnue",
+          "body": "Cette étiquette ne correspond à aucune pièce. Elle a sans doute été remplacée — réimprimez la planche."
+        },
+        "other-household": {
+          "title": "Étiquette d’un autre foyer",
+          "body": "Cette étiquette appartient à un autre foyer. Changez de foyer, ou utilisez une étiquette imprimée depuis celui-ci."
+        },
+        "generic": {
+          "title": "Lecture impossible",
+          "body": "Quelque chose s’est mal passé en chemin. Vérifiez votre connexion et scannez à nouveau."
+        }
+      }
     }
   },
   "tasks": {

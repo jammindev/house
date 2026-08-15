@@ -126,3 +126,44 @@ export async function reorderZones(
 
 // Keep legacy alias for compatibility with equipment and other consumers
 export type ZoneOption = Zone;
+
+// ── Ancrage physique : étiquettes QR (parcours 31) ───────────────────────────
+
+/** Une étiquette imprimable — le QR est un SVG rendu par le serveur. */
+export interface ZoneLabel {
+  zone_id: string;
+  name: string;
+  full_path: string;
+  /** Chemin relatif encodé dans le QR, ex. `/z/<jeton>`. */
+  path: string;
+  url: string;
+  svg: string;
+}
+
+export interface ZonePrintSheet {
+  count: number;
+  labels: ZoneLabel[];
+}
+
+/**
+ * Résout le jeton d'une étiquette scannée.
+ *
+ * C'est la **seule** porte de scan : le lot 2 du parcours 31 étend cette réponse
+ * du verdict de la chasse en cours plutôt que d'ouvrir un second endpoint.
+ */
+export async function scanZoneToken(token: string): Promise<{ zone: Zone }> {
+  const { data } = await api.post('/zones/scan/', { token });
+  return { zone: normalizeZone((data as { zone: Zone }).zone) };
+}
+
+/** La planche d'étiquettes du foyer — le seul endpoint qui expose les jetons. */
+export async function fetchZonePrintSheet(): Promise<ZonePrintSheet> {
+  const { data } = await api.get('/zones/print-sheet/');
+  return data as ZonePrintSheet;
+}
+
+/** Redonne un jeton neuf à une pièce : l'ancienne étiquette devient muette. */
+export async function rotateZoneQr(id: string): Promise<ZoneLabel> {
+  const { data } = await api.post(`/zones/${id}/rotate-qr/`);
+  return data as ZoneLabel;
+}

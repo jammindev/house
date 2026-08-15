@@ -193,6 +193,48 @@ Points d'architecture à ne pas défaire :
   `CheckConstraint`, donc sans cette borne une valeur négative repartait en
   `IntegrityError` 500 au lieu d'un 400 lisible.
 
+## L'ancrage physique — `Zone.qr_token` et l'étiquette imprimée
+
+Livré au **lot 1 du parcours 31** (issue #608). Cours complet :
+[`docs/fiches/ANCRAGE_PHYSIQUE.md`](../fiches/ANCRAGE_PHYSIQUE.md). Ce lot appartient
+aux zones, pas au module Jeux : il sert la chasse au trésor, mais il reste utile —
+et actif — chez un foyer qui désactive les jeux.
+
+| Route | Rôle |
+|---|---|
+| `POST /api/zones/scan/` | résout le jeton d'une étiquette. **Seule porte de scan** |
+| `GET /api/zones/print-sheet/` | la planche du foyer. **Seul endpoint qui expose les jetons** |
+| `POST /api/zones/{id}/rotate-qr/` | redonne un jeton neuf, l'ancienne étiquette devient muette |
+
+- **`qr_token` est distinct de `Zone.id`, et c'est structurel.** L'UUID d'une zone
+  circule déjà dans les URLs de l'app, dans les payloads d'API et dans les liens
+  que produit l'agent : s'en servir comme preuve de présence publierait la réponse
+  du jeu dans la barre d'adresse. Un test balaye le CRUD et l'arbre pour vérifier
+  que le jeton n'en sort pas.
+- **La migration `0008` fait trois opérations, jamais une.** Django n'évalue le
+  `default` d'une `AddField` qu'une fois et le pose sur toutes les lignes par un
+  seul `ALTER TABLE` : avec un jeton, ça donnerait **la même valeur à toutes les
+  zones du foyer**. La colonne naît donc nullable, une `RunPython` boucle sur les
+  lignes, et l'unicité n'arrive qu'après. Deux tests le tiennent — un sur le
+  comportement, un sur la **forme** du fichier de migration, parce qu'un
+  `makemigrations` qui « simplifierait » le fichier repasserait le premier.
+- **Le scan répond 403, pas 404, sur l'étiquette d'un autre foyer.** Le jeton
+  existe, il n'est simplement pas d'ici : un 404 enverrait chercher une étiquette
+  abîmée qui va très bien.
+- **Les QR sont rendus côté serveur** (`apps/zones/qr.py`, `segno`, correction
+  d'erreur `M`) et l'URL réutilise `settings.FRONTEND_URL` — le même réglage que le
+  lien d'invitation.
+- **`url_path` est explicite** sur les trois actions (`print-sheet`, `rotate-qr`) :
+  DRF nomme la route en tirets mais **sert** le nom de méthode tel quel. Tous les
+  tests passant par `reverse()` restaient verts pendant que le front, qui écrit
+  l'URL en dur, prenait un 404. `test_qr_anchor.py::TestTheUrlsAreTheOnesTheFrontCalls`
+  épingle les chemins littéraux.
+- **Aucun scanner n'est embarqué.** C'est l'appareil photo natif du téléphone qui
+  ouvre `/z/<jeton>`, route **publique** du SPA qui redirige vers le login en
+  conservant la destination. Un scanner in-app se heurterait à
+  `Permissions-Policy: camera=()` posé par nginx, et Safari iOS n'implémente pas
+  `BarcodeDetector`.
+
 ## Notes / décisions produit
 
 - **P3 (commit e540d6f)** : zone racine unique par household, créée automatiquement au signal `post_save(Household)`. `Zone.save()` auto-attache les nouvelles zones à cette racine si aucun parent fourni. `TaskViewSet.perform_create()` utilise aussi cette racine comme fallback côté API. Contrainte DB : `UniqueConstraint` partiel sur `(household, parent IS NULL)`. Données legacy (ex. seed Mercier : 10 racines) normalisées par data-migration avant application de la contrainte.

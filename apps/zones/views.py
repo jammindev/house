@@ -13,13 +13,17 @@ from django.utils import timezone
 
 from django.contrib.contenttypes.models import ContentType
 
+from . import qr
 from .models import Zone
 from .queries import with_content_counts
 from .serializers import ZoneSerializer, ZoneTreeSerializer, ZoneDocumentSerializer
 from .services import (
+    UnknownZoneToken,
     move_zone,
     place_at_end,
     reorder_siblings,
+    resolve_qr_token,
+    rotate_qr_token,
     shift_positions_after_removal,
 )
 from core.permissions import IsHouseholdMember
@@ -293,3 +297,59 @@ class ZoneViewSet(DocumentLinkActionsMixin, viewsets.ModelViewSet):
         )
         serializer = ZoneDocumentSerializer(link)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    # --- Ancrage physique (parcours 31) --------------------------------------
+
+    @action(detail=False, methods=['post'])
+    def scan(self, request):
+        """Résoudre le jeton d'une étiquette QR — **la seule porte de scan**.
+
+        Le lot 2 du parcours 31 *étend* cette réponse du verdict de la chasse en
+        cours ; il n'ouvre pas un second endpoint. Deux portes de scan finiraient
+        par se contredire sur ce qu'est un scan valide, et c'est l'utilisateur
+        qui arbitrerait.
+        """
+        token = request.data.get('token')
+        try:
+            zone = resolve_qr_token(token)
+        except UnknownZoneToken:
+            return Response(
+                {"detail": "Unknown label."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        household = getattr(request, 'household', None)
+        if household is None or zone.household_id != household.id:
+            # 403 et non 404 : le jeton existe, il n'est simplement pas d'ici. Le
+            # dire permet de comprendre qu'on a scanné l'étiquette d'un autre
+            # foyer — un 404 enverrait chercher une étiquette abîmée.
+            return Response(
+                {"detail": "This label belongs to another household."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        zone = self.get_queryset().filter(pk=zone.pk).first() or zone
+        return Response({'zone': ZoneSerializer(zone, context={'request': request}).data})
+
+    @action(detail=True, methods=['post'], url_path='rotate-qr')
+    def rotate_qr(self, request, pk=None):
+        """Redonner un jeton neuf à une pièce — l'ancienne étiquette devient muette."""
+        zone = self.get_object()
+        rotate_qr_token(zone)
+        return Response(qr.label_for(zone))
+
+    @action(detail=False, methods=['get'], url_path='print-sheet')
+    def print_sheet(self, request):
+        """La planche d'étiquettes du foyer — **le seul endpoint qui expose les jetons**.
+
+        Toute autre lecture d'une zone doit rester muette là-dessus : un jeton qui
+        sort par le CRUD est un jeton lisible sans se déplacer, donc plus une
+        preuve de présence.
+        """
+        household = getattr(request, 'household', None)
+        if household is None:
+            raise ValidationError({'household_id': 'A valid household_id is required.'})
+
+        zones = Zone.objects.filter(household=household).select_related('parent')
+        labels = [qr.label_for(zone) for zone in zones]
+        return Response({'count': len(labels), 'labels': labels})

@@ -16,7 +16,7 @@ import uuid
 from django.db import transaction
 from django.db.models import F
 
-from .models import Zone
+from .models import Zone, generate_zone_token
 
 
 def _siblings(household_id, parent_id):
@@ -254,3 +254,42 @@ def resolve_zone_ids(household, *refs) -> list[str]:
             if zone_id not in resolved:
                 resolved.append(zone_id)
     return resolved
+
+
+# --- Ancrage physique (parcours 31) ------------------------------------------
+#
+# Une étiquette QR collée dans une pièce porte un jeton ; le présenter vaut
+# preuve d'y être. Voir `docs/fiches/ANCRAGE_PHYSIQUE.md`.
+
+
+class UnknownZoneToken(LookupError):
+    """Aucune zone ne porte ce jeton."""
+
+
+def resolve_qr_token(token: str) -> Zone:
+    """La zone que désigne un jeton d'étiquette — recherche **globale**.
+
+    Volontairement non scopée au foyer : c'est le jeton qui désigne le foyer, pas
+    l'appelant. Le contrôle d'appartenance appartient à la vue, qui seule sait au
+    nom de quel foyer la requête est faite — et qui doit répondre « ce n'est pas
+    chez vous » plutôt que « ce jeton n'existe pas », deux refus qui n'appellent
+    pas la même correction.
+    """
+    if not token or not isinstance(token, str):
+        raise UnknownZoneToken(token)
+    zone = Zone.objects.filter(qr_token=token).select_related('household').first()
+    if zone is None:
+        raise UnknownZoneToken(token)
+    return zone
+
+
+def rotate_qr_token(zone: Zone) -> Zone:
+    """Redonne un jeton neuf à une zone — l'ancienne étiquette devient muette.
+
+    Sert à deux choses : une étiquette abîmée qu'on réimprime, et une étiquette
+    que les joueurs ont vue (photographiée, mémorisée) et qui ne prouve donc plus
+    rien.
+    """
+    zone.qr_token = generate_zone_token()
+    zone.save(update_fields=['qr_token', 'updated_at'])
+    return zone

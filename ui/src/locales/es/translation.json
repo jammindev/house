@@ -831,6 +831,29 @@
       "projects_title": "Proyectos activos",
       "projects_empty": "No hay proyectos activos para esta zona.",
       "documents_empty": "No hay documentos vinculados a esta zona todavía."
+    },
+    "qr": {
+      "openPrintSheet": "Etiquetas QR",
+      "printTitle": "Etiquetas QR de las estancias",
+      "printIntro": "Imprime esta hoja, recorta las etiquetas y pega una en cada estancia. Escanear una etiqueta con la cámara del móvil abre esa estancia en House.",
+      "printButton": "Imprimir",
+      "printEmpty": "Todavía no hay estancias que etiquetar.",
+      "scanning": "Leyendo la etiqueta…",
+      "backToZones": "Volver a las estancias",
+      "failure": {
+        "unknown": {
+          "title": "Etiqueta desconocida",
+          "body": "Esta etiqueta no corresponde a ninguna estancia. Seguramente fue reemplazada: vuelve a imprimir la hoja."
+        },
+        "other-household": {
+          "title": "Etiqueta de otro hogar",
+          "body": "Esta etiqueta pertenece a otro hogar. Cambia de hogar o usa una etiqueta impresa desde este."
+        },
+        "generic": {
+          "title": "No se pudo leer la etiqueta",
+          "body": "Algo falló por el camino. Comprueba la conexión y vuelve a escanear."
+        }
+      }
     }
   },
   "tasks": {

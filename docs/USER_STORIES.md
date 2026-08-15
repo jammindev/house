@@ -81,9 +81,9 @@ story peut traverser trois specs, une spec peut couvrir zéro story.
 
 | ID | Story | Statut | Preuve |
 |---|---|---|---|
-| CHAS-01 | En tant que membre, je veux imprimer une planche d'étiquettes QR, une par pièce, afin d'ancrer mes zones dans la maison en un seul geste | ⬜ | — |
-| CHAS-02 | En tant que membre, je veux que scanner l'étiquette d'une pièce m'ouvre cette pièce dans l'app, afin d'atteindre son contenu sans naviguer | ⬜ | — |
-| CHAS-03 | En tant que membre, je veux régénérer le jeton d'une pièce, afin de réimprimer une étiquette abîmée ou vue par les joueurs | ⬜ | — |
+| CHAS-01 | En tant que membre, je veux imprimer une planche d'étiquettes QR, une par pièce, afin d'ancrer mes zones dans la maison en un seul geste | ✅ | `e2e/zone-qr.spec.ts` |
+| CHAS-02 | En tant que membre, je veux que scanner l'étiquette d'une pièce m'ouvre cette pièce dans l'app, afin d'atteindre son contenu sans naviguer | ✅ | `e2e/zone-qr.spec.ts` |
+| CHAS-03 | En tant que membre, je veux régénérer le jeton d'une pièce, afin de réimprimer une étiquette abîmée ou vue par les joueurs | ✅ | `e2e/zone-qr.spec.ts` |
 | CHAS-04 | En tant que parent, je veux composer une chasse — les pièces, leur ordre, les énigmes, le texte du trésor — afin de la préparer avant d'appeler les enfants | ⬜ | — |
 | CHAS-05 | En tant que parent, je veux lancer la chasse et voir l'énigme courante en grand, afin de tendre le téléphone et laisser jouer | ⬜ | — |
 | CHAS-06 | En tant que joueur, je veux que scanner la bonne pièce dévoile l'énigme suivante, afin d'avancer sans qu'un adulte arbitre | ⬜ | — |
