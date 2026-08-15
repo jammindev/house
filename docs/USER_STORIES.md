@@ -77,6 +77,38 @@ story peut traverser trois specs, une spec peut couvrir zéro story.
 
 ---
 
+## Chasse au trésor (`games`) — [parcours 31](parcours/PARCOURS_31_LA_CHASSE_AU_TRESOR.md)
+
+| ID | Story | Statut | Preuve |
+|---|---|---|---|
+| CHAS-01 | En tant que membre, je veux imprimer une planche d'étiquettes QR, une par pièce, afin d'ancrer mes zones dans la maison en un seul geste | ⬜ | — |
+| CHAS-02 | En tant que membre, je veux que scanner l'étiquette d'une pièce m'ouvre cette pièce dans l'app, afin d'atteindre son contenu sans naviguer | ⬜ | — |
+| CHAS-03 | En tant que membre, je veux régénérer le jeton d'une pièce, afin de réimprimer une étiquette abîmée ou vue par les joueurs | ⬜ | — |
+| CHAS-04 | En tant que parent, je veux composer une chasse — les pièces, leur ordre, les énigmes, le texte du trésor — afin de la préparer avant d'appeler les enfants | ⬜ | — |
+| CHAS-05 | En tant que parent, je veux lancer la chasse et voir l'énigme courante en grand, afin de tendre le téléphone et laisser jouer | ⬜ | — |
+| CHAS-06 | En tant que joueur, je veux que scanner la bonne pièce dévoile l'énigme suivante, afin d'avancer sans qu'un adulte arbitre | ⬜ | — |
+| CHAS-07 | En tant que parent, je veux qu'une mauvaise pièce scannée ne révèle rien et ne fasse pas avancer, afin qu'on ne puisse pas gagner en scannant toute la maison | ⬜ | — |
+| CHAS-08 | En tant que joueur, je veux que la dernière étape révèle où est caché le trésor, afin que la partie ait une fin | ⬜ | — |
+| CHAS-09 | En tant que joueur, je veux que la partie survive à un rechargement et au passage sur un autre téléphone, afin qu'une fausse manœuvre ne l'annule pas | ⬜ | — |
+| CHAS-10 | En tant que foyer, je veux qu'une seule chasse soit active à la fois, afin que deux parties lancées en parallèle ne se mélangent pas | ⬜ | — |
+| CHAS-11 | En tant que parent, je veux demander des énigmes à l'assistant puis les relire et les corriger, afin de préparer une chasse en deux minutes au lieu de vingt | ⬜ | — |
+| CHAS-12 | En tant qu'auto-hébergeur sans clé Anthropic, je veux que l'écran ne me propose pas la génération et me laisse tout saisir, afin de jouer quand même | ⬜ | — |
+| CHAS-13 | En tant que parent, je veux rejouer une chasse terminée dans un ordre mélangé, afin de la ressortir sans tout ressaisir | ⬜ | — |
+| CHAS-14 | En tant que foyer, je veux être invité à jouer un week-end pluvieux, afin d'y penser au bon moment | ⬜ | — |
+| CHAS-15 | En tant qu'owner, je veux désactiver le module Jeux, afin que ma sidebar ne porte pas ce que mon foyer n'utilise pas | ⬜ | — |
+| CHAS-16 | En tant que membre non anglophone, je veux le module dans ma langue, afin de l'utiliser comme le reste de l'app | ⬜ | — |
+
+> `CHAS-16` suit la même exception que `ORCH-14` : la parité des quatre catalogues
+> et l'absence de `defaultValue` sont vérifiées statiquement par
+> `ui/src/locales/keys.test.ts`, qui lit le *code* et pas un rendu.
+>
+> `CHAS-01` est vérifiable jusqu'à l'API (la planche renvoie un SVG par zone), mais
+> **la lisibilité d'une étiquette imprimée puis scannée ne l'est pas** : c'est une
+> recette manuelle, notée comme telle dans le compte rendu d'implémentation. Un ✅
+> sur cette ligne ne couvre que la génération.
+
+---
+
 ## Modules antérieurs — à rétro-documenter
 
 Les modules livrés avant l'existence de ce glossaire ont leurs user stories dans la
