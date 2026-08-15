@@ -2714,7 +2714,12 @@
     "setupHouseholdName": "Name des Haushalts (optional)",
     "setupSubmit": "Konto erstellen",
     "setupPending": "Wird erstellt…",
-    "setupFailed": "Die Einrichtung ist fehlgeschlagen. Prüfe deine Angaben."
+    "setupFailed": "Die Einrichtung ist fehlgeschlagen. Prüfe deine Angaben.",
+    "demo": {
+      "title": "Demo-Instanz",
+      "body": "Sie betreten den fiktiven Haushalt „Familie Mercier“ mit drei Jahren Daten. Alles ist änderbar, und alles wird jede Nacht zurückgesetzt.",
+      "install": "So betreiben Sie es zu Hause, mit Ihren Daten auf Ihrem eigenen Rechner:"
+    }
   },
   "projects": {
     "app_title": "Projekte-Mini-App",

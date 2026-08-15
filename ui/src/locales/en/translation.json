@@ -2714,7 +2714,12 @@
     "setupHouseholdName": "Household name (optional)",
     "setupSubmit": "Create my account",
     "setupPending": "Creating…",
-    "setupFailed": "Setup failed. Check the details you entered."
+    "setupFailed": "Setup failed. Check the details you entered.",
+    "demo": {
+      "title": "Demo instance",
+      "body": "You are entering the fictional “Mercier family” household, filled with three years of data. Everything is editable, and everything is reset every night.",
+      "install": "To run it at home, with your data on your own machine:"
+    }
   },
   "projects": {
     "app_title": "Projects mini-app",

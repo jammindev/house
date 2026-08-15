@@ -263,6 +263,13 @@ CACHES = {
 # `ALLOW_OPEN_SIGNUP=False` dans son `.env`.
 ALLOW_OPEN_SIGNUP = True
 
+# Instance de démonstration — le raisonnement complet est dans `production.py`.
+# Éteinte par défaut : une instance qui ne pose pas ces variables n'affiche rien
+# de tout ça, et c'est le cas de tout auto-hébergeur.
+DEMO_MODE = False
+DEMO_EMAIL = ""
+DEMO_PASSWORD = ""
+
 SPECTACULAR_SETTINGS = {
     "TITLE": "House API",
     "DESCRIPTION": "OpenAPI schema for House Django REST API.",

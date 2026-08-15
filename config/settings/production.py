@@ -82,6 +82,24 @@ FRONTEND_URL = env("FRONTEND_URL", default=f"https://{_primary_host}")
 # arrivées passe alors par une invitation, qui est nominative et révocable.
 ALLOW_OPEN_SIGNUP = env.bool("ALLOW_OPEN_SIGNUP", default=True)
 
+# Instance de démonstration — une vitrine, jamais un produit.
+#
+# Posé uniquement sur l'instance publique remplie du foyer « Famille Mercier ».
+# L'écran de connexion annonce alors qu'on est dans une démonstration, pré-remplit
+# les identifiants **publiés** de la seed, et renvoie vers l'installation. Éteint
+# partout ailleurs : un auto-hébergeur n'a aucune raison de le poser, et rien ne
+# s'affiche s'il ne le fait pas.
+#
+# Le mot de passe transite en clair dans une réponse publique, et c'est assumé :
+# il est déjà publié dans un dépôt public, sur un foyer de fausses données remis à
+# zéro chaque nuit. Ce qui ne serait pas assumable, c'est un chemin
+# d'authentification **sans identifiants** — d'où le formulaire pré-rempli plutôt
+# qu'un bouton « entrer », qui livrerait à toutes les instances un code capable
+# d'ouvrir une session sans mot de passe.
+DEMO_MODE = env.bool("DEMO_MODE", default=False)
+DEMO_EMAIL = env("DEMO_EMAIL", default="")
+DEMO_PASSWORD = env("DEMO_PASSWORD", default="")
+
 # Anthropic API key — must be set in .env for LLM features (OCR, agent).
 ANTHROPIC_API_KEY = env("ANTHROPIC_API_KEY", default="")
 

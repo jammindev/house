@@ -7,6 +7,7 @@
 **Tout ce qu'un foyer fait vivre — et une mémoire capable d'en répondre.**
 Dedans comme dehors : les chantiers, les comptes, les compteurs, le potager, les bêtes.
 
+[**Voir la démo en ligne →**](https://demo.jammin-dev.com) ·
 [Installer](#linstaller-en-trois-lignes) · [Ce que ça fait](#ce-que-ça-fait) ·
 [Sans clé d'API](#sans-clé-dapi) ·
 [Ce que ça ne fait pas](#ce-que-ça-ne-fait-pas) ·

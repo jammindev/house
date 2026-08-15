@@ -2714,7 +2714,12 @@
     "setupHouseholdName": "Nombre del hogar (opcional)",
     "setupSubmit": "Crear mi cuenta",
     "setupPending": "Creando…",
-    "setupFailed": "La configuración ha fallado. Revisa los datos introducidos."
+    "setupFailed": "La configuración ha fallado. Revisa los datos introducidos.",
+    "demo": {
+      "title": "Instancia de demostración",
+      "body": "Está entrando en el hogar ficticio «Familia Mercier», con tres años de datos. Todo se puede modificar, y todo se restablece cada noche.",
+      "install": "Para instalarlo en casa, con sus datos en su propia máquina:"
+    }
   },
   "projects": {
     "app_title": "Mini-app Proyectos",

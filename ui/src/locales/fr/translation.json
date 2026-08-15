@@ -2714,7 +2714,12 @@
     "setupHouseholdName": "Nom du foyer (facultatif)",
     "setupSubmit": "Créer mon compte",
     "setupPending": "Création…",
-    "setupFailed": "La création a échoué. Vérifiez les informations saisies."
+    "setupFailed": "La création a échoué. Vérifiez les informations saisies.",
+    "demo": {
+      "title": "Instance de démonstration",
+      "body": "Vous entrez dans le foyer fictif « Famille Mercier », rempli de trois ans de données. Tout est modifiable, et tout est remis à zéro chaque nuit.",
+      "install": "Pour l'installer chez vous, avec vos données sur votre machine :"
+    }
   },
   "projects": {
     "app_title": "Mini-app Projets",
