@@ -266,4 +266,6 @@ class TestARuleProposesATaskItNeverInventsAReminder:
             hh, user, name="Taille", start_month=1, end_month=12, tree=tree
         )
         _client(user).get(reverse("orchard-rule-season"))
-        assert Task.objects.count() == 0
+        # Scoped to the household, not global: another app's fixtures have no
+        # bearing on whether *this* rule manufactured a task behind our back.
+        assert Task.objects.filter(household=hh).count() == 0
