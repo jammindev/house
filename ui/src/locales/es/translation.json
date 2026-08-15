@@ -4478,6 +4478,12 @@
       "unavailable": "El canal de Telegram no está configurado en esta instancia.",
       "without": "El canal de Telegram está apagado. Las notificaciones se quedan en la aplicación.",
       "enabled": "El hogar puede hablar con el asistente desde Telegram."
+    },
+    "hunt_riddles": {
+      "name": "Adivinanzas de la búsqueda",
+      "unavailable": "La redacción de adivinanzas no está configurada en esta instancia.",
+      "without": "Las búsquedas del tesoro funcionan igual: las adivinanzas las escribes tú.",
+      "enabled": "El asistente puede proponer una adivinanza para cada habitación de una búsqueda."
     }
   },
   "orchard": {
@@ -4689,6 +4695,18 @@
       "wrong_zone": "Aquí no. Volved a leer el acertijo.",
       "already_found": "Ya encontrada, seguid.",
       "no_hunt": "No hay ninguna búsqueda en curso."
+    },
+    "riddles": {
+      "propose": "Proponer adivinanzas",
+      "proposing": "Escribiendo…",
+      "hint": "El asistente escribe una adivinanza por habitación. Puedes corregirlas todas antes de guardar.",
+      "age": "Edad de quienes juegan",
+      "ageSmall": "De 4 a 6",
+      "ageMedium": "De 7 a 9",
+      "ageBig": "De 10 a 13",
+      "needRooms": "Elige primero las habitaciones: las adivinanzas se escriben a partir de ellas.",
+      "done": "Adivinanzas propuestas: léelas y ajústalas.",
+      "failed": "No se han podido escribir las adivinanzas. Inténtalo de nuevo o escríbelas tú."
     }
   }
 }

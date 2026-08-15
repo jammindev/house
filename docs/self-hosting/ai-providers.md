@@ -37,11 +37,14 @@ push notifications, and Telegram.
 
 The conversational assistant: ask a question in plain language, get an answer
 grounded in your household's own documents, expenses and tasks, with citations
-back to the source. It also powers OCR on uploaded documents.
+back to the source. It also powers OCR on uploaded documents, and the optional
+riddle-writing help when you compose a treasure hunt.
 
 **Without it.** The Assistant tab says it needs a key and links here. Every other
 screen is untouched — and, importantly, the search box at the top still works
-(see the next section: keyword search needs no key at all).
+(see the next section: keyword search needs no key at all). Treasure hunts work
+exactly the same; you write the riddles yourself, and the "Suggest riddles"
+button is simply not there.
 
 **Get a key.** Create one at [console.anthropic.com](https://console.anthropic.com/)
 → *API keys*. It starts with `sk-ant-`.

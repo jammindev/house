@@ -11,9 +11,11 @@ import {
   fetchHunt,
   fetchHuntPlay,
   fetchHunts,
+  generateRiddles,
   startHunt,
   updateHunt,
   type HuntPayload,
+  type RiddleAge,
 } from '@/lib/api/games';
 
 export const huntKeys = {
@@ -109,6 +111,28 @@ export function useStartHunt() {
         ?.detail;
       toast({ description: detail ?? t('games.startFailed'), variant: 'destructive' });
     },
+  });
+}
+
+/**
+ * Demander des énigmes à l'assistant.
+ *
+ * **N'invalide rien, et c'est exact** : la génération ne touche pas la base. Elle
+ * remplit des champs du composeur, que le parent relit, corrige, puis
+ * enregistre — exactement comme s'il les avait tapés. Invalider `games` ici
+ * rechargerait la liste des chasses pour rien.
+ *
+ * Le hook existe quand même : la règle « une écriture de `lib/api/` ne
+ * s'importe que dans le `hooks.ts` de sa feature » se lit sur le **verbe HTTP**,
+ * pas sur l'intention — et c'est ce qui la rend fiable.
+ */
+export function useGenerateRiddles() {
+  const { t } = useTranslation();
+  return useMutation({
+    mutationFn: ({ zones, age }: { zones: string[]; age: RiddleAge }) =>
+      generateRiddles(zones, age),
+    onError: () =>
+      toast({ description: t('games.riddles.failed'), variant: 'destructive' }),
   });
 }
 

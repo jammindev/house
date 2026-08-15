@@ -4478,6 +4478,12 @@
       "unavailable": "Le canal Telegram n'est pas configuré sur cette instance.",
       "without": "Le canal Telegram est éteint. Les notifications restent dans l'application.",
       "enabled": "Le foyer peut parler à l'assistant depuis Telegram."
+    },
+    "hunt_riddles": {
+      "name": "Énigmes de chasse",
+      "unavailable": "L’écriture des énigmes n’est pas configurée sur cette instance.",
+      "without": "Les chasses au trésor fonctionnent exactement pareil — vous écrivez les énigmes vous-même.",
+      "enabled": "L’assistant peut proposer une énigme pour chaque pièce d’une chasse."
     }
   },
   "orchard": {
@@ -4689,6 +4695,18 @@
       "wrong_zone": "Pas ici. Relisez l’énigme.",
       "already_found": "Déjà trouvée — continuez.",
       "no_hunt": "Aucune chasse en cours."
+    },
+    "riddles": {
+      "propose": "Proposer des énigmes",
+      "proposing": "Écriture…",
+      "hint": "L’assistant écrit une énigme par pièce. Vous pouvez toutes les corriger avant d’enregistrer.",
+      "age": "Âge des joueurs",
+      "ageSmall": "4 à 6 ans",
+      "ageMedium": "7 à 9 ans",
+      "ageBig": "10 à 13 ans",
+      "needRooms": "Choisissez d’abord les pièces — c’est à partir d’elles que les énigmes s’écrivent.",
+      "done": "Énigmes proposées — relisez-les et ajustez.",
+      "failed": "Les énigmes n’ont pas pu être écrites. Réessayez, ou saisissez-les vous-même."
     }
   }
 }

@@ -12,9 +12,11 @@ ne peut pas être « désrévélé ». C'est la raison d'être des deux sériali
 """
 from rest_framework import serializers
 
+from core.serializers import HouseholdScopedPrimaryKeyRelatedField as ScopedFK
 from zones.models import Zone
 
 from .models import Hunt, HuntStep
+from .riddles import AGE_BANDS, DEFAULT_AGE, MAX_ZONES
 from .services import current_step
 
 
@@ -138,3 +140,30 @@ class HuntPlaySerializer(serializers.ModelSerializer):
         if obj.status != Hunt.Status.DONE:
             return None
         return obj.treasure_text
+
+
+class RiddleRequestSerializer(serializers.Serializer):
+    """Ce que le composeur envoie pour demander des énigmes.
+
+    Il envoie **son brouillon**, pas un identifiant de chasse : le geste a lieu
+    pendant la composition, souvent sur une chasse qui n'existe pas encore en
+    base. C'est aussi ce qui garantit le critère du lot — la génération ne peut
+    rien écrire, puisqu'elle ne sait même pas où écrire.
+    """
+
+    # `ScopedFK` et non `PrimaryKeyRelatedField` : le champ **refuse** une pièce
+    # hors du foyer au lieu de s'en remettre à une validation écrite à côté.
+    # Sans lui, un client ferait écrire des énigmes sur les pièces du voisin — et
+    # en apprendrait les noms au passage, puisque le nom est ce qu'on envoie au
+    # modèle. Tenu par `core/tests/test_write_isolation.py`.
+    zones = ScopedFK(model=Zone, many=True, allow_empty=False)
+    age = serializers.ChoiceField(
+        choices=sorted(AGE_BANDS), required=False, default=DEFAULT_AGE
+    )
+
+    def validate_zones(self, value):
+        if len(value) > MAX_ZONES:
+            raise serializers.ValidationError(
+                f"A hunt cannot exceed {MAX_ZONES} rooms."
+            )
+        return value

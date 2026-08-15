@@ -4478,6 +4478,12 @@
       "unavailable": "Der Telegram-Kanal ist auf dieser Instanz nicht eingerichtet.",
       "without": "Der Telegram-Kanal ist aus. Benachrichtigungen bleiben in der App.",
       "enabled": "Der Haushalt kann über Telegram mit dem Assistenten sprechen."
+    },
+    "hunt_riddles": {
+      "name": "Rätsel für die Schatzsuche",
+      "unavailable": "Das Schreiben von Rätseln ist auf dieser Instanz nicht eingerichtet.",
+      "without": "Schatzsuchen funktionieren genau gleich — die Rätsel schreibt ihr selbst.",
+      "enabled": "Der Assistent kann für jeden Raum einer Schatzsuche ein Rätsel vorschlagen."
     }
   },
   "orchard": {
@@ -4689,6 +4695,18 @@
       "wrong_zone": "Nicht hier. Lest das Rätsel noch einmal.",
       "already_found": "Schon gefunden — weiter geht’s.",
       "no_hunt": "Keine laufende Suche."
+    },
+    "riddles": {
+      "propose": "Rätsel vorschlagen",
+      "proposing": "Wird geschrieben…",
+      "hint": "Der Assistent schreibt ein Rätsel pro Raum. Vor dem Speichern könnt ihr jedes davon ändern.",
+      "age": "Alter der Mitspielenden",
+      "ageSmall": "4 bis 6",
+      "ageMedium": "7 bis 9",
+      "ageBig": "10 bis 13",
+      "needRooms": "Wählt zuerst die Räume — daraus entstehen die Rätsel.",
+      "done": "Rätsel vorgeschlagen — lest sie durch und passt sie an.",
+      "failed": "Die Rätsel konnten nicht geschrieben werden. Versucht es erneut oder schreibt sie selbst."
     }
   }
 }

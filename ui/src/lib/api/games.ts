@@ -58,6 +58,17 @@ export interface HuntPayload {
   steps: { zone: string; riddle: string }[];
 }
 
+/** Tranches d'âge : la même pièce ne se devine pas pareil à 5 ans et à 12. */
+export type RiddleAge = 'small' | 'medium' | 'big';
+
+export interface RiddleSuggestion {
+  /** Le rang dans la demande — la clé de recollement, jamais la zone : deux
+   *  étapes ont le droit de désigner la même pièce. */
+  index: number;
+  zone: string;
+  riddle: string;
+}
+
 // ── Appels ───────────────────────────────────────────────────────────────────
 
 export async function fetchHunts(): Promise<Hunt[]> {
@@ -110,4 +121,20 @@ export async function fetchHuntPlay(id: string): Promise<HuntPlay> {
 export async function fetchActiveHunt(): Promise<HuntPlay | null> {
   const { data } = await api.get('/games/hunts/active/');
   return (data as { hunt: HuntPlay | null }).hunt;
+}
+
+/**
+ * Demande une énigme par pièce — et n'écrit **rien**.
+ *
+ * C'est un `POST` parce qu'on envoie un brouillon, pas parce qu'on enregistre :
+ * l'endpoint ne connaît aucune chasse et ne saurait pas où écrire. Le parent
+ * relit et corrige dans le composeur ; c'est l'enregistrement de la chasse qui
+ * persiste, comme pour une énigme tapée à la main.
+ */
+export async function generateRiddles(
+  zones: string[],
+  age: RiddleAge,
+): Promise<RiddleSuggestion[]> {
+  const { data } = await api.post('/games/hunts/generate-riddles/', { zones, age });
+  return (data as { riddles: RiddleSuggestion[] }).riddles;
 }

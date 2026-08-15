@@ -1,14 +1,17 @@
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Sparkles, Trash2 } from 'lucide-react';
 
 import { SheetDialog } from '@/design-system/sheet-dialog';
 import { Button } from '@/design-system/button';
 import { Input } from '@/design-system/input';
+import { Select } from '@/design-system/select';
 import { FormField } from '@/design-system/form-field';
+import { useCapability } from '@/lib/capabilities';
+import { toast } from '@/lib/toast';
 import ZonePicker from '@/features/zones/ZonePicker';
-import { useCreateHunt, useUpdateHunt } from './hooks';
-import type { Hunt } from '@/lib/api/games';
+import { useCreateHunt, useGenerateRiddles, useUpdateHunt } from './hooks';
+import type { Hunt, RiddleAge } from '@/lib/api/games';
 
 interface Props {
   open: boolean;
@@ -46,6 +49,14 @@ export default function HuntComposerDialog({ open, onOpenChange, existing }: Pro
   const [name, setName] = React.useState('');
   const [treasure, setTreasure] = React.useState('');
   const [steps, setSteps] = React.useState<DraftStep[]>([]);
+  const [age, setAge] = React.useState<RiddleAge>('medium');
+
+  // L'aide à l'écriture est une **capacité de l'instance**, pas une option du
+  // produit : sans clé, le bouton est absent — pas grisé. Un bouton grisé promet
+  // et dément dans le même geste ; le reste du composeur, lui, ne change pas
+  // d'un pixel, parce que la saisie manuelle est le chemin normal.
+  const { available: canGenerate } = useCapability('hunt_riddles');
+  const generateMutation = useGenerateRiddles();
 
   React.useEffect(() => {
     if (!open) return;
@@ -89,6 +100,40 @@ export default function HuntComposerDialog({ open, onOpenChange, existing }: Pro
   function updateStep(key: string, patch: Partial<DraftStep>) {
     setSteps((current) =>
       current.map((step) => (step.key === key ? { ...step, ...patch } : step)),
+    );
+  }
+
+  /**
+   * Demander des énigmes pour les pièces déjà choisies.
+   *
+   * Le résultat **remplit les champs**, il ne remplace pas la chasse : chaque
+   * énigme reste éditable, et rien ne part en base avant « Enregistrer ». Les
+   * étapes sans pièce sont laissées telles quelles — on n'écrit pas une énigme
+   * pour une pièce que personne n'a désignée.
+   */
+  function handleGenerate() {
+    const targets = steps.filter((step) => step.zone !== null);
+    if (targets.length === 0) {
+      toast({ description: t('games.riddles.needRooms'), variant: 'destructive' });
+      return;
+    }
+    generateMutation.mutate(
+      { zones: targets.map((step) => step.zone as string), age },
+      {
+        onSuccess: (suggestions) => {
+          // Recollement **par rang** : le serveur renvoie l'index de la demande,
+          // et deux étapes ont le droit de désigner la même pièce.
+          const byKey = new Map(
+            suggestions.map((row) => [targets[row.index]?.key, row.riddle]),
+          );
+          setSteps((current) =>
+            current.map((step) =>
+              byKey.has(step.key) ? { ...step, riddle: byKey.get(step.key) as string } : step,
+            ),
+          );
+          toast({ description: t('games.riddles.done'), variant: 'success' });
+        },
+      },
     );
   }
 
@@ -154,6 +199,39 @@ export default function HuntComposerDialog({ open, onOpenChange, existing }: Pro
             <Plus className="mr-2 h-4 w-4" aria-hidden />
             {t('games.addStep')}
           </Button>
+
+          {canGenerate && (
+            <div className="space-y-2 rounded-lg border border-dashed border-border p-3">
+              <p className="text-sm text-muted-foreground">{t('games.riddles.hint')}</p>
+              <div className="flex flex-wrap items-end gap-2">
+                <div className="min-w-[10rem] flex-1">
+                  <FormField htmlFor="hunt-age" label={t('games.riddles.age')}>
+                    <Select
+                      id="hunt-age"
+                      value={age}
+                      onChange={(event) => setAge(event.target.value as RiddleAge)}
+                      options={[
+                        { value: 'small', label: t('games.riddles.ageSmall') },
+                        { value: 'medium', label: t('games.riddles.ageMedium') },
+                        { value: 'big', label: t('games.riddles.ageBig') },
+                      ]}
+                    />
+                  </FormField>
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleGenerate}
+                  disabled={generateMutation.isPending}
+                >
+                  <Sparkles className="mr-2 h-4 w-4" aria-hidden />
+                  {generateMutation.isPending
+                    ? t('games.riddles.proposing')
+                    : t('games.riddles.propose')}
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
 
         <FormField htmlFor="hunt-treasure" label={t('games.fieldTreasure')}>

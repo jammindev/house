@@ -4478,6 +4478,12 @@
       "unavailable": "The Telegram channel is not configured on this instance.",
       "without": "The Telegram channel is off. Notifications stay inside the app.",
       "enabled": "Your household can talk to the assistant from Telegram."
+    },
+    "hunt_riddles": {
+      "name": "Hunt riddles",
+      "unavailable": "Riddle writing is not configured on this instance.",
+      "without": "Treasure hunts work exactly the same — you write the riddles yourself.",
+      "enabled": "The assistant can propose a riddle for each room of a hunt."
     }
   },
   "orchard": {
@@ -4689,6 +4695,18 @@
       "wrong_zone": "Not here. Read the riddle again.",
       "already_found": "Already found — keep going.",
       "no_hunt": "No hunt running."
+    },
+    "riddles": {
+      "propose": "Suggest riddles",
+      "proposing": "Writing…",
+      "hint": "The assistant writes one riddle per room. You can edit every one of them before saving.",
+      "age": "Players' age",
+      "ageSmall": "4 to 6",
+      "ageMedium": "7 to 9",
+      "ageBig": "10 to 13",
+      "needRooms": "Pick the rooms first — the riddles are written from them.",
+      "done": "Riddles suggested — read them over and adjust.",
+      "failed": "The riddles could not be written. Try again, or write them yourself."
     }
   }
 }

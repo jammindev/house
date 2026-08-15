@@ -223,6 +223,9 @@ REST_FRAMEWORK = {
         # une facture, pas seulement un disque.
         "document_upload": "120/hour",
         "ocr_reprocess": "20/hour",
+        # Écrire les énigmes d'une chasse est un appel au modèle : on compose
+        # une fois, on ajuste deux ou trois fois, on joue.
+        "hunt_riddles": "20/hour",
     },
 }
 
