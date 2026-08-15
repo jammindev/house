@@ -62,14 +62,18 @@ story peut traverser trois specs, une spec peut couvrir zéro story.
 | ORCH-05 | En tant que membre, je veux transformer une règle échue en tâche datée, afin de la voir avec le reste de ce que j'ai à faire | ✅ | `e2e/orchard-seasons.spec.ts` |
 | ORCH-06 | En tant que membre, je veux noter combien j'ai récolté et quand, afin de comparer les années | ✅ | `e2e/orchard-harvests.spec.ts` |
 | ORCH-07 | En tant que membre, je veux voir ce que chaque sujet a donné année après année, afin de lire une production qui alterne naturellement | ✅ | `e2e/orchard-harvests.spec.ts` |
-| ORCH-08 | En tant que membre, je veux être prévenu quand un gel menace des sujets en fleur, afin de pouvoir les protéger la veille | ⬜ | — |
-| ORCH-09 | En tant que membre, je veux déclarer le prix d'achat d'un arbre, afin de suivre ce que mon verger m'a coûté sans double saisie | ⬜ | — |
-| ORCH-10 | En tant que membre, je veux attacher des photos à un sujet, afin de le voir changer d'une année sur l'autre | ⬜ | — |
+| ORCH-08 | En tant que membre, je veux être prévenu quand un gel menace des sujets en fleur, afin de pouvoir les protéger la veille | 🚧 | _livré, testé en Python — pas de spec Playwright_ |
+| ORCH-09 | En tant que membre, je veux déclarer le prix d'achat d'un arbre, afin de suivre ce que mon verger m'a coûté sans double saisie | 🚧 | _livré, testé en Python — pas de spec Playwright_ |
+| ORCH-10 | En tant que membre, je veux attacher des photos à un sujet, afin de le voir changer d'une année sur l'autre | 🚧 | _livré — pas de spec Playwright_ |
 | ORCH-11 | En tant que membre, je veux voir l'essentiel du verger sur le dashboard, afin de ne pas rater une fenêtre saisonnière | ⬜ | — |
-| ORCH-12 | En tant que membre, je veux interroger l'agent sur mon verger, afin d'obtenir des réponses citées sans naviguer | ⬜ | — |
-| ORCH-13 | En tant que membre, je veux dicter « j'ai taillé le prunier » ou « note 12 kg de pommes », afin de consigner sans ouvrir l'app | ⬜ | — |
-| ORCH-14 | En tant que membre non anglophone, je veux le module dans ma langue, afin de l'utiliser comme le reste de l'app | ⬜ | — |
+| ORCH-12 | En tant que membre, je veux interroger l'agent sur mon verger, afin d'obtenir des réponses citées sans naviguer | 🚧 | _livré, testé en Python — pas de spec Playwright_ |
+| ORCH-13 | En tant que membre, je veux dicter « j'ai taillé le prunier » ou « note 12 kg de pommes », afin de consigner sans ouvrir l'app | 🚧 | _livré, testé en Python — pas de spec Playwright_ |
+| ORCH-14 | En tant que membre non anglophone, je veux le module dans ma langue, afin de l'utiliser comme le reste de l'app | ✅ | `ui/src/locales/keys.test.ts` |
 
+> **ORCH-11 reste ⬜** : l'alerte gel remonte bien dans le résumé d'alertes, mais
+> aucune card ne l'affiche sur le tableau de bord. Le module est utilisable sans,
+> et le tableau dit ce qui est prouvé — pas ce qu'on aurait aimé livrer.
+>
 > `ORCH-14` est la seule story de ce module **volontairement** hors Playwright : la
 > parité des quatre catalogues et l'absence de `defaultValue` sont vérifiées
 > statiquement par `ui/src/locales/keys.test.ts`, qui lit le *code* et pas un rendu.
