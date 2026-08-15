@@ -72,6 +72,27 @@ export function formatAmount(
 }
 
 /** Mois + année localisés (« juillet 2026 ») — en-têtes de regroupement chronologique. */
+/**
+ * Une quantité — un nombre nu, dans la locale de l'**app**, jamais celle du
+ * navigateur.
+ *
+ * Même raison que `formatAmount` : `toLocaleString()` sans argument lit la
+ * locale du navigateur, qui n'a aucune raison d'être celle que l'utilisateur a
+ * choisie dans House. Un foyer en français sur un Chrome en anglais lisait
+ * « 12.5 kg » sur un écran et « 12,5 kg » sur l'autre — deux écritures du même
+ * nombre, et c'est celle qu'on ne relit pas qui finit par tromper.
+ */
+export function formatQuantity(
+  value: string | number,
+  options: { maximumFractionDigits?: number } = {},
+): string {
+  const numeric = typeof value === 'number' ? value : Number(value);
+  if (!Number.isFinite(numeric)) return String(value);
+  return new Intl.NumberFormat(appLocale(), {
+    maximumFractionDigits: options.maximumFractionDigits ?? 3,
+  }).format(numeric);
+}
+
 export function formatMonthYear(value?: string | null): string {
   if (!value) return '—';
   const d = new Date(value);

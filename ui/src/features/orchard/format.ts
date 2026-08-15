@@ -1,3 +1,4 @@
+import { formatQuantity } from '@/lib/format';
 import type { HarvestTotal } from '@/lib/api/orchard';
 
 /**
@@ -13,6 +14,6 @@ export function formatTotals(
   unitLabel: (unit: string) => string,
 ): string {
   return totals
-    .map((total) => `${Number(total.quantity).toLocaleString()} ${unitLabel(total.unit)}`)
+    .map((total) => `${formatQuantity(total.quantity)} ${unitLabel(total.unit)}`)
     .join(' · ');
 }
