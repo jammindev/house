@@ -7,6 +7,7 @@ from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated
 from django.core.exceptions import ValidationError as DjangoValidationError
+from django.db.models import ProtectedError
 from django.utils.dateparse import parse_datetime
 from django.utils import timezone
 
@@ -25,6 +26,24 @@ from core.permissions import IsHouseholdMember
 from documents.models import Document, DocumentLink
 from documents.mixins import DocumentLinkActionsMixin
 from documents.services import link_document
+
+
+def _protected_zone_message(exc: ProtectedError) -> str:
+    """Name what blocks the deletion, and how many — never a bare refusal.
+
+    « Impossible de supprimer » without saying what holds the zone forces the
+    user to hunt; the count and the kind are exactly what turns the refusal into
+    a next step.
+    """
+    counts: dict[str, int] = {}
+    for obj in exc.protected_objects:
+        label = str(obj._meta.verbose_name_plural)
+        counts[label] = counts.get(label, 0) + 1
+    detail = ', '.join(f"{n} {label}" for label, n in sorted(counts.items()))
+    return (
+        f"Cannot delete zone: it still holds {detail}. "
+        "Move or delete them first."
+    )
 
 
 class ZoneViewSet(DocumentLinkActionsMixin, viewsets.ModelViewSet):
@@ -118,7 +137,7 @@ class ZoneViewSet(DocumentLinkActionsMixin, viewsets.ModelViewSet):
         return self.update(request, *args, **kwargs)
 
     def destroy(self, request, *args, **kwargs):
-        """Block deletion when zone still has children."""
+        """Block deletion when zone still has children — or protected content."""
         zone = self.get_object()
         if zone.children.exists():
             return Response(
@@ -126,7 +145,20 @@ class ZoneViewSet(DocumentLinkActionsMixin, viewsets.ModelViewSet):
                 status=status.HTTP_409_CONFLICT,
             )
         household_id, parent_id, position = zone.household_id, zone.parent_id, zone.position
-        response = super().destroy(request, *args, **kwargs)
+        try:
+            response = super().destroy(request, *args, **kwargs)
+        except ProtectedError as exc:
+            # A zone is a container, its contents are possessions: `orchard.Tree`
+            # points here with PROTECT so that deleting "Garden" cannot wipe
+            # fifteen years of harvests in silence. A named refusal beats a silent
+            # loss — and it must never surface as a 500 on an ordinary gesture.
+            return Response(
+                {
+                    'detail': _protected_zone_message(exc),
+                    'protected_count': len(exc.protected_objects),
+                },
+                status=status.HTTP_409_CONFLICT,
+            )
         # Referme le trou : sans ça les rangs d'une fratrie se creusent au fil des
         # suppressions, et un « Descendre » finit par ne plus rien déplacer.
         shift_positions_after_removal(household_id, parent_id, position)

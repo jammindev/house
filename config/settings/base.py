@@ -62,6 +62,7 @@ INSTALLED_APPS = [
     "telegram",
     "releases",
     "chickens",
+    "orchard",
     "pings",
     "budget",
     "recap",
