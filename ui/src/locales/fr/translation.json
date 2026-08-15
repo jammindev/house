@@ -2676,7 +2676,8 @@
       "depletion": "Rupture estimée",
       "last_level": "Dernier niveau connu",
       "not_enough_data": "Pas encore assez d'historique pour tracer une consommation. Enregistre un achat ou un inventaire.",
-      "consumed": "Consommé"
+      "level": "Niveau restant",
+      "projection": "Projection"
     },
     "readings": {
       "title": "Relevés de niveau",

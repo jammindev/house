@@ -445,19 +445,22 @@ def test_purchase_refuses_a_remaining_count_after_the_purchase(client, user, fee
     assert _readings(feed) == []
 
 
-# --- La consommation se lit en barres (#575) ---------------------------------
+# --- La consommation se lit en courbe de niveau (#622) ------------------------
 
 
-def _bucket_values(data):
-    return [b["consumed"] for b in data["buckets"]]
+def _levels(data):
+    return [point["quantity"] for point in data["levels"]]
 
 
 @pytest.mark.django_db
-def test_consumption_spreads_a_descent_over_the_days_it_covers(client, user, feed, membership):
-    """Une descente entre deux relevés se répartit sur les jours qu'elle couvre.
+def test_the_level_curve_joins_the_readings_day_by_day(client, user, feed, membership):
+    """Entre deux comptages, la droite qui les joint est la seule lecture honnête.
 
-    C'est la même arithmétique que le « rythme de consommation » déjà affiché :
-    les deux chiffres ne peuvent donc pas se contredire.
+    Un relevé dit *combien il reste*, jamais *quand ça a été mangé* : les barres
+    quotidiennes d'avant (#575) affirmaient une mesure par jour là où il n'y
+    avait qu'une division. La courbe, elle, dit exactement ce que l'arithmétique
+    du « rythme de consommation » affirme déjà — et les deux ne peuvent donc pas
+    se contredire à l'écran.
     """
     client.force_login(user)
     now = timezone.now()
@@ -466,34 +469,81 @@ def test_consumption_spreads_a_descent_over_the_days_it_covers(client, user, fee
 
     data = client.get(_consumption_url(feed)).json()
 
-    assert data["granularity"] == "day"
-    values = _bucket_values(data)
-    assert sum(values) == pytest.approx(8.0, abs=0.01)
-    # 8 kg sur 10 jours = 0.8/jour, et le reste de la fenêtre à zéro.
-    assert sorted(set(round(v, 3) for v in values)) == [0.0, 0.8]
-    assert len([v for v in values if v > 0]) == 10
-    # Une barre par jour de la fenêtre, zéros compris.
-    assert len(values) >= 90
+    levels = _levels(data)
+    # Un point par jour couvert, des deux relevés inclus.
+    assert len(levels) == 11
+    assert levels[0] == pytest.approx(10.0)
+    assert levels[-1] == pytest.approx(2.0)
+    # 8 kg sur 10 jours = 0,8/jour, et la descente est régulière.
+    assert levels[1] == pytest.approx(9.2)
+    assert all(b < a for a, b in zip(levels, levels[1:]))
 
 
 @pytest.mark.django_db
-def test_consumption_buckets_by_month_over_a_year(client, user, feed, membership):
-    """Sur un an, une barre par mois — 365 barres quotidiennes ne se lisent pas."""
+def test_a_purchase_shows_as_a_jump_in_the_curve(client, user, feed, membership):
+    """Un achat fait remonter le niveau — c'est ce que les barres cachaient.
+
+    Le calcul des barres passait les hausses par un simple ``continue`` : le
+    réapprovisionnement, qui est pourtant l'événement le plus visible de la vie
+    d'un article, n'apparaissait nulle part sur le graphique.
+    """
     client.force_login(user)
     now = timezone.now()
-    record_inventory(item=feed, user=user, quantity=Decimal("30"), occurred_at=now - timedelta(days=200))
-    record_inventory(item=feed, user=user, quantity=Decimal("0"), occurred_at=now)
+    record_inventory(item=feed, user=user, quantity=Decimal("10"), occurred_at=now - timedelta(days=20))
+    record_inventory(item=feed, user=user, quantity=Decimal("2"), occurred_at=now - timedelta(days=10))
+    record_inventory(item=feed, user=user, quantity=Decimal("12"), occurred_at=now)
 
-    data = client.get(_consumption_url(feed), {"period": "1y"}).json()
+    levels = _levels(client.get(_consumption_url(feed)).json())
 
-    assert data["granularity"] == "month"
-    values = _bucket_values(data)
-    assert 12 <= len(values) <= 14
-    assert sum(values) == pytest.approx(30.0, abs=0.05)
+    assert levels[0] == pytest.approx(10.0)
+    assert min(levels) == pytest.approx(2.0)
+    assert levels[-1] == pytest.approx(12.0)
 
 
 @pytest.mark.django_db
-def test_consumption_anchors_on_the_last_reading_before_the_window(client, user, feed, membership):
+def test_nothing_is_drawn_before_the_first_reading(client, user, feed, membership):
+    """Avant le premier relevé, on ne sait pas — et « on ne sait pas » ≠ zéro.
+
+    Les barres remplissaient la fenêtre de zéros jusqu'au premier comptage : un
+    article acheté la semaine dernière s'affichait comme n'ayant rien consommé
+    pendant les 80 jours d'avant, alors qu'il n'existait pas encore.
+    """
+    client.force_login(user)
+    now = timezone.now()
+    record_inventory(item=feed, user=user, quantity=Decimal("10"), occurred_at=now - timedelta(days=5))
+    record_inventory(item=feed, user=user, quantity=Decimal("5"), occurred_at=now)
+
+    data = client.get(_consumption_url(feed), {"period": "90d"}).json()
+
+    # La courbe commence au premier relevé, pas au bord de la fenêtre.
+    assert len(_levels(data)) == 6
+    first = data["levels"][0]["ts"][:10]
+    assert first == (now - timedelta(days=5)).date().isoformat()
+
+
+@pytest.mark.django_db
+def test_the_curve_stops_at_the_last_reading(client, user, feed, membership):
+    """Après le dernier comptage, plus rien n'est connu — la projection prend le relais.
+
+    Prolonger le trait plein jusqu'à aujourd'hui affirmerait un niveau que
+    personne n'a relevé ; c'est au pointillé de la projection de le dire.
+    """
+    client.force_login(user)
+    now = timezone.now()
+    record_inventory(item=feed, user=user, quantity=Decimal("10"), occurred_at=now - timedelta(days=20))
+    record_inventory(item=feed, user=user, quantity=Decimal("4"), occurred_at=now - timedelta(days=8))
+
+    data = client.get(_consumption_url(feed)).json()
+
+    last = data["levels"][-1]
+    assert last["ts"][:10] == (now - timedelta(days=8)).date().isoformat()
+    assert last["quantity"] == pytest.approx(4.0)
+
+
+@pytest.mark.django_db
+def test_the_level_curve_anchors_on_the_last_reading_before_the_window(
+    client, user, feed, membership
+):
     """Une fenêtre courte sur un article lent n'a rien à montrer sans ancre.
 
     Le dernier relevé *avant* la fenêtre est ce qui rend la descente lisible sur
@@ -509,17 +559,18 @@ def test_consumption_anchors_on_the_last_reading_before_the_window(client, user,
 
     # Un seul relevé dans la fenêtre — le contrat de `points` ne bouge pas.
     assert data["points_count"] == 1
-    values = _bucket_values(data)
-    # 12 kg sur 60 jours = 0.2/jour, dont 30 jours tombent dans la fenêtre.
-    assert sum(values) == pytest.approx(6.0, abs=0.25)
+    levels = _levels(data)
+    # 12 kg sur 60 jours = 0,2/jour : au bord de la fenêtre il en reste ~6.
+    assert levels[0] == pytest.approx(6.0, abs=0.25)
+    assert levels[-1] == pytest.approx(0.0)
     assert data["rate_per_day"] == pytest.approx(0.2, abs=0.01)
 
 
 @pytest.mark.django_db
-def test_consumption_without_two_readings_has_no_buckets(client, user, feed, membership):
-    """Un seul relevé ne fait pas une consommation — pas de barres à zéro."""
+def test_a_single_reading_draws_no_curve(client, user, feed, membership):
+    """Un seul relevé ne fait pas une consommation — pas de trait à plat."""
     client.force_login(user)
     record_inventory(item=feed, user=user, quantity=Decimal("10"))
 
     data = client.get(_consumption_url(feed)).json()
-    assert data["buckets"] == []
+    assert data["levels"] == []

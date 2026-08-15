@@ -247,4 +247,6 @@ def test_correcting_a_wrong_count_removes_its_phantom_consumption(client, user, 
 
     after = client.get(reverse("stock-item-consumption", kwargs={"pk": feed.id})).json()
     assert after["rate_per_day"] == pytest.approx(0.2, abs=0.01)
-    assert sum(b["consumed"] for b in after["buckets"]) == pytest.approx(2.0, abs=0.05)
+    # La courbe descend désormais de 10 à 8, et non plus jusqu'à zéro.
+    assert after["levels"][-1]["quantity"] == pytest.approx(8.0)
+    assert min(point["quantity"] for point in after["levels"]) == pytest.approx(8.0)

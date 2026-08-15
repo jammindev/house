@@ -2676,7 +2676,8 @@
       "depletion": "Projected depletion",
       "last_level": "Last known level",
       "not_enough_data": "Not enough history yet to plot consumption. Record a purchase or an inventory count.",
-      "consumed": "Consumed"
+      "level": "Remaining level",
+      "projection": "Projection"
     },
     "readings": {
       "title": "Level readings",

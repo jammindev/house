@@ -2676,7 +2676,8 @@
       "depletion": "Voraussichtlich leer",
       "last_level": "Letzter bekannter Stand",
       "not_enough_data": "Noch nicht genug Verlauf, um den Verbrauch darzustellen. Erfasse einen Kauf oder eine Bestandsaufnahme.",
-      "consumed": "Verbraucht"
+      "level": "Verbleibender Bestand",
+      "projection": "Prognose"
     },
     "readings": {
       "title": "Bestandsmessungen",

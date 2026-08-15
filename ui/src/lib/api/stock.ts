@@ -288,17 +288,22 @@ export interface StockConsumptionPoint {
   kind: 'inventory' | 'purchase';
 }
 
-/** Une barre du graphe : ce qui a été consommé sur le jour (ou le mois) `ts`. */
-export interface StockConsumptionBucket {
+/**
+ * Un point de la courbe : le niveau restant au jour `ts`.
+ *
+ * Interpolé entre deux relevés — un comptage dit combien il reste, jamais quand
+ * ça a été consommé (voir `stock.services._daily_levels`). La série s'arrête au
+ * dernier relevé : au-delà, c'est la projection qui parle.
+ */
+export interface StockLevelPoint {
   ts: string;
-  consumed: number;
+  quantity: number;
 }
 
 export interface StockConsumption {
   period: string;
-  granularity: 'day' | 'month';
   points: StockConsumptionPoint[];
-  buckets: StockConsumptionBucket[];
+  levels: StockLevelPoint[];
   last_level: number;
   points_count: number;
   rate_per_day: number | null;

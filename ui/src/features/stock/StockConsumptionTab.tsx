@@ -5,13 +5,24 @@ import { useDelayedLoading } from '@/lib/useDelayedLoading';
 import { useSessionState } from '@/lib/useSessionState';
 import WeatherOverlayToggle from '@/features/weather/WeatherOverlayToggle';
 import { useTemperatureOverlay } from '@/features/weather/overlay';
-import ConsumptionBarChart from '@/components/charts/ConsumptionBarChart';
 import type { ConsumptionPeriod } from '@/lib/api/stock';
 import { useStockConsumption } from './hooks';
 import { formatDate } from './format';
+import { canOverlayWeather } from './levelCurve';
+import StockLevelChart from './StockLevelChart';
 import StockReadingsList from './StockReadingsList';
 
 const PERIODS: ConsumptionPeriod[] = ['30d', '90d', '1y', 'all'];
+
+// Jusqu'où la projection a le droit de dépasser le dernier relevé. Une fenêtre
+// de 30 jours suivie de dix ans de pointillé n'affiche plus l'historique qu'on
+// était venu lire ; l'horizon suit donc ce qu'on regarde.
+const HORIZON_DAYS: Record<ConsumptionPeriod, number> = {
+  '30d': 30,
+  '90d': 90,
+  '1y': 365,
+  all: 365,
+};
 
 interface StockConsumptionTabProps {
   itemId: string;
@@ -33,34 +44,29 @@ export default function StockConsumptionTab({ itemId, unit }: StockConsumptionTa
   const { data, isLoading } = useStockConsumption(itemId, period);
   const showSkeleton = useDelayedLoading(isLoading && !data);
 
-  // Le serveur ne renvoie des barres qu'à partir de deux relevés : une seule
+  // Le serveur ne renvoie une courbe qu'à partir de deux relevés : une seule
   // lecture de niveau ne dit rien d'une consommation.
-  const buckets = React.useMemo(() => data?.buckets ?? [], [data]);
-  const granularity = data?.granularity ?? 'day';
-  const hasCurve = data != null && buckets.length > 0;
+  const levels = React.useMemo(() => data?.levels ?? [], [data]);
+  const hasCurve = data != null && levels.length > 0;
 
   // Temperature overlay (parcours 18 lot 5) — reuses the electricity/water hook.
   const [showWeather, setShowWeather] = useSessionState<boolean>(`stock.consumption.showWeather`, false);
   const range = React.useMemo(() => {
-    if (buckets.length === 0) return { from: '', to: '' };
-    return { from: buckets[0].ts.slice(0, 10), to: buckets[buckets.length - 1].ts.slice(0, 10) };
-  }, [buckets]);
+    if (levels.length === 0) return { from: '', to: '' };
+    return { from: levels[0].ts.slice(0, 10), to: levels[levels.length - 1].ts.slice(0, 10) };
+  }, [levels]);
   const { available: weatherAvailable, overlay: weatherOverlay } = useTemperatureOverlay({
     from: range.from,
     to: range.to,
-    granularity,
-    buckets,
+    granularity: 'day',
+    buckets: levels,
     show: showWeather,
   });
 
-  const series = React.useMemo(
-    () => [{ key: 'consumed', label: t('stock.consumption.consumed'), color: 'hsl(var(--chart-1))' }],
-    [t],
-  );
-  const chartBuckets = React.useMemo(
-    () => buckets.map((b) => ({ ts: b.ts, values: { consumed: b.consumed } })),
-    [buckets],
-  );
+  // La météo ne se superpose qu'à une courbe qui a de quoi lui répondre : entre
+  // deux relevés la pente est constante par construction, donc une température
+  // qui varie chaque jour n'y trouverait rien à corréler.
+  const weatherFits = weatherAvailable && canOverlayWeather(data?.points.length ?? 0);
 
   return (
     <section className="space-y-4">
@@ -70,7 +76,7 @@ export default function StockConsumptionTab({ itemId, unit }: StockConsumptionTa
             {t(`stock.consumption.periods.${p}`)}
           </FilterPill>
         ))}
-        {hasCurve && weatherAvailable ? (
+        {hasCurve && weatherFits ? (
           <WeatherOverlayToggle active={showWeather} onToggle={setShowWeather} />
         ) : null}
       </div>
@@ -102,12 +108,13 @@ export default function StockConsumptionTab({ itemId, unit }: StockConsumptionTa
             />
           </dl>
 
-          <ConsumptionBarChart
-            buckets={chartBuckets}
-            series={series}
-            granularity={granularity}
+          <StockLevelChart
+            levels={levels}
+            readings={data.points}
+            depletionDate={data.projected_depletion_date}
+            horizonDays={HORIZON_DAYS[period]}
             unit={unit}
-            overlay={weatherOverlay}
+            overlay={weatherFits ? weatherOverlay : undefined}
           />
         </>
       ) : (

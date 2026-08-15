@@ -2676,7 +2676,8 @@
       "depletion": "Agotamiento previsto",
       "last_level": "Último nivel conocido",
       "not_enough_data": "Aún no hay suficiente historial para trazar el consumo. Registra una compra o un inventario.",
-      "consumed": "Consumido"
+      "level": "Nivel restante",
+      "projection": "Proyección"
     },
     "readings": {
       "title": "Registros de nivel",
