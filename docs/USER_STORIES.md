@@ -55,13 +55,13 @@ story peut traverser trois specs, une spec peut couvrir zéro story.
 
 | ID | Story | Statut | Preuve |
 |---|---|---|---|
-| ORCH-01 | En tant que membre, je veux créer, modifier et supprimer les sujets de mon verger, afin de tenir le registre de ce que je possède | ⬜ | — |
-| ORCH-02 | En tant que membre, je veux que chaque sujet soit rattaché à une zone, afin de retrouver mon verger par l'endroit — et que supprimer une zone occupée me soit refusé plutôt que d'effacer l'historique | ⬜ | — |
-| ORCH-03 | En tant que membre, je veux consigner ce que je fais à un sujet (taille, traitement, observation), afin de m'en souvenir un an plus tard | ⬜ | — |
+| ORCH-01 | En tant que membre, je veux créer, modifier et supprimer les sujets de mon verger, afin de tenir le registre de ce que je possède | ✅ | `e2e/orchard.spec.ts` |
+| ORCH-02 | En tant que membre, je veux que chaque sujet soit rattaché à une zone, afin de retrouver mon verger par l'endroit — et que supprimer une zone occupée me soit refusé plutôt que d'effacer l'historique | ✅ | `e2e/orchard.spec.ts` |
+| ORCH-03 | En tant que membre, je veux consigner ce que je fais à un sujet (taille, traitement, observation), afin de m'en souvenir un an plus tard | ✅ | `e2e/orchard.spec.ts` |
 | ORCH-04 | En tant que membre, je veux déclarer que « la taille d'hiver, c'est entre novembre et mars », afin de savoir en ouvrant l'app ce que la saison réclame | ⬜ | — |
 | ORCH-05 | En tant que membre, je veux transformer une règle échue en tâche datée, afin de la voir avec le reste de ce que j'ai à faire | ⬜ | — |
-| ORCH-06 | En tant que membre, je veux noter combien j'ai récolté et quand, afin de comparer les années | ⬜ | — |
-| ORCH-07 | En tant que membre, je veux voir ce que chaque sujet a donné année après année, afin de lire une production qui alterne naturellement | ⬜ | — |
+| ORCH-06 | En tant que membre, je veux noter combien j'ai récolté et quand, afin de comparer les années | ✅ | `e2e/orchard-harvests.spec.ts` |
+| ORCH-07 | En tant que membre, je veux voir ce que chaque sujet a donné année après année, afin de lire une production qui alterne naturellement | ✅ | `e2e/orchard-harvests.spec.ts` |
 | ORCH-08 | En tant que membre, je veux être prévenu quand un gel menace des sujets en fleur, afin de pouvoir les protéger la veille | ⬜ | — |
 | ORCH-09 | En tant que membre, je veux déclarer le prix d'achat d'un arbre, afin de suivre ce que mon verger m'a coûté sans double saisie | ⬜ | — |
 | ORCH-10 | En tant que membre, je veux attacher des photos à un sujet, afin de le voir changer d'une année sur l'autre | ⬜ | — |
