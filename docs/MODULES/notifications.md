@@ -72,6 +72,49 @@ Les quatre garanties, et pourquoi chacune est du métier :
   — soft-supprimer, c'est l'utilisateur qui dit qu'il en a fini, donc la
   prochaine occurrence est de nouveau une nouvelle.
 
+### Un émetteur part d'un geste, jamais d'un service partagé
+
+Les émetteurs vivent dans un `notifications.py` par app (`stock`, `households`,
+`tasks`, `interactions`) : un effet de bord qui atteint les *autres* utilisateurs
+se lit mieux seul que fondu dans une vue. Ce module ne sait que **quoi dire**.
+
+**D'où on l'appelle est une décision, pas un détail.** `task_created` et
+`note_created` sont posés sur `TaskViewSet.perform_create`,
+`InteractionViewSet.perform_create` et les deux `create` des writables de
+l'agent — **jamais** sur `tasks.services.create_task` ni
+`interactions.services.create_note_interaction`. Ces services sont la porte
+commune : `chickens` y crée la corvée du poulailler, qui a **déjà** son
+`chicken_chore_due` ; `orchard` ses travaux saisonniers ; `seed_demo_data` trois
+ans de données. Une émission posée dans le service ferait doublon chez le
+premier et bavardage chez les deux autres. Le critère est « **un membre vient
+d'agir** », et l'agent en fait partie : il ne crée que sur demande explicite, et
+le laisser muet ferait dépendre la notification du bouton utilisé.
+
+**Le titre se tronque.** `Notification.title` est un `varchar(255)` là où
+`Task.subject` et `Interaction.subject` en acceptent 500. Sans `Truncator`,
+Postgres refuse l'insertion et **l'action principale part en 500** : un effet de
+bord qui casse ce que l'utilisateur voulait faire est le pire des deux mondes.
+Le sujet entier reste dans le `payload`.
+
+**Ce qui est privé ne sonne pas.** Le titre *est* le sujet : notifier une tâche
+ou une note `is_private` la publierait mot pour mot à tout le foyer, en allant
+chercher le lecteur au lieu d'attendre qu'il regarde. C'est la fuite que
+`TaskViewSet.get_queryset` a fermée en liste, par une porte que le filtre ne
+surveille pas.
+
+**Et une annonce ne survit pas à son sujet.** Une note se supprime pour de bon
+(une tâche, elle, s'archive et garde sa page) : sans `retract_note_created`, la
+cloche des autres membres mène à un écran mort, et le lecteur ne peut pas savoir
+si c'est l'app ou lui qui se trompe. `service.retract_by_payload` est **non
+scopé à un utilisateur**, précisément parce que l'annonce a été fan-outée à tout
+le foyer — la retirer chez son seul auteur, qui ne l'a justement jamais reçue, ne
+retirerait rien. À appeler depuis **tous** les chemins de suppression d'un objet
+notifié (ici le `perform_destroy` de l'API *et* `delete_note_interaction` pour
+l'undo de l'agent), pas seulement celui qu'on a sous la main.
+
+Régressions : `tasks/tests/test_creation_notification.py` et
+`interactions/tests/test_note_creation_notification.py`.
+
 ### Ce que l'utilisateur peut faire taire — et ce qu'il ne peut pas
 
 `User.muted_notification_types` est un opt-**out** (vide = tout arrive), et il ne

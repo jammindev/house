@@ -2984,6 +2984,8 @@
       "unread": "Non lues"
     },
     "type": {
+      "task_created": "Tâche ajoutée par un membre",
+      "note_created": "Note ajoutée par un membre",
       "stock_low": "Stock bas",
       "stock_out": "Stock épuisé",
       "weather_alert": "Alerte météo",

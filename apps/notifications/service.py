@@ -207,3 +207,27 @@ def mark_read_by_payload(user, notification_type: str, **payload_filters) -> int
         deleted_at__isnull=True,
         **filters,
     ).update(is_read=True, read_at=timezone.now())
+
+
+def retract_by_payload(notification_type: str, **payload_filters) -> int:
+    """Retirer de toutes les cloches ce qui annonçait une chose disparue.
+
+    Le pendant de ``notify_household`` à la suppression, et **non scopé à un
+    utilisateur** pour cette raison précise : l'annonce a été fan-outée à tout le
+    foyer, la retirer chez son seul auteur — qui ne l'a justement jamais reçue —
+    ne retirerait rien.
+
+    Existe parce que ``url`` est une promesse d'adresse : une notification qui
+    survit à son sujet mène à un écran mort, et le lecteur ne peut pas savoir si
+    c'est l'app ou lui qui se trompe. À appeler depuis **tous** les chemins de
+    suppression d'un objet notifié, pas seulement celui qu'on a sous la main.
+
+    Soft-delete (``deleted_at``), comme quand l'utilisateur écarte une
+    notification : rien ne s'efface, et le compteur de non-lues suit.
+    """
+    filters = {f"payload__{k}": v for k, v in payload_filters.items()}
+    return Notification.objects.filter(
+        type=notification_type,
+        deleted_at__isnull=True,
+        **filters,
+    ).update(deleted_at=timezone.now())

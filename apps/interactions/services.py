@@ -707,7 +707,13 @@ def delete_note_interaction(*, household, user, interaction: Interaction) -> Non
         raise ValueError("delete_note_interaction: note belongs to another household")
     if interaction.is_private and interaction.created_by_id != getattr(user, "pk", None):
         raise ValueError("delete_note_interaction: cannot delete another user's private note")
+    note_id = interaction.id
     interaction.delete()
+    # L'annonce ne survit pas à son sujet : sans ça l'undo de l'agent laisse dans
+    # la cloche des autres membres un lien vers un écran mort.
+    from .notifications import retract_note_created
+
+    retract_note_created(note_id)
 
 
 def resolve_allocation_source(household_id, source_type: str | None, source_id):

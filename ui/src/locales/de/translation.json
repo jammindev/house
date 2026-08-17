@@ -2984,6 +2984,8 @@
       "unread": "Ungelesen"
     },
     "type": {
+      "task_created": "Neue Aufgabe eines Mitglieds",
+      "note_created": "Neue Notiz eines Mitglieds",
       "stock_low": "Geringer Bestand",
       "stock_out": "Nicht mehr vorrätig",
       "weather_alert": "Wetterwarnung",

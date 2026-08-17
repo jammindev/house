@@ -26,6 +26,7 @@ from core.timezones import (
 from documents.models import Document, DocumentLink
 from zones.models import Zone
 from .aggregations import UNBUDGETED, compute_expense_summary
+from .notifications import notify_note_created, retract_note_created
 from .models import (
     Interaction,
     InteractionZone,
@@ -324,7 +325,24 @@ class InteractionViewSet(viewsets.ModelViewSet):
             household_id=zone_household_id,
             created_by=self.request.user,
         )
-    
+        # Seules les **notes** sonnent : cet endpoint sert les onze types du
+        # journal, et notifier sur l'ensemble ferait sonner chaque achat de stock
+        # et chaque ligne de relevé ventilée. La garde de type vit dans
+        # ``notify_note_created``, pas ici — voir ``interactions/notifications.py``.
+        notify_note_created(serializer.instance, self.request.user)
+
+    def perform_destroy(self, instance):
+        """Supprimer l'objet **et** ce qui l'annonçait.
+
+        Une note supprimée laisse sinon dans la cloche des autres membres un lien
+        vers un écran mort. Le retrait passe par l'id, pas par l'instance : la
+        ligne est sur le point de disparaître.
+        """
+        note_id = instance.id if instance.type == 'note' else None
+        super().perform_destroy(instance)
+        if note_id is not None:
+            retract_note_created(note_id)
+
     @action(detail=False, methods=['get'])
     def by_type(self, request):
         """Group interactions by type with counts."""

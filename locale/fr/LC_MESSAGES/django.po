@@ -2213,3 +2213,11 @@ msgstr "Mot de passe"
 #: templates/login.html:88
 msgid "Back to home"
 msgstr "Retour à l'accueil"
+
+#: apps/tasks/notifications.py:59
+msgid "New task from %(member)s"
+msgstr "Nouvelle tâche de %(member)s"
+
+#: apps/interactions/notifications.py:52
+msgid "New note from %(member)s"
+msgstr "Nouvelle note de %(member)s"

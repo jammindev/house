@@ -19,6 +19,7 @@ from documents.models import Document, DocumentLink
 from interactions.models import Interaction
 from zones.models import Zone
 from .models import Task, TaskInteraction
+from .notifications import notify_task_created
 from .serializers import (
     TaskSerializer,
     TaskDocumentLinkSerializer,
@@ -132,6 +133,10 @@ class TaskViewSet(DocumentLinkActionsMixin, viewsets.ModelViewSet):
             household_id=zone_household_id,
             created_by=self.request.user,
         )
+        # Prévenir le foyer se fait ici et non dans ``tasks.services.create_task`` :
+        # ce service est aussi la porte de ``chickens`` (qui a déjà sa propre
+        # notification) et de ``seed_demo_data``. Voir ``tasks/notifications.py``.
+        notify_task_created(serializer.instance, self.request.user)
 
     def _check_update_permission(self, instance, validated_data):
         user = self.request.user

@@ -90,7 +90,7 @@ def _create_note_from_agent(household, user, fields, *, anchor=None):
         elif anchor_type == 'zone' and not zone_ids:
             zone_ids = [str(anchor_id)]
 
-    return create_note_interaction(
+    note = create_note_interaction(
         household=household,
         user=user,
         subject=(fields.get('subject') or '').strip(),
@@ -98,6 +98,12 @@ def _create_note_from_agent(household, user, fields, *, anchor=None):
         project=project,
         zone_ids=zone_ids or None,
     )
+    # Même raison que pour la tâche : l'agent agit *pour* un membre, sur demande
+    # explicite. Le service, lui, reste muet — ``seed_demo_data`` passe par lui.
+    from .notifications import notify_note_created
+
+    notify_note_created(note, user)
+    return note
 
 
 def _update_note_from_agent(household, user, instance, fields):

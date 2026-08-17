@@ -1,4 +1,13 @@
-import { AlertTriangle, Bell, CloudSun, Mail, PackageX, UserPlus } from 'lucide-react';
+import {
+  AlertTriangle,
+  Bell,
+  CloudSun,
+  Mail,
+  NotebookPen,
+  PackageX,
+  SquareCheck,
+  UserPlus,
+} from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
 /**
@@ -16,6 +25,8 @@ import type { LucideIcon } from 'lucide-react';
 const NOTIFICATION_ICONS: Record<string, LucideIcon> = {
   household_invitation: Mail,
   household_member_joined: UserPlus,
+  task_created: SquareCheck,
+  note_created: NotebookPen,
   stock_low: AlertTriangle,
   stock_out: PackageX,
   weather_alert: CloudSun,

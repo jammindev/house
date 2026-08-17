@@ -29,13 +29,25 @@ import pytest
 from django.conf import settings
 from django.utils.translation import trans_real
 
-#: Les modules qui composent la prose mensuelle du foyer. Ajouter un module qui
+#: Les modules qui composent la prose que le foyer lit. Ajouter un module qui
 #: écrit une phrase lue par l'utilisateur, c'est l'ajouter ici.
+#:
+#: Les quatre ``notifications.py`` sont ici pour une raison plus forte que le
+#: bilan mensuel : leur texte est rendu **une fois par destinataire** puis stocké
+#: en clair (règle write-time de ``CLAUDE.md``), donc il n'y a aucune seconde
+#: chance à l'affichage. Un ``msgstr`` vide ne poste pas une clé brute, il poste
+#: une phrase anglaise parfaitement valide dans la cloche d'un foyer francophone
+#: — exactement le défaut qu'a vécu ``stock`` en production, et qui ne se voit
+#: dans aucune relecture.
 PROSE_MODULES = [
     "apps/budget/report/render.py",
     "apps/budget/report/ping.py",
     "apps/recap/render.py",
     "apps/recap/ping.py",
+    "apps/tasks/notifications.py",
+    "apps/interactions/notifications.py",
+    "apps/stock/notifications.py",
+    "apps/households/notifications.py",
 ]
 
 LANGUAGES = ["fr", "de", "es"]

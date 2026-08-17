@@ -2984,6 +2984,8 @@
       "unread": "Unread"
     },
     "type": {
+      "task_created": "Task added by a member",
+      "note_created": "Note added by a member",
       "stock_low": "Low stock",
       "stock_out": "Out of stock",
       "weather_alert": "Weather alert",

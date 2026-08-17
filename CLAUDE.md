@@ -1653,6 +1653,27 @@ qu'il dit, pas comment il le diffuse. Doc : `docs/MODULES/notifications.md`.
   400** plutôt que d'ignorer — croire qu'on a coupé une invitation est pire que
   s'entendre dire qu'on ne peut pas. Le filtre vit dans `send()`, pas à l'écran :
   un type qui sort de `MUTABLE_TYPES` doit cesser d'être silencié tout de suite.
+- **⚠️ Un émetteur se pose sur un geste, jamais sur un service partagé.**
+  `task_created` / `note_created` partent des `perform_create` et des `create`
+  des writables de l'agent — jamais de `tasks.services.create_task` ni de
+  `interactions.services.create_note_interaction`, qui sont aussi la porte de
+  `chickens` (qui a **déjà** son `chicken_chore_due` : on doublonnerait), d'
+  `orchard` et de `seed_demo_data` (trois ans de démo dans la cloche). Le critère
+  est « un membre vient d'agir », et l'agent en fait partie — il ne crée que sur
+  demande explicite, et le laisser muet ferait dépendre la notification du bouton
+  utilisé. Corollaires : **ce qui est `is_private` ne sonne pas** (le titre *est*
+  le sujet — notifier publierait mot pour mot ce que le drapeau garde, en allant
+  chercher le lecteur au lieu d'attendre qu'il regarde), et **le titre se
+  tronque** (`varchar(255)` contre un `subject` à 500 : sans `Truncator`,
+  Postgres refuse et l'action principale part en 500).
+- **Une annonce ne survit pas à son sujet.** Une note se supprime pour de bon là
+  où une tâche s'archive et garde sa page : `retract_by_payload` retire l'entrée
+  de **toutes** les cloches — non scopé à un utilisateur, puisque l'annonce a été
+  fan-outée à tout le foyer et que la retirer chez son seul auteur, qui ne l'a
+  justement jamais reçue, ne retirerait rien. À appeler depuis **tous** les
+  chemins de suppression, pas seulement celui qu'on a sous la main. Sinon `url`
+  promet une adresse et livre un écran mort, que le lecteur ne peut attribuer ni
+  à l'app ni à lui-même.
 
 ---
 

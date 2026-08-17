@@ -19,6 +19,8 @@ class Notification(models.Model):
     class Type(models.TextChoices):
         HOUSEHOLD_INVITATION = "household_invitation", _("Household invitation")
         HOUSEHOLD_MEMBER_JOINED = "household_member_joined", _("New household member")
+        TASK_CREATED = "task_created", _("New task")
+        NOTE_CREATED = "note_created", _("New note")
         STOCK_LOW = "stock_low", _("Low stock")
         STOCK_OUT = "stock_out", _("Out of stock")
         WEATHER_ALERT = "weather_alert", _("Weather alert")
@@ -92,10 +94,15 @@ class Notification(models.Model):
 # they stopped receiving.
 #
 # Everything frequent and merely informative belongs here. The "somebody did
-# something" family to come (a task ticked, an expense logged) is the reason
-# this set exists: ~60 a week in a family of four, and a bell that becomes
-# noise loses the rare notification that mattered along with the rest.
+# something" family (a task written, a note left) is the reason this set exists:
+# ~60 a week in a family of four, and a bell that becomes noise loses the rare
+# notification that mattered along with the rest.
 MUTABLE_TYPES = frozenset({
+    # La famille annoncée ci-dessus, désormais réelle. Silenciable **par
+    # construction** : ces deux-là n'apprennent rien qu'on ne retrouve en
+    # ouvrant la liste, alors qu'ils sonnent plusieurs fois par jour.
+    Notification.Type.TASK_CREATED,
+    Notification.Type.NOTE_CREATED,
     Notification.Type.STOCK_LOW,
     Notification.Type.STOCK_OUT,
     Notification.Type.WEATHER_ALERT,

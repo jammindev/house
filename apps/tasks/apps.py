@@ -71,7 +71,7 @@ def _create_task_from_agent(household, user, fields, *, anchor=None):
             zone_ids = [str(anchor_id)]
 
     priority = fields.get('priority')
-    return create_task(
+    task = create_task(
         household,
         user,
         subject=(fields.get('subject') or '').strip(),
@@ -82,6 +82,13 @@ def _create_task_from_agent(household, user, fields, *, anchor=None):
         zone_ids=zone_ids,
         needs_dry_weather=bool(fields.get('needs_dry_weather')),
     )
+    # L'agent ne crée que sur demande explicite : c'est le geste d'un membre, pas
+    # de l'app. Le laisser muet ferait dépendre la notification du bouton
+    # utilisé, ce qu'aucun membre du foyer ne peut deviner.
+    from .notifications import notify_task_created
+
+    notify_task_created(task, user)
+    return task
 
 
 def _update_task_from_agent(household, user, instance, fields):

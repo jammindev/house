@@ -2223,3 +2223,11 @@ msgstr "Contraseña"
 #: templates/login.html:88
 msgid "Back to home"
 msgstr "Volver al inicio"
+
+#: apps/tasks/notifications.py:59
+msgid "New task from %(member)s"
+msgstr "Nueva tarea de %(member)s"
+
+#: apps/interactions/notifications.py:52
+msgid "New note from %(member)s"
+msgstr "Nueva nota de %(member)s"
