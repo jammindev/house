@@ -13,7 +13,7 @@ The product is built around one principle: **capture events first, enrich later*
 - Multi-tenant scope: household membership and role-based actions
 - Internationalization: English/French in UI surfaces
 
-See `../AGENTS.md` for the complete app map.
+See `./MODULES/README.md` for the complete app map (one sheet per Django app).
 
 ## Core capabilities (active)
 

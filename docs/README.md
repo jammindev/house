@@ -19,8 +19,9 @@ Parcours 01→06 livrés. Voir `JOURNAL_PRODUIT.md` pour le détail.
 
 ## Lire en priorité
 
-- `../AGENTS.md` — vue d'ensemble du repo, conventions
-- `../CLAUDE.md` — règles projet (workflow git, commandes, i18n, composants UI)
+- `../CLAUDE.md` — comment travailler + règles projet (workflow git, commandes,
+  i18n, composants UI). `../AGENTS.md` est un lien symbolique vers ce fichier :
+  une seule source, pour tous les agents.
 - `./MODULES/README.md` — référence architecturale par module
 - `./FEATURE_PATTERN.md` — pattern à suivre pour toute nouvelle feature React
 - `./JOURNAL_PRODUIT.md` — journal des parcours métier livrés et en cours

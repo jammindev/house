@@ -1,5 +1,149 @@
 # Règles du projet house
 
+> Ce fichier a deux moitiés. **Celle-ci** — les six sections qui suivent — dit
+> *comment travailler*, et vaut pour toute session, y compris celles qui
+> n'invoquent aucun skill. Le reste du fichier dit *ce que ce code sait* : des
+> règles adossées à des bugs réels, avec le pourquoi conservé. La première moitié
+> se lit avant la demande ; la seconde se consulte quand on touche au domaine
+> concerné.
+
+## Comment travailler — le livrable est le produit fini
+
+Le coût marginal de la complétude est proche de zéro. **Faire la chose entière** :
+le code, le test de régression, les quatre locales, le tutoriel si le parcours
+change, la doc du module. Ne jamais proposer « on verra plus tard » quand la
+solution définitive tient dans la même session, ni présenter un contournement
+quand le vrai correctif existe. Quand on demande une chose, la réponse est la
+chose faite, pas un plan pour la faire.
+
+**Complet ne veut pas dire large.** Finir jusqu'au bout ce qui est demandé, oui ;
+élargir le périmètre au passage, non. Un refactor non demandé qui accompagne un
+correctif rend le correctif irrelisable, et c'est la revue qui paie. Si un vrai
+problème apparaît à côté du périmètre : le dire en une phrase, ouvrir une issue,
+continuer.
+
+**On peut déléguer la frappe, pas la compréhension.** Avant de déclarer une chose
+finie, il faut pouvoir dire *pourquoi elle est correcte* **et** *où elle
+casserait*. Des tests verts ne sont pas une compréhension : ils prouvent que ce
+qu'on a pensé à vérifier passe. Si on ne sait pas énoncer les modes de défaillance
+à voix haute, on ne conclut pas, on devine. C'est la seule raison pour laquelle ce
+fichier existe sous cette forme — chaque règle d'ici est le mode de défaillance de
+quelqu'un, écrit une fois pour ne pas être redécouvert.
+
+## Deux espaces — ce qui se calcule ne se devine pas
+
+Tout travail appartient à l'un des deux espaces, et se tromper d'espace est la
+façon la plus courante de produire du faux avec assurance.
+
+- **Espace latent** = le modèle. Jugement, prose, entrées ambiguës, analyse
+  ouverte. Coût : des tokens. Variabilité : haute. Inspectable : pas du tout.
+- **Espace déterministe** = du code. Même entrée, même sortie. Coût : une écriture,
+  une fois. Variabilité : zéro. Inspectable : totalement.
+
+**La règle** : si la même question posée deux fois a la même bonne réponse *par
+définition*, elle n'a rien à faire dans l'espace latent. Arithmétique, conversion
+de fuseau, calcul de date, parité de catalogues, résolution d'URL, comptage,
+parsing : on écrit le contrôle. Si un raisonnement fait ça de tête, il s'arrête et
+écrit le script.
+
+**La boucle qui rend ça payant** : le modèle écrit le contrôle, puis le contrôle
+contraint le modèle pour toujours. Un bug de l'espace latent devient une garantie
+de l'espace déterministe, et l'ancien chemin d'échec devient structurellement
+inatteignable. Face à une tâche mixte, on la coupe : la moitié déterministe devient
+un test, la moitié latente reste un jugement — assumé comme tel.
+
+Ce dépôt le fait déjà partout, et **à chaque fois parce qu'une relecture avait
+échoué** : `ui/src/locales/keys.test.ts` (une clé i18n absente),
+`apps/core/tests/test_prose_is_translated.py` (un `msgstr` vide, donc un bilan
+mensuel en anglais dans les quatre langues), `ui/src/lib/invalidate.test.ts` (un
+`onSuccess` qui oublie une racine), `agent/tests/test_registry.py` (un
+`url_template` qui mène à un écran blanc), `nginx/test-resilience.sh` (un
+`proxy_pass` littéral), `scripts/test-backup-restore.sh` (une restauration jamais
+rejouée). Le point commun des six est déjà écrit plus bas, mot pour mot : **en
+revue, le diff fautif ressemble exactement au diff juste.** Quand cette phrase est
+vraie d'un défaut, c'est la signature d'un travail à sortir de l'espace latent —
+pas d'une relecture à faire plus sérieusement.
+
+## Chercher avant de construire
+
+Trois couches, dans l'ordre :
+
+1. **Ce qui existe déjà ici.** Le helper du dépôt, avant tout le reste.
+2. **L'outil standard ou une lib avec une traction réelle** (étoiles, dernier
+   commit, issues traitées) — et on nomme la raison du choix, pas une liste.
+3. **Le premier principe**, et alors on **écrit pourquoi** le conventionnel ne
+   s'applique pas, dans le commit ou la doc du module.
+
+La couche 1 gagne presque toujours, et ici elle a un sens précis : `formatAmount`,
+`DecimalInput`, `core.timezones`, `interactions.queries.expenses`, `useInvalidate`,
+`notify_household`, `create_expense_interaction`. **Chacun est né de la
+consolidation de quatre à seize copies divergentes** — en écrire une dix-septième
+n'est pas neutre, c'est rouvrir le bug que la consolidation a fermé.
+
+Si deux options se valent vraiment, nommer l'arbitrage et demander (voir plus bas).
+
+## Fait deux fois à la main, la troisième est une commande
+
+Un échec se transforme en test ; un **succès répété** se transforme en skill. Les
+treize skills de `.claude/skills/` sont nés comme ça. Une invite ponctuelle ne
+capitalise rien, un flux réutilisable oui : le levier est dans le travail qu'on
+cesse d'avoir à penser. Dès la deuxième exécution manuelle du même enchaînement,
+s'arrêter et le coder — script, skill ou hook.
+
+## Ambiguïté à fort enjeu — s'arrêter et poser la question
+
+Quatre déclencheurs, et seulement ceux-là :
+
+- deux architectures plausibles pour le même besoin ;
+- une demande qui contredit un pattern établi de ce fichier ;
+- une opération destructive dont la portée n'est pas claire ;
+- un contexte manquant qui changerait l'approche.
+
+Alors : **STOP**. Nommer l'ambiguïté en une phrase, présenter 2-3 options avec
+leurs vrais arbitrages — pas un faux éventail où une seule réponse tient debout —
+et demander. Ne jamais deviner sur une décision d'architecture. **Ne s'applique
+pas** au codage courant, aux petites features ni aux changements évidents : y
+appliquer ce protocole transforme une session en questionnaire et fait perdre au
+protocole le crédit dont il a besoin les quatre fois où il compte.
+
+## Fin de tâche — un statut, pas une impression
+
+Toute tâche se conclut par l'un de ces quatre mots :
+
+- **FINI** — tout est fait, avec une preuve pour chaque affirmation : test de
+  régression dans le diff, i18n dans les quatre locales, tutoriel à jour si le
+  parcours change. Prêt à merger.
+- **FINI AVEC RÉSERVES** — livré, mais avec des points à connaître. Chacun est
+  nommé, avec sa gravité et la suite proposée.
+- **BLOQUÉ** — impossible d'avancer. Dire sur quoi, et ce qui a déjà été tenté.
+- **CONTEXTE MANQUANT** — il manque une information qui change l'approche. Dire
+  exactement laquelle.
+
+« Partiellement fait » n'est pas un statut : soit ça part en PR, soit c'est bloqué.
+Un lot annoncé livré avec un reliquat passé sous silence se retrouve trois mois
+plus tard dans une note de mémoire au lieu d'une issue, et une note de mémoire ne
+se priorise pas.
+
+**Dire aussi ce qu'il faut redémarrer** : quel service, quelle commande. Si rien
+n'est à redémarrer, le dire explicitement. Une commande en `sudo` se liste, elle ne
+se lance pas.
+
+## Sûreté
+
+- **Jamais de secret dans un commit.** Si un `.env*` est touché, vérifier
+  `.gitignore` avant de committer. `gitleaks` tourne en CI ; ce n'est pas une
+  raison pour lui laisser le premier rôle.
+- **Jamais `--no-verify`.** Un hook qui échoue se corrige, il ne se contourne pas.
+- **Jamais `rm -rf`, `git reset --hard`, `git push --force`, `DROP TABLE`** sans
+  confirmation explicite. ⚠️ Ici le risque est plus proche qu'ailleurs : des
+  sessions tournent **en parallèle dans le même checkout**, et un `reset --hard`
+  emporte le travail non commité d'une autre session sans rien afficher. C'est la
+  raison d'être de la règle du worktree.
+- **Jamais de binaire commité** — à l'exception des images de marque, et
+  seulement parce qu'elles se régénèrent en une commande (`npm run brand:social`).
+- **`main` se déploie tout seul : un merge *est* une action de production.** Avant
+  toute action qui touche la prod, dire ce qui va être fait et attendre.
+
 ## Workflow Git
 
 - Trunk-based : `main` est la seule branche long-lived. Push sur `main` → auto-deploy prod.
@@ -42,7 +186,7 @@ surface écrite a une langue, et elle se déduit de **qui la lit** :
 | Identifiants de code, noms de tests, noms de branches | **anglais** | tout le monde |
 | **Messages de commit** (sujet et corps) | **français** | toi, et l'IA qui les lit |
 | Issues et PRs | **français** jusqu'à l'annonce, **anglais** après | toi, puis tout le monde |
-| `docs/parcours/`, `docs/fiches/`, `docs/MODULES/`, `docs/journal/`, `CLAUDE.md`, `AGENTS.md`, `DEPLOYMENT.md` | **français** | toi et l'assistant |
+| `docs/parcours/`, `docs/fiches/`, `docs/MODULES/`, `docs/journal/`, `CLAUDE.md` (= `AGENTS.md`, lien symbolique), `DEPLOYMENT.md` | **français** | toi et l'assistant |
 | Commentaires et docstrings | **français** admis là où le raisonnement se densifie | toi et l'assistant |
 | Changelog in-app (`/app/admin/changelog`) | **français** | staff uniquement |
 

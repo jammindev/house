@@ -22,7 +22,7 @@ Every domain entity is scoped to a household.
 - owner-only actions remain restricted (membership management and sensitive updates)
 - API access resolves household context via header/params/fallback membership selection
 
-See `../AGENTS.md` for current permission conventions.
+See `./MODULES/core.md` for current permission conventions.
 
 ## Core entities
 

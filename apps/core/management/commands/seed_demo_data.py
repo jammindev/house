@@ -119,10 +119,11 @@ class Command(BaseCommand):
     help = "Seed demo data focused on tasks (household, users, zones, projects, tasks)"
 
     #: Mot de passe des trois comptes de démonstration. Il est **publié** — dans
-    #: ce fichier, dans ``AGENTS.md`` et dans le skill ``/dev``, tous suivis par un
-    #: dépôt public. C'est sans conséquence sur la machine de celui qui évalue le
-    #: produit (``docker compose --profile demo``), et c'est une porte ouverte sur
-    #: toute instance joignable depuis Internet. D'où ``--password``.
+    #: ce fichier, dans le skill ``/dev`` et dans l'agent ``playwright-e2e-writer``,
+    #: tous suivis par un dépôt public. C'est sans conséquence sur la machine de
+    #: celui qui évalue le produit (``docker compose --profile demo``), et c'est
+    #: une porte ouverte sur toute instance joignable depuis Internet. D'où
+    #: ``--password``.
     DEFAULT_PASSWORD = "demo1234"
 
     def add_arguments(self, parser):

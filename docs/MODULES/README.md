@@ -60,5 +60,6 @@ Lecture recommandée pour reprendre un module après pause — pour les bugs et 
 
 - [`docs/JOURNAL_PRODUIT.md`](../JOURNAL_PRODUIT.md) — état des parcours métier
 - [`docs/FEATURE_PATTERN.md`](../FEATURE_PATTERN.md) — pattern à suivre pour toute nouvelle feature
-- [`AGENTS.md`](../../AGENTS.md) — vue d'ensemble du repo
+- [`CLAUDE.md`](../../CLAUDE.md) — comment travailler + règles projet
+  (`AGENTS.md` est un lien symbolique vers ce même fichier)
 - **GitHub issues** ([`jammindev/house`](https://github.com/jammindev/house/issues)) — source unique de vérité du backlog
