@@ -7,7 +7,7 @@
 **Everything a household keeps alive — and a memory that can answer for it.**
 Indoors and out: the works, the money, the meters, the garden, the animals.
 
-[**Try the live demo →**](https://demo.jammin-dev.com) ·
+[**Try the live demo →**](https://demo.maisonnee.jammin-dev.com) ·
 [Install](#install-it-in-three-lines) · [What it does](#what-it-does) ·
 [Without an API key](#without-an-api-key) ·
 [What it does not do](#what-it-does-not-do) ·
