@@ -33,8 +33,12 @@ media/
 .env.*
 !.env.example
 !.env.production.example
-venv/
-.venv/
+# Sans slash : un `venv/` ne matche que les RÉPERTOIRES, et c'est ainsi qu'un
+# symlink nommé `venv` — pointant sur lui-même — s'est retrouvé commité dans
+# main (#614). Au rebase suivant, git le checkoutait par-dessus le vrai
+# virtualenv, qui disparaissait sans un mot.
+venv
+.venv
 venv_broken_from_move_20260215/
 
 # Legacy Next.js
