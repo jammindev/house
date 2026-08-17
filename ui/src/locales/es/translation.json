@@ -2775,6 +2775,7 @@
   },
   "auth": {
     "login": "Iniciar sesión",
+    "loginSubtitle": "Tu hogar, tal y como lo dejaste.",
     "email": "Correo electrónico",
     "password": "Contraseña",
     "submit": "Iniciar sesión",

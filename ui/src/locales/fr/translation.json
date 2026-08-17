@@ -2775,6 +2775,7 @@
   },
   "auth": {
     "login": "Connexion",
+    "loginSubtitle": "Votre foyer, là où vous l'avez laissé.",
     "email": "Email",
     "password": "Mot de passe",
     "submit": "Se connecter",

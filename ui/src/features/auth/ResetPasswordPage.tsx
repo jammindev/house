@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { api } from '@/lib/axios';
 import { Button } from '../../design-system/button';
 import { Input } from '../../design-system/input';
+import { AuthShell } from './AuthShell';
 
 export default function ResetPasswordPage() {
   const { t } = useTranslation();
@@ -49,43 +50,42 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <div className="flex min-h-dvh items-center justify-center pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
-      <div className="w-full max-w-sm space-y-4">
-        <h1 className="text-2xl font-semibold">{t('auth.resetPasswordTitle')}</h1>
-
-        {missingTokenParts ? (
-          <p className="text-sm text-destructive">{t('auth.tokenInvalid')}</p>
-        ) : (
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {error && <p className="text-sm text-destructive">{error}</p>}
-            <Input
-              type="password"
-              placeholder={t('auth.newPassword')}
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              required
-              autoComplete="new-password"
-              minLength={8}
-            />
-            <Input
-              type="password"
-              placeholder={t('auth.confirmPassword')}
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              required
-              autoComplete="new-password"
-              minLength={8}
-            />
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? t('auth.resetting') : t('auth.resetSubmit')}
-            </Button>
-          </form>
-        )}
-
-        <Link to="/login" className="block text-sm text-primary hover:underline">
+    <AuthShell
+      title={t('auth.resetPasswordTitle')}
+      footer={
+        <Link to="/login" className="text-primary hover:underline">
           ← {t('auth.backToLogin')}
         </Link>
-      </div>
-    </div>
+      }
+    >
+      {missingTokenParts ? (
+        <p className="text-sm text-destructive">{t('auth.tokenInvalid')}</p>
+      ) : (
+        <form onSubmit={handleSubmit} className="space-y-3">
+          {error && <p className="text-sm text-destructive">{error}</p>}
+          <Input
+            type="password"
+            placeholder={t('auth.newPassword')}
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+            required
+            autoComplete="new-password"
+            minLength={8}
+          />
+          <Input
+            type="password"
+            placeholder={t('auth.confirmPassword')}
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            required
+            autoComplete="new-password"
+            minLength={8}
+          />
+          <Button type="submit" className="w-full" disabled={loading}>
+            {loading ? t('auth.resetting') : t('auth.resetSubmit')}
+          </Button>
+        </form>
+      )}
+    </AuthShell>
   );
 }

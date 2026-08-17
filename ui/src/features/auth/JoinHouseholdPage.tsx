@@ -6,6 +6,7 @@ import { useAuth } from '@/lib/auth/useAuth';
 import { Button } from '../../design-system/button';
 import { Input } from '../../design-system/input';
 import { FormField } from '../../design-system/form-field';
+import { AuthShell } from './AuthShell';
 import { fetchInvitationPreview, joinHousehold, type InvitationPreview } from '@/lib/api/households';
 
 function errorDetail(error: unknown, fallback: string): string {
@@ -93,57 +94,56 @@ export default function JoinHouseholdPage() {
     }
   }
 
-  const shell = (children: React.ReactNode) => (
-    <div className="flex min-h-dvh items-center justify-center px-4 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
-      <div className="w-full max-w-sm space-y-4">{children}</div>
-    </div>
+  const backToLogin = (
+    <Link to="/login" className="text-primary hover:underline">
+      ← {t('auth.backToLogin')}
+    </Link>
   );
 
   if (loadingPreview || authLoading) {
-    return shell(<div className="h-32 animate-pulse rounded-lg bg-muted" />);
+    return (
+      <AuthShell>
+        <div className="h-32 animate-pulse rounded-lg bg-muted" />
+      </AuthShell>
+    );
   }
 
   if (loadError || !preview) {
-    return shell(
-      <>
-        <h1 className="text-2xl font-semibold">{t('invitations.linkInvalidTitle')}</h1>
-        <p className="text-sm text-muted-foreground">{loadError ?? t('invitations.linkInvalid')}</p>
-        <Link to="/login" className="block text-sm text-primary hover:underline">
-          ← {t('auth.backToLogin')}
-        </Link>
-      </>
+    return (
+      <AuthShell
+        title={t('invitations.linkInvalidTitle')}
+        subtitle={loadError ?? t('invitations.linkInvalid')}
+        footer={backToLogin}
+      />
     );
   }
 
   if (preview.is_expired) {
-    return shell(
-      <>
-        <h1 className="text-2xl font-semibold">{t('invitations.expiredTitle')}</h1>
-        <p className="text-sm text-muted-foreground">{t('invitations.expiredBody')}</p>
-        <Link to="/login" className="block text-sm text-primary hover:underline">
-          ← {t('auth.backToLogin')}
-        </Link>
-      </>
+    return (
+      <AuthShell
+        title={t('invitations.expiredTitle')}
+        subtitle={t('invitations.expiredBody')}
+        footer={backToLogin}
+      />
     );
   }
 
-  const heading = (
-    <div className="space-y-1">
-      <h1 className="text-2xl font-semibold">
-        {t('invitations.joinTitle', { name: preview.household_name })}
-      </h1>
-      <p className="text-sm text-muted-foreground">
-        {preview.invited_by_name
-          ? t('invitations.joinSubtitleBy', { name: preview.invited_by_name })
-          : t('invitations.joinSubtitle')}
-      </p>
-    </div>
-  );
+  const title = t('invitations.joinTitle', { name: preview.household_name });
+  const subtitle = preview.invited_by_name
+    ? t('invitations.joinSubtitleBy', { name: preview.invited_by_name })
+    : t('invitations.joinSubtitle');
 
   if (user) {
-    return shell(
-      <>
-        {heading}
+    return (
+      <AuthShell
+        title={title}
+        subtitle={subtitle}
+        footer={
+          <Link to="/app/dashboard" className="text-primary hover:underline">
+            {t('invitations.notNow')}
+          </Link>
+        }
+      >
         {error && <p className="text-sm text-destructive">{error}</p>}
         <p className="text-sm text-muted-foreground">
           {t('invitations.joinAsCurrentUser', { email: user.email })}
@@ -156,16 +156,29 @@ export default function JoinHouseholdPage() {
         >
           {submitting ? t('common.saving') : t('invitations.joinSubmit')}
         </Button>
-        <Link to="/app/dashboard" className="block text-sm text-primary hover:underline">
-          {t('invitations.notNow')}
-        </Link>
-      </>
+      </AuthShell>
     );
   }
 
-  return shell(
-    <>
-      {heading}
+  return (
+    <AuthShell
+      title={title}
+      subtitle={subtitle}
+      footer={
+        <span className="text-muted-foreground">
+          {t('invitations.alreadyHaveAccount')}{' '}
+          <button
+            type="button"
+            className="text-primary hover:underline"
+            // Comes back here after logging in — a login that lands on the
+            // dashboard would quietly drop the invitation they were acting on.
+            onClick={() => navigate(`/login?next=${encodeURIComponent(`/join/${token}`)}`)}
+          >
+            {t('auth.login')}
+          </button>
+        </span>
+      }
+    >
       <form onSubmit={handleSubmit} className="space-y-4">
         {error && <p className="text-sm text-destructive">{error}</p>}
 
@@ -210,19 +223,6 @@ export default function JoinHouseholdPage() {
           {submitting ? t('common.saving') : t('invitations.joinSubmit')}
         </Button>
       </form>
-
-      <p className="text-sm text-muted-foreground">
-        {t('invitations.alreadyHaveAccount')}{' '}
-        <button
-          type="button"
-          className="text-primary hover:underline"
-          // Comes back here after logging in — a login that lands on the
-          // dashboard would quietly drop the invitation they were acting on.
-          onClick={() => navigate(`/login?next=${encodeURIComponent(`/join/${token}`)}`)}
-        >
-          {t('auth.login')}
-        </button>
-      </p>
-    </>
+    </AuthShell>
   );
 }
