@@ -2775,6 +2775,7 @@
   },
   "auth": {
     "login": "Anmelden",
+    "loginSubtitle": "Ihr Haushalt, genau da, wo Sie ihn verlassen haben.",
     "email": "E-Mail",
     "password": "Passwort",
     "submit": "Anmelden",

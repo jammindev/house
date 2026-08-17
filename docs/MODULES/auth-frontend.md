@@ -9,6 +9,7 @@
 
 ## Composition
 
+- `ui/src/features/auth/AuthShell.tsx` — la coquille des **cinq** pages publiques : marque, titre, carte, marges
 - `ui/src/features/auth/LoginPage.tsx` — formulaire login
 - `ui/src/components/ProtectedLayout.tsx` — garde route + applique theme/dark mode profil
 - `ui/src/lib/auth/context.tsx` — `AuthProvider`, login/logout/impersonate/stop, `applyLocale`
@@ -20,6 +21,18 @@
 
 ## Notes
 
+- **Les cinq pages publiques passent par `AuthShell`** — connexion, configuration
+  initiale, mot de passe oublié, réinitialisation, invitation. Elles
+  réimplémentaient chacune leur coquille et avaient déjà divergé : deux portaient
+  le bloc de marque recopié, trois n'en avaient aucun, une seule avait un `px-4`
+  (les quatre autres collaient aux bords sur mobile). Personne n'arbitrait donc la
+  hiérarchie, et « Connexion » était écrit plus gros que « Maisonnée » sur le seul
+  écran qu'on voit sans compte. Deux règles à préserver, tenues par
+  `AuthShell.test.tsx` : **la marque est écrite plus grand que le titre de page**,
+  et **le mot-signe n'a qu'un domicile** — aucune page n'importe `Logo` ni ne
+  réécrit « Maisonnée ». En revue, une page qui recopie la marque a exactement le
+  même diff qu'une page qui la réutilise ; l'écart ne se lit que sur l'écran d'à
+  côté, celui qu'on n'a pas ouvert. Issue #631.
 - L'impersonation backend est sécurisée (audit log côté Django, endpoint users restreint aux staff).
 - `parseJwtPayload` lit le claim `impersonated_by` directement depuis le JWT côté client — purement informatif, l'autorisation reste serveur.
 - Le message "Chargement…" a été retiré de `ProtectedLayout` : le composant rend `null` pendant `isLoading` au lieu d'un texte hardcodé (`ui/src/components/ProtectedLayout.tsx:24`).

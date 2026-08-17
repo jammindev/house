@@ -5,7 +5,7 @@ import { useAuth } from '@/lib/auth/useAuth';
 import { api } from '@/lib/axios';
 import { Button } from '../../design-system/button';
 import { Input } from '../../design-system/input';
-import { Logo } from '../../design-system/logo';
+import { AuthShell } from './AuthShell';
 
 /**
  * Le premier écran d'une instance neuve — celui qui remplace un mot de passe
@@ -74,16 +74,8 @@ export default function SetupPage() {
   if (!required) return <Navigate to="/login" replace />;
 
   return (
-    <div className="flex min-h-dvh items-center justify-center pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
-      <form onSubmit={handleSubmit} className="w-full max-w-sm space-y-4">
-        <div className="flex flex-col items-center gap-3 pb-2 text-foreground">
-          <Logo size={44} />
-          <span className="text-xl font-semibold tracking-tight">Maisonnée</span>
-        </div>
-        <div className="space-y-1">
-          <h1 className="text-2xl font-semibold">{t('auth.setupTitle')}</h1>
-          <p className="text-sm text-muted-foreground">{t('auth.setupIntro')}</p>
-        </div>
+    <AuthShell title={t('auth.setupTitle')} subtitle={t('auth.setupIntro')}>
+      <form onSubmit={handleSubmit} className="space-y-3">
         {error && <p className="text-sm text-destructive">{error}</p>}
         <Input
           type="text"
@@ -120,6 +112,6 @@ export default function SetupPage() {
           {pending ? t('auth.setupPending') : t('auth.setupSubmit')}
         </Button>
       </form>
-    </div>
+    </AuthShell>
   );
 }

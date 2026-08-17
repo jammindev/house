@@ -2775,6 +2775,7 @@
   },
   "auth": {
     "login": "Sign in",
+    "loginSubtitle": "Your household, right where you left it.",
     "email": "Email",
     "password": "Password",
     "submit": "Sign in",

@@ -5,7 +5,7 @@ import { useAuth } from '@/lib/auth/useAuth';
 import { api } from '@/lib/axios';
 import { Button } from '../../design-system/button';
 import { Input } from '../../design-system/input';
-import { Logo } from '../../design-system/logo';
+import { AuthShell } from './AuthShell';
 
 /**
  * Where to land after login. Only same-site absolute paths are honoured — a
@@ -87,45 +87,40 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-dvh items-center justify-center pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
-      <form onSubmit={handleSubmit} className="w-full max-w-sm space-y-4">
-        {/* La première chose qu'on voit de Maisonnée, et la seule page qu'on
-            voit sans compte. Le signe est en `currentColor` comme partout
-            ailleurs : la couleur de marque ne vit que là où le thème du foyer
-            ne va pas (favicon, icônes PWA, aperçu social). */}
-        <div className="flex flex-col items-center gap-3 pb-2 text-foreground">
-          <Logo size={44} />
-          <span className="text-xl font-semibold tracking-tight">Maisonnée</span>
+    <AuthShell
+      title={t('auth.login')}
+      subtitle={t('auth.loginSubtitle')}
+      footer={
+        <Link to="/forgot-password" className="text-primary hover:underline">
+          {t('auth.forgotPassword')}
+        </Link>
+      }
+    >
+      {/* La vitrine dit ce qu'elle est, et où aller ensuite. Une démonstration
+          qui ne renvoie pas vers l'installation garde un visiteur qu'elle
+          n'avait pas vocation à garder : elle n'existe que pour ça. */}
+      {demo ? (
+        <div className="space-y-2 rounded-lg border border-primary/30 bg-primary/10 p-3 text-sm">
+          <p className="font-medium text-foreground">{t('auth.demo.title')}</p>
+          <p className="text-muted-foreground">{t('auth.demo.body')}</p>
+          <p className="text-muted-foreground">{t('auth.demo.install')}</p>
+          <pre className="overflow-x-auto rounded-md bg-background/70 p-2 text-xs text-foreground">
+            <code>
+              curl -O https://raw.githubusercontent.com/jammindev/house/main/docker-compose.yml{'\n'}
+              docker compose up -d
+            </code>
+          </pre>
         </div>
-        <h1 className="text-2xl font-semibold">{t('auth.login')}</h1>
-
-        {/* La vitrine dit ce qu'elle est, et où aller ensuite. Une démonstration
-            qui ne renvoie pas vers l'installation garde un visiteur qu'elle
-            n'avait pas vocation à garder : elle n'existe que pour ça. */}
-        {demo ? (
-          <div className="space-y-2 rounded-lg border border-primary/30 bg-primary/10 p-3 text-sm">
-            <p className="font-medium text-foreground">{t('auth.demo.title')}</p>
-            <p className="text-muted-foreground">{t('auth.demo.body')}</p>
-            <p className="text-muted-foreground">{t('auth.demo.install')}</p>
-            <pre className="overflow-x-auto rounded-md bg-background/70 p-2 text-xs text-foreground">
-              <code>
-                curl -O https://raw.githubusercontent.com/jammindev/house/main/docker-compose.yml{'\n'}
-                docker compose up -d
-              </code>
-            </pre>
-          </div>
-        ) : null}
-        {resetSuccess && <p className="text-sm text-primary">{t('auth.passwordResetSuccess')}</p>}
-        {error && <p className="text-sm text-destructive">{error}</p>}
+      ) : null}
+      {resetSuccess && <p className="text-sm text-primary">{t('auth.passwordResetSuccess')}</p>}
+      {error && <p className="text-sm text-destructive">{error}</p>}
+      <form onSubmit={handleSubmit} className="space-y-3">
         <Input type="email" placeholder={t('auth.email')} value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" inputMode="email" />
         <Input type="password" placeholder={t('auth.password')} value={password} onChange={(e) => setPassword(e.target.value)} required autoComplete="current-password" />
         <Button type="submit" className="w-full" disabled={loading}>
           {loading ? t('auth.loggingIn') : t('auth.submit')}
         </Button>
-        <Link to="/forgot-password" className="block text-center text-sm text-primary hover:underline">
-          {t('auth.forgotPassword')}
-        </Link>
       </form>
-    </div>
+    </AuthShell>
   );
 }
