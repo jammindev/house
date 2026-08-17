@@ -18,6 +18,9 @@ export interface UserProfile {
   digest_disabled_sections: string[];
   /** Recap chapters the user muted — a read preference, the snapshot is untouched. */
   recap_disabled_chapters: string[];
+  /** Month ('YYYY-MM') whose dashboard teaser was closed; '' when none. Server-side
+   * on purpose: closing a card is something a person did, not something a tab did. */
+  recap_dismissed_month: string;
   /** Notification types silenced. Only types the API declares mutable are accepted —
    * an invitation is not something a checkbox may hide. */
   muted_notification_types: string[];
@@ -62,6 +65,7 @@ export interface UpdateProfileInput {
   completed_tutorials?: string[];
   digest_disabled_sections?: string[];
   recap_disabled_chapters?: string[];
+  recap_dismissed_month?: string;
   muted_notification_types?: string[];
   agent_memory_enabled?: boolean;
 }

@@ -120,6 +120,18 @@ ping sont génériques.
 - **Couper un chapitre est une préférence de lecture**, pas de calcul : le chapitre
   disparaît du rendu et reste dans l'instantané, donc le réactiver rend les mois
   déjà racontés entiers.
+- **Fermer la carte du dashboard est un geste de la personne, pas de l'onglet.** Le
+  mois masqué vit sur le compte (`User.recap_dismissed_month`), à côté de
+  `recap_disabled_chapters` — même nature, une préférence de lecture. Il a vécu en
+  `sessionStorage`, avec le coût écrit noir sur blanc dans le composant (« the card
+  reappears in another browser ») ; la carte revenait en réalité bien plus souvent
+  que ça, puisque le drapeau mourait avec l'onglet — un onglet neuf suffisait, sur la
+  même machine (#626). **Un geste qu'il faut refaire est un geste qui n'a pas été
+  enregistré**, et l'utilisateur en conclut que l'app ne l'écoute pas. On stocke le
+  **mois** et non un booléen : c'est ce qui laisse le récap suivant reprendre la
+  parole tout seul. Régressions :
+  `apps/accounts/tests/test_recap_dismissed_month.py` (dont le scénario inter-appareil)
+  et `ui/src/features/dashboard/RecapTeaserCard.test.tsx`.
 
 ## Limites V1
 
@@ -133,8 +145,5 @@ ping sont génériques.
   faux.
 - **Pas de réactions ni de commentaires** sur les cartes — c'est le chantier voisin
   (le fil du foyer), et il mérite son propre parcours.
-- Le « vu » de la carte dashboard vit côté client (`sessionStorage`) : elle
-  réapparaît dans un autre navigateur. Une table pour retenir qu'on a fermé une carte
-  coûterait plus que le problème.
 - Le chapitre Souvenirs affiche un **compte**, pas encore la mosaïque : les ids sont
   gelés, le rendu visuel des photos reste à faire.

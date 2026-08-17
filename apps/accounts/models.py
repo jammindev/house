@@ -172,6 +172,21 @@ class User(AbstractBaseUser, PermissionsMixin):
         help_text=_("Monthly-recap chapter keys the user turned off."),
     )
 
+    # The month ('YYYY-MM') whose dashboard teaser the user closed. Empty = none.
+    # Same nature as the chapters above — a *read* preference that never touches the
+    # frozen snapshot — and it lives here for the same reason it stopped living in
+    # `sessionStorage`: closing a card is something a person did, not something a tab
+    # did. The flag died with the tab, so the recap knocked again in every new tab and
+    # on every other device, and a gesture one has to repeat is a gesture that was not
+    # recorded. Storing the month rather than a boolean is what makes next month speak
+    # up on its own.
+    recap_dismissed_month = models.CharField(
+        max_length=7,
+        blank=True,
+        default="",
+        help_text=_("Month ('YYYY-MM') whose recap teaser the user dismissed."),
+    )
+
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     date_joined = models.DateTimeField(default=timezone.now)

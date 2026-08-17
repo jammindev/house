@@ -1,3 +1,5 @@
+import re
+
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
@@ -21,6 +23,7 @@ class UserSerializer(serializers.ModelSerializer):
         "display_name", "locale", "theme", "color_theme", "email",
         "agent_memory_enabled", "pinned_modules", "completed_tutorials",
         "digest_disabled_sections", "recap_disabled_chapters",
+        "recap_dismissed_month",
         "muted_notification_types",
     })
 
@@ -48,6 +51,7 @@ class UserSerializer(serializers.ModelSerializer):
             "completed_tutorials",
             "digest_disabled_sections",
             "recap_disabled_chapters",
+            "recap_dismissed_month",
             "muted_notification_types",
             "agent_memory_enabled",
             "agent_web_search_available",
@@ -136,6 +140,18 @@ class UserSerializer(serializers.ModelSerializer):
                 _("Unknown recap chapter(s): %(keys)s") % {'keys': ', '.join(sorted(unknown))}
             )
         return list(dict.fromkeys(value))
+
+    def validate_recap_dismissed_month(self, value):
+        # Ce qui se compare à `HouseholdRecap.month` doit avoir sa forme. Sans ce
+        # contrôle, une valeur libre ne masquerait rien — l'égalité serait
+        # toujours fausse — mais l'interface confirmerait quand même le geste :
+        # le même silence que celui qu'on corrige, avec un accusé de réception
+        # par-dessus. Le vide reste valide, c'est « rien n'est masqué ».
+        if value in ("", None):
+            return ""
+        if not isinstance(value, str) or not re.fullmatch(r"\d{4}-(0[1-9]|1[0-2])", value):
+            raise serializers.ValidationError(_("Expected a month as 'YYYY-MM'."))
+        return value
 
     def _validate_password(self, password, user):
         """Passe le mot de passe aux validateurs Django, ou lève un 400 nommé.
