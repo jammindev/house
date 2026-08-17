@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
-import { ArrowDownLeft, Split, Tag } from 'lucide-react';
+import { ArrowDownLeft, ChevronDown, Split, Tag } from 'lucide-react';
 import { Card } from '@/design-system/card';
 import { Button } from '@/design-system/button';
 import { CheckboxField } from '@/design-system/checkbox-field';
@@ -14,6 +14,9 @@ interface PendingCardProps {
   selected: boolean;
   /** Absent quand la ligne n'est pas sélectionnable (voir `PendingQueue`). */
   onToggleSelected?: () => void;
+  /** La ligne que porte le curseur : elle seule déploie ses pastilles. */
+  expanded: boolean;
+  onToggleExpanded: () => void;
   onSplit: () => void;
   onPostpone: () => void;
   onWaive: () => void;
@@ -43,12 +46,24 @@ interface PendingCardProps {
  * enveloppes *et* des montants. Offrir des pastilles de budget sur une recette
  * aurait laissé croire qu'on peut la ventiler comme une dépense — alors qu'elle
  * ne consomme rien, elle rend.
+ *
+ * ⚠️ **Les pastilles ne se dessinent que sur la ligne focalisée.** Répétées sur
+ * chaque carte, les vingt-trois budgets faisaient d'une file de vingt lignes un
+ * mur de douze mille pixels : le geste restait bon (une pastille, un clic) mais
+ * il fallait défiler entre deux lignes pour l'atteindre. Repliée, une ligne dit
+ * ce qu'il faut pour décider si on s'y attarde — le libellé, la date, le compte,
+ * le montant — et rien de plus. Les deux alertes (ventilation partielle,
+ * arbitrage périmé) font exception et restent visibles repliées : elles ne
+ * décrivent pas l'opération, elles disent que celle-ci demande autre chose qu'un
+ * clic, et c'est précisément ce qu'on veut savoir avant d'ouvrir.
  */
 export default function PendingCard({
   row,
   budgets,
   selected,
   onToggleSelected,
+  expanded,
+  onToggleExpanded,
   onSplit,
   onPostpone,
   onWaive,
@@ -96,14 +111,30 @@ export default function PendingCard({
         ) : null}
 
         <div className="min-w-0 flex-1">
-          <div className="flex items-start justify-between gap-2">
-            <div className="min-w-0">
-              <p className="truncate font-medium text-foreground">{row.label}</p>
-              <p className="text-xs text-muted-foreground">
-                {row.bookedOn ? new Date(row.bookedOn).toLocaleDateString(appLocale()) : ''}
-                {row.accountName ? ` · ${row.accountName}` : ''}
-              </p>
-            </div>
+          {/* Un bouton de divulgation, pas une carte cliquable : `aria-expanded`
+              est la seule chose qui dise à un lecteur d'écran que les pastilles
+              sont ailleurs, et son nom accessible est déjà la ligne entière. */}
+          <button
+            type="button"
+            aria-expanded={expanded}
+            onClick={onToggleExpanded}
+            className="flex w-full items-start justify-between gap-2 text-left"
+          >
+            <span className="flex min-w-0 items-start gap-1.5">
+              <ChevronDown
+                className={`mt-0.5 h-4 w-4 shrink-0 text-muted-foreground transition-transform ${
+                  expanded ? '' : '-rotate-90'
+                }`}
+                aria-hidden
+              />
+              <span className="min-w-0">
+                <span className="block truncate font-medium text-foreground">{row.label}</span>
+                <span className="block text-xs text-muted-foreground">
+                  {row.bookedOn ? new Date(row.bookedOn).toLocaleDateString(appLocale()) : ''}
+                  {row.accountName ? ` · ${row.accountName}` : ''}
+                </span>
+              </span>
+            </span>
             <span
               className={`flex shrink-0 items-center gap-1 text-sm font-semibold tabular-nums ${
                 isInflow ? 'text-primary' : 'text-foreground'
@@ -112,7 +143,7 @@ export default function PendingCard({
               {isInflow ? <ArrowDownLeft className="h-3.5 w-3.5" aria-hidden /> : null}
               {formatAmount(row.amount)}
             </span>
-          </div>
+          </button>
 
           {row.isPartial ? (
             <p className="mt-1 text-xs text-warning">
@@ -129,83 +160,95 @@ export default function PendingCard({
             </p>
           ) : null}
 
-          <div className="mt-2 flex flex-wrap items-center gap-1.5">
-            {/* Une recette : sa nature. Une sortie : son budget. Même geste,
-                même place, mais la question posée n'est pas la même. */}
-            {isInflow ? (
-              <>
-                {(['salary', 'transfer', 'other'] as const).map((nature) => (
-                  <Button
-                    key={nature}
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    disabled={pending}
-                    onClick={() => classify(nature)}
-                  >
-                    {t(`banking.inflow.natures.${nature}`)}
-                  </Button>
-                ))}
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={onClassify}
-                  disabled={pending}
-                >
-                  <Tag className="mr-1 h-3.5 w-3.5" aria-hidden />
-                  {row.isPartial
-                    ? t('money.pending.completeRefund')
-                    : t('banking.inflow.natures.refund')}
-                </Button>
-              </>
-            ) : (
-              <>
-                {!row.isPartial
-                  ? budgets.map((budget) => (
+          {expanded ? (
+            <div className="mt-2 space-y-2">
+              {/* Une recette : sa nature. Une sortie : son budget. Même geste,
+                  même place, mais la question posée n'est pas la même. */}
+              {isInflow || !row.isPartial ? (
+                <div className="flex flex-wrap items-center gap-1.5">
+                  {isInflow ? (
+                    <>
+                      {(['salary', 'transfer', 'other'] as const).map((nature) => (
+                        <Button
+                          key={nature}
+                          type="button"
+                          variant="chip"
+                          size="chip"
+                          disabled={pending}
+                          onClick={() => classify(nature)}
+                        >
+                          {t(`banking.inflow.natures.${nature}`)}
+                        </Button>
+                      ))}
+                      {/* Le remboursement est une nature comme les trois autres,
+                          d'où sa place ici — mais lui seul demande d'où l'argent
+                          revient, donc lui seul ouvre un dialogue. */}
+                      <Button
+                        type="button"
+                        variant="chip"
+                        size="chip"
+                        onClick={onClassify}
+                        disabled={pending}
+                      >
+                        <Tag className="mr-1 h-3 w-3" aria-hidden />
+                        {row.isPartial
+                          ? t('money.pending.completeRefund')
+                          : t('banking.inflow.natures.refund')}
+                      </Button>
+                    </>
+                  ) : (
+                    budgets.map((budget) => (
                       <Button
                         key={budget.id}
                         type="button"
-                        variant="outline"
-                        size="sm"
+                        variant="chip"
+                        size="chip"
                         disabled={pending}
                         onClick={() => assignWhole(budget.id)}
                       >
                         {budget.name}
                       </Button>
                     ))
-                  : null}
+                  )}
+                </div>
+              ) : null}
+
+              {/* Les issues qui ne se règlent pas d'un clic, en retrait : elles
+                  ouvrent un dialogue ou repoussent, et les mêler aux pastilles
+                  faisait quatre gestes de poids égal pour trois natures. */}
+              <div className="flex flex-wrap items-center gap-1">
+                {!isInflow ? (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={onSplit}
+                    disabled={pending}
+                  >
+                    <Split className="mr-1 h-3.5 w-3.5" aria-hidden />
+                    {row.isPartial ? t('money.pending.complete') : t('money.pending.split')}
+                  </Button>
+                ) : null}
+
+                <Button type="button" variant="ghost" size="sm" onClick={onWaive} disabled={pending}>
+                  {row.isStale
+                    ? t('money.compliance.rearbitrate')
+                    : t('money.compliance.arbitrate')}
+                </Button>
 
                 <Button
                   type="button"
                   variant="ghost"
                   size="sm"
-                  onClick={onSplit}
+                  onClick={onPostpone}
                   disabled={pending}
+                  className="text-muted-foreground"
                 >
-                  <Split className="mr-1 h-3.5 w-3.5" aria-hidden />
-                  {row.isPartial ? t('money.pending.complete') : t('money.pending.split')}
+                  {t('money.pending.later')}
                 </Button>
-              </>
-            )}
-
-            <Button type="button" variant="ghost" size="sm" onClick={onWaive} disabled={pending}>
-              {row.isStale
-                ? t('money.compliance.rearbitrate')
-                : t('money.compliance.arbitrate')}
-            </Button>
-
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={onPostpone}
-              disabled={pending}
-              className="text-muted-foreground"
-            >
-              {t('money.pending.later')}
-            </Button>
-          </div>
+              </div>
+            </div>
+          ) : null}
         </div>
       </div>
     </Card>

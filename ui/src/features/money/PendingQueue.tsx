@@ -77,6 +77,13 @@ function toRow(
  * La pré-catégorisation est **différée** : la file est rapide par son ergonomie
  * (une pastille = un clic, sélection multiple pour traiter un lot), pas par la
  * devinette. À ~160 lignes par mois, les actions groupées ne sont pas un confort.
+ *
+ * Elle se parcourt **au curseur** : les lignes sont des rangs, et seule celle
+ * qu'on range déploie ses pastilles. Le clic unique est intact là où on
+ * travaille, mais la grille des budgets n'est dessinée qu'une fois — répétée sur
+ * chaque carte, elle transformait vingt lignes en douze mille pixels du même mur
+ * de boutons, où atteindre la ligne suivante demandait de défiler par-dessus les
+ * vingt-trois pastilles de la précédente.
  */
 interface PendingQueueProps {
   /** Renvoie vers l'onglet Contrôle, où le prérequis bloquant se règle. */
@@ -104,6 +111,9 @@ export default function PendingQueue({ onGoToControl }: PendingQueueProps) {
 
   const [selected, setSelected] = React.useState<Set<string>>(new Set());
   const [postponed, setPostponed] = React.useState<Set<string>>(new Set());
+  // Le curseur de la file : la seule ligne qui déploie ses pastilles.
+  const [focusedId, setFocusedId] = React.useState<string | null>(null);
+  const cursorPlaced = React.useRef(false);
   const [splitting, setSplitting] = React.useState<string | null>(null);
   const [classifying, setClassifying] = React.useState<string | null>(null);
   const classifyQuery = useAllocations(classifying ?? undefined);
@@ -147,6 +157,29 @@ export default function PendingQueue({ onGoToControl }: PendingQueueProps) {
     refundPartialQuery.data,
     postponed,
   ]);
+
+  /**
+   * Le curseur se pose sur la première ligne, puis **ne bouge tout seul que si
+   * la ligne qu'il désignait a quitté la file** — rangée, arbitrée ou reportée.
+   *
+   * Les deux moitiés comptent. Sans la première, la file s'ouvre entièrement
+   * repliée et le premier clic n'apprend rien. Sans la seconde, ranger une
+   * opération replierait tout : on aurait supprimé le mur au prix d'un clic
+   * d'ouverture par ligne, soit exactement ce qu'on venait d'économiser.
+   *
+   * Une ligne refermée à la main, elle, reste fermée : c'est un choix, et le
+   * rattraper à l'image suivante ferait un bouton qui ne répond pas.
+   */
+  React.useEffect(() => {
+    if (rows.length === 0) return;
+    const ids = rows.map((row) => row.transactionId);
+    if (!cursorPlaced.current) {
+      cursorPlaced.current = true;
+      setFocusedId(ids[0]);
+      return;
+    }
+    setFocusedId((current) => (current !== null && !ids.includes(current) ? ids[0] : current));
+  }, [rows]);
 
   // Pastilles, pas options : on garde des `Budget`. Seul le global est écarté —
   // une catégorie n'est pas un budget, donc elle n'arrive jamais dans cette
@@ -296,6 +329,12 @@ export default function PendingQueue({ onGoToControl }: PendingQueueProps) {
               row.isPartial && row.direction === 'out'
                 ? undefined
                 : () => toggleSelected(row.transactionId)
+            }
+            expanded={row.transactionId === focusedId}
+            onToggleExpanded={() =>
+              setFocusedId((current) =>
+                current === row.transactionId ? null : row.transactionId,
+              )
             }
             onSplit={() => setSplitting(row.transactionId)}
             onClassify={() => setClassifying(row.transactionId)}
