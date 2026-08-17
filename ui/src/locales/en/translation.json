@@ -2804,7 +2804,12 @@
     "setupSubmit": "Create my account",
     "setupPending": "Creating…",
     "setupFailed": "Setup failed. Check the details you entered.",
-    "setupFirstName": "Your first name"
+    "setupFirstName": "Your first name",
+    "demo": {
+      "title": "Demo instance",
+      "body": "You are entering the fictional “Mercier family” household, filled with three years of data. Everything is editable, and everything is reset every night.",
+      "install": "To run it at home, with your data on your own machine:"
+    }
   },
   "projects": {
     "app_title": "Projects mini-app",
@@ -4133,6 +4138,14 @@
         "months_other": "{{count}} months",
         "all": "All"
       }
+    },
+    "transfer": {
+      "action": "Link to another operation",
+      "title": "The other leg of this transfer",
+      "hint": "“{{label}}” is an internal movement: the money left this account for another one. Point to the operation that received it — both will count as a single movement rather than as spending.",
+      "empty": "No operation matches. The other account may be missing, or its statement not imported yet.",
+      "confirm": "Link both operations",
+      "linked": "Both operations are now one."
     }
   },
   "pwa": {

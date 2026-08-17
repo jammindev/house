@@ -37,13 +37,32 @@ export default function LoginPage() {
   // vers la configuration initiale. `null` = pas encore de réponse ; afficher le
   // formulaire en attendant le ferait clignoter avant de disparaître.
   const [setupRequired, setSetupRequired] = useState<boolean | null>(null);
+  // Renseigné par la seule instance de démonstration publique. Partout ailleurs
+  // le serveur renvoie `null`, et rien de tout ceci ne s'affiche.
+  const [demo, setDemo] = useState<{ email: string; password: string } | null>(null);
 
   useEffect(() => {
     api
-      .get<{ required: boolean }>('/accounts/setup/')
-      .then((res) => setSetupRequired(res.data.required))
+      .get<{ required: boolean; demo: { email: string; password: string } | null }>(
+        '/accounts/setup/',
+      )
+      .then((res) => {
+        setSetupRequired(res.data.required);
+        setDemo(res.data.demo ?? null);
+      })
       .catch(() => setSetupRequired(false));
   }, []);
+
+  // Les identifiants de la démonstration sont **pré-remplis**, jamais contournés :
+  // ce qui suit reste la connexion normale. Un bouton « entrer sans mot de passe »
+  // livrerait à toutes les instances auto-hébergées un chemin d'authentification
+  // sans identifiants, gardé par une seule variable d'environnement — un défaut
+  // qu'on ne rattrape plus une fois l'image distribuée.
+  useEffect(() => {
+    if (!demo) return;
+    setEmail((current) => current || demo.email);
+    setPassword((current) => current || demo.password);
+  }, [demo]);
 
   if (user) {
     navigate(next);
@@ -79,6 +98,23 @@ export default function LoginPage() {
           <span className="text-xl font-semibold tracking-tight">Maisonnée</span>
         </div>
         <h1 className="text-2xl font-semibold">{t('auth.login')}</h1>
+
+        {/* La vitrine dit ce qu'elle est, et où aller ensuite. Une démonstration
+            qui ne renvoie pas vers l'installation garde un visiteur qu'elle
+            n'avait pas vocation à garder : elle n'existe que pour ça. */}
+        {demo ? (
+          <div className="space-y-2 rounded-lg border border-primary/30 bg-primary/10 p-3 text-sm">
+            <p className="font-medium text-foreground">{t('auth.demo.title')}</p>
+            <p className="text-muted-foreground">{t('auth.demo.body')}</p>
+            <p className="text-muted-foreground">{t('auth.demo.install')}</p>
+            <pre className="overflow-x-auto rounded-md bg-background/70 p-2 text-xs text-foreground">
+              <code>
+                curl -O https://raw.githubusercontent.com/jammindev/house/main/docker-compose.yml{'\n'}
+                docker compose up -d
+              </code>
+            </pre>
+          </div>
+        ) : null}
         {resetSuccess && <p className="text-sm text-primary">{t('auth.passwordResetSuccess')}</p>}
         {error && <p className="text-sm text-destructive">{error}</p>}
         <Input type="email" placeholder={t('auth.email')} value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" inputMode="email" />

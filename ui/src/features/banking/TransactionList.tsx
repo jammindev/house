@@ -12,6 +12,7 @@ interface TransactionListProps {
   onEditNote: (transaction: BankTransaction) => void;
   onFeedCash: (transaction: BankTransaction) => void;
   onUnlinkCash: (transaction: BankTransaction) => void;
+  onLinkTransfer: (transaction: BankTransaction) => void;
   onAllocate: (transaction: BankTransaction) => void;
   onSuggest: (transaction: BankTransaction) => void;
   onClassify: (transaction: BankTransaction) => void;
@@ -25,6 +26,7 @@ export default function TransactionList({
   onEditNote,
   onFeedCash,
   onUnlinkCash,
+  onLinkTransfer,
   onAllocate,
   onSuggest,
   onClassify,
@@ -52,6 +54,7 @@ export default function TransactionList({
           onEditNote={() => onEditNote(transaction)}
           onFeedCash={() => onFeedCash(transaction)}
           onUnlinkCash={() => onUnlinkCash(transaction)}
+          onLinkTransfer={() => onLinkTransfer(transaction)}
           onAllocate={() => onAllocate(transaction)}
           onSuggest={() => onSuggest(transaction)}
           onClassify={() => onClassify(transaction)}

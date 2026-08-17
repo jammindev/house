@@ -2804,7 +2804,12 @@
     "setupSubmit": "Créer mon compte",
     "setupPending": "Création…",
     "setupFailed": "La création a échoué. Vérifiez les informations saisies.",
-    "setupFirstName": "Votre prénom"
+    "setupFirstName": "Votre prénom",
+    "demo": {
+      "title": "Instance de démonstration",
+      "body": "Vous entrez dans le foyer fictif « Famille Mercier », rempli de trois ans de données. Tout est modifiable, et tout est remis à zéro chaque nuit.",
+      "install": "Pour l'installer chez vous, avec vos données sur votre machine :"
+    }
   },
   "projects": {
     "app_title": "Mini-app Projets",
@@ -4133,6 +4138,14 @@
         "months_other": "{{count}} mois",
         "all": "Tout"
       }
+    },
+    "transfer": {
+      "action": "Lier à une autre opération",
+      "title": "L'autre jambe de ce virement",
+      "hint": "« {{label}} » est un mouvement interne : l'argent a quitté ce compte pour en rejoindre un autre. Indiquez l'opération qui l'a reçu — les deux seront comptées comme un seul mouvement, et non comme une dépense.",
+      "empty": "Aucune opération ne correspond. L'autre compte est peut-être absent, ou son relevé pas encore importé.",
+      "confirm": "Lier les deux opérations",
+      "linked": "Les deux opérations n'en font plus qu'une."
     }
   },
   "pwa": {

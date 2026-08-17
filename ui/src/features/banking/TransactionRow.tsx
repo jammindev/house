@@ -4,6 +4,7 @@ import {
   Banknote,
   Check,
   CircleDashed,
+  Link2,
   Link2Off,
   PieChart,
   Repeat,
@@ -25,6 +26,8 @@ interface TransactionRowProps {
   onEditNote: () => void;
   onFeedCash: () => void;
   onUnlinkCash: () => void;
+  /** Déclarer quelle autre opération est l'autre jambe de ce virement. */
+  onLinkTransfer: () => void;
   onAllocate: () => void;
   onSuggest: () => void;
   /** Classer une recette (salaire / remboursement / virement / autre). */
@@ -49,6 +52,7 @@ export default function TransactionRow({
   onEditNote,
   onFeedCash,
   onUnlinkCash,
+  onLinkTransfer,
   onAllocate,
   onSuggest,
   onClassify,
@@ -71,6 +75,14 @@ export default function TransactionRow({
     // Verser aux espèces n'a de sens que sur une sortie encore libre.
     ...(isOut && !hasCounterpart && canFeedCash
       ? [{ label: t('banking.withdraw.action'), icon: Banknote, onClick: onFeedCash }]
+      : []),
+    // Déclarer l'autre jambe d'un virement entre deux comptes. C'est la
+    // résolution de `internal_without_counterpart`, et jusqu'ici la seule sans
+    // issue : `withdraw-to-cash` **fabrique** la jambe manquante, mais uniquement
+    // sur un compte espèces. Quand les deux comptes sont importés, les deux
+    // lignes existent déjà et il ne manquait que le geste qui les réunit.
+    ...(transaction.is_internal && !hasCounterpart
+      ? [{ label: t('banking.transfer.action'), icon: Link2, onClick: onLinkTransfer }]
       : []),
     ...(hasCounterpart
       ? [{ label: t('banking.withdraw.unlink'), icon: Link2Off, onClick: onUnlinkCash }]

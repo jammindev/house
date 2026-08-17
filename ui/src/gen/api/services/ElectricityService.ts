@@ -881,6 +881,18 @@ export class ElectricityService {
         });
     }
     /**
+     * Écritures transactionnelles — le contrôle de chevauchement pose un verrou.
+     *
+     * ``ProtectiveDeviceSerializer.validate()`` fait un ``select_for_update()`` sur
+     * les appareils de la même rangée. Deux conséquences, et l'``atomic`` doit
+     * couvrir les deux :
+     *
+     * - hors transaction, Django **refuse** ce verrou (``TransactionManagementError``),
+     * et comme ``ATOMIC_REQUESTS`` est désactivé, poser un appareil sur une rangée
+     * répondait 500 ;
+     * - un verrou pris pendant la validation puis relâché avant l'écriture ne protège
+     * rien : il doit tenir jusqu'au ``save()``, donc l'``atomic`` enveloppe la
+     * requête entière, pas le seul ``perform_create``.
      * @returns ProtectiveDevice
      * @throws ApiError
      */
@@ -891,6 +903,18 @@ export class ElectricityService {
         });
     }
     /**
+     * Écritures transactionnelles — le contrôle de chevauchement pose un verrou.
+     *
+     * ``ProtectiveDeviceSerializer.validate()`` fait un ``select_for_update()`` sur
+     * les appareils de la même rangée. Deux conséquences, et l'``atomic`` doit
+     * couvrir les deux :
+     *
+     * - hors transaction, Django **refuse** ce verrou (``TransactionManagementError``),
+     * et comme ``ATOMIC_REQUESTS`` est désactivé, poser un appareil sur une rangée
+     * répondait 500 ;
+     * - un verrou pris pendant la validation puis relâché avant l'écriture ne protège
+     * rien : il doit tenir jusqu'au ``save()``, donc l'``atomic`` enveloppe la
+     * requête entière, pas le seul ``perform_create``.
      * @param requestBody
      * @returns ProtectiveDevice
      * @throws ApiError
@@ -906,6 +930,18 @@ export class ElectricityService {
         });
     }
     /**
+     * Écritures transactionnelles — le contrôle de chevauchement pose un verrou.
+     *
+     * ``ProtectiveDeviceSerializer.validate()`` fait un ``select_for_update()`` sur
+     * les appareils de la même rangée. Deux conséquences, et l'``atomic`` doit
+     * couvrir les deux :
+     *
+     * - hors transaction, Django **refuse** ce verrou (``TransactionManagementError``),
+     * et comme ``ATOMIC_REQUESTS`` est désactivé, poser un appareil sur une rangée
+     * répondait 500 ;
+     * - un verrou pris pendant la validation puis relâché avant l'écriture ne protège
+     * rien : il doit tenir jusqu'au ``save()``, donc l'``atomic`` enveloppe la
+     * requête entière, pas le seul ``perform_create``.
      * @param id
      * @returns ProtectiveDevice
      * @throws ApiError
@@ -922,6 +958,18 @@ export class ElectricityService {
         });
     }
     /**
+     * Écritures transactionnelles — le contrôle de chevauchement pose un verrou.
+     *
+     * ``ProtectiveDeviceSerializer.validate()`` fait un ``select_for_update()`` sur
+     * les appareils de la même rangée. Deux conséquences, et l'``atomic`` doit
+     * couvrir les deux :
+     *
+     * - hors transaction, Django **refuse** ce verrou (``TransactionManagementError``),
+     * et comme ``ATOMIC_REQUESTS`` est désactivé, poser un appareil sur une rangée
+     * répondait 500 ;
+     * - un verrou pris pendant la validation puis relâché avant l'écriture ne protège
+     * rien : il doit tenir jusqu'au ``save()``, donc l'``atomic`` enveloppe la
+     * requête entière, pas le seul ``perform_create``.
      * @param id
      * @param requestBody
      * @returns ProtectiveDevice
@@ -942,6 +990,18 @@ export class ElectricityService {
         });
     }
     /**
+     * Écritures transactionnelles — le contrôle de chevauchement pose un verrou.
+     *
+     * ``ProtectiveDeviceSerializer.validate()`` fait un ``select_for_update()`` sur
+     * les appareils de la même rangée. Deux conséquences, et l'``atomic`` doit
+     * couvrir les deux :
+     *
+     * - hors transaction, Django **refuse** ce verrou (``TransactionManagementError``),
+     * et comme ``ATOMIC_REQUESTS`` est désactivé, poser un appareil sur une rangée
+     * répondait 500 ;
+     * - un verrou pris pendant la validation puis relâché avant l'écriture ne protège
+     * rien : il doit tenir jusqu'au ``save()``, donc l'``atomic`` enveloppe la
+     * requête entière, pas le seul ``perform_create``.
      * @param id
      * @param requestBody
      * @returns ProtectiveDevice
@@ -962,6 +1022,18 @@ export class ElectricityService {
         });
     }
     /**
+     * Écritures transactionnelles — le contrôle de chevauchement pose un verrou.
+     *
+     * ``ProtectiveDeviceSerializer.validate()`` fait un ``select_for_update()`` sur
+     * les appareils de la même rangée. Deux conséquences, et l'``atomic`` doit
+     * couvrir les deux :
+     *
+     * - hors transaction, Django **refuse** ce verrou (``TransactionManagementError``),
+     * et comme ``ATOMIC_REQUESTS`` est désactivé, poser un appareil sur une rangée
+     * répondait 500 ;
+     * - un verrou pris pendant la validation puis relâché avant l'écriture ne protège
+     * rien : il doit tenir jusqu'au ``save()``, donc l'``atomic`` enveloppe la
+     * requête entière, pas le seul ``perform_create``.
      * @param id
      * @returns void
      * @throws ApiError

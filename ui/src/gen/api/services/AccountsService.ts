@@ -2,6 +2,7 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
+import type { DeviceToken } from '../models/DeviceToken';
 import type { PatchedUser } from '../models/PatchedUser';
 import type { User } from '../models/User';
 import type { CancelablePromise } from '../core/CancelablePromise';
@@ -62,7 +63,65 @@ export class AccountsService {
         });
     }
     /**
+     * `/api/accounts/devices/`
+     * @returns DeviceToken
+     * @throws ApiError
+     */
+    public static accountsDevicesList(): CancelablePromise<Array<DeviceToken>> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/accounts/devices/',
+        });
+    }
+    /**
+     * `/api/accounts/devices/`
+     * @param requestBody
+     * @returns DeviceToken
+     * @throws ApiError
+     */
+    public static accountsDevicesCreate(
+        requestBody: DeviceToken,
+    ): CancelablePromise<DeviceToken> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/accounts/devices/',
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
+     * Couper l'accès d'un appareil, tout de suite.
+     *
+     * Idempotent : révoquer deux fois n'est pas une erreur. Rendre un 400 sur le
+     * second appel obligerait l'appelant à connaître un état qu'il vient
+     * justement de demander à changer.
+     * @param id
+     * @param requestBody
+     * @returns DeviceToken
+     * @throws ApiError
+     */
+    public static accountsDevicesRevokeCreate(
+        id: string,
+        requestBody: DeviceToken,
+    ): CancelablePromise<DeviceToken> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/accounts/devices/{id}/revoke/',
+            path: {
+                'id': id,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
      * Lightweight me endpoint for SPA auth context.
+     *
+     * Écrit à la main plutôt que via `UserSerializer` — donc rien ne signale
+     * qu'un champ manque, et un champ manquant arrive `undefined` au front sans
+     * la moindre erreur. Toute clé ajoutée ici doit l'être dans `AuthUser`
+     * (`ui/src/lib/auth/authContext.ts`), et réciproquement : c'est ce que tient
+     * `tests/test_me_contract.py`.
      * @returns any No response body
      * @throws ApiError
      */
@@ -70,6 +129,54 @@ export class AccountsService {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/accounts/me/',
+        });
+    }
+    /**
+     * L'instance attend-elle encore d'être configurée ?
+     *
+     * Public, comme `signup-availability`, et pour la même raison : l'écran de
+     * connexion doit savoir **avant** d'afficher quoi que ce soit s'il faut
+     * rediriger vers la configuration. Il n'expose rien qu'un `POST` ne dirait
+     * déjà en 403.
+     * @returns any No response body
+     * @throws ApiError
+     */
+    public static accountsSetupRetrieve(): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/accounts/setup/',
+        });
+    }
+    /**
+     * ``/api/accounts/setup/`` — le premier compte, une fois et une seule.
+     * @returns any No response body
+     * @throws ApiError
+     */
+    public static accountsSetupCreate(): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/accounts/setup/',
+        });
+    }
+    /**
+     * ``GET /api/accounts/signup-availability/`` — l'inscription est-elle ouverte ?
+     *
+     * **Public à dessein, et c'est le seul endpoint des comptes qui le soit en
+     * lecture.** L'écran de connexion doit savoir s'il peut proposer « créer un
+     * compte » *avant* que quiconque soit authentifié — sinon on retombe sur le
+     * défaut que le parcours 28 a passé un lot entier à supprimer : une interface
+     * qui promet, et un clic qui dément. Une capacité indisponible se déclare.
+     *
+     * Ce qu'elle expose ne dit rien que la première tentative d'inscription ne
+     * dirait déjà, en 403 : le booléen ne cartographie rien, contrairement à
+     * `/api/capabilities/`, qui reste authentifié pour cette raison précise.
+     * @returns any No response body
+     * @throws ApiError
+     */
+    public static accountsSignupAvailabilityRetrieve(): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/accounts/signup-availability/',
         });
     }
     /**

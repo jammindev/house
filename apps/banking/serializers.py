@@ -175,6 +175,12 @@ class BankTransactionSerializer(serializers.ModelSerializer):
     :func:`banking.queries.allocation_state`.
     """
 
+    # Le compte porteur, nommé. La liste s'en passait — elle est filtrée par
+    # compte — mais les candidats d'un virement viennent par définition d'un
+    # **autre** compte, et « l'autre jambe est sur ton Livret A » est justement ce
+    # que l'utilisateur doit lire pour trancher. Le résoudre côté client
+    # imposerait une seconde requête pour ce que la ligne sait déjà.
+    account_name = serializers.CharField(source="account.name", read_only=True)
     allocated_amount = serializers.SerializerMethodField()
     remaining_amount = serializers.SerializerMethodField()
     allocation_state = serializers.SerializerMethodField()
@@ -194,6 +200,7 @@ class BankTransactionSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "account",
+            "account_name",
             "booked_on",
             "value_on",
             "label_raw",

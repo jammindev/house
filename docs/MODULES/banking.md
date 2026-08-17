@@ -406,6 +406,8 @@ détachée — même règle que l'éditeur de ventilation du lot 5.
 |---|---|---|
 | GET | `/api/banking/accounts/{id}/balance/` | Solde, sa source, sa fiabilité et les ruptures (`?as_of=`) |
 | POST | `/api/banking/transactions/{id}/withdraw-to-cash/` | Crée la contrepartie espèces |
+| GET | `/api/banking/transactions/{id}/transfer-candidates/` | Les autres jambes plausibles d'un virement |
+| POST | `/api/banking/transactions/{id}/link-transfer/` | Déclare la contrepartie sur un autre compte |
 | DELETE | `/api/banking/transactions/{id}/unlink-cash/` | Défait la contrepartie |
 
 Le verbe `DELETE` n'est ouvert que pour `unlink-cash` : le viewset n'a pas de
@@ -801,6 +803,48 @@ réapparaît ailleurs (en liquide dans une poche, ou en crédit sur un autre com
 Contrepartie manquante = promesse rompue : l'argent a quitté le monde suivi et rien
 ne l'explique. C'est la façon la plus discrète de perdre quelques centaines d'euros,
 d'où un détecteur plutôt qu'une note.
+
+#### Un détecteur auquel on ne pouvait pas obéir
+
+Pendant longtemps l'écart n'avait **qu'une seule résolution** :
+`withdraw-to-cash`, qui *fabrique* la jambe manquante — et uniquement sur un
+compte espèces. Quand les deux comptes sont importés, les deux lignes existent
+déjà : rien ne pouvait dire qu'elles n'en font qu'une. Tout foyer qui a un compte
+courant **et** un livret — c'est-à-dire à peu près tous — voyait donc chaque
+virement d'épargne rester en `error` au Contrôle, tous les mois, sans autre issue
+qu'un arbitrage qui repérimait au virement suivant.
+
+Le module savait ainsi **délier un virement qu'il ne savait pas lier** :
+`unlink-cash` avait son endpoint, son symétrique n'existait pas. Le défaut a été
+trouvé en construisant les données de démonstration, pas par un utilisateur.
+
+`link_counterpart` (`banking.services`) comble le trou :
+
+| Méthode | Route | |
+|---|---|---|
+| GET | `/api/banking/transactions/{id}/transfer-candidates/` | Les autres jambes plausibles |
+| POST | `/api/banking/transactions/{id}/link-transfer/` | Déclare la contrepartie |
+
+Trois choix à préserver :
+
+- **Ce qui est refusé est seulement ce que House peut réfuter** : même compte,
+  montants non exactement opposés, devises différentes, jambe déjà prise, autre
+  foyer. Un écart de dates n'en fait **pas** partie — un virement est débité et
+  crédité des jours différents, et aucune règle ne dit lequel est légitime pour
+  quelle banque. C'est une attestation de l'utilisateur, pas une arithmétique.
+- **La liste des candidats vient du serveur**, avec les critères de
+  `link_counterpart`. La refaire côté client donnerait deux définitions du même
+  test, et proposer un candidat que le POST refuse est pire que n'en proposer
+  aucun. L'écart de dates **ordonne** cette liste, il ne la filtre pas : un
+  virement lent reste proposé, simplement plus bas.
+- **Les deux jambes deviennent `is_internal`**, comme pour la contrepartie
+  espèces : l'argent est compté une fois, plus tard, quand il est réellement
+  dépensé.
+
+Régressions : `banking/tests/test_transfer_linking.py` (le service) et
+`test_api_transfer_linking.py` (le bornage au foyer, un id malformé qui doit
+répondre 400 et non 500, et le fait que les candidats et le refus du POST parlent
+d'une seule voix).
 
 ### Le taux de couverture — un ratio, jamais une somme
 

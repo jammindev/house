@@ -156,6 +156,10 @@ class Command(BaseCommand):
             self._create_money(household, claire, projects)
             equipment = self._create_equipment(household, antoine, zones)
             stock = self._create_stock(household, claire, zones)
+            # Après le stock, parce que la dépense n'existe qu'une fois l'achat
+            # semé — et avant tout le reste, parce qu'un écart non résolu ici se
+            # lit dans le Contrôle comme un défaut du produit.
+            self._reconcile_stock_purchase(household, claire)
             self._create_shopping(household, lea, stock)
             self._create_chickens(household, lea, zones, stock)
             self._create_water(household, claire)
@@ -1012,6 +1016,7 @@ class Command(BaseCommand):
             create_account,
             credit_budget_from_refund,
             import_statement_file,
+            link_counterpart,
             set_allocations,
         )
 
@@ -1025,6 +1030,29 @@ class Command(BaseCommand):
         def d(offset_days: int) -> date:
             return period_start + timedelta(days=offset_days)
 
+        # ── Les trois ans qui précèdent ───────────────────────────────────────
+        #
+        # Générés, là où les deux mois qui suivent restent écrits à la main. On ne
+        # raconte pas trente-six mois de courses, et on ne génère pas une salle de
+        # bain refaite : le bruit de fond se produit, les moments s'écrivent.
+        #
+        # Ce que l'historique sert à montrer, et qu'un mois ne montre pas : les
+        # courbes du bilan mensuel, la dérive d'une facture d'énergie d'un hiver à
+        # l'autre, une enveloppe tenue sur la durée. C'est la différence entre un
+        # foyer qui vient d'installer l'app et un foyer qui s'en sert.
+        history = self._statement_history(period_start)
+
+        # Le solde d'ouverture se **déduit** de l'historique au lieu d'être posé.
+        # Conséquence voulue : la veille de la période écrite à la main, le solde
+        # retombe très exactement sur les 2 480,00 € d'origine, et les deux mois
+        # narratifs gardent au centime les soldes pour lesquels ils ont été réglés.
+        # Poser les deux bouts en dur reviendrait à écrire deux fois le même
+        # nombre, et un jour ils divergeraient.
+        opening_balance = Decimal("2480.00") - sum(
+            (Decimal(amount) for _when, _label, amount in history), Decimal("0.00")
+        )
+        opening_date = (history[0][0] if history else period_start) - timedelta(days=1)
+
         account = BankAccount.objects.filter(household=household, name="Compte courant").first()
         if account is None:
             account = create_account(
@@ -1034,11 +1062,14 @@ class Command(BaseCommand):
                 bank_label="Crédit Mutuel",
                 kind=BankAccount.Kind.BANK,
                 iban_last4="4417",
-                opening_balance="2480.00",
+                opening_balance=f"{opening_balance:.2f}",
                 # Le solde d'ouverture précède la première ligne du relevé : sans
                 # ça la fenêtre de conformité est vide et le Contrôle se tait —
                 # la coche verte qui ne veut rien dire (CLAUDE.md, parcours 26).
-                opening_balance_date=(period_start - timedelta(days=1)).isoformat(),
+                # Il recule donc avec l'historique : une fenêtre qui ne couvrirait
+                # que les deux derniers mois rendrait les trois ans invisibles au
+                # Contrôle, donc invérifiables.
+                opening_balance_date=opening_date.isoformat(),
             )
 
         # ── Les enveloppes ────────────────────────────────────────────────────
@@ -1078,6 +1109,14 @@ class Command(BaseCommand):
             (20, "VIR SEPA EMIS EPARGNE LIVRET A", "-300.00"),
             (22, "CB CARREFOUR MARKET LYON", "-88.15"),
             (24, "VIR SEPA RECU MUTUELLE REMB SOINS", "47.60"),
+            # L'achat de granulés du module Stock, vu par la banque. Il est daté
+            # AVANT le début de la période narrative (offset négatif) : c'est la
+            # date que `_create_stock` calcule. Sans cette ligne, la dépense de
+            # stock est une dépense sans justificatif *dans* la fenêtre de
+            # conformité — un écart fabriqué par la seed. Elle tenait jusqu'ici
+            # parce que la fenêtre commençait après ; depuis qu'elle remonte à
+            # trois ans, plus rien n'est « avant ».
+            (-5, "CB GAMM VERT LYON", "-26.25"),
             (32, "VIR SEPA RECU SALAIRE MERCIER C", "2410.00"),
             (33, "PRLV CREDIT IMMOBILIER CM", "-892.40"),
             (34, "PRLV EDF ENERGIE", "-141.75"),
@@ -1099,11 +1138,31 @@ class Command(BaseCommand):
         # exact de ce que la démonstration doit montrer.
         self._create_recurring(household, budgets, lines, d, today)
 
+        # L'historique et les deux mois écrits à la main ne font qu'un seul
+        # relevé : une chaîne de soldes se lit de bout en bout, ou elle ne prouve
+        # rien. C'est aussi ce qui garde `account_chain_broken` muet.
+        movements = history + [(d(offset), label, amount) for offset, label, amount in lines]
+        # Trié, et pas seulement concaténé : une ligne narrative peut porter un
+        # offset négatif et tomber au milieu du dernier mois généré. Un relevé
+        # dans le désordre casse la chaîne des soldes imprimés.
+        movements.sort(key=lambda movement: movement[0])
+
         rows = ["Date;Libelle;Montant;Solde"]
-        balance = Decimal("2480.00")
-        for offset, label, amount in lines:
+        balance = opening_balance
+        for when, label, amount in movements:
             balance += Decimal(amount)
-            rows.append(f"{d(offset).strftime('%d/%m/%Y')};{label};{amount};{balance:.2f}")
+            # La seed vérifie sa propre cohérence plutôt que de la promettre. Un
+            # découvert non voulu ne casserait rien — il s'afficherait, en rouge,
+            # dans un produit dont l'argument est que les chiffres se tiennent.
+            # Mieux vaut une commande qui refuse de semer qu'une démonstration qui
+            # illustre le contraire de ce qu'elle vend.
+            if balance < 0:
+                raise CommandError(
+                    "Historique incohérent : le solde passe à "
+                    f"{balance:.2f} € le {when:%d/%m/%Y} après « {label} ». "
+                    "Ajuster YEARLY_PROFILE (l'épargne est la variable d'ajustement)."
+                )
+            rows.append(f"{when.strftime('%d/%m/%Y')};{label};{amount};{balance:.2f}")
 
         trace = import_statement_file(
             household,
@@ -1126,10 +1185,33 @@ class Command(BaseCommand):
         if trace.status != "completed":
             raise CommandError(f"Import du relevé de démonstration échoué : {trace.error}")
 
+        # ── Le livret, et l'autre bout de chaque virement ─────────────────────
+        self._create_savings_account(
+            household,
+            user,
+            current=account,
+            create_account=create_account,
+            import_statement_file=import_statement_file,
+            link_counterpart=link_counterpart,
+            uploaded=SimpleUploadedFile,
+        )
+
         # ── Les ventilations ──────────────────────────────────────────────────
         #
-        # Chaque motif de libellé donne l'enveloppe. Deux libellés n'y sont pas
-        # (« LE BISTROT », « RETRAIT DAB ») : ce sont les écarts assumés.
+        # Chaque motif de libellé donne l'enveloppe. Tout libellé absent de cette
+        # table est une sortie non affectée, donc un **écart au Contrôle** : la
+        # table est le contrat entre ce que la seed écrit et ce que la démo montre
+        # en rouge. Y ajouter un libellé sans motif, c'est fabriquer un écart.
+        #
+        # Deux lignes n'y sont pas, et c'est voulu : « LE BISTROT DE LYON » (un
+        # restaurant que personne n'a rangé) et « VIR SEPA EMIS EPARGNE LIVRET A »
+        # (un virement d'épargne dont le libellé n'annonce pas qu'il est interne).
+        # Ce sont les deux seuls écarts de la démonstration, et ils vivent dans le
+        # mois en cours, là où un vrai foyer peut encore agir dessus.
+        #
+        # « RETRAIT DAB » n'en est pas un, contrairement à ce que disait ce
+        # commentaire : le motif est dans ``INTERNAL_OUTFLOW_PATTERNS``, la ligne
+        # est donc marquée interne et la boucle ci-dessous la saute.
         by_pattern = {
             "CARREFOUR": ("courses", "Carrefour Market"),
             "EDF": ("energie", "EDF"),
@@ -1138,6 +1220,19 @@ class Command(BaseCommand):
             "MAIF": ("assurances", "MAIF"),
             "CREDIT IMMOBILIER": ("maison", "Crédit Mutuel"),
             "CASTORAMA": ("bricolage", "Castorama"),
+            # Introduits par l'historique généré. Chacun a sa contrepartie : une
+            # récurrence déclarée (Netflix, taxe foncière) ou une enveloppe qui
+            # servirait sinon à rien (Santé, alimentée par les remboursements).
+            "NETFLIX": ("loisirs", "Netflix"),
+            "DGFIP": ("maison", "DGFiP"),
+            "PHARMACIE": ("sante", "Pharmacie du Parc"),
+            "VEOLIA": ("maison", "Veolia"),
+            "HARMONIE": ("sante", "Harmonie Mutuelle"),
+            "SFR": ("abonnements", "SFR"),
+            "DECATHLON": ("loisirs", "Decathlon"),
+            "IKEA": ("maison", "IKEA"),
+            "FNAC": ("loisirs", "Fnac"),
+            "BRICO DEPOT": ("bricolage", "Brico Dépôt"),
         }
 
         renovation = projects.get("sdb") if isinstance(projects, dict) else None
@@ -1200,12 +1295,15 @@ class Command(BaseCommand):
         # Une recette qui recrédite une enveloppe, plutôt qu'une dépense négative :
         # 47,60 € rendus par la mutuelle veulent dire que Santé a consommé
         # d'autant moins, pas que le foyer a gagné de l'argent.
-        refund = (
-            BankTransaction.objects.filter(account=account, direction="in")
-            .filter(label_raw__icontains="MUTUELLE")
-            .first()
-        )
-        if refund is not None and not RefundAllocation.objects.filter(transaction=refund).exists():
+        # Toutes les recettes de la mutuelle, pas seulement la première : une
+        # recette classée `refund` à laquelle aucune enveloppe n'est rendue est
+        # l'écart `refund_without_budget`. Ne créditer que la plus récente
+        # laisserait donc trente-cinq écarts derrière elle dans l'historique.
+        for refund in BankTransaction.objects.filter(
+            account=account, direction="in", label_raw__icontains="MUTUELLE"
+        ):
+            if RefundAllocation.objects.filter(transaction=refund).exists():
+                continue
             credit_budget_from_refund(
                 household=household,
                 user=user,
@@ -1220,9 +1318,297 @@ class Command(BaseCommand):
             .count()
         )
         self.stdout.write(
-            f"  Argent : {len(lines)} opérations importées, {allocated} dépenses ventilées, "
+            f"  Argent : {len(movements)} opérations importées "
+            f"({len(history)} générées sur {self.HISTORY_MONTHS} mois), "
+            f"{allocated} dépenses ventilées, "
             f"{pending} à ranger, {len(budgets)} enveloppes"
         )
+
+    #: Profondeur de l'historique bancaire généré, en mois. Trois ans : assez pour
+    #: qu'un hiver se compare au précédent, qu'une enveloppe montre une tendance et
+    #: que le bilan mensuel ait des courbes — et assez peu pour qu'un `--flush`
+    #: nocturne sur l'instance de démonstration reste court.
+    HISTORY_MONTHS = 36
+
+    #: La facture d'énergie par **mois calendaire**, jamais par rang dans la boucle.
+    #: Un historique généré « au mois -30 » afficherait un pic de chauffage en
+    #: juillet, et la courbe de l'onglet Électricité contredirait la facture juste
+    #: à côté — deux chiffres qui se contredisent font perdre leur crédit aux deux.
+    ENERGY_BY_MONTH = {
+        1: "184.60", 2: "176.20", 3: "151.40", 4: "118.90",
+        5: "96.30", 6: "84.10", 7: "79.50", 8: "81.20",
+        9: "97.80", 10: "126.40", 11: "158.70", 12: "179.30",
+    }
+
+    #: Le carburant suit l'autre saison : les grands trajets sont l'été.
+    FUEL_BY_MONTH = {
+        1: "58.40", 2: "61.20", 3: "64.80", 4: "66.10",
+        5: "68.10", 6: "72.30", 7: "89.60", 8: "92.40",
+        9: "70.20", 10: "65.30", 11: "60.90", 12: "67.50",
+    }
+
+    #: Douze paniers de courses qui tournent. Une liste explicite plutôt qu'un
+    #: tirage aléatoire : la seed doit produire deux fois la même chose, sinon un
+    #: test ne peut rien affirmer et une démo change de chiffres sans raison.
+    GROCERY_CYCLE = (
+        "96.35", "112.80", "88.15", "103.60", "94.20", "118.45",
+        "82.90", "107.15", "99.70", "91.30", "115.60", "86.75",
+    )
+
+    #: Un achat non contraint par mois, à tour de rôle. Sans eux le foyer n'aurait
+    #: que des prélèvements et des courses — et les enveloppes Loisirs et Bricolage
+    #: resteraient vides sur trois ans, ce qui rendrait l'aperçu des budgets
+    #: illisible là où il doit être le plus parlant.
+    MISC_CYCLE = (
+        ("CB DECATHLON LYON", "128.90"),
+        ("CB IKEA SAINT-PRIEST", "156.40"),
+        ("CB FNAC PART DIEU", "112.30"),
+        ("CB BRICO DEPOT VENISSIEUX", "143.70"),
+    )
+
+    #: Par année d'ancienneté (0 = les douze mois les plus récents) : le salaire, la
+    #: prime d'assurance et l'effort d'épargne. Un foyer dont rien ne bouge en trois
+    #: ans ne ressemble à aucun foyer, et les courbes du bilan seraient plates.
+    YEARLY_PROFILE = {
+        0: {"salary": "2410.00", "maif": "58.30", "savings": "400.00", "energy_factor": "1.00"},
+        1: {"salary": "2330.00", "maif": "56.20", "savings": "350.00", "energy_factor": "0.94"},
+        2: {"salary": "2260.00", "maif": "54.10", "savings": "300.00", "energy_factor": "0.88"},
+    }
+
+    @staticmethod
+    def _add_months(anchor: date, months: int) -> date:
+        """Le 1er du mois situé ``months`` mois avant (négatif) ou après ``anchor``.
+
+        En arithmétique de **mois**, jamais en jours : reculer de ``365 * 3`` jours
+        tombe au milieu d'un mois, et les deux bouts de l'historique seraient des
+        mois partiels — donc des barres de budget et un bilan mensuel faux à l'œil
+        dès la première capture d'écran.
+        """
+        total = (anchor.year * 12 + anchor.month - 1) + months
+        return date(total // 12, total % 12 + 1, 1)
+
+    def _statement_history(self, period_start: date) -> list[tuple[date, str, str]]:
+        """Les ``HISTORY_MONTHS`` mois de relevé qui précèdent la période écrite à la main.
+
+        Renvoie des ``(date, libellé, montant signé)`` chronologiques, dans la même
+        forme que les lignes narratives — les deux se concatènent en un seul relevé,
+        parce qu'une chaîne de soldes se lit de bout en bout ou ne prouve rien.
+
+        **Chaque libellé produit ici doit avoir sa contrepartie**, sinon la démo
+        s'accuse elle-même dans le Contrôle :
+
+        - une sortie doit correspondre à un motif de ``by_pattern`` (sinon :
+          `expense_without_budget`), ou être reconnue interne par
+          ``banking.rules.INTERNAL_OUTFLOW_PATTERNS`` ;
+        - une recette doit être reconnue par ``guess_inflow_nature`` (sinon :
+          `inflow_without_nature`), et si elle est classée `refund`, une enveloppe
+          doit lui être rendue (sinon : `refund_without_budget`).
+
+        D'où « VIREMENT INTERNE VERS LIVRET A » plutôt que le « VIR SEPA EMIS
+        EPARGNE » du mois en cours : le second n'est capté par aucun motif, et c'est
+        précisément pour ça qu'il reste l'écart délibéré de la démonstration. Le
+        répéter trente-six fois en ferait un bruit de fond qu'on n'a plus envie de
+        traiter — l'inverse de ce que le Contrôle doit apprendre à faire.
+        """
+        movements: list[tuple[date, str, str]] = []
+
+        for index in range(self.HISTORY_MONTHS, 0, -1):
+            month_start = self._add_months(period_start, -index)
+            profile = self.YEARLY_PROFILE[min((index - 1) // 12, 2)]
+
+            def on(day: int, label: str, amount: str) -> None:
+                movements.append((month_start.replace(day=day), label, amount))
+
+            energy = (
+                Decimal(self.ENERGY_BY_MONTH[month_start.month])
+                * Decimal(profile["energy_factor"])
+            ).quantize(Decimal("0.01"))
+
+            on(1, "VIR SEPA RECU SALAIRE MERCIER C", profile["salary"])
+            on(3, "PRLV CREDIT IMMOBILIER CM", "-892.40")
+            on(4, "PRLV EDF ENERGIE", f"-{energy}")
+            on(6, "PRLV ORANGE FIXE ET INTERNET", "-42.99")
+            on(7, "PRLV VEOLIA EAU", "-32.40")
+            on(8, "PRLV HARMONIE MUTUELLE", "-78.00")
+            on(9, "PRLV SFR MOBILE", "-38.90")
+            on(10, "CB TOTALENERGIES STATION", f"-{self.FUEL_BY_MONTH[month_start.month]}")
+            on(14, "PRLV MAIF ASSURANCE HABITATION", f"-{profile['maif']}")
+            on(27, "PRLV NETFLIX", "-13.49")
+
+            # L'achat du mois qui n'était pas prévu. C'est ce qui manquait le plus :
+            # sans lui le foyer ne dépensait que des prélèvements, épargnait
+            # 500 € par mois sans effort, et le solde d'ouverture dérivé partait
+            # à -7 764 € — un foyer qu'aucun visiteur n'aurait reconnu.
+            misc_label, misc_amount = self.MISC_CYCLE[index % len(self.MISC_CYCLE)]
+            on(18, misc_label, f"-{misc_amount}")
+
+            # Quatre passages en caisse, décalés d'un cran chaque mois pour que
+            # deux mois consécutifs ne se ressemblent pas au centime près.
+            for rank, day in enumerate((5, 12, 19, 26)):
+                basket = self.GROCERY_CYCLE[(index * 4 + rank) % len(self.GROCERY_CYCLE)]
+                on(day, "CB CARREFOUR MARKET LYON", f"-{basket}")
+
+            # L'épargne part **après** les prélèvements du mois : c'est l'ordre
+            # d'un vrai foyer, et c'est ce qui garde le solde au-dessus de zéro.
+            on(20, "VIREMENT INTERNE VERS LIVRET A", f"-{profile['savings']}")
+
+            # La taxe foncière tombe en octobre, et une récurrence annuelle la
+            # déclare déjà. Sans ses passages historiques, la démonstration
+            # annoncerait une échéance que trois ans de relevé n'ont jamais vue.
+            if month_start.month == 10:
+                on(15, "PRLV DGFIP TAXE FONCIERE", "-1240.00")
+
+            # Un trimestre sur deux : des soins, puis leur remboursement. C'est le
+            # couple qui rend l'enveloppe Santé lisible — une dépense seule ferait
+            # croire que la mutuelle ne rend jamais rien.
+            if index % 4 == 0:
+                on(22, "CB PHARMACIE DU PARC", "-34.20")
+                on(24, "VIR SEPA RECU MUTUELLE REMB SOINS", "28.40")
+
+        movements.sort(key=lambda movement: movement[0])
+        return movements
+
+    def _create_savings_account(
+        self,
+        household,
+        user,
+        *,
+        current,
+        create_account,
+        import_statement_file,
+        link_counterpart,
+        uploaded,
+    ):
+        """Le Livret A, et l'autre jambe de chaque virement d'épargne.
+
+        Sans lui, les trente-six virements du compte courant sont autant de
+        mouvements internes orphelins — ``internal_without_counterpart``, en
+        `error`, tous les mois. C'est en semant ces données qu'on a découvert que
+        le module savait *délier* un virement qu'il ne savait pas *lier* ; le
+        service ``link_counterpart`` a été écrit pour ça, et la démonstration le
+        traverse pour de bon plutôt que d'écrire la FK à la main.
+
+        **Une démonstration ne montre que ce qu'un vrai foyer peut obtenir.**
+        Poser le lien directement en base aurait donné une vitrine impeccable
+        illustrant un geste que personne n'aurait pu reproduire — le pire mensonge
+        qu'une vitrine puisse raconter, et il se serait payé au premier pilote.
+
+        La ligne « VIR SEPA EMIS EPARGNE LIVRET A » du mois en cours reste, elle,
+        **sans contrepartie** : c'est un des deux écarts délibérés. Le foyer de
+        démonstration montre donc trois ans de virements résolus et un qui attend
+        — ce que le Contrôle sert à faire, plutôt qu'un tableau vide.
+        """
+        savings = BankAccount.objects.filter(household=household, name="Livret A").first()
+        if savings is not None:
+            return savings
+
+        transfers = list(
+            BankTransaction.objects.filter(
+                account=current, label_raw__icontains="VIREMENT INTERNE VERS LIVRET A"
+            ).order_by("booked_on")
+        )
+        if not transfers:
+            return None
+
+        opening = Decimal("3200.00")
+        savings = create_account(
+            household=household,
+            user=user,
+            name="Livret A",
+            bank_label="Crédit Mutuel",
+            kind=BankAccount.Kind.BANK,
+            iban_last4="8830",
+            opening_balance=f"{opening:.2f}",
+            opening_balance_date=(transfers[0].booked_on - timedelta(days=1)).isoformat(),
+        )
+
+        rows = ["Date;Libelle;Montant;Solde"]
+        balance = opening
+        for transfer in transfers:
+            amount = -transfer.amount  # la sortie du courant est une entrée ici
+            balance += amount
+            rows.append(
+                f"{transfer.booked_on.strftime('%d/%m/%Y')};"
+                f"VIREMENT INTERNE DEPUIS COMPTE COURANT;{amount:.2f};{balance:.2f}"
+            )
+
+        trace = import_statement_file(
+            household,
+            user,
+            account=savings,
+            uploaded_file=uploaded(
+                "releve-livret-demo.csv", "\n".join(rows).encode("utf-8"), content_type="text/csv"
+            ),
+            provider="generic_csv",
+            options={
+                "date_column": "Date",
+                "label_column": "Libelle",
+                "amount_column": "Montant",
+                "balance_column": "Solde",
+                "date_format": "%d/%m/%Y",
+                "decimal_separator": ".",
+                "delimiter": ";",
+            },
+        )
+        if trace.status != "completed":
+            raise CommandError(f"Import du relevé de livret échoué : {trace.error}")
+
+        mirrors = {
+            mirror.booked_on: mirror
+            for mirror in BankTransaction.objects.filter(account=savings, direction="in")
+        }
+        linked = 0
+        for transfer in transfers:
+            mirror = mirrors.get(transfer.booked_on)
+            if mirror is None or transfer.transfer_counterpart_id is not None:
+                continue
+            link_counterpart(user=user, transaction=transfer, counterpart=mirror)
+            linked += 1
+
+        self.stdout.write(
+            f"  Livret A : {len(transfers)} virements, {linked} contreparties liées, "
+            f"solde {balance:.2f} €"
+        )
+        return savings
+
+    def _reconcile_stock_purchase(self, household, user):
+        """L'achat de granulés, rattaché à sa ligne de relevé et à son enveloppe.
+
+        Ce rattachement n'existait pas, et n'avait pas à exister : l'achat était
+        daté **avant** la fenêtre de conformité, qui commençait deux mois en
+        arrière. Une dépense hors fenêtre n'est pas un écart — c'est de
+        l'histoire, et le Contrôle n'en réclame rien.
+
+        En reculant le solde d'ouverture de trois ans, la fenêtre a avalé cet
+        achat : il est devenu une dépense sans justificatif et sans enveloppe,
+        donc deux écarts que personne n'avait décidés. Élargir la fenêtre change
+        ce qui est *évaluable*, et tout ce qui y entre doit être résolu ou assumé
+        — c'est la règle du parcours 26 appliquée à la seed elle-même.
+
+        Le rattachement est en plus **plus vrai** : dans un vrai foyer, un sac de
+        granulés payé par carte apparaît sur le relevé. Et il donne à voir une
+        chose que la démonstration ne montrait nulle part — une dépense née dans
+        un autre module, retrouvée par la banque.
+        """
+        from banking.services import link_interaction
+
+        transaction = BankTransaction.objects.filter(
+            household=household, label_raw__icontains="GAMM VERT"
+        ).first()
+        purchase = (
+            Interaction.objects.filter(household=household, kind="stock_purchase")
+            .filter(supplier="Gamm vert")
+            .first()
+        )
+        if transaction is None or purchase is None:
+            return
+
+        if purchase.budget_id is None:
+            purchase.budget = Budget.objects.filter(household=household, name="Courses").first()
+            purchase.save(update_fields=["budget", "updated_at"])
+
+        if purchase.bank_transaction_id is None:
+            link_interaction(user=user, transaction=transaction, interaction=purchase)
 
     def _budget_category(self, household, name, monthly_amount):
         category, _ = BudgetCategory.objects.get_or_create(

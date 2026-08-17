@@ -82,6 +82,51 @@ FRONTEND_URL = env("FRONTEND_URL", default=f"https://{_primary_host}")
 # arrivées passe alors par une invitation, qui est nominative et révocable.
 ALLOW_OPEN_SIGNUP = env.bool("ALLOW_OPEN_SIGNUP", default=True)
 
+# Instance de démonstration — une vitrine, jamais un produit.
+#
+# Posé uniquement sur l'instance publique remplie du foyer « Famille Mercier ».
+# L'écran de connexion annonce alors qu'on est dans une démonstration, pré-remplit
+# les identifiants **publiés** de la seed, et renvoie vers l'installation. Éteint
+# partout ailleurs : un auto-hébergeur n'a aucune raison de le poser, et rien ne
+# s'affiche s'il ne le fait pas.
+#
+# Le mot de passe transite en clair dans une réponse publique, et c'est assumé :
+# il est déjà publié dans un dépôt public, sur un foyer de fausses données remis à
+# zéro chaque nuit. Ce qui ne serait pas assumable, c'est un chemin
+# d'authentification **sans identifiants** — d'où le formulaire pré-rempli plutôt
+# qu'un bouton « entrer », qui livrerait à toutes les instances un code capable
+# d'ouvrir une session sans mot de passe.
+DEMO_MODE = env.bool("DEMO_MODE", default=False)
+DEMO_EMAIL = env("DEMO_EMAIL", default="")
+DEMO_PASSWORD = env("DEMO_PASSWORD", default="")
+
+if DEMO_MODE:
+    # L'assistant tourne sur la clé de l'hébergeur, pas sur celle du visiteur :
+    # chaque question coûte de l'argent à quelqu'un qui n'est pas celui qui la
+    # pose. C'est la seule différence de fond entre une démonstration et une
+    # instance, et elle mérite son plafond.
+    #
+    # Le plafond est **global de fait**, et c'est voulu : tous les visiteurs
+    # entrent par le même compte, or DRF compte par utilisateur. « 60 par heure »
+    # veut donc dire soixante questions par heure pour tout le monde réuni — une
+    # borne sur la facture, pas sur le confort d'un visiteur. La cohue d'un jour
+    # d'annonce se traduira par des refus polis plutôt que par une note à trois
+    # chiffres, et c'est le bon arbitrage : personne n'évalue un produit en lui
+    # posant soixante questions.
+    #
+    # ⚠️ Ça ne remplace pas un plafond de dépense chez le fournisseur. Un
+    # compteur applicatif ne protège que de ce qu'il voit passer.
+    REST_FRAMEWORK = {
+        **REST_FRAMEWORK,
+        "DEFAULT_THROTTLE_RATES": {
+            **REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"],
+            "agent_burst": env("DEMO_AGENT_BURST", default="5/min"),
+            "agent_sustained": env("DEMO_AGENT_SUSTAINED", default="60/hour"),
+            "document_upload": "20/hour",
+            "ocr_reprocess": "5/hour",
+        },
+    }
+
 # Anthropic API key — must be set in .env for LLM features (OCR, agent).
 ANTHROPIC_API_KEY = env("ANTHROPIC_API_KEY", default="")
 

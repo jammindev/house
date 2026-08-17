@@ -1,0 +1,86 @@
+# L'instance de démonstration publique — https://demo.jammin-dev.com
+#
+# Une **vitrine**, pas un produit. Elle ne garde personne : elle existe pour
+# qu'un visiteur clique trois minutes dans un foyer rempli, comprenne ce que
+# l'app fait, le montre à son foyer — puis aille l'installer chez lui. Aucune
+# donnée réelle n'y vit, et tout est effacé chaque nuit.
+#
+# Ce fichier n'est **pas** `docker-compose.yml` (celui de l'auto-hébergeur, qui
+# doit marcher sans rien lire) ni `docker-compose.prod.yml` (l'instance réelle de
+# l'auteur). Trois fichiers, trois jeux d'hypothèses ; les fusionner ferait porter
+# à chacun les compromis des deux autres.
+#
+# Déploiement : voir DEPLOYMENT.md § 11.
+
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - demo-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - internal
+
+  # Migrations + première seed, sur un conteneur jetable. Le `web` ne démarre
+  # qu'après : on migre avant de basculer, comme en production.
+  init:
+    image: ${MAISONNEE_IMAGE:-ghcr.io/jammindev/maisonnee:latest}
+    restart: "no"
+    env_file: .env
+    environment:
+      # ⚠️ Éteint pendant la seed. Les embeddings sont posés par un signal
+      # `post_save` : 650 lignes semées = 650 appels unitaires au fournisseur.
+      # `backfill_embeddings` les bat en lots juste après, pour une fraction du
+      # coût et du temps.
+      EMBEDDING_INDEXING_ENABLED: "0"
+    depends_on:
+      db:
+        condition: service_healthy
+    command: >
+      sh -c "python manage.py migrate --noinput &&
+             python manage.py seed_demo_data --flush --password $${DEMO_PASSWORD} &&
+             python manage.py backfill_embeddings"
+    networks:
+      - internal
+
+  web:
+    image: ${MAISONNEE_IMAGE:-ghcr.io/jammindev/maisonnee:latest}
+    restart: unless-stopped
+    env_file: .env
+    depends_on:
+      init:
+        condition: service_completed_successfully
+    networks:
+      - internal
+      - traefik-public
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik-public
+
+      - traefik.http.services.${STACK_NAME}-web.loadbalancer.server.port=80
+
+      - traefik.http.routers.${STACK_NAME}-http.rule=Host(`${DOMAIN}`)
+      - traefik.http.routers.${STACK_NAME}-http.entrypoints=http
+      - traefik.http.routers.${STACK_NAME}-http.middlewares=https-redirect
+
+      - traefik.http.routers.${STACK_NAME}-https.rule=Host(`${DOMAIN}`)
+      - traefik.http.routers.${STACK_NAME}-https.entrypoints=https
+      - traefik.http.routers.${STACK_NAME}-https.tls=true
+      - traefik.http.routers.${STACK_NAME}-https.tls.certresolver=le
+
+volumes:
+  demo-postgres-data:
+
+networks:
+  internal:
+  traefik-public:
+    external: true

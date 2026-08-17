@@ -24,6 +24,7 @@ export type PatchedBankTransaction = {
      * PROTECT: an account holding transactions cannot be deleted — it is archived instead (see services.archive_account).
      */
     readonly account?: string;
+    readonly account_name?: string;
     /**
      * Operation date as printed on the statement.
      */
@@ -97,6 +98,14 @@ export type PatchedBankTransaction = {
      */
     readonly remaining_amount?: string;
     readonly allocation_state?: string;
+    /**
+     * Le fournisseur que le libellé suggère — proposé, jamais appliqué.
+     *
+     * Pure manipulation de chaînes, donc gratuite même sur une page de cinquante
+     * lignes : aucune requête, aucun accès à autre chose que le libellé déjà
+     * chargé.
+     */
+    readonly supplier_guess?: string;
     readonly created_at?: string;
 };
 

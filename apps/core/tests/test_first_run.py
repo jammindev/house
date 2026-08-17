@@ -163,11 +163,61 @@ class TestTheDemoHouseholdIsWorthVisiting:
         assert Budget.objects.filter(name="Loisirs", monthly_amount__isnull=True).exists()
 
     def test_a_refund_credits_an_envelope_rather_than_being_a_negative_expense(self):
+        """Toutes les recettes de la mutuelle, pas seulement la dernière.
+
+        L'historique en sème une par trimestre, et une recette classée `refund` à
+        laquelle aucune enveloppe n'est rendue est l'écart `refund_without_budget` :
+        n'en créditer qu'une en laisserait autant derrière elle que de trimestres.
+        """
         from banking.models import RefundAllocation
 
-        allocation = RefundAllocation.objects.get()
-        assert allocation.budget.name == "Santé"
-        assert allocation.amount > 0
+        allocations = list(RefundAllocation.objects.all())
+        assert len(allocations) > 1
+        assert {a.budget.name for a in allocations} == {"Santé"}
+        assert all(a.amount > 0 for a in allocations)
+
+    def test_the_control_could_actually_run(self):
+        """Un compteur à zéro a deux sens ; celui-ci doit être « rien à signaler ».
+
+        Le test au-dessus vérifie que le solde d'ouverture précède le relevé ;
+        celui-ci vérifie que chaque compte en tire une fenêtre **exploitable**, ce
+        qui n'est pas la même chose — et sans elle les détecteurs renvoient zéro
+        sans avoir rien vérifié.
+        """
+        from banking import coverage
+        from banking.models import BankAccount
+
+        household = Household.objects.get(name="Famille Mercier")
+        for account in BankAccount.objects.filter(household=household):
+            reason, window = coverage.window_status(account)
+            assert reason == "", f"{account.name} : {reason}"
+            assert window is not None
+
+    def test_every_savings_transfer_found_its_other_leg(self):
+        """Trois ans de virements vers le livret, tous liés par le vrai service.
+
+        Les lier par une FK écrite à la main aurait donné une vitrine impeccable
+        illustrant un geste qu'aucun visiteur n'aurait pu reproduire.
+        """
+        from banking.models import BankAccount
+
+        savings = BankAccount.objects.get(name="Livret A")
+        transfers = savings.transactions.filter(direction="in")
+        assert transfers.count() > 0
+        assert not transfers.filter(transfer_counterpart__isnull=True).exists()
+
+    def test_the_stock_purchase_is_justified_by_a_statement_line(self):
+        """Une dépense née dans un autre module, retrouvée par la banque.
+
+        Elle vivait **hors** de la fenêtre de conformité, ce qui la dispensait de
+        justificatif. Depuis que la fenêtre remonte à trois ans, plus rien n'est
+        « avant » : tout ce qui devient évaluable doit être résolu ou assumé.
+        """
+        from interactions.models import Interaction
+
+        purchase = Interaction.objects.get(kind="stock_purchase", supplier="Gamm vert")
+        assert purchase.budget_id is not None
+        assert purchase.bank_transaction_id is not None
 
     def test_the_statement_confirms_the_recurrences_it_covers(self):
         """Deux échéances sont calées sur une ligne du relevé, au centime près.

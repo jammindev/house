@@ -57,11 +57,11 @@ class TestTheDoorOpensOnceAndNeverAgain:
         assert User.objects.count() == 0
         response = client.get(url)
         assert response.status_code == status.HTTP_200_OK
-        assert response.data == {"required": True}
+        assert response.data == {"required": True, "demo": None}
 
     def test_setup_stops_being_required_once_an_account_exists(self, client, url, django_user_model):
         django_user_model.objects.create_user(email="deja@la.fr", password="x" * 20)
-        assert client.get(url).data == {"required": False}
+        assert client.get(url).data == {"required": False, "demo": None}
 
     def test_a_second_setup_is_refused(self, client, url):
         assert client.post(url, _payload(), format="json").status_code == status.HTTP_201_CREATED
@@ -128,7 +128,7 @@ class TestTheFirstPasswordIsValidated:
     def test_a_refused_setup_leaves_the_door_open(self, client, url):
         """Un échec ne doit pas consommer la seule occasion de configurer."""
         client.post(url, _payload(password="abc"), format="json")
-        assert client.get(url).data == {"required": True}
+        assert client.get(url).data == {"required": True, "demo": None}
 
 
 class TestTheUnattendedPathAgreesWithTheAssistant:
@@ -138,7 +138,7 @@ class TestTheUnattendedPathAgreesWithTheAssistant:
         call_command("create_admin", email="scripté@exemple.fr", password="")
         assert User.objects.count() == 0
         # Et l'assistant reste donc la porte d'entrée.
-        assert client.get(url).data == {"required": True}
+        assert client.get(url).data == {"required": True, "demo": None}
 
     def test_create_admin_with_a_password_closes_the_assistant(self, client, url):
         call_command(
@@ -147,7 +147,7 @@ class TestTheUnattendedPathAgreesWithTheAssistant:
             password="un-mot-de-passe-solide-42",
             household="Le mas",
         )
-        assert client.get(url).data == {"required": False}
+        assert client.get(url).data == {"required": False, "demo": None}
 
     @staticmethod
     def _shape():

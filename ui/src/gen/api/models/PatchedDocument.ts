@@ -2,6 +2,8 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
+import type { BlankEnum } from './BlankEnum';
+import type { PurposeEnum } from './PurposeEnum';
 import type { Type029Enum } from './Type029Enum';
 /**
  * Document list/create serializer.
@@ -44,5 +46,19 @@ export type PatchedDocument = {
     readonly legacy_interaction?: string;
     readonly legacy_interaction_subject?: string;
     readonly phase?: string;
+    /**
+     * Capture date read from EXIF. NULL = unknown, never a fallback.
+     */
+    readonly taken_at?: string | null;
+    /**
+     * Why this photo exists. Empty = nobody sorted it yet, never a fallback.
+     *
+     * * `technical` - Technical
+     * * `observation` - Observation
+     * * `memory` - Memory
+     */
+    purpose?: (PurposeEnum | BlankEnum);
+    readonly zone_links?: string;
+    readonly entity_links?: string;
 };
 

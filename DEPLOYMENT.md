@@ -29,6 +29,7 @@
 8. [Backups](#8-backups)
 9. [Recommandations](#9-recommandations)
 10. [Dépannage](#10-dépannage)
+11. [L'instance de démonstration](#11-linstance-de-démonstration)
 
 ---
 
@@ -701,3 +702,76 @@ git push
 git pull
 docker compose -f docker-compose.prod.yml up -d --build
 ```
+
+---
+
+## 11. L'instance de démonstration
+
+`https://demo.jammin-dev.com` — une **vitrine**, pas un produit.
+
+Elle existe pour une seule raison : personne n'installe un logiciel d'une heure
+sur la foi de sept captures d'écran, mais beaucoup l'installent après avoir
+cliqué dedans trois minutes. Elle ne garde donc personne — sa bannière renvoie
+vers l'installation, et c'est son unique appel à l'action.
+
+Le second usage vaut peut-être plus que le premier : elle permet à celui qui
+hésite de **montrer l'app à son foyer** avant d'y passer une soirée. Celui qui
+installe n'est jamais celui qui décide si ça sert.
+
+### Ce qui la distingue d'une instance réelle
+
+| | |
+|---|---|
+| Données | Le foyer fictif « Famille Mercier », trois ans d'historique, semé par `seed_demo_data` |
+| Inscription | **Fermée.** Un compte neuf tombe dans un foyer vide — l'inverse de ce qu'on montre |
+| Connexion | `DEMO_MODE=1` : bannière, identifiants publiés **pré-remplis**, deux lignes d'installation |
+| Assistant | Allumé, sur la clé de l'hébergeur, avec des débits serrés automatiquement |
+| Remise à zéro | Quotidienne, par cron (`deploy/demo/reset.sh`) |
+| Sauvegarde | **Aucune, volontairement.** Il n'y a rien à perdre, et la restaurer serait la remettre à zéro |
+
+### Installation
+
+```bash
+ssh -p 2244 hermes@51.75.28.192
+mkdir -p ~/jammin-dev/apps/maisonnee-demo && cd $_
+# copier deploy/demo/{docker-compose.yml,.env.example,reset.sh} depuis le dépôt
+cp .env.example .env && $EDITOR .env        # domaine, clés, mots de passe
+docker compose up -d
+```
+
+Le pointage DNS de `demo.jammin-dev.com` vers le VPS doit précéder le premier
+démarrage : Traefik demande son certificat au lancement, et un domaine qui ne
+résout pas donne un échec ACME qu'il faut ensuite attendre pour réessayer.
+
+### Le cron de remise à zéro
+
+```cron
+# Remise à zéro quotidienne de la démonstration, 4 h du matin (heure du VPS).
+0 4 * * * /home/hermes/jammin-dev/apps/maisonnee-demo/reset.sh >> /var/log/maisonnee-demo-reset.log 2>&1
+```
+
+**La cadence est une seule ligne, et c'est fait exprès.** Quotidienne suffit en
+régime normal. Un jour d'annonce, la démonstration peut se dégrader avant midi —
+passer à `0 * * * *` est alors un geste, pas un chantier.
+
+### Trois choses à ne pas défaire
+
+- **`EMBEDDING_INDEXING_ENABLED=0` pendant la seed.** Les embeddings sont posés
+  par un signal `post_save` : semer signal allumé, c'est ~650 appels unitaires au
+  fournisseur **chaque nuit**. `backfill_embeddings` les rattrape en lots juste
+  après, pour une fraction du coût.
+- **Le mot de passe repassé à chaque `--flush`.** La commande recrée les trois
+  comptes ; sans `--password`, elle retombe sur celui publié dans le dépôt. Ici
+  c'est sans conséquence — il *est* publié exprès — mais l'habitude doit tenir
+  partout ailleurs.
+- **`ALLOW_OPEN_SIGNUP=False`.** C'est la seule protection contre le pire scénario
+  de la vitrine : un visiteur qui crée un compte, atterrit devant des écrans
+  vides, et en conclut que le produit est vide.
+
+### Ce que la démonstration ne montre pas
+
+Ni e-mail, ni push, ni Telegram : rien à envoyer depuis une vitrine. Les capacités
+correspondantes s'annoncent **indisponibles**, ce qui est la vérité et ce que
+l'app sait déjà dire proprement (`app_settings.capabilities`). C'est même une
+démonstration en soi — le visiteur voit comment l'app se comporte quand une clé
+manque, ce qui est exactement sa situation avant d'en poser une.

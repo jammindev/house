@@ -456,6 +456,36 @@ export class InteractionsService {
         });
     }
     /**
+     * POST /api/interactions/interactions/bulk-update/ — corriger un lot de dépenses.
+     *
+     * Body : ``{"ids": [...], "supplier": "…", "budget_id": "…"|null}``. Les deux
+     * champs sont optionnels **mais pas simultanément** : une requête qui
+     * n'exprime aucune intention ne peut pas répondre « 12 mises à jour ».
+     *
+     * Le lot est **atomique**. Un id inconnu, hors du foyer, ou qui n'est pas une
+     * dépense fait échouer l'ensemble : écrire les huit ids valides en taisant
+     * les quatre autres laisserait celui qui a lancé le lot sans moyen de savoir
+     * ce qui a été fait, et aucun écran ne rattrape une écriture partielle.
+     *
+     * Et il applique **les mêmes règles que l'écriture unitaire** — catalogue de
+     * fournisseurs, refus du budget global ou d'un autre foyer. Un chemin de
+     * masse qui contournerait les validations du chemin unitaire serait une porte
+     * ouverte sur des données que rien n'a vérifiées.
+     * @param requestBody
+     * @returns Interaction
+     * @throws ApiError
+     */
+    public static interactionsInteractionsBulkUpdateCreate(
+        requestBody: Interaction,
+    ): CancelablePromise<Interaction> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/interactions/interactions/bulk-update/',
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
      * Group interactions by type with counts.
      * @returns Interaction
      * @throws ApiError
@@ -518,6 +548,34 @@ export class InteractionsService {
             url: '/api/interactions/interactions/renovation/',
             body: requestBody,
             mediaType: 'application/json',
+        });
+    }
+    /**
+     * GET /api/interactions/suppliers/ — le catalogue des fournisseurs du foyer.
+     *
+     * La table `Supplier`, dans l'ordre où elle sert : **le plus employé
+     * d'abord**. Un tri alphabétique remettrait le magasin des courses
+     * hebdomadaires derrière un achat unique d'il y a deux ans, ce qui rend le
+     * select aussi lent à parcourir que le champ libre qu'il remplace.
+     *
+     * Le compte se calcule ici, en un `GROUP BY` sur la colonne texte, et n'est
+     * **pas** dénormalisé sur la table : un compteur stocké est un compteur à
+     * deux définitions dès la première suppression de dépense — même règle que le
+     * « dépensé » d'un budget. Un fournisseur au catalogue mais jamais employé
+     * (créé, puis la dépense annulée) sort avec `count: 0` et passe après les
+     * autres ; il reste proposé, parce que l'avoir tapé une fois est déjà un
+     * signe qu'on le retapera.
+     *
+     * Pas de pagination ni de recherche serveur : le filtrage se fait à la frappe
+     * côté client, et un foyer compte ses fournisseurs en dizaines. Un
+     * aller-retour par caractère coûterait plus cher que la liste entière.
+     * @returns Interaction
+     * @throws ApiError
+     */
+    public static interactionsInteractionsSuppliersRetrieve(): CancelablePromise<Interaction> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/interactions/interactions/suppliers/',
         });
     }
 }

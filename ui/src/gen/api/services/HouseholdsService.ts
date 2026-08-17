@@ -140,7 +140,29 @@ export class HouseholdsService {
         });
     }
     /**
-     * Invite a user to household (by email).
+     * Pending invitation links of this household (owner only) — to copy or revoke.
+     * @param id
+     * @returns Household
+     * @throws ApiError
+     */
+    public static householdsInvitationsRetrieve2(
+        id: string,
+    ): CancelablePromise<Household> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/households/{id}/invitations/',
+            path: {
+                'id': id,
+            },
+        });
+    }
+    /**
+     * Create an invitation link for this household.
+     *
+     * `email` is **optional** — the owner shares the returned `join_url`
+     * themselves, so a link addressed to nobody in particular is legitimate.
+     * When the address does have a House account, an in-app notification goes
+     * out on top of the link.
      * @param id
      * @param requestBody
      * @returns Household
@@ -213,6 +235,27 @@ export class HouseholdsService {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/households/{id}/remove_member/',
+            path: {
+                'id': id,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
+     * Kill a shared link (owner only). A leaked link must be stoppable.
+     * @param id
+     * @param requestBody
+     * @returns Household
+     * @throws ApiError
+     */
+    public static householdsRevokeInvitationCreate(
+        id: string,
+        requestBody: Household,
+    ): CancelablePromise<Household> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/households/{id}/revoke-invitation/',
             path: {
                 'id': id,
             },
@@ -323,6 +366,54 @@ export class HouseholdsService {
             },
             body: requestBody,
             mediaType: 'application/json',
+        });
+    }
+    /**
+     * Public endpoint behind a shared invitation link — `/api/households/join/<token>/`.
+     *
+     * GET  previews the invitation so the visitor knows what they are joining.
+     * POST joins: creates the account when nobody is logged in, or enrolls the
+     * current user when somebody is.
+     *
+     * Deliberately `AllowAny`: the token *is* the credential. It is 32 random bytes
+     * and single-use, and the endpoint is throttled per IP.
+     * @param token
+     * @returns any No response body
+     * @throws ApiError
+     */
+    public static householdsJoinRetrieve(
+        token: string,
+    ): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/households/join/{token}/',
+            path: {
+                'token': token,
+            },
+        });
+    }
+    /**
+     * Public endpoint behind a shared invitation link — `/api/households/join/<token>/`.
+     *
+     * GET  previews the invitation so the visitor knows what they are joining.
+     * POST joins: creates the account when nobody is logged in, or enrolls the
+     * current user when somebody is.
+     *
+     * Deliberately `AllowAny`: the token *is* the credential. It is 32 random bytes
+     * and single-use, and the endpoint is throttled per IP.
+     * @param token
+     * @returns any No response body
+     * @throws ApiError
+     */
+    public static householdsJoinCreate(
+        token: string,
+    ): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/households/join/{token}/',
+            path: {
+                'token': token,
+            },
         });
     }
     /**

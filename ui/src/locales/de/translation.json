@@ -2804,7 +2804,12 @@
     "setupSubmit": "Konto erstellen",
     "setupPending": "Wird erstellt…",
     "setupFailed": "Die Einrichtung ist fehlgeschlagen. Prüfe deine Angaben.",
-    "setupFirstName": "Dein Vorname"
+    "setupFirstName": "Dein Vorname",
+    "demo": {
+      "title": "Demo-Instanz",
+      "body": "Sie betreten den fiktiven Haushalt „Familie Mercier“ mit drei Jahren Daten. Alles ist änderbar, und alles wird jede Nacht zurückgesetzt.",
+      "install": "So betreiben Sie es zu Hause, mit Ihren Daten auf Ihrem eigenen Rechner:"
+    }
   },
   "projects": {
     "app_title": "Projekte-Mini-App",
@@ -4133,6 +4138,14 @@
         "months_other": "{{count}} Monate",
         "all": "Alle"
       }
+    },
+    "transfer": {
+      "action": "Mit einer anderen Buchung verknüpfen",
+      "title": "Die Gegenbuchung dieser Überweisung",
+      "hint": "„{{label}}“ ist eine interne Bewegung: Das Geld hat dieses Konto verlassen und ist auf einem anderen angekommen. Wählen Sie die Buchung, die es erhalten hat — beide zählen dann als eine einzige Bewegung und nicht als Ausgabe.",
+      "empty": "Keine passende Buchung. Das andere Konto fehlt vielleicht, oder sein Kontoauszug wurde noch nicht importiert.",
+      "confirm": "Beide Buchungen verknüpfen",
+      "linked": "Beide Buchungen sind jetzt eine."
     }
   },
   "pwa": {

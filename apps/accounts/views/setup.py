@@ -19,6 +19,7 @@ Doc : `docs/self-hosting/install.md`. Issue : #591.
 """
 from __future__ import annotations
 
+from django.conf import settings
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db import connection, transaction
@@ -93,14 +94,37 @@ class SetupView(APIView):
         return super().get_throttles()
 
     def get(self, request):
-        """L'instance attend-elle encore d'être configurée ?
+        """L'instance attend-elle encore d'être configurée ? Et est-ce une démo ?
 
         Public, comme `signup-availability`, et pour la même raison : l'écran de
         connexion doit savoir **avant** d'afficher quoi que ce soit s'il faut
         rediriger vers la configuration. Il n'expose rien qu'un `POST` ne dirait
         déjà en 403.
+
+        Le bloc `demo` voyage ici plutôt que dans un endpoint à lui parce que
+        c'est **le même besoin** : ce que l'écran de connexion doit savoir avant
+        de se dessiner. Un second appel public au chargement de la seule page
+        qu'on voit sans compte se paierait à chaque visite pour une information
+        qui tient en trois champs.
+
+        `null` partout sauf sur l'instance de démonstration, et il faut que les
+        trois réglages soient posés : une moitié de configuration vaut
+        indisponible, comme pour les capacités optionnelles. Le mot de passe est
+        déjà publié dans un dépôt public, sur un foyer de fausses données remis à
+        zéro chaque nuit — ce qu'on refuse, c'est un chemin d'authentification
+        sans identifiants, pas un identifiant connu.
         """
-        return Response({"required": not User.objects.exists()})
+        return Response({"required": not User.objects.exists(), "demo": self._demo()})
+
+    @staticmethod
+    def _demo() -> dict | None:
+        if not getattr(settings, "DEMO_MODE", False):
+            return None
+        email = getattr(settings, "DEMO_EMAIL", "") or ""
+        password = getattr(settings, "DEMO_PASSWORD", "") or ""
+        if not email or not password:
+            return None
+        return {"email": email, "password": password}
 
     def post(self, request):
         with transaction.atomic():

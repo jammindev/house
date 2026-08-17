@@ -264,6 +264,8 @@ export type InflowNature = 'salary' | 'refund' | 'transfer' | 'other' | '';
 export interface BankTransaction {
   id: string;
   account: string;
+  /** Le compte porteur, nommé — indispensable dès qu'une liste mélange les comptes. */
+  account_name: string;
   booked_on: string;
   value_on: string | null;
   label_raw: string;
@@ -509,6 +511,41 @@ export async function withdrawToCash(
 
 export async function unlinkCashCounterpart(transactionId: string): Promise<void> {
   await api.delete(`/banking/transactions/${transactionId}/unlink-cash/`);
+}
+
+/**
+ * Les autres jambes plausibles d'un virement entre deux comptes.
+ *
+ * C'est le serveur qui décide ce qui est plausible — mêmes critères que
+ * l'enregistrement. Refaire le tri ici donnerait deux définitions du même test,
+ * et proposer un candidat que le POST refuse est pire que n'en proposer aucun.
+ */
+export async function fetchTransferCandidates(
+  transactionId: string,
+): Promise<BankTransaction[]> {
+  const { data } = await api.get<BankTransaction[]>(
+    `/banking/transactions/${transactionId}/transfer-candidates/`,
+  );
+  return data;
+}
+
+/**
+ * Déclarer qu'une autre opération est l'autre jambe de ce virement.
+ *
+ * Le pendant manquant de `unlinkCashCounterpart` : le module savait délier un
+ * virement qu'il ne savait pas lier, donc tout foyer qui importe un compte
+ * courant et un livret voyait chaque virement d'épargne rester en erreur au
+ * Contrôle, tous les mois, sans issue.
+ */
+export async function linkTransferCounterpart(
+  transactionId: string,
+  counterpartId: string,
+): Promise<BankTransaction> {
+  const { data } = await api.post<BankTransaction>(
+    `/banking/transactions/${transactionId}/link-transfer/`,
+    { counterpart_id: counterpartId },
+  );
+  return data;
 }
 
 /**
