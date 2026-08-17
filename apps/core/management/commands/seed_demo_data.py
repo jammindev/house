@@ -168,6 +168,9 @@ class Command(BaseCommand):
             self._create_directory(household, claire)
             self._create_journal(household, claire, antoine, zones, equipment, projects)
             self._create_agent_conversation(household, claire, projects)
+            # En dernier, parce que les échéances naissent à trois endroits : le
+            # bloc Argent, l'import qui les confirme, et les contrats d'assurance.
+            self._settle_recurrences(household)
 
         self.stdout.write(self.style.SUCCESS("Demo data seeded successfully."))
 
@@ -1609,6 +1612,42 @@ class Command(BaseCommand):
 
         if purchase.bank_transaction_id is None:
             link_interaction(user=user, transaction=transaction, interaction=purchase)
+
+    def _settle_recurrences(self, household):
+        """Toute échéance repart dans le futur — sinon la démo s'invente un retard.
+
+        **Le défaut que ça corrige n'existait que la moitié du mois.** Les
+        échéances sont calées sur une ligne du relevé, puis avancées d'un cran par
+        l'import qui les confirme : un prélèvement du 15 du mois dernier retombe
+        donc le 15 de ce mois-ci. Avant le 15, tout est vert ; après, la
+        démonstration affiche `recurring_overdue` — un reproche qu'aucun geste de
+        l'écran ne permet de résoudre, sur une échéance que le foyer n'a pas
+        oubliée.
+
+        Le test qui l'attrape (« toute échéance repart dans le futur ») était déjà
+        là et déjà juste ; il ne se déclenchait que passé le 15, donc jamais le
+        jour où on livre. C'est la même famille de défaut que `toISOString()` et
+        que le fuseau du foyer : une date qui n'est fausse qu'à certaines heures
+        finit en production parce que la fenêtre où elle se voit est étroite.
+
+        La bonne cadence de rattrapage vit dans `budget.services` avec le reste de
+        l'arithmétique d'échéances — un seul endroit décide ce que « la prochaine
+        fois » veut dire.
+        """
+        from budget.services import catch_up_due_date
+
+        today = household_today(household)
+        settled = 0
+        for recurrence in RecurringExpense.objects.filter(household=household):
+            caught_up = catch_up_due_date(recurrence.next_due_date, recurrence.cadence, today)
+            if caught_up == recurrence.next_due_date:
+                continue
+            recurrence.next_due_date = caught_up
+            recurrence.save(update_fields=["next_due_date"])
+            settled += 1
+
+        if settled:
+            self.stdout.write(f"  Échéances : {settled} remises dans le futur")
 
     def _budget_category(self, household, name, monthly_amount):
         category, _ = BudgetCategory.objects.get_or_create(
