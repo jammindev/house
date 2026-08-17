@@ -345,3 +345,94 @@ class TestTheDemoHouseholdIsWorthVisiting:
         call_command("seed_demo_data")
 
         assert {m.__name__: m.objects.count() for m in models} == before
+
+
+@pytest.mark.django_db
+class TestTheDemoIsWorthVisitingAnyDayOfTheMonth:
+    """La démonstration ne doit pas dépendre du jour où on la lance.
+
+    Elle en dépendait. ``period_start`` est le 1er du mois **précédent** — une
+    ancre calendaire — et l'assurance MAIF n'avait qu'une seule ligne au relevé,
+    celle du mois précédent, là où Orange en avait deux. L'import confirmait donc
+    l'échéance en l'avançant d'**un** mois, ce qui la posait au 15 du mois
+    courant : dans le futur jusqu'au 15, dans le passé à partir du 16.
+
+    Le foyer de démonstration était ainsi en écart ``recurring_overdue`` la
+    moitié de chaque mois, et la CI rouge la moitié du temps sans qu'une ligne de
+    code ait bougé — la PR qui l'a introduit est passée verte un 15 et rouge le
+    17. Un défaut qui ne se voit que la moitié du temps ne se voit pas : il se
+    lit comme un test instable, et un test qu'on croit instable se désactive.
+
+    D'où ce test, qui ne vérifie rien de neuf — l'invariant est déjà celui de
+    ``test_the_statement_confirms_the_recurrences_it_covers`` — mais le vérifie
+    **à des dates choisies**, seule façon de tenir une seed dont l'arithmétique
+    dépend du calendrier :
+
+    - le 1er, où la ligne du mois courant n'est pas encore passée et où l'ancre
+      doit retomber sur le mois précédent ;
+    - le 16, le premier jour où le défaut se manifestait ;
+    - un mois précédent de 28 jours, que l'offset calculé doit encaisser ;
+    - le 31 décembre, où l'échéance suivante change d'année.
+    """
+
+    @pytest.fixture
+    def frozen(self, monkeypatch):
+        """Fige ``timezone.now`` — donc ``household_today`` pour tout le projet.
+
+        Patcher ``core.timezones.household_today`` ne suffirait pas : les modules
+        qui l'importent par ``from`` gardent leur propre référence, et la seed
+        avancerait pendant que le contrôle de conformité resterait à sa date. Ce
+        décalage est exactement le bug qu'on teste, en pire.
+        """
+        from datetime import datetime
+        from zoneinfo import ZoneInfo
+
+        from django.utils import timezone
+
+        def freeze(day):
+            fixed = datetime.fromisoformat(f"{day}T12:00:00").replace(tzinfo=ZoneInfo("UTC"))
+            monkeypatch.setattr(timezone, "now", lambda: fixed)
+
+        return freeze
+
+    @pytest.mark.parametrize(
+        "day",
+        [
+            "2026-03-01",  # la ligne du mois courant n'est pas encore passée
+            "2026-03-16",  # le jour où le défaut apparaissait, février en amont
+            "2026-05-31",  # fin de mois franche
+            "2026-12-31",  # l'échéance suivante bascule d'année
+        ],
+    )
+    def test_no_recurrence_is_born_overdue(self, frozen, day):
+        from budget.models import RecurringExpense
+        from core.timezones import household_today
+
+        frozen(day)
+        call_command("seed_demo_data")
+
+        household = Household.objects.get(name="Famille Mercier")
+        today = household_today(household)
+        overdue = [
+            (r.label, r.next_due_date)
+            for r in RecurringExpense.objects.all()
+            if r.next_due_date < today
+        ]
+        assert not overdue, f"échéances déjà dépassées le {today} : {overdue}"
+
+    @pytest.mark.parametrize("day", ["2026-03-16", "2026-12-31"])
+    def test_the_control_stays_quiet_about_recurrences(self, frozen, day):
+        """L'autre voix du même écart.
+
+        ``recurring_overdue`` est ce que le Contrôle affichait ; l'assertion du
+        dessus est ce que la base contenait. Les deux se tiennent, et les tester
+        séparément est ce qui dit lequel des deux ment le jour où ils divergent.
+        """
+        from banking import compliance
+
+        frozen(day)
+        call_command("seed_demo_data")
+
+        household = Household.objects.get(name="Famille Mercier")
+        detected = {g.spec.kind for g in compliance.summary(household) if g.detected}
+        assert "recurring_overdue" not in detected

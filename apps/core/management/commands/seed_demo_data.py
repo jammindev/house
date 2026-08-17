@@ -1124,6 +1124,19 @@ class Command(BaseCommand):
             (36, "CB CARREFOUR MARKET LYON", "-103.60"),
             (38, "PRLV ORANGE FIXE ET INTERNET", "-42.99"),
             (40, "CB CASTORAMA LYON EST", "-64.90"),
+            # MAIF est prélevé le 14 : il lui faut sa ligne du mois courant,
+            # comme Orange a la sienne. Sans elle, l'ancre de la récurrence
+            # restait celle du mois précédent, et la confirmation ne l'avance que
+            # d'**un** mois — donc dans le passé dès le 16. La démonstration
+            # était verte du 1er au 15 et en écart `recurring_overdue` le reste
+            # du mois, sans que rien n'ait changé dans le code.
+            #
+            # L'offset se calcule et ne se code pas en dur : le mois précédent
+            # n'a pas toujours 31 jours, et l'échéance de mars tomberait ailleurs
+            # que celle de mai. Le filtre `d(offset) <= today` juste en dessous
+            # écarte la ligne tant que le 14 n'est pas passé — l'ancre retombe
+            # alors sur le mois précédent, qui est encore dans le futur.
+            ((first_of_month - period_start).days + 13, "PRLV MAIF ASSURANCE HABITATION", "-58.30"),
         ]
         # On ne sème que ce qui est déjà arrivé : un relevé qui contient des
         # opérations futures n'existe pas, et fausserait tous les compteurs du
