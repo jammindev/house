@@ -228,6 +228,28 @@ def advance_due_date(d: date, cadence: str) -> date:
     return _add_months(d, months)
 
 
+def catch_up_due_date(due: date, cadence: str, today: date) -> date:
+    """La première occurrence **à venir**, en avançant d'autant de crans qu'il faut.
+
+    `advance_due_date` avance d'**un** cran, ce qui suffit pour confirmer une
+    échéance au fil de l'eau. Ça ne suffit pas quand on part d'une date ancienne :
+    un cran depuis le 15 du mois dernier retombe le 15 de ce mois-ci, donc dans le
+    passé dès qu'on est le 17.
+
+    Fonction pure, et volontairement vérifiable sans base ni horloge gelée —
+    c'est exactement le genre d'invariant qui tient tous les jours du mois sauf
+    ceux où personne ne regarde.
+
+    Idempotente sur une date déjà future, pour qu'un appelant n'ait pas à savoir
+    s'il doit appeler.
+    """
+    if _CADENCE_MONTHS.get(cadence) is None:
+        raise ValueError(f"unknown cadence: {cadence!r}")
+    while due < today:
+        due = advance_due_date(due, cadence)
+    return due
+
+
 def _resolve_recurring_budget(household_id, budget_id):
     """Resolve an optional budget for a recurrence (named budgets only).
 
