@@ -14,6 +14,10 @@
 #     c'est ~650 appels unitaires au fournisseur chaque nuit ; on l'éteint et on
 #     rattrape en lots avec `backfill_embeddings`.
 #
+# Le script fait donc DEUX choses, et la seconde est facile à oublier : il remet
+# les données à zéro, et il **rattrape la dernière release publiée**. C'est le seul
+# mécanisme qui met la vitrine à jour — aucun workflow ne s'en charge.
+#
 # La cadence vit dans la crontab, pas ici — une ligne à changer si un jour
 # d'annonce la démo se dégrade avant midi. Voir DEPLOYMENT.md § 11.
 set -euo pipefail
@@ -28,6 +32,21 @@ source .env
 set +a
 
 echo "[$(date -Is)] remise à zéro de la démonstration"
+
+# ── Rattraper la dernière release, AVANT de resemer ─────────────────────────
+#
+# La vitrine consomme le paquet publié (`ghcr.io/...:latest`), pas les sources —
+# c'est ce qui l'empêche de montrer des fonctionnalités qu'une installation ne
+# donnerait pas. La contrepartie est qu'elle ne bouge qu'aux releases, et rien
+# dans la CI ne la met à jour : ce `pull` est le seul mécanisme qui l'y amène.
+#
+# ⚠️ Les deux commandes comptent, et le `pull` seul serait un demi-correctif.
+# La seed exécutée plus bas est **le code de l'image**, lancé par `exec` dans le
+# conteneur DÉJÀ démarré : tirer une image neuve sans recréer le conteneur ferait
+# tourner l'ancienne seed indéfiniment, en donnant l'impression de se mettre à
+# jour. `up -d` ne recrée que si l'image a réellement changé.
+docker compose pull --quiet
+docker compose up -d --wait --wait-timeout 180 --no-deps web
 
 docker compose exec -T \
   -e EMBEDDING_INDEXING_ENABLED=0 \
