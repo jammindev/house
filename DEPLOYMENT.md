@@ -707,7 +707,7 @@ docker compose -f docker-compose.prod.yml up -d --build
 
 ## 11. L'instance de démonstration
 
-`https://demo.jammin-dev.com` — une **vitrine**, pas un produit.
+`https://demo.maisonnee.jammin-dev.com` — une **vitrine**, pas un produit.
 
 Elle existe pour une seule raison : personne n'installe un logiciel d'une heure
 sur la foi de sept captures d'écran, mais beaucoup l'installent après avoir
@@ -739,9 +739,33 @@ cp .env.example .env && $EDITOR .env        # domaine, clés, mots de passe
 docker compose up -d
 ```
 
-Le pointage DNS de `demo.jammin-dev.com` vers le VPS doit précéder le premier
+Le pointage DNS de `demo.maisonnee.jammin-dev.com` vers le VPS doit précéder le premier
 démarrage : Traefik demande son certificat au lancement, et un domaine qui ne
 résout pas donne un échec ACME qu'il faut ensuite attendre pour réessayer.
+
+> ⚠️ **Un joker DNS ne couvre qu'une seule étiquette.** Un `*.jammin-dev.com`
+> résout `demo.jammin-dev.com` mais **pas** `demo.maisonnee.jammin-dev.com`, qui en
+> compte une de plus. Il faut donc un enregistrement explicite pour cet hôte, ou un
+> `*.maisonnee.jammin-dev.com`. Côté TLS il n'y a rien de particulier : Traefik en
+> HTTP-01 certifie n'importe quelle profondeur. C'est le DNS qui manque, pas ACME —
+> mais l'erreur qu'on lit dans les logs parle de certificat, et envoie chercher au
+> mauvais endroit.
+
+### Pourquoi ce nom, et pas `demo.jammin-dev.com`
+
+Le VPS héberge quatre produits. Un `demo.` nu confisquerait le namespace des
+démonstrations pour un seul d'entre eux, à vie ; `demo.chef.jammin-dev.com` suivra
+la même forme sans qu'on ait à en rediscuter.
+
+`maisonnee.jammin-dev.com` seul a été écarté pour une autre raison : rien n'y
+annonce une démonstration. Un visiteur y verrait la page du produit, tenterait de
+créer un compte, et se heurterait à l'inscription fermée — exactement le mur que la
+vitrine existe pour supprimer.
+
+⚠️ **L'instance réelle reste sur `house.jammin-dev.com`, et ne se renomme pas à la
+légère.** Changer d'origine invalide les abonnements Web Push — ils sont liés à
+l'origine, pas au compte — et détache les PWA déjà installées. Un renommage
+cosmétique couperait donc les notifications du foyer qui s'en sert, sans un mot.
 
 ### Le cron de remise à zéro
 
