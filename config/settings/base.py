@@ -169,6 +169,34 @@ STORAGES = {
     "staticfiles": {"BACKEND": "whitenoise.storage.CompressedStaticFilesStorage"},
 }
 
+# ⚠️ Le corollaire du choix ci-dessus, et il coûtait cher tout seul.
+#
+# WhiteNoise ne met `immutable` que sur ce qu'il **reconnaît** comme empreinté, et
+# sa reconnaissance passe par le manifeste de Django : il retire le hash d'un nom
+# selon la convention `nom.HASH.ext`, redemande l'URL au storage, et conclut
+# « versionné » si le storage la remappe sur le nom haché. Sans manifeste — c'est
+# notre cas, exprès — le test échoue toujours, et tout retombe sur le défaut de
+# 60 secondes.
+#
+# Mesuré en production : `main-DIchQxlR.js`, 243 Ko, `cache-control: max-age=60`.
+# Un nom de fichier qui porte son empreinte avec un cache d'une minute, c'est le
+# bundle retéléchargé chaque minute de navigation — la compression réglée juste
+# au-dessus payait 243 Ko au lieu de 824, soixante fois par heure au lieu d'une.
+#
+# Le réglage est un motif, pas un booléen, et c'est ce qui le rend sûr : il ne
+# reconnaît que `…/react/assets/nom-HASH.js|css`, la forme que Vite produit. Les
+# icônes, favicons et manifeste PWA vivent dans `static/icons/` et gardent le
+# cache court — les figer pour toujours voudrait dire qu'un changement de marque
+# n'atteint jamais un navigateur qui a déjà visité.
+#
+# Le chemin est ancré sur `/react/assets/` et non sur `STATIC_URL` : le préfixe
+# statique peut changer selon le déploiement, le dossier de sortie de Vite non.
+#
+# Corrigé ici et pas dans nginx, alors que c'est nginx qui sert la production :
+# une instance auto-hébergée n'a **pas** de nginx, et c'est whitenoise qui répond.
+# Un correctif dans le proxy n'aurait réparé que le déploiement de l'auteur.
+WHITENOISE_IMMUTABLE_FILE_TEST = r"/react/assets/.+-[A-Za-z0-9_-]{8,}\.(?:js|css)$"
+
 # Media files (user-uploaded content, e.g. avatars)
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
