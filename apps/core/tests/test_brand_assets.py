@@ -326,9 +326,29 @@ class TestTheRepositoryHasASingleName:
         Sur un fork il **skippe** : le slug amont ne s'applique pas à quelqu'un
         d'autre, et un contributeur qui découvre le projet ne doit pas hériter
         d'une CI rouge pour avoir cliqué sur « Fork ».
+
+        En revanche il **refuse de skipper sur un runner GitHub**. Un contrôle
+        qui se désactive tout seul est précisément le défaut que cette classe
+        existe pour empêcher : la CI tourne en `-q`, qui n'imprime pas les
+        raisons de skip, donc un `GITHUB_REPOSITORY` disparu (un `env:` posé sur
+        l'étape, un autre exécuteur) rendrait ce test muet sans rien afficher.
+        Le seul contrôle qui voit le dépôt réel ne doit pas pouvoir s'éteindre en
+        silence.
         """
         actual = os.environ.get("GITHUB_REPOSITORY")
+        # Les deux valeurs sont extraites dans des variables locales *avant* tout
+        # `assert`. Une assertion portant sur `os.environ` fait introspecter la
+        # table entière par pytest, qui l'imprime dans le rapport d'échec : sur ce
+        # dépôt public, un rouge en CI publierait tout le contexte du runner dans
+        # un log lisible par n'importe qui. Un test ne doit pas devenir une fuite
+        # le jour où il rougit.
+        on_a_github_runner = bool(os.environ.get("GITHUB_ACTIONS"))
         if not actual:
+            assert not on_a_github_runner, (
+                "sur un runner GitHub sans `GITHUB_REPOSITORY` : ce test est le "
+                "seul à comparer le slug déclaré au dépôt réel, il ne doit pas "
+                "se laisser désactiver par une variable manquante"
+            )
             pytest.skip("hors runner GitHub : aucun nom de dépôt à comparer")
         owner, _, _name = actual.partition("/")
         if owner != REPOSITORY_SLUG.partition("/")[0]:
