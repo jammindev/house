@@ -1,10 +1,9 @@
 import * as React from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { useQueryClient } from '@tanstack/react-query';
-import { Wrench } from 'lucide-react';
+import { Receipt, ShieldCheck, Wrench } from 'lucide-react';
 import { Badge } from '@/design-system/badge';
-import { Button } from '@/design-system/button';
+import { Button, buttonVariants } from '@/design-system/button';
 import { Card, CardContent } from '@/design-system/card';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import BackLink from '@/components/BackLink';
@@ -15,15 +14,18 @@ import LoadError from '@/components/LoadError';
 import ListSkeleton from '@/components/ListSkeleton';
 import { TabShell } from '@/components/TabShell';
 import { useNavigateBack } from '@/lib/backNavigation';
-import { formatAmount, formatDate, formatDateTime, isPast } from '@/lib/format';
+import { formatAmount, formatDate, formatDateTime } from '@/lib/format';
+import { cn } from '@/lib/utils';
 import {
   useEquipment,
   useEquipmentHistory,
   useDeleteEquipment,
-  equipmentKeys,
+  useLogEquipmentService,
 } from './hooks';
 import { statusVariant } from './format';
+import { TONE_CLASS, categoryKey, conditionKey, healthWhen, maintenanceTone, warrantyTone } from './health';
 import EquipmentDialog from './EquipmentDialog';
+import EquipmentPurchaseDialog from './EquipmentPurchaseDialog';
 import EntityDocumentsTab from '@/features/documents/EntityDocumentsTab';
 import EntityPhotosTab from '@/features/photos/EntityPhotosTab';
 import { useDelayedLoading } from '@/lib/useDelayedLoading';
@@ -35,19 +37,15 @@ export default function EquipmentDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { t } = useTranslation();
   const navigateBack = useNavigateBack('/app/equipment');
-  const qc = useQueryClient();
 
   const [editOpen, setEditOpen] = React.useState(false);
   const [deleteOpen, setDeleteOpen] = React.useState(false);
+  const [purchaseOpen, setPurchaseOpen] = React.useState(false);
 
   const { data: equipment, isLoading, error } = useEquipment(id ?? '');
   const { data: history = [], isLoading: historyLoading } = useEquipmentHistory(id ?? '');
   const deleteMutation = useDeleteEquipment();
-
-  const handleSaved = React.useCallback(() => {
-    qc.invalidateQueries({ queryKey: equipmentKeys.all });
-    setEditOpen(false);
-  }, [qc]);
+  const logServiceMutation = useLogEquipmentService();
 
   const showSkeleton = useDelayedLoading(isLoading && !equipment);
 
@@ -74,8 +72,9 @@ export default function EquipmentDetailPage() {
     );
   }
 
-  const warrantyExpired = isPast(equipment.warranty_expires_on);
-  const serviceOverdue = isPast(equipment.next_service_due);
+  const warranty = equipment.warranty_state;
+  const maintenance = equipment.maintenance_state;
+  const isTracked = maintenance.state !== 'unknown';
 
   const logInteractionHref = [
     '/app/interactions/new?type=maintenance',
@@ -105,6 +104,19 @@ export default function EquipmentDetailPage() {
             ) : undefined
           }
         >
+          {/* Le geste courant d'abord, la gestion de la fiche ensuite. */}
+          {isTracked ? (
+            <Button
+              type="button"
+              variant={maintenance.state === 'overdue' ? 'default' : 'outline'}
+              className="h-8 gap-1 px-3 text-sm"
+              disabled={logServiceMutation.isPending}
+              onClick={() => logServiceMutation.mutate({ id: equipment.id })}
+            >
+              <Wrench className="h-3.5 w-3.5" />
+              {t('equipment.service.actions.log')}
+            </Button>
+          ) : null}
           <Button
             type="button"
             variant="outline"
@@ -133,10 +145,73 @@ export default function EquipmentDetailPage() {
             <>
               {tab === 'info' ? (
                 <div className="space-y-6">
+                  {/* Les deux verdicts en tête, dans les mots exacts de la liste :
+                      ils viennent du même champ servi par le serveur et passent
+                      par le même module de rendu. C'est ce qui les empêche de se
+                      contredire d'un écran à l'autre. */}
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <Card>
+                      <CardContent className="flex items-start gap-3 pt-4">
+                        <Wrench className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
+                        <div className="min-w-0">
+                          <h3 className="text-sm font-semibold text-foreground">
+                            {t('equipment.detail.fields.next_service')}
+                          </h3>
+                          <p className={cn('mt-1 text-sm', TONE_CLASS[maintenanceTone(maintenance.state)])}>
+                            {t(`equipment.health.maintenance.${maintenance.state}`, {
+                              when: healthWhen(maintenance.days),
+                            })}
+                          </p>
+                          {maintenance.date ? (
+                            <p className="mt-0.5 text-xs text-muted-foreground">
+                              {t('equipment.detail.maintenance_on', {
+                                date: formatDate(maintenance.date),
+                              })}
+                            </p>
+                          ) : null}
+                          {equipment.last_service_at ? (
+                            <p className="text-xs text-muted-foreground">
+                              {t('equipment.detail.fields.last_service')}:{' '}
+                              {formatDate(equipment.last_service_at)}
+                            </p>
+                          ) : null}
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    <Card>
+                      <CardContent className="flex items-start gap-3 pt-4">
+                        <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
+                        <div className="min-w-0">
+                          <h3 className="text-sm font-semibold text-foreground">
+                            {t('equipment.detail.fields.warranty')}
+                          </h3>
+                          <p className={cn('mt-1 text-sm', TONE_CLASS[warrantyTone(warranty.state)])}>
+                            {t(`equipment.health.warranty.${warranty.state}`, {
+                              when: healthWhen(warranty.days),
+                            })}
+                          </p>
+                          {warranty.date ? (
+                            <p className="mt-0.5 text-xs text-muted-foreground">
+                              {t('equipment.detail.warranty_on', {
+                                date: formatDate(warranty.date),
+                              })}
+                            </p>
+                          ) : null}
+                          {equipment.warranty_provider ? (
+                            <p className="text-xs text-muted-foreground">
+                              {equipment.warranty_provider}
+                            </p>
+                          ) : null}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+
                   <DetailSection title={t('equipment.detail.title')} icon={Wrench}>
                     <dl className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                       <InfoField label={t('equipment.detail.fields.category')}>
-                        {equipment.category || '—'}
+                        {t(`equipment.category.${categoryKey(equipment.category)}`)}
                       </InfoField>
 
                       <InfoField label={t('equipment.detail.fields.zone')}>
@@ -165,7 +240,7 @@ export default function EquipmentDetailPage() {
                       </InfoField>
 
                       <InfoField label={t('equipment.detail.fields.condition')}>
-                        {equipment.condition || '—'}
+                        {equipment.condition ? t(`equipment.condition.${conditionKey(equipment.condition)}`) : '—'}
                       </InfoField>
 
                       <InfoField label={t('equipment.detail.fields.purchase_date')}>
@@ -180,58 +255,15 @@ export default function EquipmentDetailPage() {
                     </dl>
                   </DetailSection>
 
-                  {(equipment.warranty_expires_on || equipment.warranty_provider) ? (
+                  {equipment.notes ? (
                     <Card>
                       <CardContent className="pt-4">
-                        <h3 className="mb-3 text-sm font-semibold text-foreground">
-                          {t('equipment.detail.fields.warranty')}
+                        <h3 className="mb-2 text-sm font-semibold text-foreground">
+                          {t('equipment.form.fields.notes')}
                         </h3>
-                        <div className="space-y-2 text-sm">
-                          {equipment.warranty_expires_on ? (
-                            <p className={warrantyExpired ? 'text-destructive' : 'text-foreground'}>
-                              {warrantyExpired
-                                ? t('equipment.detail.warranty_expired')
-                                : t('equipment.detail.warranty_ok', {
-                                    date: formatDate(equipment.warranty_expires_on),
-                                  })}
-                            </p>
-                          ) : null}
-                          {equipment.warranty_provider ? (
-                            <p className="text-muted-foreground">
-                              {t('equipment.form.fields.warranty_provider')}:{' '}
-                              {equipment.warranty_provider}
-                            </p>
-                          ) : null}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ) : null}
-
-                  {(equipment.last_service_at || equipment.next_service_due) ? (
-                    <Card>
-                      <CardContent className="pt-4">
-                        <h3 className="mb-3 text-sm font-semibold text-foreground">
-                          {t('equipment.detail.fields.next_service')}
-                        </h3>
-                        <div className="space-y-2 text-sm">
-                          {equipment.last_service_at ? (
-                            <p className="text-muted-foreground">
-                              {t('equipment.detail.fields.last_service')}:{' '}
-                              {formatDate(equipment.last_service_at)}
-                            </p>
-                          ) : null}
-                          {equipment.next_service_due ? (
-                            <p className={serviceOverdue ? 'text-destructive' : 'text-foreground'}>
-                              {serviceOverdue
-                                ? t('equipment.detail.maintenance_overdue', {
-                                    date: formatDate(equipment.next_service_due),
-                                  })
-                                : t('equipment.detail.maintenance_due', {
-                                    date: formatDate(equipment.next_service_due),
-                                  })}
-                            </p>
-                          ) : null}
-                        </div>
+                        <p className="whitespace-pre-wrap text-sm text-muted-foreground">
+                          {equipment.notes}
+                        </p>
                       </CardContent>
                     </Card>
                   ) : null}
@@ -240,16 +272,28 @@ export default function EquipmentDetailPage() {
 
               {tab === 'history' ? (
                 <section className="space-y-3">
-                  <div className="flex items-center justify-between gap-3">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
                     <h2 className="text-base font-semibold text-foreground">
                       {t('equipment.detail.history_title')}
                     </h2>
-                    <Link
-                      to={logInteractionHref}
-                      className="inline-flex h-8 items-center rounded-md border border-input bg-background px-3 text-sm font-medium shadow-sm hover:bg-accent hover:text-accent-foreground"
-                    >
-                      {t('equipment.detail.add_intervention')}
-                    </Link>
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="gap-1"
+                        onClick={() => setPurchaseOpen(true)}
+                      >
+                        <Receipt className="h-3.5 w-3.5" />
+                        {t('equipment.purchase.actions.add')}
+                      </Button>
+                      <Link
+                        to={logInteractionHref}
+                        className={buttonVariants({ variant: 'outline', size: 'sm' })}
+                      >
+                        {t('equipment.detail.add_intervention')}
+                      </Link>
+                    </div>
                   </div>
 
                   {historyLoading ? (
@@ -261,20 +305,26 @@ export default function EquipmentDetailPage() {
                   ) : (
                     <ul className="space-y-2">
                       {history.map((item) => (
-                        <li key={item.interaction} className="rounded-md border p-3 text-sm">
+                        <li key={item.id} className="rounded-md border border-border p-3 text-sm">
                           <div className="flex items-start justify-between gap-2">
-                            <span className="font-medium">{item.interaction_subject || '—'}</span>
-                            <div className="flex shrink-0 gap-1">
-                              {item.interaction_type ? (
+                            <span className="min-w-0 font-medium">{item.subject || '—'}</span>
+                            <div className="flex shrink-0 items-center gap-2">
+                              {item.amount ? (
+                                <span className="text-xs font-medium text-foreground">
+                                  {formatAmount(item.amount)}
+                                </span>
+                              ) : null}
+                              {item.type ? (
                                 <Badge variant="outline" className="h-5 text-[10px]">
-                                  {t(`equipment.interaction_type.${item.interaction_type}`)}
+                                  {t(`equipment.interaction_type.${item.type}`)}
                                 </Badge>
                               ) : null}
                             </div>
                           </div>
-                          {item.interaction_occurred_at ? (
-                            <p className="mt-1 text-[10px] text-muted-foreground">
-                              {formatDateTime(item.interaction_occurred_at)}
+                          {item.occurred_at ? (
+                            <p className="mt-1 text-xs text-muted-foreground">
+                              {formatDateTime(item.occurred_at)}
+                              {item.supplier ? ` · ${item.supplier}` : ''}
                             </p>
                           ) : null}
                         </li>
@@ -300,7 +350,13 @@ export default function EquipmentDetailPage() {
         open={editOpen}
         onOpenChange={setEditOpen}
         existingItem={equipment}
-        onSaved={handleSaved}
+        onSaved={() => setEditOpen(false)}
+      />
+
+      <EquipmentPurchaseDialog
+        open={purchaseOpen}
+        onOpenChange={setPurchaseOpen}
+        equipment={equipment}
       />
 
       <ConfirmDialog

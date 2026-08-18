@@ -1786,7 +1786,7 @@ class Command(BaseCommand):
         """
         today = household_today(household)
 
-        def equip(name, *, zone_key=None, category="general", **fields):
+        def equip(name, *, zone_key=None, category="other", **fields):
             defaults = {
                 "zone": zones[zone_key] if zone_key else None,
                 "category": category,
@@ -1863,7 +1863,7 @@ class Command(BaseCommand):
         equip(
             "VMC double flux InspirAIR Home",
             zone_key="cave",
-            category="hvac",
+            category="heating",
             manufacturer="Aldes",
             model="InspirAIR Home SC240",
             purchase_date=date(2015, 11, 20),

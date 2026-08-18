@@ -1,3 +1,4 @@
+from datetime import date
 from decimal import Decimal
 
 import pytest
@@ -58,7 +59,19 @@ def _purchase_url(equipment):
 
 
 @pytest.mark.django_db
-def test_register_purchase_snapshots_equipment_and_creates_expense(client, user, household, drill, membership):
+def test_registering_an_expense_never_rewrites_the_record(client, user, household, drill, membership):
+    """Une dépense liée ne touche pas à la fiche — surtout pas à sa date d'achat.
+
+    L'action recopiait montant, fournisseur et date dans ``purchase_*`` : changer
+    un joint à 12 € sur une chaudière achetée en 2015 réécrivait donc sa date
+    d'achat à aujourd'hui et son prix à 12 €, sans un mot et sans retour possible.
+    L'achat initial se saisit dans la fiche ; ici on n'enregistre que l'argent.
+    """
+    drill.purchase_price = Decimal("89.00")
+    drill.purchase_vendor = "Original store"
+    drill.purchase_date = date(2015, 10, 12)
+    drill.save(update_fields=["purchase_price", "purchase_vendor", "purchase_date"])
+
     client.force_login(user)
 
     response = client.post(
@@ -74,10 +87,15 @@ def test_register_purchase_snapshots_equipment_and_creates_expense(client, user,
 
     assert response.status_code == 201, response.content
     payload = response.json()
-    assert payload["purchase_price"] == "199.00"
-    assert payload["purchase_vendor"] == "ToolStore"
-    assert payload["purchase_date"] == "2026-04-15"
+    assert payload["purchase_price"] == "89.00"
+    assert payload["purchase_vendor"] == "Original store"
+    assert payload["purchase_date"] == "2015-10-12"
     assert "interaction_id" in payload
+
+    drill.refresh_from_db()
+    assert drill.purchase_price == Decimal("89.00")
+    assert drill.purchase_vendor == "Original store"
+    assert drill.purchase_date == date(2015, 10, 12)
 
     interaction = Interaction.objects.get(id=payload["interaction_id"])
     assert interaction.type == "expense"

@@ -202,3 +202,24 @@ export function isPast(value?: string | null): boolean {
   if (!value) return false;
   return new Date(value) < new Date();
 }
+
+/**
+ * Un écart en jours, dit dans l'unité qui se lit — « il y a 6 ans », pas
+ * « il y a 2136 jours ».
+ *
+ * Un compte à rebours en jours est juste et illisible passé quelques semaines :
+ * la garantie d'une chaudière affichait « expirée depuis 2136 jours », ce qu'il
+ * faut poser et diviser pour comprendre. `Intl.RelativeTimeFormat` porte déjà la
+ * langue, le pluriel et le sens du temps ; on ne choisit que l'unité.
+ *
+ * Le signe suit la convention d'`Intl` : négatif = passé, positif = futur.
+ */
+export function formatRelativeDays(days: number): string {
+  const rtf = new Intl.RelativeTimeFormat(appLocale(), { numeric: 'auto' });
+  const magnitude = Math.abs(days);
+  const sign = days < 0 ? -1 : 1;
+
+  if (magnitude < 45) return rtf.format(days, 'day');
+  if (magnitude < 365) return rtf.format(sign * Math.round(magnitude / 30), 'month');
+  return rtf.format(sign * Math.round(magnitude / 365), 'year');
+}

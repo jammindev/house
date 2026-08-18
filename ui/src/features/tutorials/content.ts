@@ -69,7 +69,9 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
   { key: 'recap', Icon: PartyPopper, to: '/app/recap', stepIds: ['what', 'story', 'chapters', 'appointment', 'frozen'] },
   { key: 'install', Icon: Smartphone, to: '/app/settings', stepIds: ['install', 'enable', 'badge'] },
   { key: 'zones', moduleKey: 'zones', to: '/app/zones', stepIds: ['create', 'hierarchy', 'read', 'find', 'order', 'navigate'] },
-  { key: 'equipment', moduleKey: 'equipment', to: '/app/equipment', stepIds: ['add', 'purchase', 'history'] },
+  // `service` juste après `add` : c'est le geste courant du module, et il dépend
+  // d'un champ qu'on ne remplit qu'à la création (l'intervalle d'entretien).
+  { key: 'equipment', moduleKey: 'equipment', to: '/app/equipment', stepIds: ['add', 'service', 'purchase', 'history'] },
   { key: 'electricity', moduleKey: 'electricity', to: '/app/electricity', stepIds: ['board', 'readings', 'analyze'] },
   { key: 'water', moduleKey: 'water', to: '/app/water', stepIds: ['readings', 'charts'] },
   { key: 'weather', moduleKey: 'weather', to: '/app/weather', stepIds: ['location', 'forecast', 'dashboard', 'alerts'] },
