@@ -46,7 +46,24 @@ echo "[$(date -Is)] remise à zéro de la démonstration"
 # tourner l'ancienne seed indéfiniment, en donnant l'impression de se mettre à
 # jour. `up -d` ne recrée que si l'image a réellement changé.
 docker compose pull --quiet
-docker compose up -d --wait --wait-timeout 180 --no-deps web
+
+# Migrer AVANT de basculer, sur un conteneur jetable de l'image neuve — même ordre
+# qu'en production. Sans cette étape, la seed d'une release qui ajoute une app tape
+# sur des tables absentes : `relation "games_hunts" does not exist`, constaté en
+# passant la démonstration de la v0.3.0 à la v0.4.0 et ses sept migrations.
+docker compose run --rm --no-deps web python manage.py migrate --noinput
+
+# ⚠️ `--force-recreate`, et ce n'est pas de la prudence excessive : Compose compare
+# le **nom** de l'image du service, pas le digest résolu. Le tag `latest` ne change
+# jamais de nom, donc `up -d` seul considère le conteneur à jour et ne le recrée
+# pas — l'ancienne image continue de tourner. Mesuré : image locale à jour, digest
+# neuf dans le registre, et la seed qui produisait encore 20 opérations au lieu de
+# 619.
+#
+# Recréer chaque nuit coûte quelques secondes sur une instance qu'on efface de
+# toute façon, et supprime toute une classe de panne silencieuse : « la démo a
+# l'air à jour et ne l'est pas » est exactement ce qu'on ne veut pas pouvoir dire.
+docker compose up -d --force-recreate --wait --wait-timeout 180 --no-deps web
 
 docker compose exec -T \
   -e EMBEDDING_INDEXING_ENABLED=0 \
