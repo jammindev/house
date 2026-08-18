@@ -89,6 +89,9 @@ scripts/sync_from_prod.sh
 .claude/scheduled_tasks.lock
 .claude/settings.local.json
 .claude/worktrees/
+# Passation de session (skill /handoff) : éphémère, propre à un checkout, et
+# donc un aimant à conflits entre les sessions parallèles. Elle ne se commite pas.
+.claude/HANDOFF.md
 
 # Artefacts et notes locales — l'étaient par accident (parcours 28, lot 0).
 # Le dépôt est public : un artefact suivi finit par publier un chemin, un nom
