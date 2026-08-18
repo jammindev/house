@@ -753,7 +753,7 @@ ne résout pas donne un échec ACME qu'il faut ensuite attendre pour réessayer.
 > ⚠️ **La règle « une seule étiquette » existe, mais elle est celle des
 > certificats.** Un wildcard X.509 `*.jammin-dev.com` ne couvre qu'un niveau, donc
 > pas `demo.maisonnee.jammin-dev.com`. Elle ne s'applique pas ici : Traefik obtient
-> un certificat **par hôte** en HTTP-01, à n'importe quelle profondeur. Confondre
+> un certificat **par hôte** en TLS-ALPN, à n'importe quelle profondeur. Confondre
 > les deux règles fait chercher un enregistrement DNS qui existe déjà — c'est
 > l'erreur que ce paragraphe a d'abord affirmée, avant d'être mesurée.
 
