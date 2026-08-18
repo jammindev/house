@@ -321,6 +321,17 @@ promet que tout se fait depuis l'interface. Doc : `docs/self-hosting/install.md`
   qui trouve l'URL. Elle est prise **sous `pg_advisory_xact_lock`** dans la
   transaction : deux `POST` simultanés verraient tous deux zéro compte et
   créeraient deux administrateurs dans deux foyers différents, dont un fantôme.
+- **⚠️ Et rien ne doit pouvoir rendre l'instance neuve à nouveau.** La garde étant
+  « aucun compte n'existe », **tout mécanisme qui vide la base rouvre la porte**.
+  La remise à zéro de la démonstration committait ses suppressions *hors*
+  transaction avant de resemer pendant 1 min 45 : une fenêtre par nuit où la
+  vitrine publique offrait son compte administrateur au premier visiteur qui
+  passait — dans un foyer né hors de « Famille Mercier », que le `--flush`, borné
+  à ce nom, n'aurait jamais purgé. Une purge et sa reconstruction partagent donc
+  **une seule transaction** (`seed_demo_data`), ce qui ferme la fenêtre et fait
+  d'une reseed échouée un retour à l'ancien foyer plutôt qu'une vitrine vide.
+  `ALLOW_OPEN_SIGNUP=False` n'en protège pas : ce n'est pas la même porte.
+  Régression : `test_first_run.py::TestAResetNeverLooksLikeANewInstance`.
 - **Le refus se dit en 403, jamais en 401** — même raison que le refus
   d'inscription : 401 veut dire « recommence avec des identifiants », et aucun
   identifiant n'ouvrira une configuration déjà faite.
