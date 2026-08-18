@@ -1,0 +1,15 @@
+# Voir le commentaire de tête du fichier .service pour le choix de systemd.
+[Unit]
+Description=Remise a zero quotidienne de la demonstration Maisonnee
+
+[Timer]
+OnCalendar=*-*-* 04:00:00
+# Rattrape une execution manquee (redemarrage du VPS, machine eteinte) plutot que
+# d attendre le lendemain : une demo degradee resterait visible 24 h de plus.
+# C est ce que `cron` ne sait pas faire.
+Persistent=true
+# Desynchronise de apt-daily et des autres timers de la machine.
+RandomizedDelaySec=300
+
+[Install]
+WantedBy=timers.target

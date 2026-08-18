@@ -1,0 +1,23 @@
+# Unité systemd **utilisateur** — à copier dans ~/.config/systemd/user/ sur le VPS.
+#
+# Pourquoi systemd et pas cron : ce VPS n'a **pas** de cron installé (`crontab`
+# n'existe pas, le paquet est absent), et `sudo` y demande un mot de passe — donc
+# ni `crontab -e` ni l'installation d'une unité système ne sont possibles depuis
+# une session non interactive. Une unité utilisateur ne demande rien de tout ça,
+# et `Linger=yes` étant actif pour `hermes`, elle tourne sans session ouverte.
+#
+# Le bénéfice n'est pas qu'un contournement : la sortie va **nativement** dans
+# journald, qui tourne et purge de lui-même. Le pipe `| logger` d'une ligne de
+# cron, et le `logrotate` qu'un fichier de log aurait exigé, disparaissent tous
+# les deux.
+[Unit]
+Description=Remise a zero de l instance de demonstration Maisonnee
+Documentation=https://github.com/jammindev/house/blob/main/DEPLOYMENT.md
+
+[Service]
+Type=oneshot
+ExecStart=/home/hermes/jammin-dev/apps/maisonnee-demo/deploy/demo/reset.sh
+# ~9 s en regime normal ; davantage le soir d une release, ou le script tire une
+# image neuve et recree le conteneur. La borne evite un blocage indefini si le
+# registre ne repond pas.
+TimeoutStartSec=900
