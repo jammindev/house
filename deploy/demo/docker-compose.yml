@@ -69,6 +69,16 @@ services:
     depends_on:
       init:
         condition: service_completed_successfully
+    # Sans healthcheck, le `--wait` de `reset.sh` n'attend que « le conteneur est
+    # lancé » — ce qui est vrai avant que gunicorn n'accepte une connexion. La
+    # remise à zéro enchaînerait alors un `exec` sur un process qui démarre encore.
+    # `/health/` reste une preuve de vie et ne touche pas la base (cf. CLAUDE.md).
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request as u; u.urlopen('http://127.0.0.1:8000/health/', timeout=5)"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 20s
     networks:
       - internal
       - traefik-public
