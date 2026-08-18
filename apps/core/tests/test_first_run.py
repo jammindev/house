@@ -10,10 +10,15 @@ Le foyer de démonstration est ici aussi parce qu'il **est** la première
 impression du profil ``demo`` — et parce qu'il emprunte le vrai chemin d'import
 de relevé : cassé, il l'est le jour où l'import l'est.
 """
+import threading
+from unittest import mock
+
 import pytest
 from django.contrib.auth import get_user_model
 from django.core.management import call_command
+from django.db import connections
 
+from accounts.services import create_first_account
 from households.models import Household, HouseholdMember
 
 User = get_user_model()
@@ -436,3 +441,100 @@ class TestTheDemoIsWorthVisitingAnyDayOfTheMonth:
         household = Household.objects.get(name="Famille Mercier")
         detected = {g.spec.kind for g in compliance.summary(household) if g.detected}
         assert "recurring_overdue" not in detected
+
+
+class _StopTheReseed(Exception):
+    """Interrompt la reseed à son premier geste.
+
+    Trois ans d'historique prennent près de deux minutes ; ce qui est en cause
+    ici se joue avant la première ligne semée.
+    """
+
+
+def _accounts_visible_from_another_connection() -> bool:
+    """Ce que voit un visiteur pendant la remise à zéro — donc le seul commité.
+
+    Un thread, parce que Django ouvre une connexion par thread. La connexion du
+    test verrait ses propres écritures non committées et ne prouverait rien : le
+    trou de production était précisément invisible depuis la connexion qui
+    l'ouvrait.
+    """
+    seen: dict[str, bool] = {}
+
+    def look():
+        try:
+            seen["accounts"] = User.objects.exists()
+        finally:
+            # Sans ça la connexion du thread survit au test, et le TRUNCATE de
+            # fin de test attend un verrou que plus personne ne rendra.
+            connections.close_all()
+
+    probe = threading.Thread(target=look)
+    probe.start()
+    probe.join(timeout=10)
+    assert "accounts" in seen, "la sonde n'a jamais répondu"
+    return seen["accounts"]
+
+
+@pytest.mark.django_db(transaction=True)
+class TestAResetNeverLooksLikeANewInstance:
+    """La vitrine se remet à zéro sans jamais passer pour une instance neuve.
+
+    ⚠️ ``transaction=True`` est structurel : ce test compare ce que voit **une
+    autre connexion**. Enfermé dans la transaction de test habituelle, il ne
+    montrerait rien à personne et passerait sans rien prouver.
+    """
+
+    EMAIL = "claire.mercier@demo.local"
+
+    @pytest.fixture(autouse=True)
+    def a_demo_already_in_place(self):
+        create_first_account(
+            email=self.EMAIL,
+            password="s3cret-de-test",
+            household_name="Famille Mercier",
+            first_name="Claire",
+        )
+
+    def _reset_interrupted_at_its_first_step(self) -> bool:
+        """Lance ``--flush`` et rend ce qu'une autre connexion voyait alors."""
+        from core.management.commands.seed_demo_data import Command
+
+        seen: dict[str, bool] = {}
+
+        def probe_then_stop(command):
+            seen["accounts"] = _accounts_visible_from_another_connection()
+            raise _StopTheReseed
+
+        with mock.patch.object(Command, "_create_household", probe_then_stop):
+            with pytest.raises(_StopTheReseed):
+                call_command("seed_demo_data", flush=True)
+
+        return seen["accounts"]
+
+    def test_a_visitor_never_sees_an_instance_without_an_account(self):
+        """Le trou observé en production : 1 min 45 sans aucun compte.
+
+        ``_flush()`` committait ses suppressions, et la reseed était une
+        transaction séparée. Entre les deux, ``User.objects.exists()`` était faux
+        pour tout le monde — or ``GET /api/accounts/setup/`` est en ``AllowAny``
+        et sa garde est « aucun compte n'existe ». La vitrine publique offrait
+        donc **le** compte administrateur au premier visiteur qui passait, dans
+        un foyer né hors de « Famille Mercier », que ``--flush`` est seul à
+        savoir purger : un admin permanent, une fenêtre par nuit.
+        """
+        assert self._reset_interrupted_at_its_first_step() is True
+
+    def test_an_interrupted_reset_leaves_the_previous_demo_in_place(self):
+        """Le second effet de la même cause, et la preuve que le tout tient.
+
+        Une reseed qui échoue à mi-chemin laissait la vitrine vide et
+        l'assistant de premier démarrage ouvert jusqu'à ce que quelqu'un le
+        remarque. La suppression et la reseed partageant maintenant leur
+        transaction, un échec restaure l'ancien foyer au lieu de ne rien
+        laisser.
+        """
+        self._reset_interrupted_at_its_first_step()
+
+        assert User.objects.filter(email=self.EMAIL).exists()
+        assert Household.objects.filter(name="Famille Mercier").exists()

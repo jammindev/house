@@ -784,7 +784,7 @@ cosmétique couperait donc les notifications du foyer qui s'en sert, sans un mot
 régime normal. Un jour d'annonce, la démonstration peut se dégrader avant midi —
 passer à `0 * * * *` est alors un geste, pas un chantier.
 
-### Trois choses à ne pas défaire
+### Quatre choses à ne pas défaire
 
 - **`EMBEDDING_INDEXING_ENABLED=0` pendant la seed.** Les embeddings sont posés
   par un signal `post_save` : semer signal allumé, c'est ~650 appels unitaires au
@@ -794,9 +794,17 @@ passer à `0 * * * *` est alors un geste, pas un chantier.
   comptes ; sans `--password`, elle retombe sur celui publié dans le dépôt. Ici
   c'est sans conséquence — il *est* publié exprès — mais l'habitude doit tenir
   partout ailleurs.
-- **`ALLOW_OPEN_SIGNUP=False`.** C'est la seule protection contre le pire scénario
-  de la vitrine : un visiteur qui crée un compte, atterrit devant des écrans
-  vides, et en conclut que le produit est vide.
+- **`ALLOW_OPEN_SIGNUP=False`.** Ça ferme le pire scénario de la vitrine : un
+  visiteur qui crée un compte, atterrit devant des écrans vides, et en conclut que
+  le produit est vide.
+- **⚠️ Mais l'inscription n'est pas la seule porte, et la remise à zéro doit rester
+  atomique.** `/api/accounts/setup/` est en `AllowAny` et sa garde est « aucun
+  compte n'existe » — que `ALLOW_OPEN_SIGNUP` ne touche pas. Une purge committée
+  avant sa reseed laissait donc l'instance sans aucun compte pendant toute la
+  durée de celle-ci (1 min 45, mesuré en production), et la vitrine offrait son
+  compte administrateur à qui passait, dans un foyer que le `--flush` n'aurait
+  jamais repurgé. `seed_demo_data` supprime et resème dans **une seule
+  transaction** : ne pas ressortir le `--flush` de là.
 
 ### Ce que la démonstration ne montre pas
 

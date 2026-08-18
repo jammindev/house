@@ -144,10 +144,23 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        if options["flush"]:
-            self._flush()
-
+        # ⚠️ La suppression est **dans** la transaction de la reseed, et ce n'est
+        # pas de la plomberie. Committée à part, elle ouvrait une fenêtre de la
+        # durée de la reseed — 1 min 45 pour trois ans d'historique — pendant
+        # laquelle l'instance n'avait plus aucun compte. Or la garde de
+        # `/api/accounts/setup/` (`AllowAny`) est « aucun compte n'existe » : la
+        # vitrine publique offrait donc le compte administrateur au premier
+        # visiteur qui passait, dans un foyer né hors de « Famille Mercier » —
+        # que ce `--flush` est seul à savoir purger. Un admin permanent, une
+        # fenêtre par nuit.
+        #
+        # Les deux gestes partageant leur transaction, une autre connexion voit
+        # l'ancien foyer jusqu'au commit du neuf, et une reseed qui échoue à
+        # mi-chemin restaure l'ancien au lieu de laisser la vitrine vide.
         with transaction.atomic():
+            if options["flush"]:
+                self._flush()
+
             household = self._create_household()
             claire, antoine, lea = self._create_users(household, options["password"])
             zones = self._create_zones(household, claire)
