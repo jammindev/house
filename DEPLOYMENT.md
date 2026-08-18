@@ -773,24 +773,47 @@ légère.** Changer d'origine invalide les abonnements Web Push — ils sont li�
 l'origine, pas au compte — et détache les PWA déjà installées. Un renommage
 cosmétique couperait donc les notifications du foyer qui s'en sert, sans un mot.
 
-### Le cron de remise à zéro
+### La remise à zéro quotidienne — un timer systemd, pas un cron
 
-```cron
-# Remise à zéro quotidienne de la démonstration, 4 h du matin (heure du VPS).
-0 4 * * * /home/hermes/jammin-dev/apps/maisonnee-demo/deploy/demo/reset.sh 2>&1 | /usr/bin/logger -t maisonnee-demo
-```
+**Ce VPS n'a pas de cron.** `crontab` n'existe pas, le paquet est absent, et `sudo`
+y demande un mot de passe : ni `crontab -e` ni l'installation d'une unité *système*
+ne sont possibles. Une unité **utilisateur** ne demande ni l'un ni l'autre, et
+`Linger=yes` étant actif pour `hermes`, elle tourne sans session ouverte.
 
-Se relit avec :
+Ce n'est pas qu'un contournement — sur les trois points qui comptent ici, systemd
+fait mieux :
+
+| | cron | timer systemd utilisateur |
+|---|---|---|
+| Journal | un `>>` qui grossit, ou un pipe `\| logger` | **journald nativement**, qui purge seul |
+| Exécution manquée (reboot) | perdue | **rattrapée** (`Persistent=true`) |
+| Installation | paquet absent + `sudo` | rien à installer |
+
+Les deux unités sont **versionnées** dans `deploy/demo/systemd/` — une unité qui ne
+vit que sur le serveur ne se relit pas en revue et ne se restaure pas.
 
 ```bash
-journalctl -t maisonnee-demo --since "2 days ago"
+cp deploy/demo/systemd/maisonnee-demo-reset.{service,timer} ~/.config/systemd/user/
+systemctl --user daemon-reload
+systemctl --user enable --now maisonnee-demo-reset.timer
 ```
 
-**Vers `journalctl` et pas vers un fichier**, pour une raison bête et durable : un
-`>> /var/log/…` grossit indéfiniment, et le borner demanderait un fichier
-`logrotate` — donc `sudo`, donc un second mécanisme à se rappeler. `journald` purge
-de lui-même. Le prix est qu'un log de plus de deux semaines a disparu, ce qui est
-exactement la durée pendant laquelle il intéresse quelqu'un.
+Vérifier, relire, déclencher à la main :
+
+```bash
+systemctl --user list-timers maisonnee-demo-reset.timer
+journalctl --user -u maisonnee-demo-reset --since "2 days ago"
+systemctl --user start maisonnee-demo-reset.service     # sans attendre 4 h
+```
+
+**Un timer jamais déclenché n'est pas un timer** : le lancer une fois à la main
+après l'avoir posé est ce qui prouve que le chemin, les droits Docker et le `.env`
+sont bons. Le vérifier en shell ne suffit pas — l'unité tourne dans un autre
+environnement.
+
+**La cadence est une seule ligne** (`OnCalendar`). Quotidienne suffit en régime
+normal ; un jour d'annonce, `*-*-* *:00:00` la passe à l'heure — un geste, pas un
+chantier.
 
 ⚠️ **Le script fait DEUX choses**, et la seconde est celle qu'on oublie : il remet
 les données à zéro, **et il rattrape la dernière release publiée** (`docker compose
@@ -798,10 +821,6 @@ pull` puis `up -d`). C'est le seul mécanisme qui met la vitrine à jour — ni 
 (qui déploie la production depuis les sources) ni `release.yml` (qui publie l'image
 sans déployer personne) ne s'en charge. Conséquence recherchée : après un tag, la
 démonstration se met à niveau **toute seule la nuit suivante**.
-
-**La cadence est une seule ligne, et c'est fait exprès.** Quotidienne suffit en
-régime normal. Un jour d'annonce, la démonstration peut se dégrader avant midi —
-passer à `0 * * * *` est alors un geste, pas un chantier.
 
 ### Trois choses à ne pas défaire
 
