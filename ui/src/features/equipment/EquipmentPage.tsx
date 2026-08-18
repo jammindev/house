@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { Search, Wrench } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { useQueryClient } from '@tanstack/react-query';
 import ListPage from '@/components/ListPage';
 import { Button } from '@/design-system/button';
 import { Input } from '@/design-system/input';
@@ -21,6 +22,7 @@ import {
   useEquipmentAttention,
   useDeleteEquipment,
   useLogEquipmentService,
+  equipmentKeys,
 } from './hooks';
 import EquipmentCard from './EquipmentCard';
 import EquipmentDialog from './EquipmentDialog';
@@ -31,6 +33,7 @@ const STATUS_OPTIONS = ['', 'active', 'maintenance', 'storage', 'retired', 'lost
 
 export default function EquipmentPage() {
   const { t } = useTranslation();
+  const qc = useQueryClient();
 
   const [search, setSearch] = React.useState('');
   // La recherche s'applique en tapant. Elle exigeait « Appliquer » (ou Entrée)
@@ -69,9 +72,23 @@ export default function EquipmentPage() {
 
   const handleDelete = React.useCallback(
     (itemId: string) => {
-      deleteWithUndo(itemId);
+      const item = items.find((entry) => entry.id === itemId);
+      if (!item) return;
+      // La ligne disparaît tout de suite et revient si on annule : le retrait
+      // optimiste porte sur l'entrée de cache des **filtres courants**, seule
+      // liste affichée à l'écran.
+      deleteWithUndo(itemId, {
+        onRemove: () =>
+          qc.setQueryData<EquipmentListItem[]>(equipmentKeys.list(filters), (old) =>
+            old?.filter((entry) => entry.id !== itemId),
+          ),
+        onRestore: () =>
+          qc.setQueryData<EquipmentListItem[]>(equipmentKeys.list(filters), (old) =>
+            old ? [...old, item] : [item],
+          ),
+      });
     },
-    [deleteWithUndo],
+    [items, deleteWithUndo, qc, filters],
   );
 
   const handleLogService = React.useCallback(
