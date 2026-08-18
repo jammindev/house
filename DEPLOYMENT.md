@@ -739,17 +739,23 @@ cp .env.example .env && $EDITOR .env        # domaine, clés, mots de passe
 docker compose up -d
 ```
 
-Le pointage DNS de `demo.maisonnee.jammin-dev.com` vers le VPS doit précéder le premier
-démarrage : Traefik demande son certificat au lancement, et un domaine qui ne
-résout pas donne un échec ACME qu'il faut ensuite attendre pour réessayer.
+Le pointage DNS de `demo.maisonnee.jammin-dev.com` vers le VPS doit précéder le
+premier démarrage : Traefik demande son certificat au lancement, et un domaine qui
+ne résout pas donne un échec ACME qu'il faut ensuite attendre pour réessayer. Ici
+**c'est déjà le cas** — rien à créer, voir juste en dessous.
 
-> ⚠️ **Un joker DNS ne couvre qu'une seule étiquette.** Un `*.jammin-dev.com`
-> résout `demo.jammin-dev.com` mais **pas** `demo.maisonnee.jammin-dev.com`, qui en
-> compte une de plus. Il faut donc un enregistrement explicite pour cet hôte, ou un
-> `*.maisonnee.jammin-dev.com`. Côté TLS il n'y a rien de particulier : Traefik en
-> HTTP-01 certifie n'importe quelle profondeur. C'est le DNS qui manque, pas ACME —
-> mais l'erreur qu'on lit dans les logs parle de certificat, et envoie chercher au
-> mauvais endroit.
+> **Le joker de la zone suffit, y compris sur trois niveaux.** `jammin-dev.com`
+> porte un `*` vers le VPS, et un joker DNS matche à **n'importe quelle
+> profondeur** tant qu'aucun nœud intermédiaire n'existe dans la zone (RFC 4592).
+> Vérifié : `a.b`, `x.y.z` et `demo.maisonnee` résolvent tous les trois vers
+> `51.75.28.192` sans qu'on ait rien créé.
+>
+> ⚠️ **La règle « une seule étiquette » existe, mais elle est celle des
+> certificats.** Un wildcard X.509 `*.jammin-dev.com` ne couvre qu'un niveau, donc
+> pas `demo.maisonnee.jammin-dev.com`. Elle ne s'applique pas ici : Traefik obtient
+> un certificat **par hôte** en HTTP-01, à n'importe quelle profondeur. Confondre
+> les deux règles fait chercher un enregistrement DNS qui existe déjà — c'est
+> l'erreur que ce paragraphe a d'abord affirmée, avant d'être mesurée.
 
 ### Pourquoi ce nom, et pas `demo.jammin-dev.com`
 
