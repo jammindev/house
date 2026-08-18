@@ -14,7 +14,7 @@ Parcours 01→06 livrés. Voir `JOURNAL_PRODUIT.md` pour le détail.
 ## Scope et source de vérité
 
 - Runtime source of truth : `config/`, `apps/`, `ui/src/`
-- **Backlog** : [GitHub issues](https://github.com/jammindev/house/issues), filtrable par label `app:<name>`
+- **Backlog** : [GitHub issues](https://github.com/jammindev/maisonnee/issues), filtrable par label `app:<name>`
 - En cas de conflit doc ↔ code, le code gagne.
 
 ## Lire en priorité
