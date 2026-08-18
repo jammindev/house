@@ -45,10 +45,20 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    # ⚠️ L'indexation sémantique est **conditionnelle**, et `web` en dépend.
+    # `get_embedding_client()` lève si `VOYAGE_API_KEY` est vide, et cet appel est
+    # hors du try/except de la commande : sans cette garde, `init` échoue, et comme
+    # `web` attend qu'il réussisse, l'instance entière ne démarre pas — pour une
+    # clé facultative. Une capacité absente se déclare, elle ne fait pas tomber ce
+    # qui n'en dépend pas.
     command: >
       sh -c "python manage.py migrate --noinput &&
              python manage.py seed_demo_data --flush --password $${DEMO_PASSWORD} &&
-             python manage.py backfill_embeddings"
+             if [ -n \"$${VOYAGE_API_KEY}\" ]; then
+               python manage.py backfill_embeddings;
+             else
+               echo 'VOYAGE_API_KEY absente : indexation semantique ignoree, la recherche garde sa jambe lexicale';
+             fi"
     networks:
       - internal
 

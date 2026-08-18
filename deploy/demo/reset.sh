@@ -33,6 +33,13 @@ docker compose exec -T \
   -e EMBEDDING_INDEXING_ENABLED=0 \
   web python manage.py seed_demo_data --flush --password "${DEMO_PASSWORD}"
 
-docker compose exec -T web python manage.py backfill_embeddings
+# Même garde que dans le compose : la commande lève si la clé est absente, et le
+# `set -e` ferait échouer le cron chaque nuit sur une capacité facultative — alors
+# que la remise à zéro, elle, a parfaitement réussi.
+if [ -n "${VOYAGE_API_KEY:-}" ]; then
+  docker compose exec -T web python manage.py backfill_embeddings
+else
+  echo "[$(date -Is)] VOYAGE_API_KEY absente : indexation sémantique ignorée"
+fi
 
 echo "[$(date -Is)] terminé"
