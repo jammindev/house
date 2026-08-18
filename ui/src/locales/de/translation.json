@@ -1332,20 +1332,24 @@
         }
       },
       "equipment": {
-        "title": "Ihre Geräte verfolgen",
+        "title": "Geräte im Blick behalten",
         "intro": "Garantie, Wartung, Verlauf: alles zu einem Gerät an einem Ort.",
         "steps": {
           "add": {
-            "title": "Ein Gerät hinzufügen",
-            "body": "Erfassen Sie Name, Zone und — falls vorhanden — Kaufdatum und Garantie."
+            "title": "Gerät hinzufügen",
+            "body": "Name, Kategorie und Bereich genügen. Der Rest — Seriennummer, Kauf, Garantie, Wartung — steckt in aufklappbaren Abschnitten, auszufüllen, wenn die Angaben vorliegen."
+          },
+          "service": {
+            "title": "Wartung abhaken",
+            "body": "Geben Sie ein Wartungsintervall (in Monaten) an, und die App berechnet den nächsten Termin. Ist es soweit, datiert „Wartung erledigt“ die Wartung und trägt sie mit einem Klick ins Haushaltsjournal ein — der Hinweis erlischt von selbst."
           },
           "purchase": {
-            "title": "Einen Kauf erfassen",
-            "body": "Der Kauf-Knopf erstellt automatisch die passende Ausgabe im Haushaltsjournal."
+            "title": "Ausgabe erfassen",
+            "body": "Ein Ersatzteil, eine Reparatur, ein Verbrauchsmaterial: Die Ausgabe wird im Haushaltsjournal angelegt und dem Gerät zugeordnet. Der Datensatz selbst bleibt unverändert."
           },
           "history": {
-            "title": "Den Verlauf ansehen",
-            "body": "Eingriffe, Defekte und Wartungen zum Gerät erscheinen auf seiner Detailseite."
+            "title": "Verlauf ansehen",
+            "body": "Wartungen, Ausgaben und Einsätze zum Gerät erscheinen gemeinsam auf seiner Detailseite."
           }
         }
       },
@@ -2311,6 +2315,15 @@
         "create": "Erstellen",
         "cancel": "Abbrechen",
         "saving": "Wird gespeichert…"
+      },
+      "sections": {
+        "identity": "Identität und Zustand",
+        "purchase": "Kauf",
+        "warranty": "Garantie",
+        "maintenance": "Wartung"
+      },
+      "hints": {
+        "maintenance_interval": "Einmal gesetzt, berechnet er die nächste Fälligkeit und aktiviert „Wartung erledigt“."
       }
     },
     "errors": {
@@ -2380,7 +2393,9 @@
       "warranty_expired": "Abgelaufen",
       "warranty_ok": "Gültig bis {{date}}",
       "maintenance_due": "Fällig am {{date}}",
-      "maintenance_overdue": "Überfällig seit {{date}}"
+      "maintenance_overdue": "Überfällig seit {{date}}",
+      "maintenance_on": "Fällig am {{date}}",
+      "warranty_on": "Ablauf: {{date}}"
     },
     "interaction_type": {
       "note": "Notiz",
@@ -2398,11 +2413,12 @@
     "deleted": "Gerät gelöscht",
     "empty_description": "Fügen Sie Ihr erstes Gerät hinzu, um Ihre Haushaltsgeräte und Werkzeuge zu verwalten.",
     "purchase": {
-      "title": "Kauf erfassen — {{name}}",
-      "created": "Einkauf gespeichert",
+      "title": "Ausgabe erfassen — {{name}}",
+      "created": "Ausgabe erfasst",
       "actions": {
-        "add": "Kauf"
-      }
+        "add": "Ausgabe erfassen"
+      },
+      "hint": "Ein Ersatzteil, eine Reparatur, ein Verbrauchsmaterial. Der Datensatz des Geräts bleibt unverändert — der ursprüngliche Kauf gehört unter „Bearbeiten“."
     },
     "tabs": {
       "info": "Info",
@@ -2410,7 +2426,58 @@
       "assistant": "Assistent",
       "documents": "Dokumente",
       "photos": "Fotos"
-    }
+    },
+    "category": {
+      "heating": "Heizung & Lüftung",
+      "plumbing": "Sanitär",
+      "appliance": "Haushaltsgeräte",
+      "tool": "Werkzeug",
+      "garden": "Garten",
+      "mobility": "Mobilität",
+      "multimedia": "Multimedia & IT",
+      "furniture": "Möbel",
+      "security": "Sicherheit",
+      "other": "Sonstiges"
+    },
+    "condition": {
+      "new": "Neu",
+      "good": "Guter Zustand",
+      "fair": "Mittlerer Zustand",
+      "poor": "Schlechter Zustand",
+      "broken": "Defekt"
+    },
+    "health": {
+      "maintenance": {
+        "overdue": "Wartung überfällig — fällig {{when}}",
+        "due_soon": "Wartung fällig {{when}}",
+        "ok": "Wartung aktuell",
+        "unknown": "Wartung nicht verfolgt"
+      },
+      "warranty": {
+        "expired": "Garantie abgelaufen {{when}}",
+        "expiring": "Garantie läuft {{when}} ab",
+        "valid": "Unter Garantie",
+        "unknown": "Keine Garantie hinterlegt"
+      }
+    },
+    "attention": {
+      "maintenance_overdue_one": "1 Wartung überfällig",
+      "maintenance_overdue_other": "{{count}} Wartungen überfällig",
+      "maintenance_due_soon_one": "1 Wartung steht an",
+      "maintenance_due_soon_other": "{{count}} Wartungen stehen an",
+      "warranty_expired_one": "1 Garantie abgelaufen",
+      "warranty_expired_other": "{{count}} Garantien abgelaufen",
+      "warranty_expiring_one": "1 Garantie läuft bald ab",
+      "warranty_expiring_other": "{{count}} Garantien laufen bald ab"
+    },
+    "service": {
+      "recorded": "Wartung erfasst",
+      "actions": {
+        "log": "Wartung erledigt"
+      }
+    },
+    "all_categories": "Alle Kategorien",
+    "no_match": "Kein Gerät entspricht diesen Filtern."
   },
   "dashboard": {
     "title": "Übersicht",

@@ -1337,15 +1337,19 @@
         "steps": {
           "add": {
             "title": "Ajouter un équipement",
-            "body": "Renseignez le nom, la zone et, si vous les avez, la date d'achat et la garantie."
+            "body": "Le nom, une catégorie et une zone suffisent. Le reste — série, achat, garantie, entretien — se remplit dans les sections dépliables, le jour où vous avez l'information sous les yeux."
+          },
+          "service": {
+            "title": "Cocher un entretien",
+            "body": "Indiquez un intervalle d'entretien (en mois) et l'app calcule la prochaine échéance. Le jour venu, le bouton « Entretien fait » date l'entretien et l'inscrit au journal du foyer, en un clic — l'alerte s'éteint toute seule."
           },
           "purchase": {
-            "title": "Enregistrer un achat",
-            "body": "Le bouton d'achat crée automatiquement la dépense correspondante dans le journal du foyer."
+            "title": "Enregistrer une dépense",
+            "body": "Une pièce, une réparation, un consommable : la dépense est créée dans le journal du foyer et rattachée à l'équipement. La fiche, elle, n'est pas modifiée."
           },
           "history": {
             "title": "Consulter l'historique",
-            "body": "Interventions, pannes et maintenances liées à l'équipement s'affichent sur sa page de détail."
+            "body": "Entretiens, dépenses et interventions liés à l'équipement s'affichent ensemble sur sa page de détail."
           }
         }
       },
@@ -2311,6 +2315,15 @@
         "create": "Créer",
         "cancel": "Annuler",
         "saving": "Enregistrement…"
+      },
+      "sections": {
+        "identity": "Identité et état",
+        "purchase": "Achat",
+        "warranty": "Garantie",
+        "maintenance": "Entretien"
+      },
+      "hints": {
+        "maintenance_interval": "Renseigné, il calcule la prochaine échéance et active le bouton « Entretien fait »."
       }
     },
     "errors": {
@@ -2380,7 +2393,9 @@
       "warranty_expired": "Expirée",
       "warranty_ok": "Valide jusqu'au {{date}}",
       "maintenance_due": "Prévue le {{date}}",
-      "maintenance_overdue": "En retard depuis le {{date}}"
+      "maintenance_overdue": "En retard depuis le {{date}}",
+      "maintenance_on": "Prévu le {{date}}",
+      "warranty_on": "Échéance : {{date}}"
     },
     "interaction_type": {
       "note": "Note",
@@ -2398,11 +2413,12 @@
     "deleted": "Équipement supprimé",
     "empty_description": "Ajoutez votre premier équipement pour commencer à suivre vos appareils et outils.",
     "purchase": {
-      "title": "Enregistrer un achat — {{name}}",
-      "created": "Achat enregistré",
+      "title": "Enregistrer une dépense — {{name}}",
+      "created": "Dépense enregistrée",
       "actions": {
-        "add": "Achat"
-      }
+        "add": "Enregistrer une dépense"
+      },
+      "hint": "Une pièce, une réparation, un consommable. La fiche de l'équipement n'est pas modifiée — l'achat initial se saisit dans « Modifier »."
     },
     "tabs": {
       "info": "Infos",
@@ -2410,7 +2426,58 @@
       "assistant": "Assistant",
       "documents": "Documents",
       "photos": "Photos"
-    }
+    },
+    "category": {
+      "heating": "Chauffage & ventilation",
+      "plumbing": "Plomberie",
+      "appliance": "Électroménager",
+      "tool": "Outillage",
+      "garden": "Jardin",
+      "mobility": "Mobilité",
+      "multimedia": "Multimédia & informatique",
+      "furniture": "Mobilier",
+      "security": "Sécurité",
+      "other": "Autre"
+    },
+    "condition": {
+      "new": "Neuf",
+      "good": "Bon état",
+      "fair": "État moyen",
+      "poor": "Mauvais état",
+      "broken": "Hors service"
+    },
+    "health": {
+      "maintenance": {
+        "overdue": "Entretien en retard — prévu {{when}}",
+        "due_soon": "Entretien à faire {{when}}",
+        "ok": "Entretien à jour",
+        "unknown": "Entretien non suivi"
+      },
+      "warranty": {
+        "expired": "Garantie expirée {{when}}",
+        "expiring": "Garantie expire {{when}}",
+        "valid": "Sous garantie",
+        "unknown": "Garantie non renseignée"
+      }
+    },
+    "attention": {
+      "maintenance_overdue_one": "1 entretien en retard",
+      "maintenance_overdue_other": "{{count}} entretiens en retard",
+      "maintenance_due_soon_one": "1 entretien à venir",
+      "maintenance_due_soon_other": "{{count}} entretiens à venir",
+      "warranty_expired_one": "1 garantie expirée",
+      "warranty_expired_other": "{{count}} garanties expirées",
+      "warranty_expiring_one": "1 garantie bientôt expirée",
+      "warranty_expiring_other": "{{count}} garanties bientôt expirées"
+    },
+    "service": {
+      "recorded": "Entretien enregistré",
+      "actions": {
+        "log": "Entretien fait"
+      }
+    },
+    "all_categories": "Toutes les catégories",
+    "no_match": "Aucun équipement ne correspond à ces filtres."
   },
   "dashboard": {
     "title": "Tableau de bord",

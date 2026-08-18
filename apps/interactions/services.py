@@ -99,6 +99,7 @@ AUTO_SUBJECT_TEMPLATES: dict[str, Any] = {
     "project_purchase": _("Purchase — {name}"),
     "chickens_purchase": _("Purchase — {name}"),
     "orchard_purchase": _("Purchase — {name}"),
+    "equipment_service": _("Maintenance — {name}"),
 }
 
 
@@ -505,6 +506,56 @@ def create_expense_interaction(
             source_content_type=source_ct,
             source_object_id=source.pk,
             budget=budget,
+        )
+        zone = getattr(source, "zone", None)
+        if zone is not None:
+            InteractionZone.objects.create(interaction=interaction, zone=zone)
+
+    return interaction
+
+
+def create_service_interaction(
+    *,
+    source,
+    user,
+    occurred_at: datetime | None = None,
+    notes: str = "",
+    kind: str = "equipment_service",
+) -> Interaction:
+    """Create an Interaction(type=maintenance) linked to `source` via polymorphic FK.
+
+    Le pendant non-monétaire de ``create_expense_interaction`` : même sujet
+    localisé à l'écriture, même FK polymorphe, même héritage de la zone — mais
+    **aucune colonne d'argent**. Un entretien n'a ni montant ni fournisseur ;
+    lui en donner un le ferait entrer dans les agrégats de dépenses, où il
+    n'a rien à faire.
+
+    Pourquoi un service et pas un ``Interaction.objects.create`` dans la vue :
+    l'entretien s'enregistre depuis deux endroits (le bouton « Entretien fait »
+    de la liste et celui de la fiche), et deux écritures d'un même fait finissent
+    toujours par diverger sur un détail — ici le sujet, qui est stocké en clair.
+    """
+    if not hasattr(source, "household_id"):
+        raise ValueError(
+            "create_service_interaction: source must be a HouseholdScopedModel "
+            f"(got {type(source).__name__})"
+        )
+
+    template = _resolve_subject_template(kind)
+    subject = template.format(name=_source_name(source))
+    source_ct = ContentType.objects.get_for_model(source.__class__)
+
+    with transaction.atomic():
+        interaction = Interaction.objects.create(
+            household_id=source.household_id,
+            created_by=user,
+            subject=subject,
+            content=notes or "",
+            type="maintenance",
+            occurred_at=occurred_at or timezone.now(),
+            metadata={"kind": kind, "source_name": _source_name(source)},
+            source_content_type=source_ct,
+            source_object_id=source.pk,
         )
         zone = getattr(source, "zone", None)
         if zone is not None:

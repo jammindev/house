@@ -1333,19 +1333,23 @@
       },
       "equipment": {
         "title": "Seguir tus equipos",
-        "intro": "Garantía, mantenimiento, historial: todo lo relativo a un equipo en un solo lugar.",
+        "intro": "Garantía, mantenimiento, historial: todo lo relativo a un equipo en un mismo lugar.",
         "steps": {
           "add": {
             "title": "Añadir un equipo",
-            "body": "Indica el nombre, la zona y, si los tienes, la fecha de compra y la garantía."
+            "body": "Bastan el nombre, una categoría y una zona. El resto —número de serie, compra, garantía, mantenimiento— está en secciones desplegables, para rellenar el día que tengas los datos delante."
+          },
+          "service": {
+            "title": "Marcar un mantenimiento",
+            "body": "Indica un intervalo de mantenimiento (en meses) y la app calcula el próximo vencimiento. Llegado el día, «Mantenimiento hecho» fecha la intervención y la registra en el diario del hogar con un clic: el aviso se apaga solo."
           },
           "purchase": {
-            "title": "Registrar una compra",
-            "body": "El botón de compra crea automáticamente el gasto correspondiente en el diario del hogar."
+            "title": "Registrar un gasto",
+            "body": "Una pieza, una reparación, un consumible: el gasto se crea en el diario del hogar y queda vinculado al equipo. La ficha no se modifica."
           },
           "history": {
             "title": "Consultar el historial",
-            "body": "Las intervenciones, averías y mantenimientos del equipo aparecen en su página de detalle."
+            "body": "Mantenimientos, gastos e intervenciones vinculados al equipo aparecen juntos en su página de detalle."
           }
         }
       },
@@ -2311,6 +2315,15 @@
         "create": "Crear",
         "cancel": "Cancelar",
         "saving": "Guardando…"
+      },
+      "sections": {
+        "identity": "Identidad y estado",
+        "purchase": "Compra",
+        "warranty": "Garantía",
+        "maintenance": "Mantenimiento"
+      },
+      "hints": {
+        "maintenance_interval": "Una vez indicado, calcula el próximo vencimiento y activa «Mantenimiento hecho»."
       }
     },
     "errors": {
@@ -2380,7 +2393,9 @@
       "warranty_expired": "Expirada",
       "warranty_ok": "Válida hasta {{date}}",
       "maintenance_due": "Prevista el {{date}}",
-      "maintenance_overdue": "Vencida desde {{date}}"
+      "maintenance_overdue": "Vencida desde {{date}}",
+      "maintenance_on": "Previsto el {{date}}",
+      "warranty_on": "Vencimiento: {{date}}"
     },
     "interaction_type": {
       "note": "Nota",
@@ -2398,11 +2413,12 @@
     "deleted": "Equipo eliminado",
     "empty_description": "Añade tu primer equipo para comenzar a registrar tus electrodomésticos y herramientas.",
     "purchase": {
-      "title": "Registrar compra — {{name}}",
-      "created": "Compra registrada",
+      "title": "Registrar un gasto — {{name}}",
+      "created": "Gasto registrado",
       "actions": {
-        "add": "Comprar"
-      }
+        "add": "Registrar un gasto"
+      },
+      "hint": "Una pieza, una reparación, un consumible. La ficha del equipo no se modifica — la compra inicial se introduce en «Editar»."
     },
     "tabs": {
       "info": "Info",
@@ -2410,7 +2426,58 @@
       "assistant": "Asistente",
       "documents": "Documentos",
       "photos": "Fotos"
-    }
+    },
+    "category": {
+      "heating": "Calefacción y ventilación",
+      "plumbing": "Fontanería",
+      "appliance": "Electrodomésticos",
+      "tool": "Herramientas",
+      "garden": "Jardín",
+      "mobility": "Movilidad",
+      "multimedia": "Multimedia e informática",
+      "furniture": "Mobiliario",
+      "security": "Seguridad",
+      "other": "Otros"
+    },
+    "condition": {
+      "new": "Nuevo",
+      "good": "Buen estado",
+      "fair": "Estado regular",
+      "poor": "Mal estado",
+      "broken": "Fuera de servicio"
+    },
+    "health": {
+      "maintenance": {
+        "overdue": "Mantenimiento atrasado — previsto {{when}}",
+        "due_soon": "Mantenimiento {{when}}",
+        "ok": "Mantenimiento al día",
+        "unknown": "Mantenimiento sin seguimiento"
+      },
+      "warranty": {
+        "expired": "Garantía caducada {{when}}",
+        "expiring": "La garantía caduca {{when}}",
+        "valid": "En garantía",
+        "unknown": "Sin garantía registrada"
+      }
+    },
+    "attention": {
+      "maintenance_overdue_one": "1 mantenimiento atrasado",
+      "maintenance_overdue_other": "{{count}} mantenimientos atrasados",
+      "maintenance_due_soon_one": "1 mantenimiento próximo",
+      "maintenance_due_soon_other": "{{count}} mantenimientos próximos",
+      "warranty_expired_one": "1 garantía caducada",
+      "warranty_expired_other": "{{count}} garantías caducadas",
+      "warranty_expiring_one": "1 garantía por caducar",
+      "warranty_expiring_other": "{{count}} garantías por caducar"
+    },
+    "service": {
+      "recorded": "Mantenimiento registrado",
+      "actions": {
+        "log": "Mantenimiento hecho"
+      }
+    },
+    "all_categories": "Todas las categorías",
+    "no_match": "Ningún equipo coincide con estos filtros."
   },
   "dashboard": {
     "title": "Panel de control",

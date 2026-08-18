@@ -1333,19 +1333,23 @@
       },
       "equipment": {
         "title": "Track your equipment",
-        "intro": "Warranty, maintenance, history: everything about a piece of equipment in one place.",
+        "intro": "Warranty, servicing, history: everything about a piece of equipment in one place.",
         "steps": {
           "add": {
             "title": "Add equipment",
-            "body": "Fill in the name, the zone and, if you have them, the purchase date and warranty."
+            "body": "A name, a category and a zone are enough. The rest — serial number, purchase, warranty, servicing — lives in collapsible sections, to fill in the day you have the information at hand."
+          },
+          "service": {
+            "title": "Mark a service as done",
+            "body": "Set a service interval (in months) and the app works out the next due date. When the day comes, “Mark as serviced” dates the service and records it in the household log in one click — the alert clears itself."
           },
           "purchase": {
-            "title": "Record a purchase",
-            "body": "The purchase button automatically creates the matching expense in the household journal."
+            "title": "Record an expense",
+            "body": "A part, a repair, a consumable: the expense is created in the household log and linked to the equipment. The record itself is left untouched."
           },
           "history": {
             "title": "Browse the history",
-            "body": "Interventions, breakdowns and maintenance linked to the equipment show on its detail page."
+            "body": "Services, expenses and interventions linked to the equipment all show up together on its detail page."
           }
         }
       },
@@ -2311,6 +2315,15 @@
         "create": "Create",
         "cancel": "Cancel",
         "saving": "Saving…"
+      },
+      "sections": {
+        "identity": "Identity and condition",
+        "purchase": "Purchase",
+        "warranty": "Warranty",
+        "maintenance": "Servicing"
+      },
+      "hints": {
+        "maintenance_interval": "Once set, it computes the next due date and enables the “Mark as serviced” button."
       }
     },
     "errors": {
@@ -2380,7 +2393,9 @@
       "warranty_expired": "Expired",
       "warranty_ok": "Valid until {{date}}",
       "maintenance_due": "Due on {{date}}",
-      "maintenance_overdue": "Overdue since {{date}}"
+      "maintenance_overdue": "Overdue since {{date}}",
+      "maintenance_on": "Due on {{date}}",
+      "warranty_on": "Expires on {{date}}"
     },
     "interaction_type": {
       "note": "Note",
@@ -2398,11 +2413,12 @@
     "deleted": "Equipment deleted",
     "empty_description": "Add your first piece of equipment to start tracking your home appliances and tools.",
     "purchase": {
-      "title": "Register purchase — {{name}}",
-      "created": "Purchase recorded",
+      "title": "Record an expense — {{name}}",
+      "created": "Expense recorded",
       "actions": {
-        "add": "Buy"
-      }
+        "add": "Record an expense"
+      },
+      "hint": "A part, a repair, a consumable. The equipment record is left untouched — the original purchase belongs in “Edit”."
     },
     "tabs": {
       "info": "Info",
@@ -2410,7 +2426,58 @@
       "assistant": "Assistant",
       "documents": "Documents",
       "photos": "Photos"
-    }
+    },
+    "category": {
+      "heating": "Heating & ventilation",
+      "plumbing": "Plumbing",
+      "appliance": "Appliance",
+      "tool": "Tools",
+      "garden": "Garden",
+      "mobility": "Mobility",
+      "multimedia": "Multimedia & computing",
+      "furniture": "Furniture",
+      "security": "Security",
+      "other": "Other"
+    },
+    "condition": {
+      "new": "New",
+      "good": "Good condition",
+      "fair": "Fair condition",
+      "poor": "Poor condition",
+      "broken": "Out of order"
+    },
+    "health": {
+      "maintenance": {
+        "overdue": "Service overdue — was due {{when}}",
+        "due_soon": "Service due {{when}}",
+        "ok": "Service up to date",
+        "unknown": "Service not tracked"
+      },
+      "warranty": {
+        "expired": "Warranty expired {{when}}",
+        "expiring": "Warranty expires {{when}}",
+        "valid": "Under warranty",
+        "unknown": "No warranty recorded"
+      }
+    },
+    "attention": {
+      "maintenance_overdue_one": "1 service overdue",
+      "maintenance_overdue_other": "{{count}} services overdue",
+      "maintenance_due_soon_one": "1 service coming up",
+      "maintenance_due_soon_other": "{{count}} services coming up",
+      "warranty_expired_one": "1 warranty expired",
+      "warranty_expired_other": "{{count}} warranties expired",
+      "warranty_expiring_one": "1 warranty expiring",
+      "warranty_expiring_other": "{{count}} warranties expiring"
+    },
+    "service": {
+      "recorded": "Service recorded",
+      "actions": {
+        "log": "Mark as serviced"
+      }
+    },
+    "all_categories": "All categories",
+    "no_match": "No equipment matches these filters."
   },
   "dashboard": {
     "title": "Dashboard",

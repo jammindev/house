@@ -8,6 +8,7 @@ from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 
 from equipment.models import Equipment, EquipmentInteraction
+from equipment.services import normalize_category
 from households.models import Household
 from interactions.models import Interaction
 from zones.models import Zone
@@ -190,7 +191,10 @@ class Command(BaseCommand):
                 "household_id": target_household_id,
                 "zone_id": zone_id,
                 "name": (row.get("name") or "").strip() or "Unnamed equipment",
-                "category": (row.get("category") or "general").strip() or "general",
+                # Le fichier source vient d'une base libre : on le ramène au vocabulaire
+                # fermé, sans quoi l'import réintroduirait les orthographes que la
+                # migration 0006 vient de rassembler.
+                "category": normalize_category(row.get("category")),
                 "manufacturer": row.get("manufacturer") or None,
                 "model": row.get("model") or None,
                 "serial_number": row.get("serial_number") or None,

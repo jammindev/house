@@ -9,6 +9,34 @@ from core.managers import HouseholdScopedManager
 
 
 class Equipment(HouseholdScopedModel):
+    class Category(models.TextChoices):
+        """Vocabulaire fermé — voir ``services.CATEGORY_ALIASES`` pour le pourquoi.
+
+        Les libellés ci-dessous ne servent qu'à l'admin Django : ce que le foyer
+        lit vient du namespace i18n ``equipment.category.*`` du front.
+        """
+
+        HEATING = "heating", "Heating & ventilation"
+        PLUMBING = "plumbing", "Plumbing"
+        APPLIANCE = "appliance", "Appliance"
+        TOOL = "tool", "Tool"
+        GARDEN = "garden", "Garden"
+        MOBILITY = "mobility", "Mobility"
+        MULTIMEDIA = "multimedia", "Multimedia & computing"
+        FURNITURE = "furniture", "Furniture"
+        SECURITY = "security", "Security"
+        OTHER = "other", "Other"
+
+    class Condition(models.TextChoices):
+        """Même raison que ``Category`` : « good » et « Neuf » cohabitaient en base,
+        et la fiche affichait la valeur brute — donc « good » à un foyer français."""
+
+        NEW = "new", "New"
+        GOOD = "good", "Good"
+        FAIR = "fair", "Fair"
+        POOR = "poor", "Poor"
+        BROKEN = "broken", "Broken"
+
     class Status(models.TextChoices):
         ACTIVE = "active", _("Active")
         MAINTENANCE = "maintenance", _("Maintenance")
@@ -20,7 +48,7 @@ class Equipment(HouseholdScopedModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     zone = models.ForeignKey("zones.Zone", on_delete=models.SET_NULL, null=True, blank=True, related_name="equipment")
     name = models.TextField()
-    category = models.TextField(default="general")
+    category = models.TextField(default=Category.OTHER, choices=Category.choices)
     manufacturer = models.TextField(null=True, blank=True)
     model = models.TextField(null=True, blank=True)
     serial_number = models.TextField(null=True, blank=True)
@@ -33,7 +61,7 @@ class Equipment(HouseholdScopedModel):
     maintenance_interval_months = models.IntegerField(null=True, blank=True)
     last_service_at = models.DateField(null=True, blank=True)
     status = models.CharField(max_length=32, choices=Status.choices, default=Status.ACTIVE)
-    condition = models.TextField(default="good", blank=True)
+    condition = models.TextField(default=Condition.GOOD, choices=Condition.choices, blank=True)
     installed_at = models.DateField(null=True, blank=True)
     retired_at = models.DateField(null=True, blank=True)
     notes = models.TextField(default="", blank=True)

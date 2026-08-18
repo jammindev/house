@@ -3,8 +3,10 @@ from decimal import Decimal
 from rest_framework import serializers
 from django.utils.translation import gettext_lazy as _
 
+from core.timezones import household_today
+
 from .models import Equipment, EquipmentInteraction
-from .services import compute_next_service_due
+from .services import compute_next_service_due, maintenance_state, warranty_state
 
 
 class EquipmentPurchaseSerializer(serializers.Serializer):
@@ -24,9 +26,38 @@ class EquipmentPurchaseSerializer(serializers.Serializer):
     budget_id = serializers.UUIDField(required=False, allow_null=True)
 
 
+class EquipmentServiceSerializer(serializers.Serializer):
+    """Input for /equipment/{id}/log-service/.
+
+    ``serviced_on`` est facultatif et vaut « aujourd'hui **chez le foyer** » — le
+    cas courant est un geste immédiat, et demander une date à qui vient de
+    refermer le capot ajoute un formulaire là où un bouton suffit. Une date
+    future est refusée : un entretien qui n'a pas eu lieu repousserait l'échéance
+    suivante sur la foi de rien.
+    """
+
+    serviced_on = serializers.DateField(required=False, allow_null=True)
+    notes = serializers.CharField(required=False, allow_blank=True, default="")
+
+    def validate_serviced_on(self, value):
+        if value is None:
+            return value
+        request = self.context.get("request")
+        household = getattr(request, "household", None)
+        if value > household_today(household):
+            raise serializers.ValidationError(_("A maintenance cannot be recorded in the future."))
+        return value
+
+
 class EquipmentSerializer(serializers.ModelSerializer):
     next_service_due = serializers.SerializerMethodField()
     zone_name = serializers.CharField(source="zone.name", read_only=True)
+    # Les deux verdicts servis à la liste ET à la fiche. Les calculer ici est ce
+    # qui garantit qu'aucun écran ne les redérive à sa façon : le front rend un
+    # état, il ne compare pas une date à « aujourd'hui » (qui, dans un navigateur,
+    # n'est même pas le jour du foyer).
+    warranty_state = serializers.SerializerMethodField()
+    maintenance_state = serializers.SerializerMethodField()
 
     class Meta:
         model = Equipment
@@ -49,6 +80,8 @@ class EquipmentSerializer(serializers.ModelSerializer):
             "maintenance_interval_months",
             "last_service_at",
             "next_service_due",
+            "warranty_state",
+            "maintenance_state",
             "status",
             "condition",
             "installed_at",
@@ -62,8 +95,23 @@ class EquipmentSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ["id", "household", "created_at", "updated_at", "created_by", "updated_by"]
 
+    def _today(self):
+        # Le jour du **foyer**, jamais celui du serveur : à minuit passé, un UTC
+        # ferait basculer une échéance d'un jour, donc un « en retard » en « à
+        # venir » — cf. `core.timezones`.
+        household = getattr(self.context.get("request"), "household", None)
+        if household is None:
+            household = getattr(self.instance, "household", None)
+        return household_today(household)
+
     def get_next_service_due(self, obj):
         return compute_next_service_due(obj.last_service_at, obj.maintenance_interval_months)
+
+    def get_warranty_state(self, obj):
+        return warranty_state(obj, self._today())
+
+    def get_maintenance_state(self, obj):
+        return maintenance_state(obj, self._today())
 
     def validate_zone(self, value):
         if value is None:

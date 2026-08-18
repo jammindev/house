@@ -52,6 +52,10 @@ export default function EquipmentPurchaseDialog({
       onOpenChange={onOpenChange}
       title={t('equipment.purchase.title', { name: equipment.name })}
     >
+        {/* Dire ce que l'action fait — et surtout ce qu'elle ne fait pas. Elle
+            recopiait auparavant le montant et la date dans la fiche : changer un
+            joint à 12 € réécrivait la date d'achat d'une chaudière de 2015. */}
+        <p className="mb-3 text-xs text-muted-foreground">{t('equipment.purchase.hint')}</p>
         <PurchaseForm
           isPending={purchaseMutation.isPending}
           onSubmit={handleSubmit}
