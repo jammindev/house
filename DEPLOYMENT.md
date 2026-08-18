@@ -375,7 +375,7 @@ ssh ton-user@mac-mini
 ### Étape 3 — Cloner le repo
 
 ```bash
-git clone git@github.com:ton-user/house.git ~/Developer/house
+git clone git@github.com:ton-user/maisonnee.git ~/Developer/house
 cd ~/Developer/house
 ```
 
