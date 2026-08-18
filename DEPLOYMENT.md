@@ -777,8 +777,27 @@ cosmétique couperait donc les notifications du foyer qui s'en sert, sans un mot
 
 ```cron
 # Remise à zéro quotidienne de la démonstration, 4 h du matin (heure du VPS).
-0 4 * * * /home/hermes/jammin-dev/apps/maisonnee-demo/reset.sh >> /var/log/maisonnee-demo-reset.log 2>&1
+0 4 * * * /home/hermes/jammin-dev/apps/maisonnee-demo/deploy/demo/reset.sh 2>&1 | /usr/bin/logger -t maisonnee-demo
 ```
+
+Se relit avec :
+
+```bash
+journalctl -t maisonnee-demo --since "2 days ago"
+```
+
+**Vers `journalctl` et pas vers un fichier**, pour une raison bête et durable : un
+`>> /var/log/…` grossit indéfiniment, et le borner demanderait un fichier
+`logrotate` — donc `sudo`, donc un second mécanisme à se rappeler. `journald` purge
+de lui-même. Le prix est qu'un log de plus de deux semaines a disparu, ce qui est
+exactement la durée pendant laquelle il intéresse quelqu'un.
+
+⚠️ **Le script fait DEUX choses**, et la seconde est celle qu'on oublie : il remet
+les données à zéro, **et il rattrape la dernière release publiée** (`docker compose
+pull` puis `up -d`). C'est le seul mécanisme qui met la vitrine à jour — ni `ci.yml`
+(qui déploie la production depuis les sources) ni `release.yml` (qui publie l'image
+sans déployer personne) ne s'en charge. Conséquence recherchée : après un tag, la
+démonstration se met à niveau **toute seule la nuit suivante**.
 
 **La cadence est une seule ligne, et c'est fait exprès.** Quotidienne suffit en
 régime normal. Un jour d'annonce, la démonstration peut se dégrader avant midi —
