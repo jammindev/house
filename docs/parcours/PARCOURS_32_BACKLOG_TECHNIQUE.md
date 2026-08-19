@@ -44,14 +44,17 @@ Issue parente : **#652**.
 
 1. l'utilisateur ouvre « Créer avec l'assistant » depuis la page Projets et écrit
    une phrase
-2. `POST /api/projects/assistant-step/` renvoie **une** question typée, ou le plan
+2. `POST /api/projects/projects/assistant-step/` renvoie **une** question typée,
+   ou le plan — le double préfixe est celui du routeur, qui enregistre
+   `projects` sous `api/projects/`, comme `register-purchase`
 3. tours 2 à 6 — le client renvoie l'historique complet à chaque fois ; le serveur
    ne garde rien
 4. au 7ᵉ tour, ou sur « J'ai assez dit », le serveur **force** la production du
    plan
 5. l'écran de relecture affiche projet, tâches, notes, enveloppe — tout est
    éditable, chaque item est décochable
-6. `POST /api/projects/assistant-create/` crée l'ensemble en **une** transaction,
+6. `POST /api/projects/projects/assistant-create/` crée l'ensemble en **une**
+   transaction,
    par les services métier existants
 7. bascule vers `/app/projects/:id`, qui n'est pas vide
 
@@ -143,6 +146,9 @@ garantie — **sans rien écrire en base**. Livrable testable seul par l'API.
   `get_throttles()` installe le throttle dédié pour cette action seule.
   ⚠️ `url_path` explicite : DRF ne dérive pas le chemin d'un `url_name`, et un
   test passant par `reverse()` resterait vert sur `/assistant_step/`.
+  Et la forme fautive ne répond pas 404 mais **405** : `assistant_step` est pris
+  pour un identifiant de projet par la route de détail. Un front qui se
+  tromperait n'aurait donc aucun indice pointant vers `url_path`.
 - `apps/projects/serializers.py` — `AssistantStepSerializer` (entrée : `goal`,
   `history: [{question, field, answer}]`, `force_ready: bool`).
 - i18n backend : **aucun**. Les libellés sortent du modèle dans la langue de
