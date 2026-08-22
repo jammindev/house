@@ -372,6 +372,61 @@ permet à une instance déjà en service de fermer la porte sans forker le code.
   tentative ne dirait déjà en 403, contrairement à `/api/capabilities/` qui reste
   authentifié pour cette raison précise.
 
+## La confidentialité — un drapeau vaut ce que valent ses portes
+
+`is_private` trace une frontière **à l'intérieur** du foyer : moi contre les autres
+membres. Elle est plus fragile que l'isolation entre foyers, parce qu'elle n'est pas
+dans le chemin par défaut — le scope foyer vient du manager, la confidentialité doit
+être ajoutée à chaque lecture. Doc : `docs/fiches/CONFIDENTIALITE.md`. Régressions :
+`apps/core/tests/test_privacy_isolation.py` (quatre parties) et
+`apps/agent/tests/test_private_visibility.py`.
+
+- **Une seule définition, `core.visibility.visible_to_creator`.** Elle est
+  **fail-closed** : `viewer=None` ne voit que le public, donc un chemin qui oublie
+  le lecteur **sous-affiche** au lieu de fuiter. Elle filtre sur `created_by`,
+  **jamais sur le rôle** — un owner de foyer n'est pas un lecteur privilégié du
+  privé des autres. Ne jamais réécrire le `Q` au point d'appel : deux définitions
+  d'une visibilité ne divergent pas symétriquement, c'est toujours la plus
+  permissive qui gagne, et elle gagne en silence.
+- **⚠️ Il y a sept portes, pas une.** La liste REST du viewset, **plus** la palette
+  ⌘K, `search_household`, `get_entity`, `get_related`, `list_entities` et le
+  contexte d'une conversation ancrée — les six dernières ne passent jamais par le
+  viewset, elles lisent `agent.searchables`. **Un queryset borné ne borne pas ⌘K.**
+  Un modèle privatisable déclare donc `visibility=` sur son `SearchableSpec`, depuis
+  son app ; déclarer une fois ferme tout. La tâche privée d'un membre a vécu absente
+  de sa propre liste et citable par l'assistant de tous les autres, parce que le
+  correctif précédent n'avait traité que les documents — **un garde-fou écrit pour
+  un cas passe pour un garde-fou général**, et personne ne relit son périmètre.
+- **Le filtre vit dans `get_queryset`, jamais dans une permission objet.** Une
+  permission ne se prononce que sur un objet **déjà chargé** : elle protège le
+  détail et laisse passer la liste, qui est justement là où on lit les secrets des
+  autres.
+- **Masquer et cacher ne sont pas la même chose.** Ce qui alimente un compteur
+  partagé se **masque** ; ce qui n'alimente rien se **cache**. Une
+  `Interaction(type="expense")` n'est donc jamais retirée d'une liste — sept
+  agrégations la lisent, et la cacher sans la retirer des totaux donnerait au budget
+  « Bricolage » deux valeurs selon le lecteur. Son secret porte sur le **contenu**.
+  L'exception vit dans `interactions.visibility`, importée par la vue **et** par le
+  spec — un seul endroit décide, deux portes obéissent.
+- **Un compteur compte par lecteur.** Un onglet qui annonce « Tâches (3) » et en
+  sert deux ne se contente pas d'être faux : il **trahit l'existence** de l'item
+  privé à qui sait soustraire. Hors argent, privé veut dire absent *sans trace* —
+  et un compteur qui déborde est une trace.
+- **Aucun marqueur « 1 élément privé ».** Le dépôt applique ailleurs la règle
+  inverse (parcours 26 : rien ne reste dans un entre-deux silencieux) ; ici elle ne
+  s'applique pas, et il faut savoir dire pourquoi : sur un foyer de deux personnes,
+  un marqueur anonyme **désigne son auteur**.
+- **Le catalogue ne peut pas prendre de retard.** Un modèle portant le drapeau est
+  couvert par un test ou exempté **par écrit**, et s'il est searchable il déclare
+  aussi sa restriction de spec. Même règle que `banking.compliance.REGISTRY` :
+  ajouter un mécanisme, c'est ajouter sa déclaration.
+
+**Pourquoi un test et pas une relecture :** le défaut est invisible deux fois. En
+revue, un `get_queryset()` qui oublie la clause ressemble trait pour trait à celui
+qui la porte. À l'usage, il faut **deux comptes dans le même foyer** pour s'en
+apercevoir — c'est-à-dire précisément ce qu'un développeur seul n'a jamais sous la
+main.
+
 ## Commandes utiles
 
 ### Backend Django
