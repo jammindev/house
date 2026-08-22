@@ -20,8 +20,8 @@ personne ne l'a vu, parce que le défaut est invisible deux fois :
 D'où la forme : le test ne vérifie pas trois vues, il vérifie **la règle**, et
 refuse qu'un cinquième modèle privatisable arrive sans se déclarer.
 
-Les trois parties sont nécessaires
-----------------------------------
+Les quatre parties sont nécessaires
+-----------------------------------
 
 1. **Structurelle** — aucune vue n'expose ``is_private`` en filtre. Sans ce
    contrôle, la partie n°2 se laisse contourner : le queryset a beau borner, un
@@ -31,6 +31,15 @@ Les trois parties sont nécessaires
    C'est le seul contrôle qui compare le *code* à ce que l'API sert vraiment.
 3. **Complétude** — un modèle portant le drapeau doit être couvert ou exempté.
    Sans elle, les deux premières restent vertes en ignorant le nouveau venu.
+4. **La porte de l'agent** — un modèle privatisable *et* searchable doit
+   déclarer sa ``visibility`` de ``SearchableSpec``. Les trois premières parties
+   ne regardent que les listes REST, et **une liste bornée ne borne pas ⌘K** :
+   la palette du haut, ``search_household``, ``get_entity``, ``get_related``,
+   ``list_entities`` et le contexte ancré lisent le registre de retrieval, pas la
+   vue. Un seul spec sur quatre le déclarait (``documents``), si bien que la
+   tâche privée d'un membre était absente de sa liste et citable par l'assistant
+   — deux définitions de ce qu'un lecteur a le droit de voir, et c'est la plus
+   permissive qui gagnait en silence.
 
 Limite connue : la partie n°1 lit ``filterset_fields``, pas un éventuel
 ``filterset_class`` (le dépôt n'en utilise aucun). Le jour où l'un apparaît, il
@@ -65,18 +74,18 @@ def _is_project_app(app_config) -> bool:
 # Même convention que ``EXEMPT_FIELDS`` dans ``test_write_isolation`` : une
 # exemption est une dette **nommée**, avec sa raison et ce qui protège à la
 # place. Le silence, lui, ne se relit pas.
+#
+# Le dictionnaire est vide, et c'est un acquis récent : les quatre modèles
+# portant le drapeau sont couverts. ``interactions.Interaction`` y a longtemps
+# figuré, parce que filtrer une dépense supposait d'avoir décidé ce que
+# « dépense privée » veut dire. C'est tranché : l'argent ne **disparaît** jamais
+# d'une liste — sept agrégations le lisent — il se **masque**. La liste borne
+# donc tout sauf les dépenses (``interactions.visibility``), et le masquage de
+# leur contenu est le lot 4 du parcours 33. Voir
+# ``TestAPrivateExpenseIsNeverHidden`` plus bas : le report est un choix écrit,
+# pas un oubli.
 
-EXEMPT_MODELS: dict[str, str] = {
-    "interactions.Interaction": (
-        "Une interaction de type 'expense' alimente interactions.queries.expenses(), "
-        "point de vérité unique de sept agrégations (barre de budget, coverage_ratio, "
-        "Project.actual_cost, bilan mensuel, détecteurs de conformité). La masquer en "
-        "liste sans la retirer des totaux donnerait deux définitions au même compteur — "
-        "exactement ce que CLAUDE.md interdit. Filtrer ici suppose d'avoir décidé ce que "
-        "« dépense privée » veut dire ; tant que ce n'est pas tranché, la porte la plus "
-        "large (le filtre ?is_private=) est fermée par la moitié n°1 de ce fichier."
-    ),
-}
+EXEMPT_MODELS: dict[str, str] = {}
 
 
 def _models_with_is_private():
@@ -207,6 +216,30 @@ class TestAPrivateItemStaysWithItsAuthor:
             client.get(reverse("document-list"), params), "name"
         )
 
+    def test_note(self, duo):
+        from django.utils import timezone
+
+        from interactions.models import Interaction
+
+        household, alice, bob = duo
+        Interaction.objects.create(
+            household=household, created_by=alice,
+            subject="Idée de cadeau pour Bob", type="note", is_private=True,
+            # Contrainte ``interactions_occurred_at_required`` : une entrée de
+            # journal sans date n'est pas une entrée de journal.
+            occurred_at=timezone.now(),
+        )
+
+        client, params = _as(bob, household)
+        assert "Idée de cadeau pour Bob" not in _labels(
+            client.get(reverse("interaction-list"), params), "subject"
+        )
+
+        client, params = _as(alice, household)
+        assert "Idée de cadeau pour Bob" in _labels(
+            client.get(reverse("interaction-list"), params), "subject"
+        )
+
     def test_briefing(self, duo):
         from briefings.models import Briefing
 
@@ -227,6 +260,47 @@ class TestAPrivateItemStaysWithItsAuthor:
         )
 
 
+@pytest.mark.django_db
+class TestAPrivateExpenseIsNeverHidden:
+    """L'exception, et la seule — écrite ici pour qu'on ait à la changer sciemment.
+
+    Une dépense privée reste servie à tout le foyer. Ce n'est pas un trou dans la
+    règle du dessus, c'est l'arbitrage du parcours 33 : ``Interaction(type=
+    "expense")`` alimente ``interactions.queries.expenses()``, point de vérité
+    unique de sept agrégations. La retirer d'une liste sans la retirer des totaux
+    donnerait au budget « Bricolage » deux valeurs selon le lecteur — « un compteur
+    ne peut pas avoir deux définitions ».
+
+    Le secret d'une dépense porte donc sur son **contenu**, pas sur son existence :
+    le lot 4 remplacera sujet, fournisseur et projet source par « Dépense privée »
+    pour les autres membres. Tant que ce masquage n'est pas là, ce test échouera si
+    quelqu'un « corrige » l'exception en la cachant — ce qui est précisément le but.
+    """
+
+    def test_the_other_member_still_sees_the_row(self, duo):
+        from decimal import Decimal
+
+        from django.utils import timezone
+
+        from interactions.models import Interaction
+
+        household, alice, bob = duo
+        Interaction.objects.create(
+            household=household, created_by=alice,
+            subject="Achat — Terrasse", type="expense", is_private=True,
+            amount=Decimal("250.00"), occurred_at=timezone.now(),
+        )
+
+        client, params = _as(bob, household)
+        subjects = _labels(client.get(reverse("interaction-list"), params), "subject")
+        assert "Achat — Terrasse" in subjects, (
+            "Une dépense privée doit rester servie : sept agrégations la lisent, et "
+            "la cacher en liste sans la retirer des totaux donne deux définitions au "
+            "même compteur. Ce qui doit disparaître pour Bob, c'est le *contenu* — "
+            "voir le lot 4 du parcours 33."
+        )
+
+
 # ── 3. Le catalogue ne peut pas prendre de retard sur le code ────────────────
 
 
@@ -238,7 +312,12 @@ class TestEveryPrivatisableModelIsAccountedFor:
     ajouter un mécanisme, c'est ajouter son détecteur.
     """
 
-    COVERED = {"tasks.Task", "documents.Document", "briefings.Briefing"}
+    COVERED = {
+        "tasks.Task",
+        "documents.Document",
+        "briefings.Briefing",
+        "interactions.Interaction",
+    }
 
     def test_no_model_carries_the_flag_without_a_test_or_a_named_exemption(self):
         accounted = self.COVERED | set(EXEMPT_MODELS)
@@ -256,4 +335,45 @@ class TestEveryPrivatisableModelIsAccountedFor:
         assert not stale, (
             f"Ces entrées ne correspondent plus à aucun modèle : {sorted(stale)}. "
             "Une exemption périmée a l'air de faire autorité en étant fausse."
+        )
+
+
+# ── 4. La porte de l'agent : une liste bornée ne borne pas ⌘K ────────────────
+
+
+class TestEveryPrivatisableModelGuardsTheAgentDoor:
+    """Un modèle privatisable et searchable déclare sa ``visibility`` de spec.
+
+    Les trois parties du dessus ne regardent que les listes REST. Or six autres
+    portes lisent le **registre de retrieval** et jamais la vue : la palette ⌘K,
+    le tool ``search_household``, ``get_entity``, ``get_related``,
+    ``list_entities`` et le contexte d'une conversation ancrée. Un seul spec sur
+    quatre déclarait la restriction (``documents``), si bien qu'une tâche privée
+    était absente de sa propre liste et citable par l'assistant de n'importe quel
+    autre membre.
+
+    Le contrôle est structurel et pas comportemental, exprès : énumérer les six
+    portes dans un test finirait par en oublier une septième, alors que la
+    déclaration, elle, les ferme toutes d'un coup. C'est le même choix que pour
+    ``banking.compliance.REGISTRY`` — on vérifie que le mécanisme est *déclaré*,
+    pas qu'il a été recopié partout.
+    """
+
+    def test_no_searchable_model_carries_the_flag_without_declaring_visibility(self):
+        from agent import searchables
+
+        privatisable = {model for model in _models_with_is_private()}
+        offenders = [
+            spec.entity_type
+            for spec in searchables.REGISTRY
+            if spec.model in privatisable and spec.visibility is None
+        ]
+        assert not offenders, (
+            "Ces entités portent is_private et sont searchables sans déclarer "
+            f"`visibility=` : {sorted(offenders)}. Le queryset de leur vue a beau "
+            "borner, la palette du haut, l'agent et le contexte ancré lisent le "
+            "registre de retrieval — pas la vue. Déclarer la restriction dans le "
+            "SearchableSpec, depuis l'app propriétaire "
+            "(core.visibility.visible_to_creator pour le couple is_private / "
+            "created_by)."
         )

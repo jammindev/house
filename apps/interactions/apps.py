@@ -10,6 +10,7 @@ class InteractionsConfig(AppConfig):
         from agent.searchables import SearchableSpec, register
         from agent.writables import WritableSpec, register as register_writable
         from .models import Interaction
+        from .visibility import visible_interactions
 
         register(SearchableSpec(
             entity_type='interaction',
@@ -17,6 +18,10 @@ class InteractionsConfig(AppConfig):
             search_fields=('subject', 'content'),
             label_attr='subject',
             url_template='/app/interactions/{id}',
+            # Même restriction que la liste REST, par le même helper — c'est tout
+            # l'intérêt de le sortir dans ``interactions.visibility`` : la palette
+            # du haut et la page Activité ne peuvent plus se contredire.
+            visibility=visible_interactions,
         ))
 
         register_writable(WritableSpec(

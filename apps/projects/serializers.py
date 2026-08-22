@@ -124,7 +124,9 @@ class ProjectSerializer(serializers.ModelSerializer):
         view = self.context.get("view")
         if view is not None and getattr(view, "action", None) != "retrieve":
             return None
-        return project_tab_counts(obj)
+        request = self.context.get("request")
+        viewer = request.user if request and request.user.is_authenticated else None
+        return project_tab_counts(obj, viewer)
 
     def get_is_pinned(self, obj):
         request = self.context.get("request")
