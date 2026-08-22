@@ -10,7 +10,7 @@ from .models import (
     ProjectZone,
     UserPinnedProject,
 )
-from .assistant import MAX_QUESTIONS
+from .assistant import MAX_NOTES, MAX_QUESTIONS, MAX_TASKS
 from .services import project_actual_cost, project_tab_counts
 
 
@@ -165,7 +165,15 @@ class ProjectSerializer(serializers.ModelSerializer):
     def _sync_zones(self, project, zone_ids):
         request = self.context.get("request")
         ids = [str(z) for z in zone_ids]
-        zones = list(Zone.objects.for_user_households(request.user).filter(id__in=ids))
+        # Un service métier n'a pas de `request` — l'agent n'en a jamais eu, la
+        # création assistée non plus. Sans lui on borne au foyer **du projet**,
+        # ce qui est *plus* strict que le scope multi-foyers d'un appelant HTTP :
+        # le contrôle d'appartenance juste en dessous reste vrai dans les deux cas.
+        if request is not None:
+            candidates = Zone.objects.for_user_households(request.user)
+        else:
+            candidates = Zone.objects.filter(household_id=project.household_id)
+        zones = list(candidates.filter(id__in=ids))
         if len(zones) != len(set(ids)):
             raise serializers.ValidationError(
                 {"zone_ids": "One or more zones are invalid or inaccessible."}
@@ -195,6 +203,110 @@ class ProjectZoneSerializer(serializers.ModelSerializer):
         fields = ["project", "zone", "created_at", "created_by"]
         read_only_fields = ["created_at", "created_by"]
 
+
+
+class PlanTaskSerializer(serializers.Serializer):
+    """Une tâche du plan, telle que l'utilisateur l'a relue et corrigée.
+
+    `zone_ids` porte des **ids**, jamais des noms : la résolution nom → id a déjà
+    eu lieu au tour d'entretien (`assistant.resolve_plan_zones`), pour que l'écran
+    affiche des pièces réelles avant que rien ne soit écrit. Accepter des noms ici
+    rouvrirait un second chemin de désignation, donc deux définitions de « la
+    chambre ».
+    """
+
+    subject = serializers.CharField(max_length=500)
+    content = serializers.CharField(allow_blank=True, default="")
+    priority = serializers.IntegerField(
+        min_value=1, max_value=5, required=False, allow_null=True
+    )
+    due_date = serializers.DateField(required=False, allow_null=True)
+    zone_ids = serializers.ListField(
+        child=serializers.UUIDField(), required=False, default=list, max_length=10
+    )
+
+
+class PlanNoteSerializer(serializers.Serializer):
+    """Une note du plan. Pas de priorité ni d'échéance : une note n'est pas une
+    tâche, et lui en donner ferait des notes une deuxième liste de choses à
+    faire."""
+
+    subject = serializers.CharField(max_length=500)
+    content = serializers.CharField(allow_blank=True, default="")
+    zone_ids = serializers.ListField(
+        child=serializers.UUIDField(), required=False, default=list, max_length=10
+    )
+
+
+class PlanProjectSerializer(serializers.Serializer):
+    """Le projet du plan.
+
+    `type` et `priority` sont nullables parce que le moteur **retire** une valeur
+    qu'il n'a pas su valider plutôt que de la deviner : le champ arrive donc vide,
+    et le défaut du modèle s'applique.
+    """
+
+    title = serializers.CharField(max_length=200)
+    description = serializers.CharField(allow_blank=True, default="")
+    type = serializers.ChoiceField(
+        choices=Project.Type.choices, required=False, allow_null=True
+    )
+    priority = serializers.IntegerField(
+        min_value=1, max_value=5, required=False, allow_null=True
+    )
+    planned_budget = serializers.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        min_value=Decimal("0"),
+        required=False,
+        allow_null=True,
+    )
+    start_date = serializers.DateField(required=False, allow_null=True)
+    due_date = serializers.DateField(required=False, allow_null=True)
+    tags = serializers.ListField(
+        child=serializers.CharField(max_length=60),
+        required=False,
+        default=list,
+        max_length=10,
+    )
+    zone_ids = serializers.ListField(
+        child=serializers.UUIDField(), required=False, default=list, max_length=10
+    )
+
+    def validate(self, attrs):
+        """Deux dates incohérentes se refusent ici, pas dans Postgres.
+
+        `projects_dates_consistent` est un `CheckConstraint` : sans ce contrôle,
+        un plan où le modèle a daté la fin avant le début produit une
+        `IntegrityError`, donc un **500** sur une erreur de contenu parfaitement
+        ordinaire.
+        """
+        start, due = attrs.get("start_date"), attrs.get("due_date")
+        if start and due and due < start:
+            raise serializers.ValidationError(
+                {"due_date": "The due date cannot precede the start date."}
+            )
+        return attrs
+
+
+class ProjectPlanSerializer(serializers.Serializer):
+    """Entrée de `POST /api/projects/projects/assistant-create/`.
+
+    ⚠️ Ce n'est **pas** une sortie de modèle qu'on revalide : entre la génération
+    et cet appel, l'humain a réécrit des titres, corrigé un montant et décoché des
+    lignes. Ce qui arrive ici est du contenu **utilisateur**, et se valide comme
+    n'importe quel POST. Les plafonds sont ceux du moteur (`MAX_TASKS` /
+    `MAX_NOTES`) pour que le refus soit le même des deux côtés : un plan que
+    l'entretien n'aurait pas produit ne doit pas pouvoir entrer par cette porte.
+    """
+
+    project = PlanProjectSerializer()
+    tasks = serializers.ListField(
+        child=PlanTaskSerializer(), required=False, default=list, max_length=MAX_TASKS
+    )
+    notes = serializers.ListField(
+        child=PlanNoteSerializer(), required=False, default=list, max_length=MAX_NOTES
+    )
 
 
 class AssistantTurnSerializer(serializers.Serializer):

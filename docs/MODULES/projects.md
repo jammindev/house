@@ -13,7 +13,7 @@
 ## Modèles & API
 
 - Modèles principaux : `Project` (status, type, dates, budget, cover_interaction) ; `ProjectGroup` ; `ProjectZone` (M2M zones) ; `ProjectDocument` ; `UserPinnedProject`
-- Endpoints exposés : `/api/projects/projects/` (+ `pin/`, `unpin/`, `register-purchase/`, `assistant-step/`, filtres `?zone=`, `?status=`), `/project-groups/`, `/project-zones/`
+- Endpoints exposés : `/api/projects/projects/` (+ `pin/`, `unpin/`, `register-purchase/`, `assistant-step/`, `assistant-create/`, filtres `?zone=`, `?status=`), `/project-groups/`, `/project-zones/`
 - Permissions : `IsAuthenticated, IsHouseholdMember` (pas de custom)
 
 ## Création assistée — l'entretien (parcours 32)
@@ -63,6 +63,59 @@ plan (projet + tâches + notes). Ce que tout changement doit préserver :
   version dégradée** : le formulaire de création est le repli, et il existe déjà.
 - **Throttle dédié `project_assistant` (60/h)** : un entretien vaut jusqu'à sept
   appels au fournisseur. Le plancher global compte des requêtes, pas des euros.
+
+### L'écriture du plan (lot 2)
+
+`POST /api/projects/projects/assistant-create/` →
+`projects.services.create_project_from_plan`. Régression :
+`apps/projects/tests/test_assistant_create.py`.
+
+- **Tout, ou rien.** Une seule `transaction.atomic()` couvre le projet, les tâches
+  **et** les notes. Un chantier créé avec quatre tâches sur six est un demi-succès
+  qui ressemble exactement à un succès, et personne ne saurait dire lesquelles
+  manquent. Une ligne fautive lève une `ValidationError` **préfixée de son
+  numéro** (`_numbered`, patron de `banking.views.set_allocations`) : « une ou
+  plusieurs zones n'appartiennent pas au foyer » sur un plan de huit tâches
+  n'aide personne.
+- **Aucun objet n'est créé à la main.** Le projet passe par `ProjectSerializer`,
+  chaque tâche par `tasks.services.create_task`, chaque note par
+  `interactions.services.create_note_interaction`. Le test compare le résultat des
+  deux chemins plutôt que les deux codes — un service dupliqué ne se voit pas en
+  revue, les deux diffs se ressemblent.
+- **Le projet naît en `draft`, comme celui du formulaire.** L'assistant ne
+  s'octroie pas un statut plus avancé sous prétexte que l'utilisateur vient de
+  relire. Et il ne porte **aucune marque** de provenance : ce qui a été validé est
+  de l'utilisateur (arbitrage du cadrage, à rouvrir le jour où un plan se crée
+  sans relecture).
+- **⚠️ Les zones sont résolues au tour d'entretien, jamais à l'écriture**
+  (`assistant.resolve_plan_zones`). C'est l'invariant le plus facile à casser en
+  « simplifiant » : si la résolution nom → id avait lieu ici, une pièce mal nommée
+  par le modèle retomberait sur celles du projet **après** validation, sans que
+  personne puisse le voir ni le corriger — le silence exact que le registre des
+  writables a supprimé ailleurs. Conséquences : `assistant-create` n'accepte que
+  des **ids** (accepter des noms rouvrirait un second chemin de désignation, donc
+  deux définitions de « la chambre »), la désignation passe par
+  `zones.services.resolve_zone` **exclusivement**, ce qui est nommé prime sur
+  l'héritage, un nom introuvable ou ambigu est **rendu à l'écran**
+  (`unresolved_zone_names`) et l'item hérite du projet — jamais rien, sinon
+  `create_task` le rangerait dans la zone racine.
+- **Une erreur de contenu se dit en 400, jamais en 500.** Deux dates dans le
+  mauvais ordre sont refusées par `PlanProjectSerializer.validate` et pas par le
+  `CheckConstraint` `projects_dates_consistent`. Et `_numbered` rattrape aussi
+  `ObjectDoesNotExist`, parce que `TaskSerializer.create` fait un
+  `Zone.objects.get(...)` par zone : une zone supprimée entre l'entretien et la
+  création donnerait sinon un 500. Le même trou existe sur `POST /api/tasks/tasks/`
+  — défaut préexistant, suivi par l'issue #666 ; la borne posée ici est locale et
+  se retire quand `TaskSerializer` validera lui-même.
+- **La création ne demande aucune clé** (pas de `capabilities.require`). Un plan
+  déjà obtenu doit rester créable si la clé tombe entre-temps : refuser ferait
+  perdre une relecture que l'utilisateur vient de faire, pour une raison qui ne le
+  concerne plus. Elle n'est pas non plus soumise au cap `project_assistant` —
+  écrire ne coûte pas d'euros.
+- **Le plan reçu se valide comme une saisie utilisateur**, pas comme une sortie de
+  modèle : entre la génération et cet appel, l'humain a réécrit des titres et
+  décoché des lignes. Les plafonds de `ProjectPlanSerializer` sont ceux du moteur
+  (`MAX_TASKS` / `MAX_NOTES`) pour que le refus soit le même des deux côtés.
 - **Le rayon d'action d'une consigne injectée dans `goal` est borné, et c'est ce
   qui rend le texte libre acceptable.** Le contexte envoyé au modèle ne contient
   que les noms de zones du foyer — que l'appelant voit déjà — et la sortie n'est
