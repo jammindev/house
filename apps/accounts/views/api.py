@@ -120,7 +120,7 @@ class AuthViewSet(viewsets.ViewSet):
             html_body = render_to_string("accounts/emails/password_reset.html", context)
 
             message = EmailMultiAlternatives(
-                subject=str(_("Reset your House password")),
+                subject=str(_("Reset your Maisonnée password")),
                 body=text_body,
                 from_email=settings.DEFAULT_FROM_EMAIL,
                 to=[user.email],

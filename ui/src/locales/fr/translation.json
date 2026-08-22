@@ -835,7 +835,7 @@
     "qr": {
       "openPrintSheet": "Étiquettes QR",
       "printTitle": "Étiquettes QR des pièces",
-      "printIntro": "Imprimez cette planche, découpez les étiquettes et collez-en une dans chaque pièce. Scanner une étiquette avec l’appareil photo ouvre la pièce dans House.",
+      "printIntro": "Imprimez cette planche, découpez les étiquettes et collez-en une dans chaque pièce. Scanner une étiquette avec l’appareil photo ouvre la pièce dans Maisonnée.",
       "printButton": "Imprimer",
       "printEmpty": "Aucune pièce à étiqueter pour l’instant.",
       "scanning": "Lecture de l’étiquette…",

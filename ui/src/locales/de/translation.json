@@ -835,7 +835,7 @@
     "qr": {
       "openPrintSheet": "QR-Etiketten",
       "printTitle": "QR-Etiketten der Räume",
-      "printIntro": "Drucken Sie diesen Bogen, schneiden Sie die Etiketten aus und kleben Sie eines in jeden Raum. Wer ein Etikett mit der Handykamera scannt, öffnet den Raum in House.",
+      "printIntro": "Drucken Sie diesen Bogen, schneiden Sie die Etiketten aus und kleben Sie eines in jeden Raum. Wer ein Etikett mit der Handykamera scannt, öffnet den Raum in Maisonnée.",
       "printButton": "Drucken",
       "printEmpty": "Noch keine Räume zum Etikettieren.",
       "scanning": "Etikett wird gelesen…",

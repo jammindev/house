@@ -835,7 +835,7 @@
     "qr": {
       "openPrintSheet": "Etiquetas QR",
       "printTitle": "Etiquetas QR de las estancias",
-      "printIntro": "Imprime esta hoja, recorta las etiquetas y pega una en cada estancia. Escanear una etiqueta con la cámara del móvil abre esa estancia en House.",
+      "printIntro": "Imprime esta hoja, recorta las etiquetas y pega una en cada estancia. Escanear una etiqueta con la cámara del móvil abre esa estancia en Maisonnée.",
       "printButton": "Imprimir",
       "printEmpty": "Todavía no hay estancias que etiquetar.",
       "scanning": "Leyendo la etiqueta…",
