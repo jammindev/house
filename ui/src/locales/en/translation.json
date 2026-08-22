@@ -835,7 +835,7 @@
     "qr": {
       "openPrintSheet": "QR labels",
       "printTitle": "Zone QR labels",
-      "printIntro": "Print this sheet, cut out the labels and stick one in each room. Scanning a label with your phone camera opens that room in House.",
+      "printIntro": "Print this sheet, cut out the labels and stick one in each room. Scanning a label with your phone camera opens that room in Maisonnée.",
       "printButton": "Print",
       "printEmpty": "No zones to label yet.",
       "scanning": "Reading the label…",
@@ -1059,7 +1059,7 @@
     "themeLight": "Light",
     "themeDark": "Dark",
     "themeSystem": "System",
-    "colorThemeHouse": "Maisonnée",
+    "colorThemeHouse": "House",
     "colorThemeBlue": "Blue",
     "colorThemeSass": "Sass",
     "colorThemeSage": "Sage",

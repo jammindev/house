@@ -35,7 +35,7 @@ INSTALLED_APPS = [
     "drf_spectacular",
     "corsheaders",
     "django_filters",
-    # House apps
+    # Maisonnée apps
     "core",
     "accounts",
     "households",
@@ -304,8 +304,8 @@ DEMO_EMAIL = ""
 DEMO_PASSWORD = ""
 
 SPECTACULAR_SETTINGS = {
-    "TITLE": "House API",
-    "DESCRIPTION": "OpenAPI schema for House Django REST API.",
+    "TITLE": "Maisonnée API",
+    "DESCRIPTION": "OpenAPI schema for the Maisonnée Django REST API.",
     "VERSION": "1.0.0",
 }
 
