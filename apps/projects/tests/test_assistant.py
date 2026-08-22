@@ -410,6 +410,60 @@ class TestWhatTheModelIsGivenAndWhatItMayGiveBack:
         assert "Chantier déjà là" not in complete.call_args.kwargs["user"]
 
 
+@pytest.mark.usefixtures("with_key")
+class TestThePlanCarriesRealRoomsNotNames:
+    """Ce qui est relu doit être exactement ce qui sera écrit.
+
+    La résolution nom → id a lieu **ici**, au tour d'entretien, et pas à
+    l'écriture : sinon une pièce mal nommée par le modèle retomberait sur celles
+    du projet *après* que l'utilisateur a validé, donc sans qu'il puisse le voir
+    ni le corriger. Le détail du comportement est testé dans
+    `test_assistant_create.py::TestZonesInheritThenRefine` ; ici on vérifie que le
+    contrat de l'endpoint le reflète.
+    """
+
+    def test_the_step_answers_with_ids_and_never_with_names(
+        self, household, rooms, owner_client
+    ):
+        with patch("projects.assistant.get_llm_client") as get_client:
+            get_client.return_value.complete.return_value = _plan()
+
+            response = owner_client.post(STEP_URL, _body(force_ready=True), format="json")
+
+        project = response.data["plan"]["project"]
+        assert project["zone_ids"] == [str(rooms[0].id)]  # « Jardin »
+        assert "zone_names" not in project
+        assert all("zone_names" not in task for task in response.data["plan"]["tasks"])
+
+    def test_an_item_without_a_room_inherits_the_project_s(
+        self, household, rooms, owner_client
+    ):
+        with patch("projects.assistant.get_llm_client") as get_client:
+            get_client.return_value.complete.return_value = _plan()
+
+            response = owner_client.post(STEP_URL, _body(force_ready=True), format="json")
+
+        tasks = response.data["plan"]["tasks"]
+        assert tasks[0]["zone_ids"] == [str(rooms[0].id)]   # hérite du Jardin
+        assert tasks[1]["zone_ids"] == [str(rooms[1].id)]   # a nommé le Garage
+
+    def test_a_room_this_home_does_not_have_is_reported(
+        self, household, rooms, owner_client
+    ):
+        """L'écran doit pouvoir dire « je n'ai pas trouvé « véranda » » plutôt
+        que de ranger dans le jardin sans un mot."""
+        with patch("projects.assistant.get_llm_client") as get_client:
+            get_client.return_value.complete.return_value = _plan(
+                tasks=[{"subject": "Poser les lames", "zone_names": ["véranda"]}]
+            )
+
+            response = owner_client.post(STEP_URL, _body(force_ready=True), format="json")
+
+        task = response.data["plan"]["tasks"][0]
+        assert task["unresolved_zone_names"] == ["véranda"]
+        assert task["zone_ids"] == [str(rooms[0].id)]
+
+
 class TestAnUnconfiguredInstanceSaysSo:
     """PROJ-14 — sans clé, le formulaire reste, et rien ne ment.
 

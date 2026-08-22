@@ -152,7 +152,8 @@ _PLAN_SHAPE = (
     "look up or decide, a task is for something to do. Only set planned_budget "
     "to a value the user actually gave you — never to an estimate of your own. "
     "Leave zone_names empty on a task or note that happens in the same place as "
-    "the project itself; the app makes it inherit."
+    "the project itself — the app makes it inherit. Only name a room on an item "
+    "that really happens somewhere else."
 )
 
 
@@ -208,8 +209,82 @@ def next_step(
         asked=asked,
         remaining=0 if step.state == "ready" else remaining,
         question=step.question,
-        plan=step.plan,
+        # Les noms de pièces deviennent des ids **ici**, avant que l'écran
+        # n'affiche quoi que ce soit : ce qui est relu doit être exactement ce
+        # qui sera écrit. Voir `resolve_plan_zones`.
+        plan=resolve_plan_zones(household, step.plan) if step.plan else None,
     )
+
+
+def resolve_plan_zones(household, plan: Plan) -> Plan:
+    """Remplace les noms de pièces du plan par des ids — et nomme les échecs.
+
+    C'est la décision la plus importante du module après le plafond, et elle
+    répond à un silence : si la résolution avait lieu à **l'écriture**, une pièce
+    mal nommée par le modèle retomberait sur les zones du projet *après* que
+    l'utilisateur a validé, donc sans qu'il puisse le voir ni le corriger. On
+    reproduirait exactement le défaut que le registre des writables a supprimé
+    ailleurs — « un rattachement introuvable n'écrit rien, sinon on reproduit le
+    silence d'origine avec une confirmation par-dessus ».
+
+    En résolvant ici, le plan que l'écran affiche porte des zones **réelles**,
+    éditables dans le sélecteur habituel, et ce qui n'a pas été trouvé est dit
+    (`unresolved_zone_names`) au lieu d'être absorbé.
+
+    Trois règles :
+
+    - la désignation passe par ``zones.services.resolve_zone``, **exclusivement** :
+      un seul endroit décide ce que « la chambre » veut dire, et c'est lui qui
+      borne au foyer ;
+    - ce qui est nommé explicitement **prime** sur l'héritage — une tâche « couper
+      l'eau au sous-sol » va au sous-sol, pas au jardin du chantier ;
+    - un item sans zone nommée (ou dont aucun nom ne résout) **hérite** de celles
+      du projet. Jamais rien : `create_task` rangerait la tâche dans la zone
+      racine, ce qui est plus faux qu'un rattachement approximatif au bon
+      chantier.
+    """
+    project = dict(plan.project)
+    project_ids, project_unresolved = _zone_ids(household, project.pop("zone_names", []))
+    project["zone_ids"] = project_ids
+    project["unresolved_zone_names"] = project_unresolved
+
+    return Plan(
+        project=project,
+        tasks=tuple(_with_zones(household, item, project_ids) for item in plan.tasks),
+        notes=tuple(_with_zones(household, item, project_ids) for item in plan.notes),
+    )
+
+
+def _with_zones(household, item: dict, inherited: list[str]) -> dict:
+    resolved = dict(item)
+    ids, unresolved = _zone_ids(household, resolved.pop("zone_names", []))
+    resolved["zone_ids"] = ids or list(inherited)
+    resolved["unresolved_zone_names"] = unresolved
+    return resolved
+
+
+def _zone_ids(household, names) -> tuple[list[str], list[str]]:
+    """Les ids trouvés, et les noms qui n'ont rien donné.
+
+    On appelle ``resolve_zone`` nom par nom au lieu de ``resolve_zone_ids``, qui
+    lève au **premier** échec : un plan de huit tâches ne doit pas être perdu
+    parce qu'une seule désigne une pièce que ce foyer n'a pas. Un nom ambigu
+    (« chambre » quand il y en a trois) est traité comme un échec et **nommé** :
+    ranger au hasard serait pire que demander.
+    """
+    from zones.services import resolve_zone
+
+    found: list[str] = []
+    missing: list[str] = []
+    for name in names or []:
+        try:
+            zone_id = str(resolve_zone(household, name).id)
+        except ValueError:
+            missing.append(str(name))
+            continue
+        if zone_id not in found:
+            found.append(zone_id)
+    return found, missing
 
 
 def _user_message(household, *, subject: str, turns: list[dict], language: str) -> str:
