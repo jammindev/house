@@ -12,7 +12,7 @@
 
 ## Modèles & API
 
-- Modèles principaux : `Project` (status, type, dates, budget, cover_interaction) ; `ProjectGroup` ; `ProjectZone` (M2M zones) ; `ProjectDocument` ; `UserPinnedProject`
+- Modèles principaux : `Project` (status, type, dates, budget, `default_budget`, cover_interaction) ; `ProjectGroup` ; `ProjectZone` (M2M zones) ; `ProjectDocument` ; `UserPinnedProject`
 - Endpoints exposés : `/api/projects/projects/` (+ `pin/`, `unpin/`, `register-purchase/`, `assistant-step/`, `assistant-create/`, filtres `?zone=`, `?status=`), `/project-groups/`, `/project-zones/`
 - Permissions : `IsAuthenticated, IsHouseholdMember` (pas de custom)
 
@@ -63,6 +63,13 @@ plan (projet + tâches + notes). Ce que tout changement doit préserver :
   version dégradée** : le formulaire de création est le repli, et il existe déjà.
 - **Throttle dédié `project_assistant` (60/h)** : un entretien vaut jusqu'à sept
   appels au fournisseur. Le plancher global compte des requêtes, pas des euros.
+- **Le rayon d'action d'une consigne injectée dans `goal` est borné, et c'est ce
+  qui rend le texte libre acceptable.** Le contexte envoyé au modèle ne contient
+  que les noms de zones du foyer — que l'appelant voit déjà — et la sortie n'est
+  jamais écrite : au pire, un membre se fabrique à lui-même un plan absurde,
+  qu'il lit avant de le créer. Cette phrase cesse d'être vraie le jour où le
+  contexte s'enrichit (documents du lot 5, budgets du lot 4) ou où un plan se
+  crée sans relecture : il faudra alors reposer la question.
 
 ### L'écriture du plan (lot 2)
 
@@ -116,13 +123,90 @@ plan (projet + tâches + notes). Ce que tout changement doit préserver :
   modèle : entre la génération et cet appel, l'humain a réécrit des titres et
   décoché des lignes. Les plafonds de `ProjectPlanSerializer` sont ceux du moteur
   (`MAX_TASKS` / `MAX_NOTES`) pour que le refus soit le même des deux côtés.
-- **Le rayon d'action d'une consigne injectée dans `goal` est borné, et c'est ce
-  qui rend le texte libre acceptable.** Le contexte envoyé au modèle ne contient
-  que les noms de zones du foyer — que l'appelant voit déjà — et la sortie n'est
-  jamais écrite : au pire, un membre se fabrique à lui-même un plan absurde,
-  qu'il lit avant de le créer. Cette phrase cesse d'être vraie le jour où le
-  contexte s'enrichit (documents du lot 5, budgets du lot 4) ou où un plan se
-  crée sans relecture : il faudra alors reposer la question.
+
+### L'écran (lot 3)
+
+`ui/src/features/projects/assistant/` — `ProjectAssistantDialog` (SheetDialog, deux
+phases), `ProjectAssistantInterview`, `AnswerField`, `ProjectAssistantReview`, et
+`plan.ts` pour la construction du payload. Régressions :
+`plan.test.ts` et `e2e/project-assistant.spec.ts`.
+
+- **Le bouton est absent sans la capacité, jamais grisé** (`useCapability('project_assistant')`).
+  Un bouton grisé promet et dément dans le même geste — et il n'y a rien à
+  promettre : le formulaire de création est juste à côté et **est** le repli.
+- **La bascule vers la relecture est décidée par le serveur** (`state === 'ready'`),
+  jamais par un compte de questions tenu dans le composant. Deux compteurs pour la
+  même chose finissent par se contredire, et c'est celui du serveur qui décide.
+- **`AnswerField` ne pose aucune taille de police.** `tailwind-merge` fait gagner
+  le dernier de la même famille : un `text-sm` ajouté pour tasser un champ
+  effacerait le `text-base` du design-system et ferait zoomer iOS à l'ouverture du
+  dialogue. La décision vit dans `fieldBase`, à un seul endroit.
+- **Une question d'argent se répond dans un `DecimalInput`, et le champ arrive
+  vide.** La fourchette de prix est rendue *à côté* (`question.hint`) — jamais
+  dedans. Vérifié en vrai navigateur, parce qu'un champ vide contre un champ
+  pré-rempli est une propriété du rendu et pas de la réponse HTTP.
+- **Un tour raté ne perd rien** : l'historique n'est commité qu'au succès de
+  l'appel. La version naïve (écrire l'historique avant) affichait la question
+  **deux fois** quand le modèle répondait de travers — une fois dans l'historique,
+  une fois comme question courante. Et « J'ai assez dit » emporte la réponse en
+  cours si elle a été tapée : sans ça, quelqu'un qui saisit son budget puis conclut
+  voit son montant disparaître.
+- **La mutation de création déclare trois racines** :
+  `invalidate('projects', 'tasks', 'interactions')`. Un `invalidate('projects')`
+  seul ne suffirait pas — le graphe de `lib/invalidate.ts` dit « le projet *lit*
+  les tâches et les interactions », donc écrire `projects` périme le dashboard mais
+  **pas** la liste des tâches ni le journal. Or cette écriture y crée vraiment des
+  lignes.
+- **Le brouillon ne partage aucune référence avec la réponse en cache** (`toDraft`
+  copie) : sinon éditer la relecture muterait la réponse de React Query, et
+  rouvrir le dialogue afficherait les corrections comme si elles venaient du
+  modèle.
+- **`unresolved_zone_names` est de l'affichage et ne repart jamais** dans la
+  requête. C'est le pendant écran de la règle du lot 2 : ce que le serveur n'a pas
+  su rattacher se **dit**, une fois, en tête de relecture.
+- **Le test e2e stube l'entretien et pas la création.** « Le fournisseur répond-il »
+  n'a rien à faire dans un test ; « le plan relu arrive-t-il en base, et seulement
+  ce qui était coché » ne se prouve qu'en traversant le vrai backend.
+
+### L'enveloppe du chantier (lot 4)
+
+`Project.default_budget` → `budget.Budget`, nullable, `SET_NULL`. Régression :
+`apps/projects/tests/test_assistant_budget.py`.
+
+- **⚠️ Une enveloppe créée pour un chantier n'est jamais plafonnée**
+  (`monthly_amount=None`). C'est l'invariant le plus tentant à « corriger » :
+  `Budget` est une enveloppe **mensuelle** et un chantier est un one-shot, donc
+  dériver un plafond de `planned_budget` inventerait un chiffre — et une fois les
+  travaux finis, la barre afficherait « 0 € / 3 200 € » tous les mois pour
+  toujours. Le plafond du chantier reste `planned_budget` ; l'enveloppe n'est
+  qu'un **axe de classement**, ce qui est exactement sa définition (« le budget
+  est la catégorie »).
+- **La désignation se fait par nom, résolue au tour d'entretien**, exactement
+  comme les zones : le modèle propose un nom, `budget.services.resolve_budget_by_name`
+  décide s'il désigne une enveloppe existante (`mode='existing'`) ou une à créer
+  (`mode='new'`). C'est le seul endroit qui sait ce que « Travaux » veut dire, et
+  la comparaison ignore casse et accents.
+- **Le budget global n'est jamais une option** — ni dans le contexte envoyé au
+  modèle, ni par `resolve_budget_by_name`, ni par un id venu du client. Il ne
+  classe rien, il plafonne tout : imputer un chantier au plafond du foyer n'a
+  aucun sens, et un modèle à qui on montre une option la choisit un jour.
+- **`mode='new'` sur un nom déjà pris rend l'existante.** L'utilisateur peut
+  renommer l'enveloppe dans l'écran de relecture, et
+  `unique_budget_name_per_household` transformerait la collision en
+  `IntegrityError`, donc en 500 sur une saisie ordinaire. Ce qu'il a demandé,
+  c'est « une enveloppe nommée X » : elle existe, on la prend.
+- **La création passe par `budget.services.create_budget`**, jamais par l'ORM —
+  c'est lui qui valide par le serializer et tient le scope foyer.
+- **« Aucune enveloppe » est un choix légitime**, pas un oubli à réparer tout de
+  suite : le détecteur `expense_without_budget` posera la question au premier
+  euro, ce qui est le bon moment.
+- **`SET_NULL`, jamais `CASCADE`** : supprimer une enveloppe est supprimer une
+  rubrique, et une rubrique qui disparaît ne doit pas emporter le chantier qui la
+  citait.
+- Côté écran, `ProjectPurchaseDialog` passe `initialBudgetId={project.default_budget}`
+  à `PurchaseForm` — **modifiable** : c'est un défaut, pas une contrainte. Sans
+  lui, chaque achat repartait sur « aucun budget », donc sur l'écart que l'app
+  aurait ensuite réclamé de réparer.
 
 ## Notes / décisions produit
 
