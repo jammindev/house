@@ -54,31 +54,54 @@ def project_actual_cost(project) -> Decimal:
     )["total"]
 
 
-def project_tab_counts(project) -> dict[str, int]:
+def project_tab_counts(project, viewer=None) -> dict[str, int]:
     """Number of items behind each tab of the project detail page.
 
     Consumed by ``ProjectSerializer`` (detail only) so the frontend can hide
     empty tabs. Handful of aggregate queries — acceptable for a single object,
     NOT to be used on a list (would N+1). Mirrors exactly what each tab shows:
     active trackers only, documents excluding photos, interactions split by type.
+
+    ⚠️ ``viewer`` n'est pas un raffinement, c'est la condition pour que le nombre
+    veuille dire quelque chose. Ces compteurs comptaient **tout le foyer** pendant
+    que les listes derrière chaque onglet filtrent la confidentialité : Bob lisait
+    « Tâches (3) » et l'onglet lui en servait deux. Un compteur ne peut pas avoir
+    deux définitions — et celui-ci trahissait en prime l'existence de la tâche
+    privée d'Alice, alors que hors argent « privé » veut dire absent, sans trace.
+
+    ``viewer=None`` reste fail-closed (voir ``core.visibility``) : un appelant qui
+    oublie le lecteur sous-compte, il ne fuit pas.
     """
     from django.contrib.contenttypes.models import ContentType
 
-    from documents.models import DocumentLink
+    from core.visibility import visible_to_creator
+    from documents.models import Document, DocumentLink
     from interactions.models import Interaction
+    from interactions.visibility import visible_interactions
     from tasks.models import Task
     from trackers.models import Tracker
 
     from .models import Project
 
     project_ct = ContentType.objects.get_for_model(Project)
-    interactions = Interaction.objects.filter(
-        source_content_type=project_ct, source_object_id=project.id
+    interactions = visible_interactions(
+        Interaction.objects.filter(
+            source_content_type=project_ct, source_object_id=project.id
+        ),
+        viewer,
     )
-    links = DocumentLink.objects.filter(content_type=project_ct, object_id=project.id)
+    # Le lien n'a pas de drapeau : c'est le **document** qu'il pointe qui en porte
+    # un. On borne donc par les documents lisibles, plutôt que de réécrire ici la
+    # règle avec un préfixe de relation — deux écritures de la même règle, et c'est
+    # toujours la plus permissive qui gagne en silence.
+    links = DocumentLink.objects.filter(
+        content_type=project_ct,
+        object_id=project.id,
+        document__in=visible_to_creator(Document.objects.all(), viewer),
+    )
 
     return {
-        "tasks": Task.objects.filter(project=project).count(),
+        "tasks": visible_to_creator(Task.objects.filter(project=project), viewer).count(),
         "trackers": Tracker.objects.filter(project=project, is_active=True).count(),
         "notes": interactions.filter(type="note").count(),
         "expenses": interactions.filter(type="expense").count(),

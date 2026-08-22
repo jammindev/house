@@ -63,6 +63,13 @@ plan (projet + tâches + notes). Ce que tout changement doit préserver :
   version dégradée** : le formulaire de création est le repli, et il existe déjà.
 - **Throttle dédié `project_assistant` (60/h)** : un entretien vaut jusqu'à sept
   appels au fournisseur. Le plancher global compte des requêtes, pas des euros.
+- **Le rayon d'action d'une consigne injectée dans `goal` est borné, et c'est ce
+  qui rend le texte libre acceptable.** Le contexte envoyé au modèle ne contient
+  que les noms de zones du foyer — que l'appelant voit déjà — et la sortie n'est
+  jamais écrite : au pire, un membre se fabrique à lui-même un plan absurde,
+  qu'il lit avant de le créer. Cette phrase cesse d'être vraie le jour où le
+  contexte s'enrichit (documents du lot 5, budgets du lot 4) ou où un plan se
+  crée sans relecture : il faudra alors reposer la question.
 
 ### L'écriture du plan (lot 2)
 
@@ -160,13 +167,6 @@ phases), `ProjectAssistantInterview`, `AnswerField`, `ProjectAssistantReview`, e
 - **Le test e2e stube l'entretien et pas la création.** « Le fournisseur répond-il »
   n'a rien à faire dans un test ; « le plan relu arrive-t-il en base, et seulement
   ce qui était coché » ne se prouve qu'en traversant le vrai backend.
-- **Le rayon d'action d'une consigne injectée dans `goal` est borné, et c'est ce
-  qui rend le texte libre acceptable.** Le contexte envoyé au modèle ne contient
-  que les noms de zones du foyer — que l'appelant voit déjà — et la sortie n'est
-  jamais écrite : au pire, un membre se fabrique à lui-même un plan absurde,
-  qu'il lit avant de le créer. Cette phrase cesse d'être vraie le jour où le
-  contexte s'enrichit (documents du lot 5, budgets du lot 4) ou où un plan se
-  crée sans relecture : il faudra alors reposer la question.
 
 ## Notes / décisions produit
 

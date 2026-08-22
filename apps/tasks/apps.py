@@ -9,6 +9,7 @@ class TasksConfig(AppConfig):
         from agent.listables import ListableSpec, ListFilter, register as register_listable
         from agent.searchables import SearchableSpec, register
         from agent.writables import WritableSpec, register as register_writable
+        from core.visibility import visible_to_creator
         from .models import Task
 
         register(SearchableSpec(
@@ -17,6 +18,14 @@ class TasksConfig(AppConfig):
             search_fields=('subject', 'content'),
             label_attr='subject',
             url_template='/app/tasks/{id}',
+            # La confidentialité d'une tâche vaut aussi pour l'assistant. La liste
+            # REST la filtre depuis toujours ; la couche de retrieval, elle, ne
+            # connaissait que le **foyer** — donc la tâche privée d'un membre était
+            # cherchable dans ⌘K, citable par l'agent et injectée dans le contexte
+            # ancré de n'importe quel autre membre. Déclarer la restriction ici la
+            # ferme sur les six portes d'un coup (lexical, sémantique, get_entity,
+            # get_related, list_entities, contexte).
+            visibility=visible_to_creator,
         ))
 
         register_writable(WritableSpec(

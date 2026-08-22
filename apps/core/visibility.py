@@ -16,7 +16,7 @@ from __future__ import annotations
 from django.db.models import Q
 
 
-def visible_to_creator(queryset, viewer):
+def visible_to_creator(queryset, viewer, *, never_hidden: Q | None = None):
     """Restreindre ``queryset`` à ce que ``viewer`` a le droit de lire.
 
     Tout ce qui est public, plus les lignes privées dont il est l'auteur.
@@ -28,7 +28,21 @@ def visible_to_creator(queryset, viewer):
 
     Le filtre porte sur ``created_by``, jamais sur le rôle : un owner de foyer
     n'est pas un lecteur privilégié du privé des autres.
+
+    ``never_hidden`` — un sous-ensemble que la confidentialité ne fait jamais
+    **disparaître**, déclaré par l'app propriétaire du modèle. Un seul cas existe,
+    et il est du métier : une dépense alimente sept agrégations d'argent, donc la
+    retirer d'une liste sans la retirer des totaux donnerait deux définitions au
+    même compteur. Son secret porte sur le **contenu**, pas sur l'existence.
+
+    Le paramètre est ici, et pas dans un ``Q`` écrit chez l'appelant, pour que la
+    règle du lecteur — celle qui ne doit jamais diverger — garde **une** seule
+    implémentation. Ce que chaque app décide, c'est son exception ; pas la façon
+    de reconnaître un lecteur.
     """
-    if viewer is None or not getattr(viewer, "is_authenticated", True):
-        return queryset.filter(is_private=False)
-    return queryset.filter(Q(is_private=False) | Q(created_by=viewer))
+    allowed = Q(is_private=False)
+    if viewer is not None and getattr(viewer, "is_authenticated", True):
+        allowed |= Q(created_by=viewer)
+    if never_hidden is not None:
+        allowed |= never_hidden
+    return queryset.filter(allowed)
