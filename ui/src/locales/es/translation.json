@@ -3062,7 +3062,11 @@
         "amountPlaceholder": "Un importe",
         "otherPlaceholder": "…u otra cosa",
         "textPlaceholder": "Tu respuesta"
-      }
+      },
+      "budgetLabel": "Sobre de gastos",
+      "budgetNone": "Sin sobre",
+      "budgetNew": "Crear «{{name}}»",
+      "budgetHint": "Clasifica los gastos del proyecto, no los limita — el límite sigue siendo el presupuesto previsto de arriba."
     }
   },
   "notifications": {
