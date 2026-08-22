@@ -21,12 +21,13 @@ from .models import (
 )
 from .serializers import (
     AssistantStepSerializer,
+    ProjectPlanSerializer,
     ProjectSerializer,
     ProjectGroupSerializer,
     ProjectPurchaseSerializer,
     ProjectZoneSerializer,
 )
-from .services import annotate_actual_cost
+from .services import annotate_actual_cost, create_project_from_plan
 
 logger = logging.getLogger(__name__)
 
@@ -163,6 +164,37 @@ class ProjectViewSet(DocumentLinkActionsMixin, _HouseholdScopedViewSet):
             )
 
         return Response(_serialize_step(step))
+
+    @action(detail=False, methods=["post"], url_path="assistant-create")
+    def assistant_create(self, request):
+        """Écrit le plan relu — projet, tâches, notes — en une transaction.
+
+        **Pas de `capabilities.require` ici, et c'est voulu** : créer un projet ne
+        demande aucune clé. Un plan déjà obtenu doit rester créable si la clé
+        tombe entre-temps — refuser ferait perdre à l'utilisateur un travail de
+        relecture qu'il vient de faire, pour une raison qui ne le concerne plus.
+
+        C'est aussi la moitié « écriture » de la séparation en deux endpoints :
+        celui-ci ne parle à aucun modèle, celui de l'entretien ne sait pas écrire.
+        La garantie « rien n'est écrit avant relecture » tient à ça, pas à un
+        `if`.
+        """
+        household = getattr(request, "household", None)
+        if household is None:
+            raise ValidationError({"household_id": "A valid household context is required."})
+
+        serializer = ProjectPlanSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        project = create_project_from_plan(
+            household, request.user, plan=serializer.validated_data
+        )
+
+        # Relu à travers le queryset annoté pour que la réponse porte
+        # `actual_cost_cached` et les zones, comme n'importe quelle lecture.
+        project = self.get_queryset().get(pk=project.pk)
+        payload = ProjectSerializer(project, context={"request": request}).data
+        return Response(payload, status=drf_status.HTTP_201_CREATED)
 
     @action(detail=True, methods=["post"], url_path="register-purchase")
     def register_purchase(self, request, pk=None):
